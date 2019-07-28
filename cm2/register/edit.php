@@ -5,8 +5,9 @@ require_once dirname(__FILE__).'/../lib/util/cmforms.php';
 require_once dirname(__FILE__).'/register.php';
 
 $onsite_only = isset($_COOKIE['onsite_only']) && $_COOKIE['onsite_only'];
-$active_badge_types = $atdb->list_badge_types(true, false, $onsite_only);
-$sellable_badge_types = $atdb->list_badge_types(true, true, $onsite_only);
+$override_code = isset($_GET['override_code']) ? $_GET['override_code'] : (isset($_POST['override_code']) ? $_POST['override_code'] :'') ;
+$active_badge_types = $atdb->list_badge_types(true, false, $onsite_only, $override_code);
+$sellable_badge_types = $atdb->list_badge_types(true, true, $onsite_only, $override_code);
 if (!$sellable_badge_types) cm_reg_closed();
 
 $badge_type_name_map = $atdb->get_badge_type_name_map();
@@ -106,7 +107,7 @@ if (isset($_POST['submit'])) {
 		cm_reg_cart_reset_promo_code();
 		if ($new) cm_reg_cart_add($item);
 		else cm_reg_cart_set($index, $item);
-		header('Location: cart.php');
+		header('Location: cart.php' . ($override_code != '' ? "?override_code=$override_code" : '' ));
 		exit(0);
 	}
 }
@@ -457,6 +458,10 @@ echo '<article>';
 		echo '<div class="card-buttons">';
 			echo '<input type="submit" name="submit" value="Register">';
 		echo '</div>';
+if ($override_code != '') {
+	echo '<input type="hidden" name="override_code" value="'. $override_code . '" />';
+}
+
 	echo '</form>';
 echo '</article>';
 

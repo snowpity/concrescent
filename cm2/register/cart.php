@@ -4,8 +4,9 @@ require_once dirname(__FILE__).'/../lib/util/util.php';
 require_once dirname(__FILE__).'/register.php';
 
 $onsite_only = isset($_COOKIE['onsite_only']) && $_COOKIE['onsite_only'];
+$override_code = isset($_GET['override_code']) ? $_GET['override_code'] : (isset($_POST['override_code']) ? $_POST['override_code'] :'') ;
 $all_badge_types = $atdb->list_badge_types();
-$sellable_badge_types = $atdb->list_badge_types(true, true, $onsite_only);
+$sellable_badge_types = $atdb->list_badge_types(true, true, $onsite_only, $override_code);
 if (!$sellable_badge_types) cm_reg_closed();
 
 $badge_type_name_map = $atdb->get_badge_type_name_map();
@@ -275,7 +276,7 @@ echo '<div class="card">';
 		echo '</div>';
 	echo '</div>';
 	echo '<div class="card-buttons">';
-		echo '<a href="edit.php" role="button" class="button register-button">';
+		echo '<a href="edit.php' . ($override_code != '' ? "?override_code=$override_code" : '' ) .'" role="button" class="button register-button">';
 			echo 'Add Another Badge';
 		echo '</a>';
 	echo '</div>';
@@ -306,6 +307,9 @@ echo '<form action="cart.php" method="post" class="card">';
 		echo '<input type="hidden" name="action" value="redeem">';
 		echo '<input type="submit" name="submit" value="Redeem Code" class="register-button">';
 	echo '</div>';
+if ($override_code != '') {
+	echo '<input type="hidden" name="override_code" value="'. $override_code . '" />';
+}
 echo '</form>';
 
 echo '<form action="cart.php" method="post" class="card">';
@@ -354,6 +358,9 @@ echo '<form action="cart.php" method="post" class="card">';
 		echo '<input type="hidden" name="action" value="checkout">';
 		echo '<input type="submit" name="submit" value="Place Order" class="register-button">';
 	echo '</div>';
+if ($override_code != '') {
+	echo '<input type="hidden" name="override_code" value="'. $override_code . '" />';
+}
 echo '</form>';
 
 echo '</article>';

@@ -43,7 +43,8 @@ class cm_attendee_db {
 			'`start_date` DATE NULL,'.
 			'`end_date` DATE NULL,'.
 			'`min_age` INTEGER NULL,'.
-			'`max_age` INTEGER NULL'
+			'`max_age` INTEGER NULL' .
+			'`active_override_code` VARCHAR(255) NULL' 
 		));
 		$this->cm_db->table_def('attendee_addons', (
 			'`id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,'.
@@ -253,7 +254,7 @@ class cm_attendee_db {
 		return $badge_types;
 	}
 
-	public function list_badge_types($active_only = false, $unsold_only = false, $onsite_only = false) {
+	public function list_badge_types($active_only = false, $unsold_only = false, $onsite_only = false, $override_code = '') {
 		$badge_types = array();
 		$query = (
 			'SELECT b.`id`, b.`order`, b.`name`, b.`description`, b.`rewards`,'.
@@ -268,15 +269,25 @@ class cm_attendee_db {
 			$query .= (
 				($first ? ' WHERE' : ' AND').' b.`active`'.
 				' AND (b.`start_date` IS NULL OR b.`start_date` <= CURDATE())'.
-				' AND (b.`end_date` IS NULL OR b.`end_date` >= CURDATE())'
+				' AND (b.`end_date` IS NULL OR b.`end_date` >= CURDATE())'.
+				' OR (IFNULL(b.`active_override_code`,\'\') = ? )'
 			);
 			$first = false;
+			if($override_code == '')
+				$override_code = 'Todo: Do this properly';
+
 		}
 		if ($onsite_only) {
 			$query .= ($first ? ' WHERE' : ' AND').' b.`payable_onsite`';
 			$first = false;
 		}
 		$stmt = $this->cm_db->connection->prepare($query . ' ORDER BY b.`order`');
+		if ($active_only) {
+			$stmt->bind_param(
+				's',
+				$override_code
+			);
+		}
 		$stmt->execute();
 		$stmt->bind_result(
 			$id, $order, $name, $description, $rewards,
