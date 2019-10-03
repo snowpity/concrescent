@@ -43,7 +43,7 @@ class cm_attendee_db {
 			'`start_date` DATE NULL,'.
 			'`end_date` DATE NULL,'.
 			'`min_age` INTEGER NULL,'.
-			'`max_age` INTEGER NULL' .
+			'`max_age` INTEGER NULL,' .
 			'`active_override_code` VARCHAR(255) NULL' 
 		));
 		$this->cm_db->table_def('attendee_addons', (
