@@ -16,7 +16,18 @@ export default new Router({
     {
       path: '/about',
       name: 'about',
+      meta: {
+        title: 'About ConCrescent'
+      },
       component: () => import( /* webpackChunkName: "about" */ './routes/About.vue')
+    },
+    {
+      path: '/config',
+      name: 'config',
+      meta: {
+        title: 'Configuration'
+      },
+      component: () => import( /* webpackChunkName: "about" */ './routes/Config.vue')
     },
     {
       path: '/login',
@@ -25,6 +36,14 @@ export default new Router({
         title: 'Login'
       },
       component: () => import( /* webpackChunkName: "login" */ './routes/Login.vue')
+    },
+    {
+      path: '/myBadges',
+      name: 'myBadges',
+      meta: {
+        title: 'My Badges'
+      },
+      component: () => import( /* webpackChunkName: "login" */ './routes/register/mybadges.vue')
     },
     {
       path: '/addbadge',
@@ -57,6 +76,14 @@ export default new Router({
         title: 'Checkout'
       },
       component: () => import( /* webpackChunkName: "Cart" */ './routes/register/checkout.vue')
+    },
+    {
+      path: '/unsubscribe',
+      name: 'unsubscribe',
+      meta: {
+        title: 'Unsubscribe'
+      },
+      component: () => import( /* webpackChunkName: "Cart" */ './routes/register/unsubscribe.vue')
     },
   ]
 })

@@ -51,6 +51,11 @@ export default {
           icon: "mdi-login",
           label: "Login"
         },{
+          route: "/myBadges",
+          icon: "mdi-account-badge-horizontal",
+          label: "My badges",
+          show: () => {return this.cartCount > 0;}
+        },{
           route: "/addbadge",
           icon: "mdi-cart-plus",
           label: "Add Badge"
@@ -59,11 +64,6 @@ export default {
           icon: "mdi-cart",
           label: "View cart",
           badge: () => {return this.cartCount > 0 ? this.cartCount : null;}
-        },{
-          route: "/myBadges",
-          icon: "mdi-account-badge-horizontal",
-          label: "My badges",
-          show: () => {return false;}
         }
       ];
 
@@ -77,7 +77,11 @@ export default {
   '$route.name' : function(name) {
   //Do something when the route changes?
   "Switching route to " + name;
-  }
+    document.title = this.appTitle;
+    }
+  },
+  created() {
+    document.title = this.appTitle;
   }
 };
 </script>

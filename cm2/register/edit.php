@@ -10,9 +10,8 @@ $active_badge_types = $atdb->list_badge_types(true, false, $onsite_only, $overri
 $sellable_badge_types = $atdb->list_badge_types(true, true, $onsite_only, $override_code);
 if (!$sellable_badge_types) cm_reg_closed();
 
-$badge_type_name_map = $atdb->get_badge_type_name_map();
-$active_addons = $atdb->list_addons(true, false, $onsite_only, $badge_type_name_map);
-$sellable_addons = $atdb->list_addons(true, true, $onsite_only, $badge_type_name_map);
+//$active_addons = $atdb->list_addons(true, false, $onsite_only, $name_map);
+$sellable_addons = $atdb->list_addons(true, true, $onsite_only, $name_map);
 
 $new = !isset($_GET['index']);
 $index = $new ? -1 : (int)$_GET['index'];
@@ -20,88 +19,7 @@ $item = $new ? array() : cm_reg_cart_get($index);
 $errors = array();
 
 if (isset($_POST['submit'])) {
-	$item['first-name'] = trim($_POST['first-name']);
-	if (!$item['first-name']) $errors['first-name'] = 'First name is required.';
-	$item['last-name'] = trim($_POST['last-name']);
-	if (!$item['last-name']) $errors['last-name'] = 'Last name is required.';
-
-	$item['fandom-name'] = trim($_POST['fandom-name']);
-	$item['name-on-badge'] = $item['fandom-name'] ? trim($_POST['name-on-badge']) : 'Real Name Only';
-	if (!in_array($item['name-on-badge'], $atdb->names_on_badge)) {
-		$errors['name-on-badge'] = 'Name on badge is required.';
-	}
-
-	$item['date-of-birth'] = parse_date(trim($_POST['date-of-birth']));
-	if (!$item['date-of-birth']) $errors['date-of-birth'] = 'Date of birth is required.';
-	$item['badge-type-id'] = (int)$_POST['badge-type-id'];
-	$found_badge_type = false;
-	foreach ($sellable_badge_types as $badge_type) {
-		if ($badge_type['id'] == $item['badge-type-id']) {
-			$found_badge_type = $badge_type;
-			if ($item['date-of-birth'] && (
-				($badge_type['min-birthdate'] && $item['date-of-birth'] < $badge_type['min-birthdate']) ||
-				($badge_type['max-birthdate'] && $item['date-of-birth'] > $badge_type['max-birthdate'])
-			)) $errors['badge-type-id'] = 'The badge you selected is not applicable.';
-		}
-	}
-	if (!$found_badge_type) {
-		$errors['badge-type-id'] = 'The badge you selected is not available.';
-	}
-
-	$item['addons'] = array();
-	$item['addon-ids'] = array();
-	foreach ($sellable_addons as $addon) {
-		if (isset($_POST['addon-'.$addon['id']]) && $_POST['addon-'.$addon['id']]) {
-			if ($item['date-of-birth'] && (
-				($addon['min-birthdate'] && $item['date-of-birth'] < $addon['min-birthdate']) ||
-				($addon['max-birthdate'] && $item['date-of-birth'] > $addon['max-birthdate'])
-			)) {
-				$errors['addon-'.$addon['id']] = 'The addon you selected is not applicable.';
-			}
-			if ($found_badge_type && !$atdb->addon_applies($addon, $found_badge_type['id'])) {
-				$errors['addon-'.$addon['id']] = 'The addon you selected is not applicable.';
-			}
-			$item['addons'][] = $addon;
-			$item['addon-ids'][] = $addon['id'];
-		}
-	}
-
-	$item['email-address'] = trim($_POST['email-address']);
-	if (!$item['email-address']) $errors['email-address'] = 'Email address is required.';
-	$item['subscribed'] = isset($_POST['subscribed']) && $_POST['subscribed'];
-	$item['phone-number'] = trim($_POST['phone-number']);
-	if (!$item['phone-number']) $errors['phone-number'] = 'Phone number is required.';
-	else if (strlen($item['phone-number']) < 7) $errors['phone-number'] = 'Phone number is too short.';
-
-	$item['address-1'] = trim($_POST['address-1']);
-	if (!$item['address-1']) $errors['address-1'] = 'Address is required.';
-	$item['address-2'] = trim($_POST['address-2']);
-	$item['city'] = trim($_POST['city']);
-	if (!$item['city']) $errors['city'] = 'City is required.';
-	$item['state'] = trim($_POST['state']);
-	$item['zip-code'] = trim($_POST['zip-code']);
-	$item['country'] = trim($_POST['country']);
-
-	$item['ice-name'] = trim($_POST['ice-name']);
-	$item['ice-relationship'] = trim($_POST['ice-relationship']);
-	$item['ice-email-address'] = trim($_POST['ice-email-address']);
-	$item['ice-phone-number'] = trim($_POST['ice-phone-number']);
-
-	$item['payment-status'] = 'Incomplete';
-	$item['payment-badge-price'] = $found_badge_type ? $found_badge_type['price'] : 0;
-	$item['payment-promo-code'] = null;
-	$item['payment-promo-price'] = $found_badge_type ? $found_badge_type['price'] : 0;
-
-	$item['form-answers'] = array();
-	foreach ($questions as $question) {
-		if ($question['active'] && $fdb->question_is_visible($question, $item['badge-type-id'])) {
-			$answer = cm_form_posted_answer($question['question-id'], $question['type']);
-			$item['form-answers'][$question['question-id']] = $answer;
-			if ($fdb->question_is_required($question, $item['badge-type-id']) && !$answer) {
-				$errors['form-answer-'.$question['question-id']] = 'This question is required.';
-			}
-		}
-	}
+	$errors = cm_reg_item_update_from_post($item,$_POST);
 
 	if (!$errors) {
 		cm_reg_cart_reset_promo_code();
@@ -328,7 +246,7 @@ echo '<article>';
 					echo '<td><input type="email" id="email-address" name="email-address" value="' . $value . '">';
 					if ($error) echo '<span class="error">' . $error . '</span>'; echo '</td>';
 				echo '</tr>';
-				
+
 				echo '<tr>';
 					$value = isset($item['subscribed']) ? $item['subscribed'] : true;
 					echo '<th></th><td><label>';

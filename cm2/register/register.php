@@ -13,6 +13,9 @@ require_once dirname(__FILE__).'/../lib/util/util.php';
 
 $event_name = $cm_config['event']['name'];
 
+$onsite_only = isset($_COOKIE['onsite_only']) && $_COOKIE['onsite_only'];
+$override_code = isset($_GET['override_code']) ? $_GET['override_code'] : (isset($_POST['override_code']) ? $_POST['override_code'] :'') ;
+
 $db = new cm_db();
 
 $atdb = new cm_attendee_db($db);
@@ -23,6 +26,104 @@ $questions = $fdb->list_questions();
 
 $mdb = new cm_mail_db($db);
 $contact_address = $mdb->get_contact_address('attendee-paid');
+
+function cm_reg_item_update_from_post(&$item, $post)
+{
+	global $atdb,$onsite_only, $override_code,$fdb,$questions,$name_map;
+	$errors = array();
+	$item['first-name'] = trim($post['first-name']);
+	if (!$item['first-name']) $errors['first-name'] = 'First name is required.';
+	$item['last-name'] = trim($post['last-name']);
+	if (!$item['last-name']) $errors['last-name'] = 'Last name is required.';
+
+	$item['fandom-name'] = trim($post['fandom-name']);
+	$item['name-on-badge'] = $item['fandom-name'] ? trim($post['name-on-badge']) : 'Real Name Only';
+	if (!in_array($item['name-on-badge'], $atdb->names_on_badge)) {
+		$errors['name-on-badge'] = 'Name on badge is required.';
+	}
+
+	$item['date-of-birth'] = parse_date(trim($post['date-of-birth']));
+	if (!$item['date-of-birth']) $errors['date-of-birth'] = 'Date of birth is required.';
+	$item['badge-type-id'] = (int)$post['badge-type-id'];
+	$found_badge_type = false;
+	foreach ($atdb->list_badge_types(true, true, $onsite_only, $override_code) as $badge_type) {
+		if ($badge_type['id'] == $item['badge-type-id']) {
+			$found_badge_type = $badge_type;
+			if ($item['date-of-birth'] && (
+				($badge_type['min-birthdate'] && $item['date-of-birth'] < $badge_type['min-birthdate']) ||
+				($badge_type['max-birthdate'] && $item['date-of-birth'] > $badge_type['max-birthdate'])
+			)) $errors['badge-type-id'] = 'The badge you selected is not applicable.';
+		}
+	}
+	if (!$found_badge_type) {
+		$errors['badge-type-id'] = 'The badge you selected is not available.';
+	}
+
+	$item['addons'] = array();
+	$item['addon-ids'] = array();
+	foreach ($atdb->list_addons(true, true, $onsite_only, $name_map) as $addon) {
+		if (isset($post['addon-'.$addon['id']]) && $post['addon-'.$addon['id']]) {
+			if ($item['date-of-birth'] && (
+				($addon['min-birthdate'] && $item['date-of-birth'] < $addon['min-birthdate']) ||
+				($addon['max-birthdate'] && $item['date-of-birth'] > $addon['max-birthdate'])
+			)) {
+				$errors['addon-'.$addon['id']] = 'The addon you selected is not applicable.';
+			}
+			if ($found_badge_type && !$atdb->addon_applies($addon, $found_badge_type['id'])) {
+				$errors['addon-'.$addon['id']] = 'The addon you selected is not applicable.';
+			}
+			$item['addons'][] = $addon;
+			$item['addon-ids'][] = $addon['id'];
+		}
+	}
+
+	$item['email-address'] = trim($post['email-address']);
+	if (!$item['email-address']) $errors['email-address'] = 'Email address is required.';
+	$item['subscribed'] = isset($post['subscribed']) && $post['subscribed'];
+	$item['phone-number'] = trim($post['phone-number']);
+	if (!$item['phone-number']) $errors['phone-number'] = 'Phone number is required.';
+	else if (strlen($item['phone-number']) < 7) $errors['phone-number'] = 'Phone number is too short.';
+
+	$item['address-1'] = trim($post['address-1']);
+	if (!$item['address-1']) $errors['address-1'] = 'Address is required.';
+	$item['address-2'] = trim($post['address-2']);
+	$item['city'] = trim($post['city']);
+	if (!$item['city']) $errors['city'] = 'City is required.';
+	$item['state'] = trim($post['state']);
+	$item['zip-code'] = trim($post['zip-code']);
+	$item['country'] = trim($post['country']);
+
+	$item['ice-name'] = trim($post['ice-name']);
+	$item['ice-relationship'] = trim($post['ice-relationship']);
+	$item['ice-email-address'] = trim($post['ice-email-address']);
+	$item['ice-phone-number'] = trim($post['ice-phone-number']);
+
+	$item['payment-status'] = 'Incomplete';
+	$item['payment-badge-price'] = $found_badge_type ? $found_badge_type['price'] : 0;
+	$item['payment-promo-code'] = null;
+	$item['payment-promo-price'] = $found_badge_type ? $found_badge_type['price'] : 0;
+
+	//Apply any promo code
+	//TODO: Actually track promo code usage in the session!
+	$promo_count = 0;
+	if(isset($post['payment-promo-code']) && $post['payment-promo-code'] != '')
+	if(!$atdb->apply_promo_code_to_item($post['payment-promo-code'], $item, $promo_count))
+	{
+		$errors['code'] = 'The promo code given could not be applied to this item.';
+	}
+
+	$item['form-answers'] = array();
+	foreach ($questions as $question) {
+		if ($question['active'] && $fdb->question_is_visible($question, $item['badge-type-id'])) {
+			$answer = cm_form_posted_answer($question['question-id'], $question['type'],$post);
+			$item['form-answers'][$question['question-id']] = $answer;
+			if ($fdb->question_is_required($question, $item['badge-type-id']) && !$answer) {
+				$errors['form-answer-'.$question['question-id']] = 'This question is required.';
+			}
+		}
+	}
+	return $errors;
+}
 
 function cm_reg_cart_count($include_addons = false) {
 	if (!isset($_SESSION['cart'])) $_SESSION['cart'] = array();
@@ -67,6 +168,58 @@ function cm_reg_cart_reset_promo_code() {
 	}
 }
 
+function cm_reg_cart_verify_availability($payment_method)
+{
+	global $atdb,$onsite_only, $override_code,$name_map;
+	$badge_map = array();
+	$addon_map = array();
+	$errors = array();
+	foreach ($atdb->list_badge_types(true, true, $onsite_only, $override_code) as $bt) {
+		$badge_map[$bt['id']] = $bt;
+	}
+	foreach ($atdb->list_addons(true, true, $onsite_only, $name_map) as $addon) {
+		$addon_map[$addon['id']] = $addon;
+	}
+	for ($i = 0, $n = cm_reg_cart_count(); $i < $n; $i++) {
+		$item = cm_reg_cart_get($i);
+		$badge_type_id = $item['badge-type-id'];
+		if (!isset($badge_map[$badge_type_id])) {
+			$errors[$i] = 'This badge type is no longer available.';
+		} else {
+			$badge_type = $badge_map[$badge_type_id];
+			if ($item['date-of-birth'] && (
+				($badge_type['min-birthdate'] && $item['date-of-birth'] < $badge_type['min-birthdate']) ||
+				($badge_type['max-birthdate'] && $item['date-of-birth'] > $badge_type['max-birthdate'])
+			)) {
+				$errors[$i] = 'This badge type is no longer applicable.';
+			} else if ($payment_method == 'cash' && !$badge_type['payable-onsite']) {
+				$errors[$i] = 'This badge type cannot be paid for with cash.';
+			}
+		}
+		if (isset($item['addons']) && $item['addons']) {
+			foreach ($item['addons'] as $addon) {
+				$addon_id = $addon['id'];
+				if (!isset($addon_map[$addon_id])) {
+					$errors[$i.'a'.$addon_id] = 'This addon is no longer available.';
+				} else {
+					$addon = $addon_map[$addon_id];
+					if ($item['date-of-birth'] && (
+						($addon['min-birthdate'] && $item['date-of-birth'] < $addon['min-birthdate']) ||
+						($addon['max-birthdate'] && $item['date-of-birth'] > $addon['max-birthdate'])
+					)) {
+						$errors[$i.'a'.$addon_id] = 'This addon is no longer applicable.';
+					} else if (!$atdb->addon_applies($addon, $badge_type_id)) {
+						$errors[$i.'a'.$addon_id] = 'This addon is no longer applicable.';
+					} else if ($payment_method == 'cash' && !$addon['payable-onsite']) {
+						$errors[$i.'a'.$addon_id] = 'This addon cannot be paid for with cash.';
+					}
+				}
+			}
+		}
+	}
+	return  $errors;
+}
+
 function cm_reg_cart_total() {
 	if (!isset($_SESSION['cart'])) $_SESSION['cart'] = array();
 	$total = 0;
@@ -97,11 +250,12 @@ function cm_reg_cart_check_state($expected_state) {
 	return true;
 }
 
-function cm_reg_cart_destroy() {
+function cm_reg_cart_destroy($close_session = true) {
 	unset($_SESSION['cart']);
 	unset($_SESSION['cart_hash']);
 	unset($_SESSION['cart_state']);
-	session_destroy();
+	if($close_session)
+		session_destroy();
 }
 
 function cm_reg_post_edit_get() {
@@ -151,11 +305,12 @@ function cm_reg_post_edit_check_state($expected_state) {
 	return true;
 }
 
-function cm_reg_post_edit_destroy() {
+function cm_reg_post_edit_destroy($close_session = true) {
 	unset($_SESSION['post_edit']);
 	unset($_SESSION['post_edit_hash']);
 	unset($_SESSION['post_edit_state']);
-	session_destroy();
+	if($close_session)
+		session_destroy();
 }
 
 function cm_reg_head($title) {

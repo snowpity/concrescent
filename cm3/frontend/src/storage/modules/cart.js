@@ -3,6 +3,8 @@ import shop from '../../api/shop'
 // initial state
 // shape: [{ id, quantity }]
 const state = {
+  currentlyEditingItem: {},
+  latestContactInfo: {},
   items: [],
   checkoutStatus: null
 }
@@ -18,6 +20,61 @@ function calcPromoPrice(basePrice, promoData) {
   }
 }
 
+function transformPOSTData(inProducts, reverse) {
+  //Create a copy of the products. Since it's destined to be JSON anyways, we don't worry about it...
+  var Products = JSON.parse(JSON.stringify(inProducts));
+  const pMap = {
+    nameFirst: "first-name",
+    nameLast: "last-name",
+    nameFandom: "fandom-name",
+    nameDisplay: "name-on-badge",
+    birthday: "date-of-birth",
+    selectedBadgeId: "badge-type-id",
+    contactEmail: "email-address",
+    contactSubscribePromotions: "subscribed",
+    contactPhone: "phone-number",
+    contactStreet1: "address-1",
+    contactStreet2: "address-2",
+    contactCity: "city",
+    contactState: "state",
+    contactPostalCode: "zip-code",
+    contactCountry: "country",
+    contactEmergencyName: "ice-name",
+    contactEmergencyRelationship: "ice-relationship",
+    contactEmergencyEmail: "ice-email-address",
+    contactEmergencyPhone: "ice-phone-number",
+    promo: "payment-promo-code",
+    addonsSelected: "addon-ids",
+    questionResponses: "form-answers"
+  }
+  //Loop all the  Products
+  Products.forEach(product => {
+    //First, rename the top-level keys
+    Object.keys(pMap).forEach(key => {
+      var from = reverse ? pMap[key] : key;
+      var to = reverse ? key : pMap[key];
+      if (product.hasOwnProperty(from)) {
+        delete Object.assign(product, {
+          [to]: product[from]
+        })[from];
+      }
+    });
+
+    //Fixup Addons
+    Object.keys(product["addon-ids"]).forEach(key => {
+      product["addon-" + product["addon-ids"][key]] = 1;
+    });
+
+    //Fixup questions
+    Object.keys(product["form-answers"]).forEach(key => {
+      product["cm-question-" + key] = product["form-answers"][key];
+    });
+
+
+    //End looping Products (phew!)
+  });
+  return Products;
+}
 
 // getters
 const getters = {
@@ -55,6 +112,12 @@ const getters = {
     (cartId) => {
       return state.items.find(item => item.cartId === cartId && item.cartId != null);
     },
+  getCurrentlyEditingItem: (state) => {
+    return state.currentlyEditingItem;
+  },
+  getLatestContactInfo: (state) => {
+    return state.latestContactInfo;
+  }
 }
 
 // actions
@@ -66,18 +129,21 @@ const actions = {
     const savedCartItems = [...state.items]
     commit('setCheckoutStatus', null)
     // Should we really empty cart before it's processed?
-    commit('setCartItems', {
-      items: []
-    })
+    //commit('setCartItems', {
+    //  items: []
+    //})
     shop.buyProducts(
-      products,
-      () => commit('setCheckoutStatus', 'successful'),
-      () => {
-        commit('setCheckoutStatus', 'failed')
+      transformPOSTData(products, false),
+      (data) => {
+        commit('setCheckoutStatus', data);
+
+      },
+      function(data) {
+        commit('setCheckoutStatus', data)
         // rollback to the cart saved before sending the request
         commit('setCartItems', {
           items: savedCartItems
-        })
+        });
       }
     )
   },
@@ -128,6 +194,12 @@ const actions = {
     if (cartItem) {
       commit('removeProductFromCart', cartItem);
     }
+  },
+  applyPromoToProduct({
+    state,
+    commit
+  }, promo) {
+    //Do logic here
   }
 }
 
@@ -163,6 +235,12 @@ const mutations = {
 
   setCheckoutStatus(state, status) {
     state.checkoutStatus = status
+  },
+  setCurrentlyEditingItem(state, item) {
+    state.currentlyEditingItem = item;
+  },
+  setLatestContactInfo(state, contactInfo) {
+    state.latestContactInfo = contactInfo;
   }
 }
 

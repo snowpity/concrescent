@@ -15,6 +15,8 @@ import {
 import router from './router'
 import store from './storage'
 
+const config = require("./config.js");
+
 Vue.config.productionTip = false
 Vue.filter('currency', currency)
 Vue.filter('subname', subname)
@@ -22,7 +24,7 @@ Vue.filter('badgeDisplayName', badgeDisplayName)
 Vue.filter('split_carriagereturn', split_carriagereturn)
 
 Vue.use(VuetifyGoogleAutocomplete, {
-  apiKey: 'GoogleMapsAPIKey'
+  apiKey: config.GoogleAutoCompleteAPIKey
 })
 
 new Vue({

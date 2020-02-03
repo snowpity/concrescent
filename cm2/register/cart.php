@@ -3,15 +3,12 @@
 require_once dirname(__FILE__).'/../lib/util/util.php';
 require_once dirname(__FILE__).'/register.php';
 
-$onsite_only = isset($_COOKIE['onsite_only']) && $_COOKIE['onsite_only'];
-$override_code = isset($_GET['override_code']) ? $_GET['override_code'] : (isset($_POST['override_code']) ? $_POST['override_code'] :'') ;
+
 $all_badge_types = $atdb->list_badge_types();
 $sellable_badge_types = $atdb->list_badge_types(true, true, $onsite_only, $override_code);
 if (!$sellable_badge_types) cm_reg_closed();
 
-$badge_type_name_map = $atdb->get_badge_type_name_map();
-$all_addons = $atdb->list_addons(false, false, false, $badge_type_name_map);
-$sellable_addons = $atdb->list_addons(true, true, $onsite_only, $badge_type_name_map);
+$all_addons = $atdb->list_addons(false, false, false, $name_map);
 
 function apply_promo_code($code, $atdb, &$name_map, &$errors) {
 	if (!$code) return;
@@ -44,52 +41,8 @@ function apply_promo_code($code, $atdb, &$name_map, &$errors) {
 	}
 }
 
-function checkout_registration($payment_method, &$atdb, &$sellable_badge_types, &$sellable_addons, &$errors) {
-	$badge_map = array();
-	$addon_map = array();
-	foreach ($sellable_badge_types as $bt) {
-		$badge_map[$bt['id']] = $bt;
-	}
-	foreach ($sellable_addons as $addon) {
-		$addon_map[$addon['id']] = $addon;
-	}
-	for ($i = 0, $n = cm_reg_cart_count(); $i < $n; $i++) {
-		$item = cm_reg_cart_get($i);
-		$badge_type_id = $item['badge-type-id'];
-		if (!isset($badge_map[$badge_type_id])) {
-			$errors[$i] = 'This badge type is no longer available.';
-		} else {
-			$badge_type = $badge_map[$badge_type_id];
-			if ($item['date-of-birth'] && (
-				($badge_type['min-birthdate'] && $item['date-of-birth'] < $badge_type['min-birthdate']) ||
-				($badge_type['max-birthdate'] && $item['date-of-birth'] > $badge_type['max-birthdate'])
-			)) {
-				$errors[$i] = 'This badge type is no longer applicable.';
-			} else if ($payment_method == 'cash' && !$badge_type['payable-onsite']) {
-				$errors[$i] = 'This badge type cannot be paid for with cash.';
-			}
-		}
-		if (isset($item['addons']) && $item['addons']) {
-			foreach ($item['addons'] as $addon) {
-				$addon_id = $addon['id'];
-				if (!isset($addon_map[$addon_id])) {
-					$errors[$i.'a'.$addon_id] = 'This addon is no longer available.';
-				} else {
-					$addon = $addon_map[$addon_id];
-					if ($item['date-of-birth'] && (
-						($addon['min-birthdate'] && $item['date-of-birth'] < $addon['min-birthdate']) ||
-						($addon['max-birthdate'] && $item['date-of-birth'] > $addon['max-birthdate'])
-					)) {
-						$errors[$i.'a'.$addon_id] = 'This addon is no longer applicable.';
-					} else if (!$atdb->addon_applies($addon, $badge_type_id)) {
-						$errors[$i.'a'.$addon_id] = 'This addon is no longer applicable.';
-					} else if ($payment_method == 'cash' && !$addon['payable-onsite']) {
-						$errors[$i.'a'.$addon_id] = 'This addon cannot be paid for with cash.';
-					}
-				}
-			}
-		}
-	}
+function checkout_registration($payment_method, &$errors) {
+	$errors = cm_reg_cart_verify_availability($payment_method);
 	if ($errors) {
 		$errors['checkout'] = (
 			'There were some issues with your registration. '.
@@ -117,7 +70,7 @@ if (isset($_POST['action'])) {
 			apply_promo_code(trim($_POST['code']), $atdb, $name_map, $errors);
 			break;
 		case 'checkout':
-			checkout_registration(trim($_POST['payment-method']), $atdb, $sellable_badge_types, $sellable_addons, $errors);
+			checkout_registration(trim($_POST['payment-method']), $errors);
 			break;
 	}
 }

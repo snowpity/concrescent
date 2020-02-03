@@ -1,6 +1,5 @@
 <template>
 <v-container class="pa-2" fluid>
-    <h2>Your Cart</h2>
     <p v-show="!products.length">
         <i>Cart is empty.</i><br/>
     </p>
@@ -57,9 +56,11 @@
                         <span>{{ product.price | currency }}&nbsp;</span>
                     </v-badge>
                     <v-spacer></v-spacer>
-                    <v-btn icon :to="{name:'editbadge', params: {cartId: product.cartId}}">
-                        <v-icon>mdi-pencil</v-icon>
-                    </v-btn>
+                    <v-badge color="error" overlap :content="badgeErrorCount[product.cartId]" :value="!!badgeErrorCount[product.cartId]">
+                      <v-btn icon :to="{name:'editbadge', params: {cartId: product.cartId}}">
+                          <v-icon>mdi-pencil</v-icon>
+                      </v-btn>
+                    </v-badge>
                     <v-btn icon @click.stop="removeBadge = idx">
                         <v-icon>mdi-delete</v-icon>
                     </v-btn>
@@ -69,7 +70,7 @@
     </v-row>
     <v-row>
         <v-col>
-            <v-btn color="primary" to="/addbadge" left absolute>Add
+            <v-btn color="primary" :to="{name:'addbadge', params: {cartId: 0}}" left absolute>Add
                 {{products.length ? "another" : "a"}}
                 badge</v-btn>
         </v-col>
@@ -141,13 +142,12 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
-    <p v-show="checkoutStatus">Checkout status:
-        {{ checkoutStatus }}.</p>
+    <p v-show="checkoutStatus? checkoutStatus.errors : false">Can't checkout now, there are problems!</p>
 
-    <v-dialog v-model="processingCheckoutDialog" hide-overlay persistent width="300">
+    <v-dialog v-model="processingCheckoutDialog" persistent width="300">
         <v-card color="primary" dark>
             <v-card-text>
-                Processing order, please wait...
+                {{orderSteps[cartState]}}
                 <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
             </v-card-text>
         </v-card>
@@ -183,6 +183,12 @@ export default {
     processingCheckoutDialog: false,
     removeBadge: -1,
     clearCartDialog: false,
+    badgeErrorCount:[],
+    orderSteps: {
+      'undefined':'Processing order, please wait...',
+      'ready':'Directing to Merchant...'
+    },
+    cartState: 'undefined'
   }),
 computed: {
   ...mapState({
@@ -200,6 +206,26 @@ methods: {
     'removeProductFromCart',
     'clearCart'
   ]),
+  updatedbadgeErrorCount: function() {
+
+    //populate all the badges
+    var result = this.products.map(product => product.cartId +'' )
+    if(this.checkoutStatus)
+    {
+      if(this.checkoutStatus.errors)
+      {
+        Object.keys(this.checkoutStatus.errors).forEach( key => {
+          result[key] = Object.keys(this.checkoutStatus.errors[key]).length;
+        })
+      }
+      else
+      {
+        //All good
+      }
+    }
+    this.badgeErrorCount = result;
+    return result;
+  },
   confirmRemoveBadge: function() {
     this.removeProductFromCart(this.products[this.removeBadge]);
     this.removeBadge = -1;
@@ -210,7 +236,32 @@ methods: {
   },
   checkout (products) {
     this.processingCheckoutDialog = true;
-    this.$store.dispatch('cart/checkout', products)
+    var _this = this;
+    //Fancy delays
+    setTimeout(function()
+      {
+        _this.$store.dispatch('cart/checkout', products);
+      }, 1000);
+  }
+},
+watch :{
+  'checkoutStatus': function(newstatus) {
+    this.updatedbadgeErrorCount;
+    this.cartState = newstatus ? newstatus.state : 'undefined';
+    if(newstatus && newstatus.state == 'ready')
+    {
+      //Direct to the checkout.php
+      var _this = this;
+      setTimeout(function()
+        {
+          _this.processingCheckoutDialog = false;
+        }, 1000);
+    }
+    else
+    {
+      this.processingCheckoutDialog = false;
+    }
+
   }
 }
 }

@@ -53,7 +53,7 @@ function cm_form_input($id, $type, $values, $answer, $required = false, $disable
 				if ($out) $out .= '<br>';
 				$out .= '<label><input type="checkbox"';
 				if ($valueid) $out .= ' id="' . $valueid . '"';
-				if ($valueid) $out .= ' name="' . $valueid . '"';
+				if ($valueid) $out .= ' name="' . $htmlid . '[]"';
 				$out .= ' value="' . htmlspecialchars($value) . '"';
 				if ($answer && in_array($value, $answer)) $out .= ' checked';
 				if ($disabled) $out .= ' disabled';
@@ -143,7 +143,7 @@ function cm_form_row($question, $answer, $error = null, $for_editor = false) {
 	return $out . '</tr>';
 }
 
-function cm_form_posted_answer($id, $type) {
+function cm_form_posted_answer($id, $type, $post) {
 	$htmlid = 'cm-question-' . $id;
 	switch ($type) {
 		case 'text':
@@ -151,23 +151,25 @@ function cm_form_posted_answer($id, $type) {
 		case 'email':
 		case 'radio':
 		case 'select':
-			if (!isset($_POST[$htmlid])) return array();
-			return ($_POST[$htmlid] ? array($_POST[$htmlid]) : array());
+			if (!isset($post[$htmlid])) return array();
+			return ($post[$htmlid] ? array($post[$htmlid]) : array());
 		case 'textarea':
-			if (!isset($_POST[$htmlid])) return array();
-			$answer = $_POST[$htmlid];
+			if (!isset($post[$htmlid])) return array();
+			$answer = $post[$htmlid];
 			$answer = str_replace("\r\n", "\n", $answer);
 			$answer = str_replace("\r", "\n", $answer);
 			return ($answer ? explode("\n", $answer) : array());
 		case 'checkbox':
-			$answer = array();
-			$prefix = $htmlid . '-';
+				if (!isset($post[$htmlid])) return array();
+			$answer = explode("\n",$post[$htmlid]);
+			/*
+			$prefix = $htmlid . '[]';
 			$prefixlen = strlen($prefix);
 			foreach ($_POST as $k => $v) {
 				if (substr($k, 0, $prefixlen) === $prefix) {
 					$answer[] = $v;
 				}
-			}
+			}*/
 			return $answer;
 		default:
 			return array();

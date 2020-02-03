@@ -2,7 +2,9 @@ import shop from '../../api/shop'
 
 // initial state
 const state = {
-  all: []
+  all: [],
+  questions: [],
+  addons: []
 }
 
 // getters
@@ -19,6 +21,22 @@ const actions = {
     shop.getProducts(products => {
       commit('setProducts', products)
     })
+  },
+  getAllQuestions({
+    commit
+  }) {
+    //Todo: Load only if necessary?
+    shop.getQuestions(questions => {
+      commit('setQuestions', questions)
+    })
+  },
+  getAllAddons({
+    commit
+  }) {
+    //Todo: Load only if necessary?
+    shop.getAddons(addons => {
+      commit('setAddons', addons)
+    })
   }
 }
 
@@ -26,6 +44,12 @@ const actions = {
 const mutations = {
   setProducts(state, products) {
     state.all = products
+  },
+  setQuestions(state, questions) {
+    state.questions = questions
+  },
+  setAddons(state, addons) {
+    state.addons = addons
   },
 
   decrementProductQuantity(state, {
