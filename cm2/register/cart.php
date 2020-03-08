@@ -10,36 +10,6 @@ if (!$sellable_badge_types) cm_reg_closed();
 
 $all_addons = $atdb->list_addons(false, false, false, $name_map);
 
-function apply_promo_code($code, $atdb, &$name_map, &$errors) {
-	if (!$code) return;
-	$promo_code = $atdb->get_promo_code($code, true, true, $name_map);
-	if (!$promo_code) {
-		$errors['code'] = 'This is not a valid promo code.';
-		return;
-	}
-	$items = array();
-	for ($i = 0, $n = cm_reg_cart_count(); $i < $n; $i++) {
-		$item = cm_reg_cart_get($i);
-		$item['index'] = $i;
-		$item['payment-promo-code'] = null;
-		$item['payment-promo-price'] = $item['payment-badge-price'];
-		$items[] = $item;
-	}
-	usort($items, function($a, $b) {
-		$av = (float)$a['payment-badge-price'];
-		$bv = (float)$b['payment-badge-price'];
-		if ($bv < $av) return -1;
-		if ($bv > $av) return +1;
-		return 0;
-	});
-	if (!$atdb->apply_promo_code_to_items($promo_code, $items)) {
-		$errors['code'] = 'This promo code does not apply to any items in your cart.';
-		return;
-	}
-	foreach ($items as $item) {
-		cm_reg_cart_set($item['index'], $item);
-	}
-}
 
 function checkout_registration($payment_method, &$errors) {
 	$errors = cm_reg_cart_verify_availability($payment_method);
@@ -67,7 +37,8 @@ if (isset($_POST['action'])) {
 			cm_reg_cart_destroy();
 			break;
 		case 'redeem':
-			apply_promo_code(trim($_POST['code']), $atdb, $name_map, $errors);
+			$errors['code'] = cm_reg_apply_promo_code(trim($_POST['code']));
+
 			break;
 		case 'checkout':
 			checkout_registration(trim($_POST['payment-method']), $errors);

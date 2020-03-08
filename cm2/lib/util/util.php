@@ -226,3 +226,62 @@ function mail_merge_html($text, $fields) {
 	}
 	return str_replace($s, $r, $text);
 }
+
+function transaction_details_update($originalTxnDetailsString, $transaction_id, $transactionDetails)
+{
+	$originalTxnDetails = json_decode($originalTxnDetailsString,true);
+	//Detect legacy transaction details
+	if(is_null($originalTxnDetails))
+	{
+		//Arbitrary text
+		$originalTxnDetails = array();
+		if(strlen($originalTxnDetailsString) > 0)
+			$originalTxnDetails['LegacyData'] = $originalTxnDetailsString;
+	}
+	if(isset($originalTxnDetails['id']))
+	{
+		//Legacy PayPal transactiopn
+		$oTId = 'UnknownPayPalTransaction';
+		if (isset($originalTxnDetails['transactions'])
+		&& (isset($originalTxnDetails['transactions'][0]))
+		&& (isset($originalTxnDetails['transactions'][0]['related_resources']))
+		&& (isset($originalTxnDetails['transactions'][0]['related_resources'][0]))
+		&& (isset($originalTxnDetails['transactions'][0]['related_resources'][0]['sale']))
+		&& (isset($originalTxnDetails['transactions'][0]['related_resources'][0]['sale']['id']))
+		)
+			$oTId = $originalTxnDetails['transactions'][0]['related_resources'][0]['sale']['id'];
+		$originalTxnDetails = array($oTId=>$originalTxnDetails);
+	}
+	$originalTxnDetails[$transaction_id] = $transactionDetails;
+	return json_encode($originalTxnDetails);
+
+}
+
+//Are we an AJAX call?
+$_SERVER['IS_AJAX'] = false;
+if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+	$_SERVER['IS_AJAX'] = true;
+}
+
+//Are we in Legacy mode?
+function isLegacy() {
+	return isset($_COOKIE['L']);
+}
+function setLegacyMode($newmode) {
+	if(isLegacy() && !$newmode){
+			setcookie("L","F",time()-1,"/");
+			//Immediately apply
+			unset($_COOKIE['L']);
+	}
+	elseif(!isLegacy() && $newmode){
+		setcookie("L","T",time()+2*60*60,"/"); //Two hours
+		$_COOKIE['L'] = 1;
+	}
+
+}
+
+//Are we setting legacy
+if(isset($_GET['legacy']))
+{
+	setLegacyMode($_GET['legacy'] == 'true');
+}

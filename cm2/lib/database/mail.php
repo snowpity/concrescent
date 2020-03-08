@@ -31,6 +31,20 @@ class cm_mail_db {
 				'type' => 'Simple HTML',
 				'body' => (
 					"Greetings,\n\n".
+					"Find below your magic link to review your badges for <b>[[event-name]]</b>. ".
+					"<a href=\"[[review-link]]\">[[review-link]]</a>\n\n".
+					"Thanks again,\n[[event-name]] Registration"
+				)
+			));
+			$this->set_mail_template(array(
+				'name' => 'attendee-retrieve',
+				'contact-address' => 'registration@'.$_SERVER['SERVER_NAME'],
+				'from' => 'registration@'.$_SERVER['SERVER_NAME'],
+				'bcc' => 'registration@'.$_SERVER['SERVER_NAME'],
+				'subject' => 'Your registration for [[event-name]]',
+				'type' => 'Simple HTML',
+				'body' => (
+					"Greetings,\n\n".
 					"Thank you for registering for <b>[[event-name]]</b>. ".
 					"Your [[badge-type-name]] registration for <b>[[display-name]]</b> has been completed.\n\n".
 					"Your badge will be available for pickup at the event. ".

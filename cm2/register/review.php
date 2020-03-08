@@ -1,5 +1,6 @@
 <?php
 
+
 require_once dirname(__FILE__).'/../lib/util/util.php';
 require_once dirname(__FILE__).'/register.php';
 
@@ -7,6 +8,13 @@ $gid = isset($_GET['gid']) ? trim($_GET['gid']) : null;
 $tid = isset($_GET['tid']) ? trim($_GET['tid']) : null;
 if (!$gid || !$tid) {
 	header('Location: index.php');
+	exit(0);
+}
+
+if(!isLegacy())
+{
+	//Redirect back to the webapp, myBadges route
+	header('Location: ' . get_site_url(true) . '/#redirect?route=myBadges&gid=' . $gid . '&tid=' . $tid);
 	exit(0);
 }
 

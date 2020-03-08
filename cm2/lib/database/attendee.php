@@ -44,7 +44,7 @@ class cm_attendee_db {
 			'`end_date` DATE NULL,'.
 			'`min_age` INTEGER NULL,'.
 			'`max_age` INTEGER NULL,' .
-			'`active_override_code` VARCHAR(255) NULL' 
+			'`active_override_code` VARCHAR(255) NULL'
 		));
 		$this->cm_db->table_def('attendee_addons', (
 			'`id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,'.
@@ -841,12 +841,17 @@ class cm_attendee_db {
 		if (!$attendee_id) return false;
 		$stmt = $this->cm_db->connection->prepare(
 			'UPDATE '.$this->cm_db->table_name('attendee_addon_purchases').' SET '.
+			'`payment_date` = case when  `payment_status` = \'Completed\' then `payment_date` when `payment_status` != \'Completed\' and ? = \'Completed\' then UTC_TIMESTAMP() else  `payment_status` end ,'.
 			'`payment_status` = ?, `payment_type` = ?, '.
-			'`payment_txn_id` = ?, `payment_details` = ?'.
-			' WHERE `attendee_id` = ?'
+			'`payment_details` = ?'.
+			' WHERE `attendee_id` = ? and `payment_txn_id` = ?'
 		);
-		$stmt->bind_param('ssssi', $status, $type, $txn, $details, $attendee_id);
+		$stmt->bind_param('ssssis', $status, $status, $type, $details, $attendee_id, $txn);
 		$success = $stmt->execute();
+		if($success === false)
+		{
+			error_log('Error while attempting to update addon purchase status:\n' . print_r($this->cm_db->connection->error, true));
+		}
 		$stmt->close();
 		return $success;
 	}
@@ -883,10 +888,28 @@ class cm_attendee_db {
 				? ($badge_price * (100.0 - $promo_price) / 100.0)
 				: ($badge_price - $promo_price)
 			);
+
+			if(isset($item['editing-badge']) && $item['editing-badge'] > 0 )
+			{
+				//First, find them in the attendees table
+				$existingBadge = $this->get_attendee($item['editing-badge'], $item['uuid'] );
+				if($existingBadge)
+				{
+						$badge_price = max(0,$badge_price- $existingBadge['payment-badge-price']);
+				}
+			}
+
 			if ($final_price < 0) $final_price = 0;
 			if ($final_price > $badge_price) $final_price = $badge_price;
-			$item['payment-promo-code'] = $promo_code['code'];
-			$item['payment-promo-price'] = $final_price;
+
+			//Only apply promo if it actually results in a price reduction or equality
+			if((isset($item['payment-promo-price']) && $item['payment-promo-price'] >= $final_price) || !isset($item['payment-promo-price']))
+			{
+				$item['payment-promo-code'] = $promo_code['code'];
+				$item['payment-promo-price'] = $final_price;
+				$item['payment-promo-type'] = $promo_code['percentage'] ? 1 :0;
+				$item['payment-promo-amount'] = $promo_price;
+			}
 			return true;
 		} else {
 			return false;
@@ -1410,6 +1433,34 @@ class cm_attendee_db {
 		return false;
 	}
 
+
+
+	public function retrieve_attendee_reviewlinks($email) {
+		if (!$email) return false;
+		$result = array();
+		$stmt = $this->cm_db->connection->prepare(
+			'SELECT `payment_group_uuid`,  `payment_txn_id` FROM '.$this->cm_db->table_name('attendees').
+			' WHERE LCASE(`email_address`) = LCASE(?)'.
+			' AND `payment_status` = "Completed"'.
+			' GROUP BY `payment_group_uuid`,  `payment_txn_id`'
+		);
+		$stmt->bind_param(
+			's',$email
+		);
+		$stmt->execute();
+		$stmt->bind_result($payment_group_uuid, $payment_txn_id);
+		$reg_url = get_site_url(true) . '/register';
+		while ($stmt->fetch()) {
+			$result[] =  (($payment_group_uuid && $payment_txn_id) ? (
+				$reg_url . '/review.php' .
+				'?gid=' . $payment_group_uuid .
+				'&tid=' . $payment_txn_id
+			) : null);
+		}
+		$stmt->close();
+		return $result;
+	}
+
 	public function get_attendee($id, $uuid = null, $name_map = null, $fdb = null) {
 		if (!$id && !$uuid) return false;
 		if (!$name_map) $name_map = $this->get_badge_type_name_map();
@@ -1868,6 +1919,11 @@ class cm_attendee_db {
 			$payment_date, $payment_details
 		);
 		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		if($id === false)
+		{
+			error_log('Error while attempting to create attendee:\n' . print_r($this->cm_db->connection->error, true));
+			error_log('Submitted data:\n' . print_r($attendee,true));
+		}
 		$stmt->close();
 		if ($id !== false) {
 			if (isset($attendee['addons'])) {
@@ -1946,6 +2002,11 @@ class cm_attendee_db {
 			$attendee['id']
 		);
 		$success = $stmt->execute();
+		if (!$success)
+		{
+			error_log('Error while attempting to update attendee:\n' . print_r($this->cm_db->connection->error, true));
+			error_log('Submitted data:\n' . print_r($attendee,true));
+		}
 		$stmt->close();
 		if ($success) {
 			if (isset($attendee['addons'])) {
@@ -1983,12 +2044,18 @@ class cm_attendee_db {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
 			'UPDATE '.$this->cm_db->table_name('attendees').' SET '.
+			'`payment_date` = case when  `payment_status` = \'Completed\' then `payment_date` when `payment_status` != \'Completed\' and ? = \'Completed\' then UTC_TIMESTAMP() else  `payment_date` end ,'.
 			'`payment_status` = ?, `payment_type` = ?, '.
 			'`payment_txn_id` = ?, `payment_details` = ?'.
 			' WHERE `id` = ? LIMIT 1'
 		);
-		$stmt->bind_param('ssssi', $status, $type, $txn, $details, $id);
+		$stmt->bind_param('sssssi', $status, $status, $type, $txn, $details,  $id);
 		$success = $stmt->execute();
+		if (!$success)
+		{
+			error_log('Error while attempting to update attendee payment status:\n' . print_r($this->cm_db->connection->error, true));
+			error_log('Submitted data:\n' . print_r(array('id' =>$id, 'status' => $status,'type'=> $type, 'txn' => $txn, 'details'  => $details),true));
+		}
 		$stmt->close();
 		if ($success) {
 			$this->update_addon_purchase_payment_status($id, $status, $type, $txn, $details);
@@ -1996,6 +2063,24 @@ class cm_attendee_db {
 			$this->cm_ldb->remove_entity($id);
 			$this->cm_ldb->add_entity($attendee);
 		}
+		return $success;
+	}
+	public function get_payment_status($id, &$status, &$type, &$txn, &$details) {
+		if (!$id) return false;
+		$stmt = $this->cm_db->connection->prepare(
+			'select '.
+			'`payment_status`, `payment_type`, '.
+			'`payment_txn_id`, `payment_details`'.
+			'FROM '.$this->cm_db->table_name('attendees').
+			' WHERE `id` = ? LIMIT 1'
+		);
+		$stmt->bind_param('i', $id);
+		$success = $stmt->execute();
+		$stmt->bind_result(
+			$status, $type, $txn, $details
+		);
+		$stmt->fetch();
+		$stmt->close();
 		return $success;
 	}
 

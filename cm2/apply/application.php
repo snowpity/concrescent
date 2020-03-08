@@ -162,7 +162,7 @@ if (isset($_POST['submit'])) {
 	$item['form-answers'] = array();
 	foreach ($questions as $question) {
 		if ($question['active'] && $fdb->question_is_visible($question, $item['badge-type-id'])) {
-			$answer = cm_form_posted_answer($question['question-id'], $question['type']);
+			$answer = cm_form_posted_answer($question['question-id'], $question['type'],$_POST);
 			$item['form-answers'][$question['question-id']] = $answer;
 			if ($fdb->question_is_required($question, $item['badge-type-id']) && !$answer) {
 				$errors['form-answer-'.$question['question-id']] = 'This question is required.';

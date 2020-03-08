@@ -46,7 +46,8 @@ function cm_reg_item_update_from_post(&$item, $post)
 	if (!$item['date-of-birth']) $errors['date-of-birth'] = 'Date of birth is required.';
 	$item['badge-type-id'] = (int)$post['badge-type-id'];
 	$found_badge_type = false;
-	foreach ($atdb->list_badge_types(true, true, $onsite_only, $override_code) as $badge_type) {
+	$badge_types = $atdb->list_badge_types(true, true, $onsite_only, $override_code);
+	foreach ($badge_types as $badge_type) {
 		if ($badge_type['id'] == $item['badge-type-id']) {
 			$found_badge_type = $badge_type;
 			if ($item['date-of-birth'] && (
@@ -72,6 +73,7 @@ function cm_reg_item_update_from_post(&$item, $post)
 			if ($found_badge_type && !$atdb->addon_applies($addon, $found_badge_type['id'])) {
 				$errors['addon-'.$addon['id']] = 'The addon you selected is not applicable.';
 			}
+			$addon['payment-status'] = 'Incomplete';
 			$item['addons'][] = $addon;
 			$item['addon-ids'][] = $addon['id'];
 		}
@@ -107,9 +109,49 @@ function cm_reg_item_update_from_post(&$item, $post)
 	//TODO: Actually track promo code usage in the session!
 	$promo_count = 0;
 	if(isset($post['payment-promo-code']) && $post['payment-promo-code'] != '')
-	if(!$atdb->apply_promo_code_to_item($post['payment-promo-code'], $item, $promo_count))
+	$promo_code = $atdb->get_promo_code($post['payment-promo-code'], true, true, $name_map);
+	if(isset($promo_code))
+	if(!$atdb->apply_promo_code_to_item($promo_code, $item, $promo_count))
 	{
 		$errors['code'] = 'The promo code given could not be applied to this item.';
+	}
+
+	//If they're editing their badge...
+	$item['editing-badge'] = (int)$post['editing-badge'];
+	$item['uuid'] = trim($post['uuid']);
+	if($item['editing-badge'] > 0 )
+	{
+		//First, find them in the attendees table
+		$existingBadge = $atdb->get_attendee($item['editing-badge'], $item['uuid'] );
+		if($existingBadge)
+		{
+			//Fill in some data
+			$item['payment-group-uuid'] = $existingBadge['payment-group-uuid'];
+			$item['editing-prior-id'] = $existingBadge['badge-type-id'];
+			$item['editing-prior-payment-status'] = $existingBadge['payment-status'];
+			foreach ( $atdb->list_addon_purchases($item['editing-badge'], $name_map) as $addon) {
+				$item['editing-prior-addon-ids'][] = $addon['addon-id'];
+				//Update the addons entry that corrosponds
+				foreach($item['addons'] as $addonidx => $nowaddon)
+				{
+					if($nowaddon['id'] == $addon['addon-id'])
+					$item['addons'][$addonidx]['payment-status']  = $addon['payment-status'] ;
+				}
+			}
+
+			//check if the price is different
+			//TODO: Confirm correct handling of badges not yet paid
+			if($found_badge_type && $existingBadge['payment-status'] == 'Completed')
+			{
+				//Hack: If they are completed and not changing the type, ensure it's zero
+				$item['payment-promo-price'] =$item['editing-prior-id'] == $item['badge-type-id'] ? 0 : max(0,$item['payment-promo-price'] - $existingBadge['payment-badge-price']);
+
+			}
+		}
+		else {
+			die("Said you were editing a badge, but couldn't find it?");
+		}
+
 	}
 
 	$item['form-answers'] = array();
@@ -158,6 +200,37 @@ function cm_reg_cart_remove($index) {
 	if (!isset($_SESSION['cart'])) $_SESSION['cart'] = array();
 	if (!isset($_SESSION['cart'][$index])) return;
 	array_splice($_SESSION['cart'], $index, 1);
+}
+
+function cm_reg_apply_promo_code($code) {
+	if (!$code) return;
+	global $atdb,$onsite_only, $override_code,$fdb,$questions,$name_map;
+	$promo_code = $atdb->get_promo_code($code, true, true, $name_map);
+	if (!$promo_code) {
+		return 'This is not a valid promo code.';
+	}
+	$items = array();
+	for ($i = 0, $n = cm_reg_cart_count(); $i < $n; $i++) {
+		$item = cm_reg_cart_get($i);
+		$item['index'] = $i;
+		$item['payment-promo-code'] = isset($item['payment-promo-code']) ? $item['payment-promo-code'] : null;
+		$item['payment-promo-price'] = isset($item['payment-promo-price']) ? $item['payment-promo-price'] : $item['payment-badge-price'];
+		$items[] = $item;
+	}
+	usort($items, function($a, $b) {
+		$av = (float)$a['payment-badge-price'];
+		$bv = (float)$b['payment-badge-price'];
+		if ($bv < $av) return -1;
+		if ($bv > $av) return +1;
+		return 0;
+	});
+	if (!$atdb->apply_promo_code_to_items($promo_code, $items)) {
+		return 'This promo code does not apply to any items in your cart.';
+
+	}
+	foreach ($items as $item) {
+		cm_reg_cart_set($item['index'], $item);
+	}
 }
 
 function cm_reg_cart_reset_promo_code() {
@@ -227,7 +300,8 @@ function cm_reg_cart_total() {
 		$total += (float)$item['payment-promo-price'];
 		if (isset($item['addons']) && $item['addons']) {
 			foreach ($item['addons'] as $addon) {
-				$total += (float)$addon['price'];
+				if($addon['payment-status'] == 'Incomplete')
+					$total += (float)$addon['price'];
 			}
 		}
 	}

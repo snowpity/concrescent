@@ -151,7 +151,10 @@ function cm_form_posted_answer($id, $type, $post) {
 		case 'email':
 		case 'radio':
 		case 'select':
-			if (!isset($post[$htmlid])) return array();
+			if (!isset($post[$htmlid])){
+				//error_log("Post did not have " . $htmlid . " in it");
+				return array();
+			}
 			return ($post[$htmlid] ? array($post[$htmlid]) : array());
 		case 'textarea':
 			if (!isset($post[$htmlid])) return array();
@@ -160,8 +163,11 @@ function cm_form_posted_answer($id, $type, $post) {
 			$answer = str_replace("\r", "\n", $answer);
 			return ($answer ? explode("\n", $answer) : array());
 		case 'checkbox':
-				if (!isset($post[$htmlid])) return array();
-			$answer = explode("\n",$post[$htmlid]);
+			if (!isset($post[$htmlid])){
+				//error_log("Post did not have " . $htmlid . " in it");
+				return array();
+			}
+			$answer = is_string($post[$htmlid]) ? explode("\n",$post[$htmlid]) : $post[$htmlid];
 			/*
 			$prefix = $htmlid . '[]';
 			$prefixlen = strlen($prefix);
@@ -172,6 +178,7 @@ function cm_form_posted_answer($id, $type, $post) {
 			}*/
 			return $answer;
 		default:
+		error_log("Error type of question " . $type . " is not recognized for question " . $id);
 			return array();
 	}
 }

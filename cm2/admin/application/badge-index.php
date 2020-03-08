@@ -82,6 +82,11 @@ $columns = array(
 		'type' => 'bool'
 	),
 	array(
+		'name' => 'Status',
+		'key' => 'application-status',
+		'type' => 'text'
+	),
+	array(
 		'name' => 'P',
 		'key' => 'print-count',
 		'type' => 'numeric'

@@ -112,7 +112,7 @@ if ($submitted) {
 	$item['form-answers'] = array();
 	foreach ($questions as $question) {
 		if ($question['active']) {
-			$answer = cm_form_posted_answer($question['question-id'], $question['type']);
+			$answer = cm_form_posted_answer($question['question-id'], $question['type'],$_POST);
 			$item['form-answers'][$question['question-id']] = $answer;
 		}
 	}
@@ -400,7 +400,7 @@ echo '<article>';
 						echo '<td><a href="mailto:' . $value . '">' . $value . '</a></td>';
 					}
 				echo '</tr>';
-				
+
 				echo '<tr>';
 					echo '<th>&nbsp;</th>';
 					$value = isset($item['subscribed']) ? $item['subscribed'] : true;

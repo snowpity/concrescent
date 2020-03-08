@@ -8,7 +8,8 @@ cm_admin_check_permission('attendee-mail', 'attendee-mail');
 
 $mdb = new cm_mail_db($db);
 $template_ids = array(
-	'attendee-paid' => 'Registration Completed'
+	'attendee-paid' => 'Registration Completed',
+	'attendee-retrieve' => 'Magic Link request'
 );
 $templates = array();
 

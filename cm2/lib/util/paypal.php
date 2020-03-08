@@ -23,7 +23,11 @@ class cm_paypal {
 	}
 
 	public function get_token() {
-		if ($this->token) return $this->token;
+		if ($this->token) {
+			//Check expiration
+			if($this->token['expires'] > time())
+			return $this->token;
+		}
 		$curl = curl_init('https://' . $this->api_url . '/v1/oauth2/token');
 		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -39,7 +43,10 @@ class cm_paypal {
 		));
 		$result = curl_exec($curl);
 		curl_close($curl);
-		return ($this->token = json_decode($result, true));
+		$this->token = json_decode($result, true);
+		//Setup the expiration info
+		$this->token['expires'] = $this->token['expires_in'] + time();
+		return $this->token;
 	}
 
 	public function api($method, $data) {
@@ -53,7 +60,24 @@ class cm_paypal {
 		));
 		curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
 		$result = curl_exec($curl);
+		$http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		curl_close($curl);
+		if($http_status == 401)
+		{
+			//We got de-authed, try to get a new token
+			$this->token['expires'] = time()-1;
+			if($this->get_token()['expires'] > time())
+			{
+				//Retry the request
+				return $this->api($method,$data);
+			}
+		}
+		else if($http_status >= 400 && $http_status < 502 )
+		{
+			//Spit the error to the lgo
+			error_log('Error ' . $http_status . ' communicating with paypal: Data received:\n' . $result);
+			error_log('Submitted data:\n' . print_r($data,true));
+		}
 		return json_decode($result, true);
 	}
 
@@ -73,10 +97,11 @@ class cm_paypal {
 		);
 	}
 
-	public function create_transaction($items, $total) {
+	public function create_transaction($items, $total, $invoice_number) {
 		return array(
 			'amount' => $total,
 			'description' => $this->event_name,
+			'invoice_number' => $invoice_number,
 			'item_list' => array('items' => $items)
 		);
 	}
