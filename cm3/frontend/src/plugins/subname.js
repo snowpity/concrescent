@@ -15,8 +15,19 @@ export function subname(value, sub) {
 }
 
 export function badgeDisplayName(value, secondary) {
-  if (typeof value == "undefined")
+  if (typeof value == "undefined" || value == null)
     return null;
+  //Fixup raw DB values if the corrected values don't exist
+  if (typeof value.nameDisplay == "undefined" && typeof value['name-on-badge'] == "string")
+    value.nameDisplay = value['name-on-badge'];
+  if (typeof value.nameFirst == "undefined" && typeof value['first-name'] == "string")
+    value.nameFirst = value['first-name'];
+  if (typeof value.nameLast == "undefined" && typeof value['last-name'] == "string")
+    value.nameLast = value['last-name'];
+  if (typeof value.nameFandom == "undefined" && typeof value['fandom-name'] == "string")
+    value.nameFandom = value['fandom-name'];
+
+
   if (!value.nameFandom) {
     //We don't really care, just put the first and last name
     return secondary ? null : value.nameFirst + " " + value.nameLast;

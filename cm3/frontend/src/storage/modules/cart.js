@@ -1,7 +1,7 @@
+import Vue from 'vue'
 import shop from '../../api/shop'
 
 // initial state
-// shape: [{ id, quantity }]
 const state = {
   currentlyEditingItem: {},
   latestContactInfo: {},
@@ -20,61 +20,6 @@ function calcPromoPrice(basePrice, promoData) {
   }
 }
 
-function transformPOSTData(inProducts, reverse) {
-  //Create a copy of the products. Since it's destined to be JSON anyways, we don't worry about it...
-  var Products = JSON.parse(JSON.stringify(inProducts));
-  const pMap = {
-    nameFirst: "first-name",
-    nameLast: "last-name",
-    nameFandom: "fandom-name",
-    nameDisplay: "name-on-badge",
-    birthday: "date-of-birth",
-    selectedBadgeId: "badge-type-id",
-    contactEmail: "email-address",
-    contactSubscribePromotions: "subscribed",
-    contactPhone: "phone-number",
-    contactStreet1: "address-1",
-    contactStreet2: "address-2",
-    contactCity: "city",
-    contactState: "state",
-    contactPostalCode: "zip-code",
-    contactCountry: "country",
-    contactEmergencyName: "ice-name",
-    contactEmergencyRelationship: "ice-relationship",
-    contactEmergencyEmail: "ice-email-address",
-    contactEmergencyPhone: "ice-phone-number",
-    promo: "payment-promo-code",
-    addonsSelected: "addon-ids",
-    questionResponses: "form-answers"
-  }
-  //Loop all the  Products
-  Products.forEach(product => {
-    //First, rename the top-level keys
-    Object.keys(pMap).forEach(key => {
-      var from = reverse ? pMap[key] : key;
-      var to = reverse ? key : pMap[key];
-      if (product.hasOwnProperty(from)) {
-        delete Object.assign(product, {
-          [to]: product[from]
-        })[from];
-      }
-    });
-
-    //Fixup Addons
-    Object.keys(product["addon-ids"]).forEach(key => {
-      product["addon-" + product["addon-ids"][key]] = 1;
-    });
-
-    //Fixup questions
-    Object.keys(product["form-answers"]).forEach(key => {
-      product["cm-question-" + key] = product["form-answers"][key];
-    });
-
-
-    //End looping Products (phew!)
-  });
-  return Products;
-}
 
 // getters
 const getters = {
@@ -89,12 +34,28 @@ const getters = {
           ...badge
         }
       } else {
-        return {
+        var basePrice = (typeof product != 'undefined' ? product.price : Infinity);
+
+
+
+        var result = {
           name: (typeof product != 'undefined' ? product.name : "Error!"),
-          price: calcPromoPrice((typeof product != 'undefined' ? product.price : Infinity), badge),
-          basePrice: (typeof product != 'undefined' ? product.price : Infinity),
+          price: calcPromoPrice(basePrice, badge),
+          basePrice: basePrice,
           ...badge
+        };
+
+        //If we're editing, adjust some things
+        if (badge.editBadgeId > -1) {
+          const oldproduct = rootState.products.all.find(product => product.id == badge.editBadgePriorBadgeId)
+          result.price = Math.max(0, result.price - oldproduct.price);
         }
+        //if (badge.editBadgePriorAddons != undefined) {
+        //  result.addonsSelected = badge.addonsSelected.filter(addon => !badge.editBadgePriorAddons.includes(addon));
+        //}
+
+
+        return result;
       }
 
     })
@@ -103,9 +64,26 @@ const getters = {
     return state.items.length || 0;
   },
 
-  cartTotalPrice: (state, getters) => {
+  cartTotalPrice: (state, getters, rootState) => {
+    var addons = rootState.products.addons;
     return getters.cartProducts.reduce((total, product) => {
-      return total + product.price
+      var addonTotal = 0;
+      if (typeof product.addonsSelected.reduce == 'function') {
+        var addonsSelected = [];
+        if (product.editBadgePriorAddons == undefined)
+          addonsSelected = product.addonsSelected;
+        else
+          addonsSelected = product.addonsSelected.filter(addon => !product.editBadgePriorAddons.includes(addon));
+        addonTotal = addonsSelected.reduce((addonTotle, addonid) => {
+          var addon = addons.find(addon => addon.id == addonid);
+          return addonTotle + (addon == undefined ? 0 : parseFloat(addon.price));
+        }, 0);
+      }
+      var prodPrice = parseFloat(product.price);
+      if (isNaN(prodPrice))
+        prodPrice = 0;
+      return total + parseFloat(product.price) + addonTotal
+
     }, 0)
   },
   getProductInCart: (state) =>
@@ -133,8 +111,9 @@ const actions = {
     //  items: []
     //})
     shop.buyProducts(
-      transformPOSTData(products, false),
+      shop.transformPOSTData(products, false),
       (data) => {
+        data.cart = shop.transformPOSTData(data.cart, true);
         commit('setCheckoutStatus', data);
 
       },
@@ -164,12 +143,12 @@ const actions = {
   }, badge) {
     commit('setCheckoutStatus', null)
     const product = rootState.products.all.find(product => product.id === badge.selectedBadgeId)
-    if (product.quantity > 0 | product.quantity == null) {
+    if (product.quantity == null | product.quantity > 0) {
       const cartItem = state.items.find(item => item.cartId === badge.cartId && item.cartId != null)
       if (!cartItem) {
         badge.cartId = Math.max.apply(this, state.items.map((l) => l.cartId)) + 1
         if (badge.cartId == -Infinity)
-          badge.cartId = 1;
+          badge.cartId = 0;
         commit('pushProductToCart', badge)
 
         // remove 1 item from stock
@@ -195,12 +174,39 @@ const actions = {
       commit('removeProductFromCart', cartItem);
     }
   },
-  applyPromoToProduct({
-    state,
+  applyPromoToProducts({
     commit
   }, promo) {
-    //Do logic here
-  }
+    commit('setCheckoutStatus', null)
+    // Should we really empty cart before it's processed?
+    //commit('setCartItems', {
+    //  items: []
+    //})
+    shop.applyPromo(
+      shop.transformPOSTData(this.getters["cart/cartProducts"], false), promo,
+      (data) => {
+        data.cart = shop.transformPOSTData(data.cart, true);
+        commit('setCartItems', {
+          items: data.cart
+        });
+        commit('setCheckoutStatus', data);
+
+      },
+      function(data) {
+        commit('setCheckoutStatus', data)
+      }
+    )
+  },
+  removePromoFromProduct({
+    state,
+    commit
+  }, cartId) {
+    const cartItem = state.items.find(item => item.cartId === cartId && cartId != null)
+    if (cartItem) {
+      commit("removePromoFromProduct", cartItem);
+    }
+  },
+
 }
 
 // mutations
@@ -219,12 +225,18 @@ const mutations = {
   },
 
   updateProductInCart(state, product) {
-    state.items[state.items.findIndex(el => el.cartId === product.cartId)] = product;
+    Vue.set(state.items, state.items.findIndex(el => el.cartId === product.cartId), product);
   },
   removeProductFromCart(state, item) {
     var idx = state.items.indexOf(item);
     if (idx > -1)
       state.items.splice(idx, 1);
+  },
+  removePromoFromProduct(state, item) {
+    item.promo = undefined;
+    item.promoType = undefined;
+    item.promoPrice = undefined;
+    state.items[state.items.findIndex(el => el.cartId === item.cartId)] = item;
   },
 
   setCartItems(state, {

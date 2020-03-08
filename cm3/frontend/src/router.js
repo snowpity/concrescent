@@ -14,6 +14,16 @@ export default new Router({
       component: Home
     },
     {
+      path: '/redirect',
+      redirect: to => {
+        return {
+          name: to.query.route,
+          query: to.query
+        };
+      }
+
+    },
+    {
       path: '/about',
       name: 'about',
       meta: {
@@ -54,7 +64,7 @@ export default new Router({
       component: () => import( /* webpackChunkName: "AddEditBadge" */ './routes/register/addeditbadge.vue')
     },
     {
-      path: '/editbadge/:cartid?',
+      path: '/editbadge/:cartId?',
       name: 'editbadge',
       meta: {
         title: 'Edit badge'

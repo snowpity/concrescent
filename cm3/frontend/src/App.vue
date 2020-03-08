@@ -1,5 +1,5 @@
 <template>
-<v-app id="app">
+<v-app id="app" :style="{ background: $vuetify.theme.themes.light.backgroundcolor}">
     <v-navigation-drawer v-model="drawer" app temporary>
         <v-list dense>
             <v-list-item v-for="menuitem in drawerItems" :key="menuitem.route" :to="menuitem.route" v-show="menuitem.show == null || menuitem.show()">
@@ -18,7 +18,7 @@
         </v-list>
     </v-navigation-drawer>
 
-    <v-app-bar app color="indigo" dark>
+    <v-app-bar app color="appbar" dark>
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
         <v-toolbar-title>{{appTitle}}</v-toolbar-title>
     </v-app-bar>
@@ -30,11 +30,11 @@
 
 
 <script>
+const config = require("../customization/config.js");
 import { mapGetters } from 'vuex'
 export default {
   data: () => ({
   "drawer":false,
-  "AppName": "Registration",
   }),
   computed: {
     appTitle: function() {
@@ -54,7 +54,7 @@ export default {
           route: "/myBadges",
           icon: "mdi-account-badge-horizontal",
           label: "My badges",
-          show: () => {return this.cartCount > 0;}
+          show: () => {return this.ownedBadgeCount > 0;}
         },{
           route: "/addbadge",
           icon: "mdi-cart-plus",
@@ -70,8 +70,18 @@ export default {
       return items;
     },
     ...mapGetters('cart', {
-      cartCount: 'cartCount'
-    })
+      'cartCount': 'cartCount'
+    }),
+    ...mapGetters('mydata', {
+      'ownedBadgeCount': 'ownedBadgeCount'
+    }),
+    isAdmin: function() {
+      //TODO: Detect this. :P
+      return false;
+    },
+    AppName: function() {
+      return this.isAdmin ? config.AppNameAdmin : config.AppName;
+    }
   },
   watch: {
   '$route.name' : function(name) {

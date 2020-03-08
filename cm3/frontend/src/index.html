@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Loading...</title>
+</head>
+
+<body>
+  <noscript>
+    <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+  </noscript>
+  <div id="app"></div>
+  <!-- built files will be auto injected -->
+  <script>
+    //Did we load?
+    window.onload = function() {
+      var app = document.getElementById("app");
+      if (typeof app.dataset.app == "undefined") {
+        app.innerHTML = "Browser not supported, redirecting to legacy site...";
+        document.cookie = "L=; expires=31 Dec 2036 12:00:00 UTC; path=/";
+        //Nope! Redirect to legacy app
+        //TODO: Fick this to use the config value
+        window.location.replace("/?legacy=true");
+
+      }
+    }
+  </script>
+</body>
+
+</html>

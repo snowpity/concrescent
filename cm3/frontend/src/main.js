@@ -1,3 +1,4 @@
+const config = require("../customization/config.js");
 import Vue from 'vue'
 import App from './App.vue'
 import vuetify from './plugins/vuetify';
@@ -15,7 +16,6 @@ import {
 import router from './router'
 import store from './storage'
 
-const config = require("./config.js");
 
 Vue.config.productionTip = false
 Vue.filter('currency', currency)
@@ -34,8 +34,10 @@ new Vue({
   beforeCreate() {
     //Retrieve the cart
     this.$store.commit('cart/initialiseCart');
+    //Retrieve the users' data
+    this.$store.commit('mydata/initialiseData');
     //Initiate a call to get the products
-    this.$store.dispatch("products/getAllProducts");
+    //this.$store.dispatch("products/getAllProducts");
   },
   render: h => h(App)
 }).$mount('#app')
@@ -46,5 +48,9 @@ store.subscribe((mutation, state) => {
   if (mutation.type.startsWith("cart/")) {
     // Store the state object as a JSON string
     localStorage.setItem('cart', JSON.stringify(state.cart));
+  }
+  if (mutation.type.startsWith("mydata/")) {
+    // Store the state object as a JSON string
+    localStorage.setItem('mydata', JSON.stringify(state.mydata));
   }
 });

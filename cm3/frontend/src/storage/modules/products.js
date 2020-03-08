@@ -4,7 +4,10 @@ import shop from '../../api/shop'
 const state = {
   all: [],
   questions: [],
-  addons: []
+  addons: [],
+  gotAll: false,
+  gotQuestions: false,
+  gotAddons: false
 }
 
 // getters
@@ -15,27 +18,49 @@ const getters = {
 // actions
 const actions = {
   getAllProducts({
-    commit
+    commit,
+    state
   }) {
-    //Todo: Load only if necessary?
-    shop.getProducts(products => {
-      commit('setProducts', products)
+    return new Promise((resolve) => {
+      //Load only if necessary
+      if (!state.gotAll) {
+        shop.getProducts(products => {
+          commit('setProducts', products);
+          resolve();
+        })
+      } else {
+        resolve();
+      }
     })
   },
   getAllQuestions({
-    commit
+    commit,
+    state
   }) {
-    //Todo: Load only if necessary?
-    shop.getQuestions(questions => {
-      commit('setQuestions', questions)
+    return new Promise((resolve) => {
+      //Load only if necessary
+      if (!state.gotQuestions) {
+        shop.getQuestions(questions => {
+          commit('setQuestions', questions)
+        })
+      } else {
+        resolve();
+      }
     })
   },
   getAllAddons({
-    commit
+    commit,
+    state
   }) {
-    //Todo: Load only if necessary?
-    shop.getAddons(addons => {
-      commit('setAddons', addons)
+    return new Promise((resolve) => {
+      //Load only if necessary
+      if (!state.gotAddons)
+        shop.getAddons(addons => {
+          commit('setAddons', addons)
+        })
+      else {
+        resolve();
+      }
     })
   }
 }
@@ -43,13 +68,16 @@ const actions = {
 // mutations
 const mutations = {
   setProducts(state, products) {
-    state.all = products
+    state.all = products;
+    state.gotAll = true;
   },
   setQuestions(state, questions) {
-    state.questions = questions
+    state.questions = questions;
+    state.gotQuestions = true;
   },
   setAddons(state, addons) {
-    state.addons = addons
+    state.addons = addons;
+    state.gotAddons = true;
   },
 
   decrementProductQuantity(state, {

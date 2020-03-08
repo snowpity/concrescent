@@ -18,7 +18,7 @@
                     <v-text-field v-model="nameFandom" :counter="30" :rules="RulesNameFandom" label="Fandom Name (Optional)"></v-text-field>
                 </v-col>
                 <v-col cols="12" md="6">
-                    <v-select v-if="nameFandom" v-model="nameDisplay" :items="nameDisplayType" label="Display on badge"></v-select>
+                    <v-select v-if="nameFandom" v-model="nameDisplay" :rules="RulesNameDisplay" :items="nameDisplayType" label="Display on badge"></v-select>
                 </v-col>
             </v-row>
             <v-row>
@@ -36,10 +36,10 @@
             </v-row>
             <h3>Badge Type</h3>
             <div class="d-none d-sm-block">
-                <v-slide-group v-model="selectedBadge" class="pa-4" show-arrows mandatory center-active>
+                <v-slide-group v-model="selectedBadge" class="pa-4" :class="{warning:isProbablyDowngrading}" show-arrows mandatory center-active>
                     <v-icon slot="prev" size="100">mdi-chevron-left</v-icon>
                     <v-icon slot="next" size="100">mdi-chevron-right</v-icon>
-                    <v-slide-item v-for="product in badges" :key="product.id" v-slot:default="{ active, toggle }">
+                    <v-slide-item v-for="(product,idx) in badges" :key="product.id" v-slot:default="{ active, toggle }" :value="idx">
                         <v-card
                             :dark="active"
                             :color="active ? 'primary' : 'grey lighten-1'"
@@ -48,16 +48,16 @@
                             @click="toggle"
                             :disabled="product.quantity != null && !product.quantity">
                             <v-card-title align="center" justify="center">
-                                {{ product.name | subname}}
+                            {{ product.name | subname}}
                             </v-card-title>
                             <v-card-text>
                                 {{ product.name | subname(true)}}&nbsp;
                             </v-card-text>
                             <v-card-actions>&nbsp;
-                                <h4 text v-if="product.quantity">Only
-                                    {{product.quantity}}
+                                <h4 text v-if="product['quantity-remaining']">Only
+                                    {{product['quantity-remaining']}}
                                     left!</h4>
-                                <h4 v-else-if="product.quantity == 0">Sold out!</h4>
+                                <h4 v-else-if="product['quantity-remaining'] == 0">Sold out!</h4>
                                 <v-spacer></v-spacer>
                                 <v-btn color="green" dark>{{product.price | currency}}</v-btn>
                             </v-card-actions>
@@ -67,7 +67,7 @@
                 </v-slide-group>
             </div>
             <div class="d-block d-sm-none">
-                <v-select v-model="selectedBadge" :items="badges" label="Select Badge" :item-value="badgeIndex" :item-disabled="quantityZero">
+                <v-select v-model="selectedBadge" :items="badges" label="Select Badge" :item-value="badgeIndex" :item-disabled="quantityZero" :class="{warning:isProbablyDowngrading}">
                     <template v-slot:item="{item}">
                         <v-card color="grey lighten-1" class="ma-4" min-width="220" :disabled="item.quantity != null && !item.quantity">
                             <v-card-title align="center" justify="center">
@@ -77,10 +77,10 @@
                                 {{ item.name | subname(true)}}&nbsp;
                             </v-card-text>
                             <v-card-actions>&nbsp;
-                                <h4 text v-if="item.quantity">Only
-                                    {{item.quantity}}
+                                <h4 text v-if="item['quantity-remaining']">Only
+                                    {{item['quantity-remaining']}}
                                     left!</h4>
-                                <h4 v-else-if="item.quantity == 0">Sold out!</h4>
+                                <h4 v-else-if="item['quantity-remaining'] == 0">Sold out!</h4>
                                 <v-spacer></v-spacer>
                                 <v-btn color="green" dark>{{item.price | currency}}</v-btn>
                             </v-card-actions>
@@ -90,16 +90,16 @@
                     <template v-slot:selection="{ item }">
                         <v-card dark color="primary" class="ma-4" min-width="220" :disabled="item.quantity != null && !item.quantity">
                             <v-card-title align="center" justify="center">
-                                {{ item.name | subname}}
+                              {{ item.name | subname}}
                             </v-card-title>
                             <v-card-text>
                                 {{ item.name | subname(true)}}&nbsp;
                             </v-card-text>
                             <v-card-actions>&nbsp;
-                                <h4 text v-if="item.quantity">Only
-                                    {{item.quantity}}
+                                <h4 text v-if="item['quantity-remaining']">Only
+                                    {{item['quantity-remaining']}}
                                     left!</h4>
-                                <h4 v-else-if="item.quantity == 0">Sold out!</h4>
+                                <h4 v-else-if="item['quantity-remaining'] == 0">Sold out!</h4>
                                 <v-spacer></v-spacer>
                                 <v-btn color="green" dark>{{item.price | currency}}</v-btn>
                             </v-card-actions>
@@ -112,7 +112,7 @@
                 <v-sheet v-if="selectedBadge != null" color="grey lighten-4" tile>
                     <v-card>
                         <v-card-title class="title">Selected:
-                            {{ badges[selectedBadge] ? badges[selectedBadge].name : "Nothing yet!" }}</v-card-title>
+                            {{ badges[selectedBadge] ? badges[selectedBadge].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}</v-card-title>
                         <v-card-text class="text--primary">
                           <badgePerksRender :description="badges[selectedBadge] ? badges[selectedBadge].description : '' " :rewardlist="rewardlist"></badgePerksRender>
                         </v-card-text>
@@ -223,7 +223,7 @@
         <v-expansion-panels v-model="addonDisplayState" multiple v-if="badgeAddons.length">
             <v-expansion-panel v-for="addon in badgeAddons" v-bind:key="addon.id">
                 <v-expansion-panel-header>
-                    <v-checkbox hide-details multiple :value="addon['id']" v-model="addonsSelected">
+                    <v-checkbox hide-details multiple :value="addon['id']" v-model="addonsSelected" :disabled="badgeAddonPriorSelected(addon['id']) || addon['quantity-remaining'] == 0">
                         <template slot="label">
                             <h3 class="black--text">{{addon.name}}</h3>
                         </template>
@@ -246,7 +246,7 @@
         <div v-else>
           <h3>No addons are currently available. Check back later when they become available!</h3>
         </div>
-        <v-btn color="primary" @click="addBadgeToCart">{{ cartId > 0 || editBadgeId > 0 ? "Update in " :  "Add to "}}
+        <v-btn color="primary" @click="addBadgeToCart">{{ isUpdatingItem ? "Update in " :  "Add to "}}
             Cart</v-btn>
         <v-btn text @click="step = 3">Back</v-btn>
     </v-stepper-content>
@@ -265,18 +265,21 @@ export default {
       return {
         step: 1,
         reachedStep: 1,
-        cartId:0,
-        editBadgeId:0,
-        editBadgeType:'',
+        cartId:-1,
+        editBadgeId:-1, //Attendee's ID, not the badgeType
+        editBadgeIdUUID:'',
+        editBadgePriorBadgeId: -1,
+        editBadgePriorAddons: [],
 
         validGenInfo: false,
         nameFirst:"",
         nameLast:"",
         nameFandom:"",
-        nameDisplay:null,
+        nameDisplay:"Real Name Only",
         nameDisplayType: ["Fandom Name Large, Real Name Small", "Real Name Large, Fandom Name Small","Real Name Only", "Fandom Name Only"],
         birthday:null,
         selectedBadge: null,
+        selectedBadgeId: -1,
         menuBDay:false,
 
         validContactInfo: false,
@@ -311,6 +314,9 @@ export default {
 
           v => (v == "" || (v && v.length <= 30)) || 'Name must be less than 30 characters',
         ],
+        RulesNameDisplay: [
+          v => ((this.nameFandom.length < 1) || (this.nameFandom.length > 0 && v != "")) || 'Please select a display type'
+        ],
         RulesEmail: [
           v => !v || /.+@.+\..+/.test(v) || 'E-mail must be valid',
         ],
@@ -342,40 +348,55 @@ export default {
       return this.badges[this.selectedBadge] ? this.badges[this.selectedBadge].rewards : [];
     },
     badges: function() {
-      let badges = this.products;
+      //Crude clone
+      let badges = JSON.parse(JSON.stringify(this.products));
       //First, do we have a birthday?
       var bday = new Date(this.birthday)
       if(this.birthday && bday)
       {
-
-        //TODO: Use the event start date?
-        var age = ((new Date()).getTime() - bday.getTime()) / (1000  * 60 * 60 * 24 * 365.25);
         badges = badges.filter(badge => {
-          if((badge.min_age == null || badge.min_age < age)
-            &&(badge.max_age == null || badge.max_age >= age)
-        )
-          return badge;
+          if(!(
+               (badge['min-birthdate'] != null && bday < new Date(badge['min-birthdate']))
+             ||(badge['max-birthdate'] != null && bday > new Date(badge['max-birthdate']))
+          ))
+            return badge;
         });
-
       }
+
+      //Are we editing a badge?
+      if(this.editBadgeId > -1)
+      {
+        var oldBadge =  badges.find(badge => badge.id == this.editBadgePriorBadgeId);
+        if(oldBadge != undefined)
+        {
+          var oldPrice =  parseFloat(oldBadge.price)
+          //Determine price difference
+          badges.forEach(function(badge){
+            badge.originalprice = badge.price;
+            badge.price = Math.max(parseFloat(badge.price) - oldPrice,0).toFixed(2);
+          })
+        }
+      }
+
       badges.sort((a,b) => a.order - b.order);
       return badges;
     },
     compiledBadge: function() {
       //Special because of how the select dropdown works
-      var selectedbadge =  typeof this.badges[this.selectedBadge] == "undefined" ? null : this.badges[this.selectedBadge].id;
       return {
 
         cartId:this.cartId,
         editBadgeId:this.editBadgeId,
-        editBadgeType:this.editBadgeType,
+        editBadgeIdUUID:this.editBadgeIdUUID,
+        editBadgePriorBadgeId:this.editBadgePriorBadgeId,
+        editBadgePriorAddons:this.editBadgePriorAddons,
 
         nameFirst: this.nameFirst,
         nameLast: this.nameLast,
         nameFandom: this.nameFandom,
         nameDisplay: this.nameDisplay,
         birthday: this.birthday,
-        selectedBadgeId: selectedbadge,
+        selectedBadgeId: this.selectedBadgeId,
 
         contactEmail:this.contactEmail,
         subscribed:this.contactSubscribePromotions,
@@ -394,6 +415,19 @@ export default {
         addonsSelected:this.addonsSelected
 
       };
+    },
+    isUpdatingItem: function() {
+      return (this.cartId != null && this.cartId > -1) || (this.editBadgeId != null && this.editBadgeId > -1);
+    },
+    isProbablyDowngrading: function() {
+      if(! this.isUpdatingItem)
+        return false;
+
+      var oldBadge =  this.badges.find(badge => badge.id == this.editBadgePriorBadgeId);
+      var selectedBadge = this.badges[this.selectedBadge];
+      return typeof oldBadge != 'undefined'
+        && typeof selectedBadge != 'undefined'
+        && parseFloat(oldBadge.originalprice) > parseFloat(selectedBadge.originalprice);
     },
     currentContactInfo: function() {
       return {
@@ -439,21 +473,36 @@ export default {
         var include = true;
         include = include && addon.active;
         include = include && (addon["badge-type-ids"] == '*' || addon["badge-type-ids"].includes(badgeId));
-        //TODO: Birthday filter
         return include;
       });
+
+      //First, do we have a birthday?
+      var bday = new Date(this.birthday)
+      if(this.birthday && bday)
+      {
+        result = result.filter(badge => {
+          if(!(
+               (badge['min-birthdate'] != null && bday < new Date(badge['min-birthdate']))
+             ||(badge['max-birthdate'] != null && bday > new Date(badge['max-birthdate']))
+          ))
+            return badge;
+        });
+
+      }
       ////Apply logic to required
       //result.forEach(function(question){
       //  question.isRequired = question.required == '*' || question.required.includes(badgeId)
       //})
+
       //Sort it out
       result.sort((a,b) => a.order - b.order);
       return result;
-    },
+    }
   },
   watch: {
     step: function(newStep){
       this.reachedStep = Math.max(this.reachedStep,newStep);
+      this.autoSaveBadge();
     },
     menuBDay (val) {
       val && setTimeout(() => (this.$refs.pickerBDay.activePicker = 'YEAR'))
@@ -465,6 +514,14 @@ export default {
         Object.assign(this, contactInfo);
       }
     },
+    birthday () {
+
+      this.checkBadge();
+    },
+    selectedBadge(val) {
+
+      this.selectedBadgeId =  typeof this.badges[val] == "undefined" ? this.selectedBadgeId : this.badges[val].id;
+    },
     compiledBadge() {
       this.autoSaveBadge();
     },
@@ -475,6 +532,10 @@ export default {
       {
         this.resetBadge();
       }
+    },
+    $route(to, from) {
+      // react to route changes...
+      this.loadBadge();
     }
   },
   methods: {
@@ -488,38 +549,75 @@ export default {
     },
     loadBadge(){
       var cartItem;
-      if(this.$route.params.cartId > 0)
+      this.cartId = parseInt(this.$route.params.cartId);
+      var editBadgeIdString = this.$route.params.editId;
+      var selectedBadgeId = -1;
+      if(this.cartId > -1 )
       {
-        this.cartId = this.$route.params.cartId;
         //Load up the badge from the cart
         cartItem = this.$store.getters["cart/getProductInCart"](this.cartId);
-        Object.assign(this, cartItem);
-        //Special props
-        this.selectedBadge = this.badges.findIndex(badge => badge.id == cartItem.selectedBadgeId);
+        this.reachedStep = 4;
+      } else if(editBadgeIdString && editBadgeIdString.length > 0)
+      {
+        //Load up the badge from the cart
+        cartItem = this.$store.getters["mydata/getBadgeAsCart"](editBadgeIdString);
+        this.editBadgePriorBadgeId = cartItem.selectedBadgeId;
         this.reachedStep = 4;
       }
       else if(this.$route.params.cartId == undefined)
       {
         //It's a new badge or they're back here from a refresh/navigation
         cartItem = this.$store.getters["cart/getCurrentlyEditingItem"];
-        Object.assign(this, cartItem);
         //Should only be needed if we didn't have a selectedBadge?
         //this.selectedBadge = this.badges.findIndex(badge => badge.id == cartItem.selectedBadgeId);
-        this.step = cartItem.step;
-
       }
+
+      //Pull out the BadgeId
+      selectedBadgeId = cartItem.selectedBadgeId;
+      //delete cartItem.selectedBadgeId;
+      Object.assign(this, cartItem);
+      //Special props
+      var _this = this;
+
+      this.checkBadge();
+      setTimeout(() => {
+        var newIndex = _this.badges.findIndex(badge => badge.id == selectedBadgeId)
+        if(newIndex > -1)
+          _this.selectedBadge =newIndex;
+
+      }, 200);
     },
     resetBadge(){
       Object.assign(this.$data, this.$options.data.apply(this));
+      this.$store.commit("cart/setCurrentlyEditingItem", this.compiledBadge);
       this.step = 1;
     },
     autoSaveBadge(){
+
       var cartItem = this.compiledBadge;
       cartItem.reachedStep = this.reachedStep;
       cartItem.step = parseInt(this.step);
       cartItem.selectedBadge=this.selectedBadge;
       this.$store.commit("cart/setCurrentlyEditingItem", cartItem);
 
+    },
+    checkBadge() {
+
+      //Ensure only applicable badges are selected!
+      if(this.badges.length > 0)
+      {
+        var bid = this.selectedBadgeId;
+        var badge = this.badges.findIndex(badge => badge.id == bid);
+        if(badge == -1) badge = 0;
+        this.selectedBadge = badge;
+      }
+
+      //Ensure only applicable badge addons are selected!
+      var badgeAddons = this.badgeAddons;
+      if(typeof this.addonsSelected.filter == 'function')
+      this.addonsSelected = this.addonsSelected.filter(function(aid) {
+        return undefined != badgeAddons.find(addon => addon.id == aid);
+      });
     },
     addBadgeToCart() {
 
@@ -548,16 +646,19 @@ export default {
       this.contactPostalCode=addressdata.postal_code;
       this.contactCountry=addressdata.country;
     },
+    badgeAddonPriorSelected: function(addonid) {
+      return this.editBadgePriorAddons.indexOf(addonid) != -1;
+    }
   },
   components: {
     badgeQuestionRender,
     badgePerksRender
   },
   created () {
-      this.$store.dispatch('products/getAllProducts')
+      this.$store.dispatch('products/getAllProducts').then(this.loadBadge())
       this.$store.dispatch('products/getAllQuestions')
       this.$store.dispatch('products/getAllAddons')
-      this.loadBadge();
+
   }
 }
 </script>

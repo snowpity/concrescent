@@ -1,29 +1,29 @@
 <template>
 <v-container class="pa-2" fluid>
-    <p v-show="!badges.length">
+    <p v-show="!ownedbadgecount">
         <i>You have no badges. Click on the link in your confirmation email, or Add one.</i><br/>
     </p>
     <v-row >
-        <v-col cols="12" md="6" lg="4" xl="3" v-for="(product, idx) in badges" :key="product.cartId">
+        <v-col cols="12" md="6" lg="4" xl="3" v-for="(badge, idx) in ownedbadges" :key="badge['id-string']">
             <v-card>
                 <v-row>
                     <v-spacer></v-spacer>
-                    <v-card-title >{{product | badgeDisplayName}}</v-card-title>
+                    <v-card-title >{{badge | badgeDisplayName}}</v-card-title>
                     <v-spacer></v-spacer>
                 </v-row>
                 <v-row>
                     <v-spacer></v-spacer>
-                    <h3 >{{product | badgeDisplayName(true)}}&zwj;</h3>
+                    <h3 >{{badge | badgeDisplayName(true)}}&zwj;</h3>
                     <v-spacer></v-spacer>
                 </v-row>
                 <v-card-actions>
-                    {{product.name}}
+                    {{badge['badge-type-name']}}
 
                     <v-spacer></v-spacer>
                     <v-btn icon @click.stop="displayBadge = idx">
                         <v-icon>mdi-information</v-icon>
                     </v-btn>
-                    <v-btn icon :to="{name:'editbadge', params: {cartId: product.cartId}}">
+                    <v-btn icon :to="{name:'editbadge', params: {editId: badge['id-string']}}">
                         <v-icon>mdi-pencil</v-icon>
                     </v-btn>
                 </v-card-actions>
@@ -32,42 +32,65 @@
     </v-row>
     <v-row>
         <v-col>
-            <v-btn color="primary" :to="{name:'addbadge', params: {cartId: 0}}" left absolute>Add
-                {{badges.length ? "another" : "a"}}
-                badge</v-btn>
+            <v-btn color="primary" :to="{name:'addbadge', params: {cartId: 0}}" left absolute>Add a badge</v-btn>
+        </v-col>
+        <v-spacer></v-spacer>
+        <v-col>
+            <v-btn color="primary" :to="{name:'login'}" right absolute>Retrieve badges</v-btn>
         </v-col>
     </v-row>
+
     <v-dialog v-model="displayBadgeModal" max-width="600" persistent
     :hide-overlay="printingBadge" :fullscreen="printingBadge"
     >
         <v-card>
-      <v-card-actions class="d-print-none">
-          <v-spacer></v-spacer>
-          <v-btn color="blue darken-1"  @click="printBadgeInfo"><v-icon>mdi-printer</v-icon></v-btn>
-          <v-btn color="success" @click="displayBadge = -1"><v-icon>mdi-close</v-icon></v-btn>
-      </v-card-actions>
+          <v-card-actions class="d-print-none">
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1"  @click="printBadgeInfo"><v-icon>mdi-printer</v-icon></v-btn>
+              <v-btn color="success" @click="displayBadge = ''"><v-icon>mdi-close</v-icon></v-btn>
+          </v-card-actions>
             <v-card-title class="headline">Badge Info</v-card-title>
-            <v-card-text><p  class="text-center" ><v-btn height=266 width=266 elevation=4><qr-code text="CM*A1*efe092dc-337f-11ea-af03-ac1f6bb52d6a"></qr-code></v-btn></p></v-card-text>
-            <v-card-text>
+            <v-card-text><p  class="text-center" ><v-btn height=266 width=266 elevation=4><qr-code :text="displayBadgeData ? displayBadgeData['qr-data'] : ''"></qr-code></v-btn></p>
                 <v-row>
                     <v-spacer></v-spacer>
-                    <v-card-title >{{badges[displayBadge] | badgeDisplayName}}</v-card-title>
+                    <v-card-title >{{displayBadgeData | badgeDisplayName}}</v-card-title>
                     <v-spacer></v-spacer>
                 </v-row>
                 <v-row>
                     <v-spacer></v-spacer>
-                    <h3 >{{badges[displayBadge] | badgeDisplayName(true)}}&zwj;</h3>
+                    <h3 >{{displayBadgeData | badgeDisplayName(true)}}&zwj;</h3>
                     <v-spacer></v-spacer>
                 </v-row>
-                <v-card-title class="title">{{badges[displayBadge] && badges[displayBadge].name}}</v-card-title>
+                <v-card-title class="title">{{displayBadgeData && displayBadgeData['badge-type-name']}}</v-card-title>
                 <badgePerksRender :description="displayBadgeProduct ? displayBadgeProduct.description : null " :rewardlist="displayBadgeProduct ? displayBadgeProduct.rewards : null"></badgePerksRender>
-                List of addons<br>
+                <v-card-title>Addons purchased:</v-card-title>
 
-              </v-card-text>
+                    <v-card v-for="addon in (displayBadgeProduct ? displayBadgeData.addons : null)" v-bind:key="addon.id">
+                        <v-card-title>
+                            <h3 class="black--text">{{addon.name}}</h3>
+                        </v-card-title>
+                        <v-card-text>
+                            <div v-html="addon.description"></div>
+                        </v-card-text>
+                    </v-card>
+            </v-card-text>
         </v-card>
     </v-dialog>
-
+    <v-snackbar
+          v-model="displayImportResult"
+          :timeout="0"
+        >
+          {{ importResult }}
+          <v-btn
+            color="primary"
+            text
+            @click="clearBadgeRetrievalResult"
+          >
+            Close
+          </v-btn>
+    </v-snackbar>
 </v-container>
+
 </template>
 
 
@@ -85,31 +108,43 @@ export default {
   data: () => ({
     promocodeDialog: false,
     promoAppliedDialog: false,
-    processingCheckoutDialog: false,
-    displayBadge: -1,
+    displayBadge: "",
     printingBadge: false
   }),
 computed: {
   ...mapState({
+    ownedbadges: state => state.mydata.ownedbadges,
     products: state => state.products.all,
     questions: state => state.products.questions,
-    addons: state => state.products.addons
+    addons: state => state.products.addons,
+    importResult: state => state.mydata.BadgeRetrievalResult
   }),
   ...mapGetters('cart', {
     badges: 'cartProducts',
     total: 'cartTotalPrice'
   }),
-  displayBadgeModal: function() { return this.displayBadge > -1;},
+  ownedbadgecount: function() {return Object.keys(this.ownedbadges).length;},
+  displayBadgeModal: function() { return this.displayBadge != "";},
+  displayBadgeData: function() {
+    if(!this.displayBadgeModal) return null;
+    return this.ownedbadges[this.displayBadge];
+  },
   displayBadgeProduct: function() {
     if(!this.displayBadgeModal) return null;
-    var badgeId = this.badges[this.displayBadge].selectedBadgeId;
-    return this.products.find(function(item){return item.id == badgeId})
+    var badgeId = this.displayBadgeData['badge-type-id'];
+    var result = this.products.find(function(item){return item.id == badgeId})
+    return result;
+  },
+  displayImportResult: function() {
+    return this.importResult.length > 0;
   }
 },
 methods: {
-    ...mapActions('cart', [
-    'applyPromoToProduct',
-    'removeProductFromCart',
+  ...mapActions('mydata', [
+    'retrieveBadges',
+    'clearBadgeRetrievalResult'
+  ]),
+  ...mapActions('cart', [
     'clearCart'
   ]),
   printBadgeInfo: function() {
@@ -136,10 +171,19 @@ methods: {
     }
 
   },
-  checkout (products) {
-    this.processingCheckoutDialog = true;
-    this.$store.dispatch('cart/checkout', products)
+},
+created(){
+  var query = this.$route.query;
+  if(query.gid != undefined){
+    this.retrieveBadges(query);
+    //Presumably they're here from a Review Order link or the checkout summary page
+    //Which *probably* means it was successful, so... clear the cart!
+    this.clearCart();
+    this.$router.replace({...this.$router.currentRoute, query: {}})
   }
+  this.$store.dispatch('products/getAllProducts')
+  this.$store.dispatch('products/getAllAddons')
+
 }
 }
 </script>

@@ -1,3 +1,4 @@
+const config = require("../../customization/config.js");
 import '@mdi/font/css/materialdesignicons.css' // Ensure you are using css-loader
 import Vue from 'vue';
 import Vuetify, {
@@ -13,5 +14,11 @@ Vue.use(Vuetify, {
 export default new Vuetify({
   icons: {
     iconfont: 'mdi',
+  },
+  theme: {
+    themes: {
+      light: config.themeLight,
+      dark: config.themeDark
+    },
   },
 });
