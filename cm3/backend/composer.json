@@ -1,0 +1,13 @@
+{
+    "require": {
+      "guzzlehttp/guzzle": "^6.5",
+        "slim/slim": "4.*",
+        "slim/psr7": "^1.5"
+    },
+    "autoload":{
+      "psr-4":{
+        "CM3\\":"lib/",
+        "CM3_Route\\":"routes/"
+      }
+    }
+}
