@@ -1,10 +1,10 @@
 <?php
 
-require_once dirname(__FILE__).'/database.php';
-require_once dirname(__FILE__).'/eventinfo.php';
-require_once dirname(__FILE__).'/filestore.php';
+namespace CM3_Lib\models\badge;
 
-class cm_badge_format_db extends cm_Table {
+use \CM3_Lib\database\Column as cm_Column;
+
+class format extends CM3_Lib\database\Table {
 	protected function setupTableDefinitions() : void
 	{
 		$this->TableName  = 'Badge_Formats';
@@ -16,17 +16,6 @@ class cm_badge_format_db extends cm_Table {
 			'customSize'     => new cm_Column('VARCHAR','255', true, defaultValue: null),
 			'layoutPosition' => new cm_Column('VARCHAR','255', true, defaultValue: null),
 			'layout'         => new cm_Column('TEXT',null,true),
-		)
-	}
-}
-
-class cm_badge_format_map_db extends cm_Table{
-	protected function setupTableDefinitions() : void
-	{
-		$this->TableName  = 'Badge_Format_Map';
-		$this->ColumnDefs = array(
-			'badge_id'			=> new cm_Column('INT',null, false),
-			'format_id' 		=> new cm_Column('SMALLINT', null, false),
 		)
 	}
 }

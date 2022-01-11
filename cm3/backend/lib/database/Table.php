@@ -1,307 +1,28 @@
 <?php
 
-require_once dirname(__FILE__).'/../../config/config.php';
+namespace CM3_Lib\database;
 
-class cm_Db
-{
-    public $table_prefix;
-    public $connection;
-    public $known_tables; //Tables we know exist. bool -> If the schema has been validated
-
-    public function __construct()
-    {
-        /* Load configuration */
-        $config = $GLOBALS['cm_config']['database'];
-        $this->table_prefix = $config['prefix'];
-
-        /* Connect to database */
-        $this->connection = new mysqli(
-            $config['host'],
-            $config['username'],
-            $config['password'],
-            $config['database']
-        );
-
-        /* Set text encoding */
-        $this->connection->set_charset('utf8');
-
-        /* Set time zone */
-        $stmt = $this->connection->prepare('set time_zone = ?');
-        $stmt->bind_param('s', $config['timezone']);
-        $stmt->execute();
-        $stmt->close();
-
-        //TODO: Hash table definition and compare with class data? Store check time to reduce extra overhead...
-        /* Load known tables */
-        $this->known_tables = array();
-        $stmt = $this->connection->prepare(
-            'SELECT table_name '.
-            'FROM information_schema.tables '.
-            'WHERE table_schema = ?'
-        );
-        $stmt->bind_param('s', $config['database']);
-        $stmt->execute();
-        $stmt->bind_result($table);
-        while ($stmt->fetch()) {
-            $this->known_tables[$table] = false;
-        }
-        $stmt->close();
-    }
-
-    public function table_def($table, $def)
-    {
-        $tn = $this->table_prefix . $table;
-        if (!isset($this->known_tables[$tn])) {
-            $this->known_tables[$tn] = true;
-            $this->connection->query(
-                'CREATE TABLE IF NOT EXISTS '.
-                '`' . $tn . '` '.
-                '(' . $def . ')'
-            );
-        }
-    }
-
-    public function table_name($table)
-    {
-        return '`' . $this->table_prefix . $table . '`';
-    }
-
-    public function table_is_empty($table)
-    {
-        $tn = $this->table_name($table);
-        $result = $this->connection->query('SELECT 1 FROM ' . $tn . ' LIMIT 1');
-        if ($result) {
-            $is_empty = !$result->num_rows;
-            $result->close();
-            return $is_empty;
-        } else {
-            return true;
-        }
-    }
-
-    public function now()
-    {
-        $result = $this->connection->query('SELECT NOW()');
-        $row = $result->fetch_row();
-        $now = $row[0];
-        $result->close();
-        return $now;
-    }
-
-    public function uuid()
-    {
-        $result = $this->connection->query('SELECT UUID()');
-        $row = $result->fetch_row();
-        $uuid = $row[0];
-        $result->close();
-        return $uuid;
-    }
-
-    public function curdatetime()
-    {
-        $result = $this->connection->query('SELECT CURDATE(), CURTIME()');
-        $row = $result->fetch_row();
-        $date = $row[0];
-        $time = $row[1];
-        $result->close();
-        return array($date, $time);
-    }
-
-    public function timezone()
-    {
-        $result = $this->connection->query('SELECT @@global.time_zone, @@session.time_zone');
-        $row = $result->fetch_row();
-        $global = $row[0];
-        $session = $row[1];
-        $result->close();
-        return array($global, $session);
-    }
-
-    public function characterset()
-    {
-        $results = array();
-        $result = $this->connection->query('SHOW VARIABLES LIKE \'character\\_set\\_%\'');
-        while ($row = $result->fetch_row()) {
-            $results[$row[0]] = $row[1];
-        }
-        $result->close();
-        return $results;
-    }
-}
-
-class cm_Column
-{
-    public function __construct(
-        public string $dbType,
-        public string|array|null $lengthOrEnumValues = null,
-        public ?bool $isNullable = true,
-        public bool $isPrimary = false,
-        public bool $isUnique = false,
-        public bool $isKey = false,
-        public ?string $defaultValue = null,
-        public bool $isAutoIncrement = false,
-        public ?string $customPostfix = null
-    ) {
-    }
-    //TODO: Maybe make a helper function to parse out enum values?
-
-    public function GetCreateString(): string
-    {
-        $result = $this->dbType;
-        if (isset($this->lengthOrEnumValues)) {
-            $result .= '(';
-            if (gettype($this->lengthOrEnumValues) == 'string') {
-                $result .=  $this->lengthOrEnumValues;
-            } else {
-                foreach ($this->lengthOrEnumValues as $value) {
-                    $result .= "'$value', ";
-                }
-                //Snip the trailing comma and add in a closing parenthesis...
-                $result = substr($result, 0, -2);
-            }
-            $result .= ')';
-        }
-
-        $result .= ' ' .
-        (isset($this->isNullable) ? ($this->isNullable ? '' : 'NOT ') . 'NULL ' : '').
-        ($this->isPrimary ? 'PRIMARY ' . ($this->isKey ? ' KEY ' : '') : '') .
-        ($this->isUnique ? 'UNIQUE ' . ($this->isKey ? ' KEY ' : '') : '') .
-        (isset($this->defaultValue) ? 'DEFAULT ' . $this->defaultValue . ' ' : '') .
-        ($this->isAutoIncrement ? 'AUTO_INCREMENT ' : '') .
-        (isset($this->customPostfix) ? ' ' .$this->customPostfix . ' ' : '');
-        return $result;
-    }
-    public function GetBindParamCode(): string
-    {
-        //Is it int-like?
-        if (strpos(strtoupper($this->dbType), 'INT')!==false) {
-            //Is it unsigned int or bigint?
-            if (strpos(strtoupper($this->dbType), 'BIG')!==false || strpos(strtoupper($this->dbType), 'UNSIGNED INT')!==false) {
-                return 's';
-            }
-            //PHP can handle it
-            return 'i';
-        }
-        if (strpos(strtoupper($this->dbType), 'FLOAT')!==false
-        || strpos(strtoupper($this->dbType), 'REAL')!==false
-        || strpos(strtoupper($this->dbType), 'DOUBLE')!==false
-        ) {
-            return 'd';
-        }
-
-        if (strpos(strtoupper($this->dbType), 'BLOB')!==false) {
-            return 'b';
-        }
-        return 's';
-    }
-}
-class cm_ColumnIndex
-{
-    //string => bool array, true means add DESC
-    public function __construct(public array $Columns, public string $IndexType = '')
-    {
-    }
-    public function GetCreateString($indexName): string
-    {
-        //Preamble
-        switch (strtolower($ix->IndexType)) {
-            case 'primary key':
-                $sqlText = 'CONSTRAINT PRIMARY KEY ';
-                break;
-            case 'unique key':
-                $sqlText = 'CONSTRAINT `' . $indexName . '` UNIQUE KEY ';
-                break;
-            case 'unique':
-                $sqlText = 'CONSTRAINT `' . $indexName . '` UNIQUE ';
-                break;
-            default:
-                $sqlText = 'INDEX `' . $indexName . '` ';
-                break;
-        }
-        //Column definitions
-        $sqlText .= '(';
-        foreach ($ix->$Columns as $columnName => $isDesc) {
-            $sqlText .= '`' . $columnName .'` ' .
-            ($isDesc ? 'DESC ' : '') . ', ';
-        }
-        //Snip the trailing comma and add in a closing parenthesis...
-        $sqlText = substr($sqlText, 0, -2) . ') ';
-    }
-}
-class cm_SelectColumn
-{
-    public function __construct(
-        public string $ColumnName,
-        public bool $GroupBy = false,
-        public ?string $EncapsulationFunction = null,
-        public ?string $Alias = null,
-        public ?string $JoinedTableAlias = null
-    ) {
-    }
-}
-
-class cm_SearchTerm
-{
-    //Operation: AND, OR, subAND, subOR, RAW
-    //EncapsulationColumnOnly: If null, applies function to both sides. True, applies to db column. False applies to value provided
-    public function __construct(
-        public  string $ColumnName,
-        public  mixed $CompareValue,
-        public  string $Operation = '=',
-        public  string $TermType = 'AND',
-        public ?array $subSearch = null,
-        public ?string $EncapsulationFunction = null,
-        public ?bool $EncapsulationColumnOnly = null,
-        public ?string $JoinedTableAlias = null,
-        public ?string $Raw = null
-    ) {
-    }
-}
-class cm_Join
-{
-    //$onColumns = left -> right
-    //$Direction - '', 'LEFT', 'RIGHT', etc. Default 'INNTER'
-    public function __construct(
-        public cm_Table $Table,
-        public array $OnColumns,
-        public string $Direction = 'INNER',
-        public ?string $alias = null,
-        public ?array $subQSelectColumns = null,
-        public ?array $subQSearchTerms = null
-    ) {
-        //TODO: Confirm that columns do not collide!
-        //TODO: Confirm alias is matching in columns!
-    }
-}
-class cm_View
-{
-    //$Columns = cm_SelectColumn[]
-    public function __construct(public array $Columns, public ?array $Joins = null)
-    {
-        //TODO: Confirm that columns do not collide!
-    }
-}
-abstract class cm_Table
+abstract class Table
 {
     //Associated database connection
     protected $cm_db;
     protected string $TableName;
-    //String-keyed array of cm_Column
+    //String-keyed array of Column
     public array $ColumnDefs;
-    //string-keyed array of cm_ColumnIndex
+    //string-keyed array of ColumnIndex
     protected array $IndexDefs;
     //These must be present in some way if we're referencing an entry
     //name -> bool if it's needed for Insert as well as update
     public array $PrimaryKeys;
     //If an empty array is provided for the return columns in Search, these will be returned by default
     public array $DefaultSearchColumns;
-    //Availalbe name => cm_View
+    //Availalbe name => View
     public array $Views;
 
     //Sets up table definitions above
     abstract protected function setupTableDefinitions(): void;
 
-    public function __construct(cm_Db $cm_db)
+    public function __construct(Db $cm_db)
     {
         $this->cm_db = $cm_db;
         $this->setupTableDefinitions();
@@ -547,7 +268,7 @@ abstract class cm_Table
         return $count;
     }
 
-    public function Search(cm_View|array|string|null $columns = null, ?array $terms = null, ?array $order = null, int $limit = -1, int $offset = 0)
+    public function Search(View|array|string|null $columns = null, ?array $terms = null, ?array $order = null, int $limit = -1, int $offset = 0)
     {
         $groupNames = array();
         $viewName = null;
@@ -567,7 +288,7 @@ abstract class cm_Table
                     $viewJoins = $view->Joins;
                     $columns = $view->Columns;
                 } else {
-                    //Just a normal view cm_View
+                    //Just a normal view View
                     $viewJoins = $this->Views[$viewName]->Joins;
                     $columns = $this->Views[$viewName]->Columns;
                 }
@@ -913,16 +634,16 @@ abstract class cm_Table
         $terms = array();
         if (!!$id) {
             if (count($this->PrimaryKeys) == 1) {
-                $terms[] = new cm_SearchTerm($this->PrimaryKeys[0], $id);
+                $terms[] = new SearchTerm($this->PrimaryKeys[0], $id);
             } else {
                 //TODO: multi-key not yet supported.
             }
         }
         if (!!$uuid) {
             if (isset($this->ColumnDefs['uuid_raw'])) {
-                $terms[] = new cm_SearchTerm('uuid_raw', $this->PrimaryKeys[0], EncapsulationFunction: 'UUID_TO_BIN(?)', EncapsulationColumnOnly: false);
+                $terms[] = new SearchTerm('uuid_raw', $this->PrimaryKeys[0], EncapsulationFunction: 'UUID_TO_BIN(?)', EncapsulationColumnOnly: false);
             } elseif (isset($this->ColumnDefs['uuid'])) {
-                $terms[] = new cm_SearchTerm('uuid', $this->PrimaryKeys[0]);
+                $terms[] = new SearchTerm('uuid', $this->PrimaryKeys[0]);
             } else {
                 //Some other UUID?
                 //TODO: Maybe search for the UUID column if it's by another name?

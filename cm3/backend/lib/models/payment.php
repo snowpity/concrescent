@@ -1,8 +1,10 @@
 <?php
 
-require_once dirname(__FILE__).'/database.php';
+namespace CM3_Lib\models;
 
-class cm_payment_db extends cm_Table
+use CM3_Lib\database\Column as cm_Column;
+
+class payment extends CM3_Lib\database\Table
 {
     //TODO: Maybe make this public static so other classes don't need to repeat it?
     public $payment_statuses = array(

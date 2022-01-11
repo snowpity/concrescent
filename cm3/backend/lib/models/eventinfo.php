@@ -1,9 +1,13 @@
 <?php
 
-require_once dirname(__FILE__).'/database.php';
-require_once dirname(__FILE__).'/../util/util.php';
+namespace CM3_Lib\models;
 
-class cm_eventinfo_db extends cm_Table
+use CM3_Lib\database\Column as cm_Column;
+use CM3_Lib\database\SelectColumn as cm_SelectColumn;
+use CM3_Lib\database\SearchTerm as cm_SearchTerm;
+use CM3_Lib\database\View as cm_View;
+
+class eventinfo extends CM3_Lib\database\Table
 {
     protected function setupTableDefinitions(): void
     {
@@ -49,7 +53,7 @@ class cm_eventinfo_db extends cm_Table
             $evParts = explode(':', $_COOKIE['cm_EventID']);
             if (count($evParts) == 2) {
                 //Had the right parts, check the hash
-                $decodedID = BaseIntEncoder::decode($evParts[1]);
+                $decodedID = CM3_Lib\util\BaseIntEncoder::decode($evParts[1]);
                 //Did it match?
                 if ((int)$evParts[0] == $decodedID) {
                     //Looks good! Generate the search term!
@@ -75,7 +79,7 @@ class cm_eventinfo_db extends cm_Table
         if ($result !== false && count($result) > 0) {
             $eventId = $result[0]['id'];
             //Tell them they have a cookie to keep hold of...
-            setcookie('cm_EventID', $eventId . ':' . BaseIntEncoder::encode($eventId), time() + 30*60*60*24); //30 days
+            setcookie('cm_EventID', $eventId . ':' . CM3_Lib\util\BaseIntEncoder::encode($eventId), time() + 30*60*60*24); //30 days
             //Oh, and return the cm_SearchTerm
             return new cm_SearchTerm($eventIDColumnName, $eventId, JoinedTableAlias: $JoinedTableAlias);
         } else {

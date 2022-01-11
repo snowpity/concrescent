@@ -1,8 +1,10 @@
 <?php
 
-require_once dirname(__FILE__).'/database.php';
+namespace CM3_Lib\models;
 
-class cm_filestore_db extends cm_Table
+use CM3_Lib\database\Column as cm_Column;
+
+class cm_filestore_db extends CM3_Lib\database\Table
 {
     protected function setupTableDefinitions(): void
     {
