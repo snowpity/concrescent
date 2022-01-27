@@ -11,7 +11,7 @@ class ColumnIndex
     public function GetCreateString($indexName): string
     {
         //Preamble
-        switch (strtolower($ix->IndexType)) {
+        switch (strtolower($this->IndexType)) {
             case 'primary key':
                 $sqlText = 'CONSTRAINT PRIMARY KEY ';
                 break;
@@ -27,11 +27,13 @@ class ColumnIndex
         }
         //Column definitions
         $sqlText .= '(';
-        foreach ($ix->$Columns as $columnName => $isDesc) {
+        foreach ($this->Columns as $columnName => $isDesc) {
             $sqlText .= '`' . $columnName .'` ' .
             ($isDesc ? 'DESC ' : '') . ', ';
         }
         //Snip the trailing comma and add in a closing parenthesis...
         $sqlText = substr($sqlText, 0, -2) . ') ';
+
+        return $sqlText;
     }
 }

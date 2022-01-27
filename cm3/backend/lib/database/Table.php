@@ -5,7 +5,7 @@ namespace CM3_Lib\database;
 abstract class Table
 {
     //Associated database connection
-    protected $cm_db;
+    protected DbConnection $cm_db;
     protected string $TableName;
     //String-keyed array of Column
     public array $ColumnDefs;
@@ -22,7 +22,7 @@ abstract class Table
     //Sets up table definitions above
     abstract protected function setupTableDefinitions(): void;
 
-    public function __construct(Db $cm_db)
+    public function __construct(DbConnection $cm_db)
     {
         $this->cm_db = $cm_db;
         $this->setupTableDefinitions();
@@ -54,7 +54,7 @@ abstract class Table
         //Finally, execute
         $result = $this->cm_db->known_tables[$this->TableName] = !!$this->cm_db->connection->query($sqlText);
         if (!$result) {
-            error_log("Error creating table $this->TableName with SQL: $sqlText");
+            $this->checkAndThrowError("Error creating table $this->TableName", array('LastError: ' . $this->cm_db->connection->error), $sqlText, true);
         }
         return $result;
     }
@@ -76,6 +76,7 @@ abstract class Table
     {
         //Do some initial checking
         $failCheck = false;
+        $errors = array();
         $paramCodes = '';
         $paramData = array();
         $paramNames = array();
@@ -87,11 +88,11 @@ abstract class Table
                 //It was provided. Is it good?
                 if (gettype($entrydata[$columnName]) == 'array') {
                     //We don't support arrays as parameters
-                    error_log("Error creating/updating entry for $this->TableName, column $columnName was given an array value but that's not supported.");
+                    $errors[] ="Column $columnName was given an array value but that's not supported.";
                     $failCheck = true;
                 }
                 if ($columnDef->isAutoIncrement && $isNew) {
-                    error_log("Error creating entry for $TableName, column $columnName was given a value despite being AutoIncrement, and we're not supposed to.");
+                    $errors[] ="Column $columnName was given a value despite being AutoIncrement, and we're not supposed to.";
                     $failCheck = true;
                 }
                 if ($isNew || !isset($this->PrimaryKeys[$columnName])) {
@@ -105,14 +106,14 @@ abstract class Table
                 }
             } elseif ($isNew) {
                 //Was NOT provided. Should it have been?
-                if (!isset($this->PrimaryKeys[$columnName]) && $columnDef->isNullable === false && $columnDef->defaultValue == null) {
-                    error_log("Error creating entry for $this->TableName, column $columnName was not given a value.");
+                if (!isset($this->PrimaryKeys[$columnName]) && $columnDef->isNullable === false && is_null($columnDef->defaultValue)) {
+                    $errors[] ="Column $columnName was not given a value.";
                     $failCheck = true;
                 }
             } else {
                 //Not provided but we're updating, is it a primary key?
                 if (isset($this->PrimaryKeys[$columnName])) {
-                    error_log("Error updating entry for $this->TableName, column $columnName was not given a value but needs one.");
+                    $errors[] ="Column $columnName was not given a value but needs one.";
                     $failCheck = true;
                 }
             }
@@ -120,8 +121,8 @@ abstract class Table
 
         //Did we fail?
         if ($failCheck) {
-            error_log('Submitted data:\n' . print_r($entrydata, true));
-            return false;
+            $errors[] ='Submitted data:\n' . print_r($entrydata, true);
+            $this->checkAndThrowError("Failed pre-check in creating/updating entry for $this->TableName", $errors, "");
         }
 
         //Prepare our statement
@@ -155,7 +156,7 @@ abstract class Table
         //And tell it about our parameters
         //NOTE: Based off of https://www.php.net/manual/en/mysqli-stmt.bind-param.php#107154
         array_unshift($paramData, $paramCodes.$paramWhereCodes);
-        ( new ReflectionMethod('mysqli_stmt', 'bind_param'))->invokeArgs($stmt, array_merge($paramData, $paramWhereData));
+        ( new \ReflectionMethod('mysqli_stmt', 'bind_param'))->invokeArgs($stmt, array_merge($paramData, $paramWhereData));
         //If we have blobs to send, do it now
         foreach (str_split($paramCodes) as $ix => $pcode) {
             if ($pcode !== 'b') {
@@ -191,10 +192,14 @@ abstract class Table
                 }
             }
         } else {
-            error_log("Error while attempting to " . ($isNew ? 'create' : 'update') . " entry for $this->TableName:\n" . print_r($this->cm_db->connection->error, true));
-            error_log('Submitted data:\n' . print_r($entrydata, true));
-            error_log('SQL: ' . $sqlText . '\n');
-            error_log('LastError: ' . $this->cm_db->connection->error);
+            $this->checkAndThrowError(
+                "Error while attempting to " . ($isNew ? 'create' : 'update') . " entry for $this->TableName.",
+                array(
+            'Submitted data:\n' . print_r($entrydata, true),
+            'LastError: ' . print_r($this->cm_db->connection->error, true)
+          ),
+                $sqlText
+            );
             $id = false;
         }
         $stmt->close();
@@ -206,6 +211,7 @@ abstract class Table
 
         //Do some initial checking
         $failCheck = false;
+        $errors = array();
         $paramWhereNames = array();
         $paramWhereCodes = '';
         $paramWhereData = array();
@@ -213,7 +219,7 @@ abstract class Table
             if (isset($entrydata[$columnName])) {
                 if (gettype($entrydata[$columnName]) == 'array') {
                     //We don't support arrays as parameters
-                    error_log("Error deleting entry for $this->TableName, column $columnName was given an array value but that's not supported.");
+                    $errors[] ="Error deleting entry for $this->TableName, column $columnName was given an array value but that's not supported.";
                     $failCheck = true;
                 }
                 if (isset($this->PrimaryKeys[$columnName])) {
@@ -224,7 +230,7 @@ abstract class Table
             } else {
                 //Not provided, is it a primary key?
                 if (isset($this->PrimaryKeys[$columnName])) {
-                    error_log("Error deleting entry for $this->TableName, column $columnName was not given a value but needs one.");
+                    $errors[] ="Error deleting entry for $this->TableName, column $columnName was not given a value but needs one.";
                     $failCheck = true;
                 }
             }
@@ -232,7 +238,8 @@ abstract class Table
 
         //Did we fail?
         if ($failCheck) {
-            error_log('Submitted data:\n' . print_r($entrydata, true));
+            $errors[] ='Submitted data:\n' . print_r($entrydata, true);
+            $this->checkAndThrowError("Precheck Error deleting entry for $this->TableName", $errors, "");
             return false;
         }
         //Prepare our statement
@@ -254,14 +261,15 @@ abstract class Table
         //And tell it about our parameters
         //NOTE: Based off of https://www.php.net/manual/en/mysqli-stmt.bind-param.php#107154
         array_unshift($paramWhereData, $paramWhereCodes);
-        ( new ReflectionMethod('mysqli_stmt', 'bind_param'))->invokeArgs($stmt, $paramWhereData);
+        ( new \ReflectionMethod('mysqli_stmt', 'bind_param'))->invokeArgs($stmt, $paramWhereData);
         //Do it!
         if ($stmt->execute()) {
             //Seemed fine, return the ID
             $count = $this->cm_db->connection->affected_rows;
         } else {
-            error_log("Error while attempting to delete entry for $this->TableName:\n" . print_r($this->cm_db->connection->error, true));
-            error_log('Submitted data:\n' . print_r($entrydata, true));
+            $errors[] ='Submitted data:\n' . print_r($entrydata, true);
+            $errors[] ='LastError: ' . print_r($this->cm_db->connection->error, true);
+            $this->checkAndThrowError("Error while attempting to delete entry for $this->TableName", $errors, $sqlText);
             $count = false;
         }
         $stmt->close();
@@ -270,15 +278,19 @@ abstract class Table
 
     public function Search(View|array|string|null $columns = null, ?array $terms = null, ?array $order = null, int $limit = -1, int $offset = 0)
     {
+        $errors = array();
         $groupNames = array();
         $viewName = null;
         $sqlText = 'SELECT ';
 
         //If columns is a string, check that the view exists
         if (gettype($columns) == 'string') {
-            if (!isset($this->Views[$columns])) {
+            if ($columns == '*') {
+                //Special "everything" view
+                $columns = array_keys($this->ColumnDefs);
+            } elseif (!isset($this->Views[$columns])) {
+                $errors[] ='A view named '. $columns . ' was specified for ' . $this->TableName . ' but isn\'t defined!';
                 $columns = $this->DefaultSearchColumns;
-                error_log('A view named '. $columns . ' was specified for ' . $this->TableName . ' but isn\'t defined!');
             } else {
                 $viewName = $columns;
                 if (is_callable($this->Views[$viewName])) {
@@ -296,17 +308,17 @@ abstract class Table
         }
 
         //If columns is a view, slide that in
-        if (gettype($columns) == 'object' && is_a($columns, 'cm_View')) {
+        if (gettype($columns) == 'object' && $columns instanceof View) {
             $viewName = 'dynamic';
             $viewJoins = $columns->Joins;
             $columns = $columns->Columns;
         }
 
         //If columns isn't specified, add in the defaults or the primary keys if all else fails
-        if ($columns != null && gettype($columns) == 'array' && count($columns) == 0) {
+        if (!is_null($columns) && is_array($columns) && count($columns) == 0) {
             $columns = $this->DefaultSearchColumns;
         }
-        if ($columns == null) {
+        if (is_null($columns)) {
             $columns = array_keys($this->PrimaryKeys);
         }
 
@@ -321,14 +333,14 @@ abstract class Table
             if (gettype($value) == 'string') {
                 $sqlText .= (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`.' : $this->dbTableName()) .
                 '.`' . $value .'`, ';
-            } elseif (is_a($value, 'cm_SelectColumn')) {
+            } elseif ($value instanceof SelectColumn) {
                 $sqlText .= str_replace(
                     '?',
                     (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`.' : $this->dbTableName() .'.').
                         '`' . $value->ColumnName .'`',
                     $value->EncapsulationFunction != null ? $value->EncapsulationFunction : '?'
                 );
-                if ($value->Alias !== null) {
+                if (!is_null($value->Alias)) {
                     $sqlText .= ' as `' . $value->Alias . '`';
                 }
                 //Are we grouping this column?
@@ -337,8 +349,7 @@ abstract class Table
                 }
                 $sqlText .= ', ';
             } else {
-                error_log("Error while attempting to add select column for $this->TableName:\n" . print_r($this->cm_db->connection->error, true));
-                error_log('Submitted column data:\n' . print_r($value, true));
+                $errors[] ="Unable to add select column:\n" . print_r($value, true);
             }
         }
 
@@ -369,17 +380,17 @@ abstract class Table
                         //TODO: Check column name is correct
                         //A bare string is just the column name
                         if (gettype($value) == 'string') {
-                            $sqlText .= (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`.' : $join->Table->dbTableName()) .
-                            '`' . $value .'`, ';
+                            $sqlText .= (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`' : $join->Table->dbTableName()) .
+                            '.`' . $value .'`, ';
                             $joinSubQueryExposed[] = $value;
-                        } elseif (is_a($value, 'cm_SelectColumn')) {
+                        } elseif ($value instanceof SelectColumn) {
                             $sqlText .= str_replace(
                                 '?',
                                 (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`.' : $join->Table->dbTableName() .'.').
                                     '`' . $value->ColumnName .'`',
                                 $value->EncapsulationFunction != null ? $value->EncapsulationFunction : '?'
                             );
-                            if ($value->Alias !== null) {
+                            if (!is_null($value->Alias)) {
                                 $sqlText .= ' as ' . $value->Alias;
                                 $joinSubQueryExposed[] = $value->Alias;
                             } else {
@@ -392,8 +403,7 @@ abstract class Table
                             }
                             $sqlText .= ', ';
                         } else {
-                            error_log("Error while attempting to add select column in subQuery join for $join->Table->dbTableName:\n" . print_r($this->cm_db->connection->error, true));
-                            error_log('Submitted column data:\n' . print_r($value, true));
+                            $errors[] ="Unable to add select column in subQuery join for $join->Table->dbTableName:\n" . print_r($value, true);
                         }
                     }
 
@@ -441,7 +451,7 @@ abstract class Table
                         (isset($join->alias) ? '`' . $join->alias . '`' : $join->Table->dbTableName()) .
                         '.`'. $columnB . '` ';
                     } else {
-                        error_log('Unable to handle join parameter ' . $columnB . ' because it wasn\'t included?');
+                        $errors[] ='Unable to handle join parameter ' . $columnB . ' because it wasn\'t included?';
                     }
                 }
             }
@@ -490,20 +500,26 @@ abstract class Table
         }
 
         //die($sqlText);
+        $this->checkAndThrowError("Error while attempting to generate select query for $this->TableName.", $errors, $sqlText);
 
         //Now execute the statement...
         //Get us a statement
         $stmt = $this->cm_db->connection->prepare($sqlText);
         if ($stmt === false) {
-            error_log("Error while preparing statement to Search for $this->TableName:\n" . print_r($this->cm_db->connection->error, true));
-            error_log('SQL: ' . $sqlText . '\n');
+            $this->checkAndThrowError(
+                "Error while preparing statement to Search for $this->TableName.",
+                array(
+              'LastError: ' . print_r($this->cm_db->connection->error, true)
+            ),
+                $sqlText
+            );
             return false;
         }
         //And tell it about our parameters
         //NOTE: Based off of https://www.php.net/manual/en/mysqli-stmt.bind-param.php#107154
         array_unshift($whereData, $whereCodes);
         if (strlen($whereCodes) > 0) {
-            ( new ReflectionMethod('mysqli_stmt', 'bind_param'))->invokeArgs($stmt, $whereData);
+            ( new \ReflectionMethod('mysqli_stmt', 'bind_param'))->invokeArgs($stmt, $whereData);
         }
 
         //Do it!
@@ -518,7 +534,7 @@ abstract class Table
                     $rowReferences[] = &$stmtRow[$field->name];
                 }
                 $resultMetaData->free_result();
-                (new ReflectionMethod('mysqli_stmt', 'bind_result'))->invokeArgs($stmt, $rowReferences); //calls mysqli_stmt_bind_result($stmt,[$rowReferences]) using object-oriented style
+                (new \ReflectionMethod('mysqli_stmt', 'bind_result'))->invokeArgs($stmt, $rowReferences); //calls mysqli_stmt_bind_result($stmt,[$rowReferences]) using object-oriented style
                 $result = array();
                 while ($stmt->fetch()) {
                     foreach ($stmtRow as $key => $value) {  //variables must be assigned by value, so $result[] = $stmtRow does not work (not really sure why, something with referencing in $stmtRow)
@@ -531,9 +547,13 @@ abstract class Table
                 $result = $stmt->affected_rows();
             }
         } else {
-            error_log("Error while attempting to Search for $this->TableName:\n" . print_r($this->cm_db->connection->error, true));
-            error_log('SQL: ' . $sqlText . '\n');
-            error_log('LastError: ' . $this->cm_db->connection->error);
+            $this->checkAndThrowError(
+                "Error while executing statement to Search for $this->TableName.",
+                array(
+              'LastError: ' . print_r($this->cm_db->connection->error, true)
+            ),
+                $sqlText
+            );
             $result = false;
         }
         $stmt->close();
@@ -546,7 +566,7 @@ abstract class Table
         $firstInGroup = true;
 
         foreach ($terms as $term) {
-            if ($term == null) {
+            if (is_null($term)) {
                 continue;
             }
             if ($firstInGroup) {
@@ -556,7 +576,7 @@ abstract class Table
             }
 
             //Are we a sub-clause?
-            if ($term->subSearch == null) {
+            if (is_null($term->subSearch)) {
                 //Just normal
 
                 //determine value type code
@@ -655,6 +675,13 @@ abstract class Table
             return false;
         } else {
             return $result[0];
+        }
+    }
+
+    private function checkAndThrowError(string $Description, ?array $currentErrors, string $sql = "", bool $forceThrow = false)
+    {
+        if ($forceThrow || (!empty($currentErrors))) {
+            throw new DbException($Description, $currentErrors, $sql);
         }
     }
 }

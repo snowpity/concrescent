@@ -4,7 +4,7 @@ namespace CM3_Lib\models\admin;
 
 use CM3_Lib\database\Column as cm_Column;
 
-class users extends CM3_Lib\database\Table
+class users extends \CM3_Lib\database\Table
 {
     protected function setupTableDefinitions(): void
     {
@@ -14,12 +14,12 @@ class users extends CM3_Lib\database\Table
             'username'		=> new cm_Column('VARCHAR', 255, true, false, true),
             'password'		=> new cm_Column('VARCHAR', 255, true, false, true),
             'active'        => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
-            'adminOnly'     => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
+            'adminOnly'     => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),//Do not allow this contact to have non-staff badges
             'preferences'	=> new cm_Column('TEXT', null, true),
             'permissions'	=> new cm_Column('TEXT', null, true)
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('contact_id'=>false);
-        $this->DefaultSearchColumns = array('id');
+        $this->DefaultSearchColumns = array('username','active');
     }
 }

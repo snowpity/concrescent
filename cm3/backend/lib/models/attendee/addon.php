@@ -4,7 +4,7 @@ namespace CM3_Lib\models\attendee;
 
 use CM3_Lib\database\Column as cm_Column;
 
-class addon extends CM3_Lib\database\Table
+class addon extends \CM3_Lib\database\Table
 {
     protected function setupTableDefinitions(): void
     {

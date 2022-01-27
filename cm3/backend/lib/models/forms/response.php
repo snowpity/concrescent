@@ -4,7 +4,7 @@ namespace CM3_Lib\models\forms;
 
 use CM3_Lib\database\Column as cm_Column;
 
-class response extends CM3_Lib\database\Table
+class response extends \CM3_Lib\database\Table
 {
     protected function setupTableDefinitions(): void
     {

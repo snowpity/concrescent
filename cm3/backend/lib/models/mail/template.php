@@ -4,7 +4,7 @@ namespace CM3_Lib\models\mail;
 
 use CM3_Lib\database\Column as cm_Column;
 
-class template extends CM3_Lib\database\Table
+class template extends \CM3_Lib\database\Table
 {
     protected function setupTableDefinitions(): void
     {

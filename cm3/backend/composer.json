@@ -2,12 +2,15 @@
     "require": {
       "guzzlehttp/guzzle": "^6.5",
         "slim/slim": "4.*",
-        "slim/psr7": "^1.5"
+        "php-di/php-di": "^6.3",
+        "nyholm/psr7": "^1.4",
+        "monolog/monolog": "^2.3",
+        "tuupola/branca-middleware": "^0.7.0",
+        "tuupola/branca": "^2.3"
     },
     "autoload":{
       "psr-4":{
-        "CM3\\":"lib/",
-        "CM3_Route\\":"routes/"
+        "CM3_Lib\\":"lib/"
       }
     }
 }

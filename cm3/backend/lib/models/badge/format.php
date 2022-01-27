@@ -4,7 +4,7 @@ namespace CM3_Lib\models\badge;
 
 use \CM3_Lib\database\Column as cm_Column;
 
-class format extends CM3_Lib\database\Table {
+class format extends \CM3_Lib\database\Table {
 	protected function setupTableDefinitions() : void
 	{
 		$this->TableName  = 'Badge_Formats';

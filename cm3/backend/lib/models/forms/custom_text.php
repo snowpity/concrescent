@@ -4,7 +4,7 @@ namespace CM3_Lib\models\forms;
 
 use CM3_Lib\database\Column as cm_Column;
 
-class custom_text extends CM3_Lib\database\Table
+class custom_text extends \CM3_Lib\database\Table
 {
     protected function setupTableDefinitions(): void
     {

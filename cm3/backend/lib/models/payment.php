@@ -4,7 +4,7 @@ namespace CM3_Lib\models;
 
 use CM3_Lib\database\Column as cm_Column;
 
-class payment extends CM3_Lib\database\Table
+class payment extends \CM3_Lib\database\Table
 {
     //TODO: Maybe make this public static so other classes don't need to repeat it?
     public $payment_statuses = array(

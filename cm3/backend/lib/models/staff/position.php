@@ -4,7 +4,7 @@ namespace CM3_Lib\models\staff;
 
 use CM3_Lib\database\Column as cm_Column;
 
-class staff_position extends CM3_Lib\database\Table
+class position extends \CM3_Lib\database\Table
 {
     protected function setupTableDefinitions(): void
     {

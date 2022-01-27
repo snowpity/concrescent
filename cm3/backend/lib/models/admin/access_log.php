@@ -5,7 +5,7 @@ namespace CM3_Lib\models\admin;
 use CM3_Lib\database\Column as cm_Column;
 use CM3_Lib\database\ColumnIndex as cm_ColumnIndex;
 
-class access_log extends CM3_Lib\database\Table
+class access_log extends \CM3_Lib\database\Table
 {
     protected function setupTableDefinitions(): void
     {

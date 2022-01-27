@@ -14,7 +14,7 @@ class DbConnection
         $this->table_prefix = $db_config['prefix'];
 
         /* Connect to database */
-        $this->connection = new mysqli(
+        $this->connection = new \mysqli(
             $db_config['host'],
             $db_config['username'],
             $db_config['password'],
@@ -25,7 +25,7 @@ class DbConnection
         $this->connection->set_charset('utf8');
 
         /* Set time zone */
-        if (!isnull($db_config['timezone'])) {
+        if (!is_null($db_config['timezone'])) {
             $stmt = $this->connection->prepare('set time_zone = ?');
             $stmt->bind_param('s', $db_config['timezone']);
             $stmt->execute();

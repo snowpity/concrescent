@@ -3,15 +3,18 @@
 namespace CM3_Lib\models\staff;
 
 use CM3_Lib\database\Column as cm_Column;
+use CM3_Lib\database\SelectColumn as cm_SelectColumn;
+use CM3_Lib\database\View as cm_View;
+use CM3_Lib\database\Join as cm_Join;
 
-class badge extends CM3_Lib\database\Table
+class badge extends \CM3_Lib\database\Table
 {
-    protected cm_eventinfo_db $eventinfo_db;
-    protected cm_staff_badge_types_db $staff_badgetypes_db;
+    protected \CM3_Lib\models\eventinfo $eventinfo_db;
+    protected \CM3_Lib\models\staff\badgetype $staff_badgetypes_db;
     protected function setupTableDefinitions(): void
     {
-        $this->eventinfo_db = new cm_eventinfo_db($this->cm_db);
-        $this->staff_badgetypes_db = new cm_staff_badge_types_db($this->cm_db);
+        $this->eventinfo_db = new \CM3_Lib\models\eventinfo($this->cm_db);
+        $this->staff_badgetypes_db = new \CM3_Lib\models\staff\badgetype($this->cm_db);
         $this->TableName = 'Staff_Badges';
         $this->ColumnDefs = array(
             'id'            => new cm_Column('BIGINT', null, false, true, false, true, null, true),
