@@ -15,6 +15,7 @@ use Slim\Interfaces\RouteParserInterface;
 use Slim\Middleware\ErrorMiddleware;
 use Slim\Exception\HttpNotFoundException;
 
+use Branca\Branca;
 use CM3_Lib\database\DbConnection;
 
 return [
@@ -84,6 +85,11 @@ return [
     // Database connection
     DbConnection::class => function (ContainerInterface $container) {
         return new DbConnection($container->get('config')['database']);
+    },
+
+    //Auth signer
+    Branca::class => function (ContainerInterface $container) {
+        return new Branca($container->get('config')['environment']['token_secret']);
     },
 
     ErrorMiddleware::class => function (ContainerInterface $container) {

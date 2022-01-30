@@ -6,7 +6,9 @@
         "nyholm/psr7": "^1.4",
         "monolog/monolog": "^2.3",
         "tuupola/branca-middleware": "^0.7.0",
-        "tuupola/branca": "^2.3"
+        "tuupola/branca": "^2.3",
+        "fig/http-message-util": "^1.1",
+        "rybakit/msgpack": "^0.9.0"
     },
     "autoload":{
       "psr-4":{

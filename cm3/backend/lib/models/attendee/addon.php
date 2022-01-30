@@ -12,7 +12,6 @@ class addon extends \CM3_Lib\database\Table
         $this->ColumnDefs = array(
             'id' 			=> new cm_Column('INT', null, false, true, false, true, null, true),
             'event_id'		=> new cm_Column('INT', null, false, false, false, true),
-            'valid_badge_type_ids' => new cm_Column('TEXT', null, true),
             'active'        => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
             'display_order' => new cm_Column('INT', null, false),
             'name'          => new cm_Column('VARCHAR', '255', false),

@@ -14,7 +14,8 @@ class group extends \CM3_Lib\database\Table
             'event_id'		=> new cm_Column('INT', null, false),
             'context_code'	=> new cm_Column('VARCHAR', '3', false),
             'active'        => new cm_Column('BOOLEAN', null, false, defaultValue: 'true'),
-            'can_assign'    => new cm_Column('BOOLEAN', null, false, defaultValue: 'true'), //Whether applications in the group can be assigned a location/time slot
+            //Whether applications in the group can be assigned a location/time slot
+            'can_assign_slot'    => new cm_Column('BOOLEAN', null, false, defaultValue: 'true'),
             'order'					=> new cm_Column('TINYINT', null, false),
             'name'          => new cm_Column('VARCHAR', '255', false),
             'menu_icon'     => new cm_Column('VARCHAR', '255', true),

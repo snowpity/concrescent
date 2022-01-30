@@ -60,7 +60,7 @@ class submission extends \CM3_Lib\database\Table
             'date_modified'	=> new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP', false, 'ON UPDATE CURRENT_TIMESTAMP'),
             'notes'			=> new cm_Column('TEXT', null, true),
             //Generated columns
-            'dates_available' => new cm_Column('VARCHAR', '50', null, customPostfix: 'GENERATED ALWAYS as (concat(case `start_date` is null when true then \'forever\' else `start_date` end,\' to \', case end_date is null when true then \'forever\' else `end_date` end)) VIRTUAL'),
+
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);

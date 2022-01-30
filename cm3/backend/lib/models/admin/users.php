@@ -14,7 +14,8 @@ class users extends \CM3_Lib\database\Table
             'username'		=> new cm_Column('VARCHAR', 255, true, false, true),
             'password'		=> new cm_Column('VARCHAR', 255, true, false, true),
             'active'        => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
-            'adminOnly'     => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),//Do not allow this contact to have non-staff badges
+            //Do not allow this contact to have badges
+            'adminOnly'     => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
             'preferences'	=> new cm_Column('TEXT', null, true),
             'permissions'	=> new cm_Column('TEXT', null, true)
         );

@@ -46,41 +46,60 @@ final class ListApplicationBadges
 
         $viewData = new View(
             array(
-              'id',
-              'order',
-              'title',
-              'text',
-              'type',
-              'values',
-              'visible_condition',
-              new SelectColumn('required', JoinedTableAlias: 'q')
-          ),
+                  'id',
+                  'display_order',
+                  'name',
+                  'description',
+                  'rewards',
+                  'max_applicant_count',
+                  'max_assignment_count',
+                  'base_price',
+                  'base_applicant_count',
+                  'base_assignment_count',
+                  'price_per_applicant',
+                  'price_per_assignment',
+                  'max_prereg_discount',
+                  'payable_onsite',
+                  'max_total_applications',
+                  'max_total_applicants',
+                  'max_total_assignments',
+                  'start_date',
+                  'end_date',
+                  'min_age',
+                  'max_age',
+                  'dates_available',
+                  new SelectColumn('quantity_sold', EncapsulationFunction: 'ifnull(?,0)', Alias: 'quantity_sold', JoinedTableAlias: 'q')
+
+              ),
             array(
-            new Join(
-                $this->questionmap,
-                array(
-                  'id'=>'question_id',
+              new Join(
+                  $this->submission,
+                  array(
+                    'id'=>'badge_type_id',
+                  ),
+                  'LEFT',
+                  'q',
+                  array(
+                    'badge_type_id',
+                    new SelectColumn('id', true, 'count(?)', 'quantity_sold')
                 ),
-                'INNER',
-                'q',
-                array('question_id','required'),
-                array(
-                 new SearchTerm('context', $params['context']),
-                 new SearchTerm('context_id', $params['context_id']),
-               )
+                  array(
+                   new SearchTerm('payment_status', 'Cancelled', "<>"),
+                   new SearchTerm('payment_status', 'Rejected', "<>"),
+                 )
+              )
             )
-          )
         );
 
         $whereParts = array(
-          new SearchTerm('active', 1)
-        );
+                  new SearchTerm('active', 1)
+                );
 
-        $order = array('order' => false);
+        $order = array('display_order' => false);
 
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->question->Search($viewData, $whereParts, $order);
+        $data = $this->badgetype->Search($viewData, $whereParts, $order);
 
         // Build the HTTP response
         return $this->responder
