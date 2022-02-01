@@ -67,7 +67,7 @@ final class ListAttendeeAddons
             new Join(
                 $this->addonpurchase,
                 array(
-                  'id'=>'addon_id',
+                  'addon_id'=>'id',
                 ),
                 'LEFT',
                 'q',
@@ -82,7 +82,7 @@ final class ListAttendeeAddons
             new Join(
                 $this->addonmap,
                 array(
-                  'id'=>'addon_id',
+                  'addon_id'=>'id',
                 ),
                 'RIGHT',
                 'a',

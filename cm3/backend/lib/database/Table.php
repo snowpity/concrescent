@@ -178,8 +178,11 @@ abstract class Table
             fclose($fp);
         }
         //Do it!
-        if ($stmt->execute() && $this->cm_db->connection->affected_rows > 0) {
-            //Seemed fine, return the ID
+        if ($stmt->execute()) {
+            $stmt->store_result();
+            $affected = $this->cm_db->connection->affected_rows;
+
+            //Prep the result
             $autoid = $this->cm_db->connection->insert_id;
             $id = array_intersect_key($entrydata, $this->PrimaryKeys);
             if ($autoid) {
@@ -189,6 +192,21 @@ abstract class Table
                 }))[0];
                 if (isset($columnName)) {
                     $id[$columnName] = $autoid;
+                }
+            }
+
+            if ($affected == 0) {
+                if ($isNew) {
+                    //We expected an insert, throw error
+
+                    $this->checkAndThrowError(
+                        "Failed to create entry for $this->TableName.",
+                        array(
+                          'Submitted data:\n' . print_r($entrydata, true),
+                          'LastError: ' . print_r($this->cm_db->connection->error, true)
+                        ),
+                        $sqlText
+                    );
                 }
             }
         } else {
@@ -369,7 +387,7 @@ abstract class Table
                     if (isset($join->alias)) {
                         $sqlText .= ' as `' . $join->alias . '` ';
                     }
-                    $joinSubQueryExposed = $join->OnColumns;
+                    $joinSubQueryExposed = array_keys($join->OnColumns);
                 } else {
                     //Sub-query style join. Add the select columns
                     $sqlText .= $join->Direction . ' JOIN ( SELECT ';
@@ -440,18 +458,105 @@ abstract class Table
                 //Map the provided columns
                 $sqlText .= ' ON ';
                 $firstInGroup = true;
-                foreach ($join->OnColumns as $columnA => $columnB) {
-                    if (in_array($columnB, $joinSubQueryExposed)) {
+                foreach ($join->OnColumns as $joinedColumn => $sourceColumn) {
+                    //A subset of WhereBuilder
+                    if (is_null($sourceColumn)) {
+                        continue;
+                    }
+
+                    if (is_string($sourceColumn)) {
                         if ($firstInGroup) {
                             $firstInGroup = false;
                         } else {
                             $sqlText .= ' AND '	;
                         }
-                        $sqlText .= $this->dbTableName() .'.`' . $columnA . '` = ' .
-                        (isset($join->alias) ? '`' . $join->alias . '`' : $join->Table->dbTableName()) .
-                        '.`'. $columnB . '` ';
-                    } else {
-                        $errors[] ='Unable to handle join parameter ' . $columnB . ' because it wasn\'t included?';
+                        //Straight column join
+                        if (in_array($joinedColumn, $joinSubQueryExposed)) {
+                            $sqlText .= $this->dbTableName() .'.`' . $sourceColumn . '` = ' .
+                            (isset($join->alias) ? '`' . $join->alias . '`' : $join->Table->dbTableName()) .
+                            '.`'. $joinedColumn . '` ';
+                        } else {
+                            $errors[] ='Unable to handle join parameter ' . $joinedColumn . ' because it wasn\'t included?';
+                        }
+                    }
+                    if ($sourceColumn instanceof SearchTerm) {
+                        //First, make sure we're not attempting a subSearch (impossible)
+                        if (is_null($sourceColumn->subSearch)) {
+                            if ($firstInGroup) {
+                                $firstInGroup = false;
+                            } else {
+                                $sqlText .= ' ' . $sourceColumn->TermType . ' ';
+                            }
+
+
+                            //determine value type code
+                            $typeCode = 's'; //String by default
+                            switch (gettype($sourceColumn->CompareValue)) {
+                                case 'integer': $typeCode = 'i'; break;
+                                case 'double': $typeCode = 'd'; break;
+                            }
+
+                            //Do we have a Raw clause?
+                            if ($sourceColumn->Raw != null) {
+                                //Append it to the result
+                                $sqlText .= $sourceColumn->Raw;
+                                // Was there a ?
+                                if (strpos($sourceColumn->Raw, '?') !== false) {
+                                    //Add it to the parameters
+                                    $whereCodes .= $typeCode;
+                                    $whereData[] = &$sourceColumn->CompareValue;
+                                }
+                            } else {
+                                //Normal term, add it in
+                                $sqlText .= str_replace(
+                                    '?',
+                                    (isset($sourceColumn->JoinedTableAlias) ? '`' . $sourceColumn->JoinedTableAlias . '`' : $this->dbTableName()) . '.' .
+                                                        '`' . $sourceColumn->ColumnName .'` ',
+                                    $sourceColumn->EncapsulationFunction != null && $sourceColumn->EncapsulationColumnOnly !== false ? $sourceColumn->EncapsulationFunction : '?'
+                                ) . $sourceColumn->Operation . ' ';
+                                //Is our operation an IN ?
+                                if (strpos(strtolower($sourceColumn->Operation), 'in') !== false) {
+                                    $sqlText .= '(';
+                                    $firstNeedle = true;
+                                    foreach ($sourceColumn->CompareValue as $key => $needle) {
+                                        if ($firstNeedle) {
+                                            $firstNeedle = false;
+                                        } else {
+                                            $sqlText .= ', ';
+                                        }
+                                        $typeCode = 's'; //String by default
+                                        switch (gettype($needle)) {
+                                                            case 'integer': $typeCode = 'i'; break;
+                                                            case 'double': $typeCode = 'd'; break;
+                                                        }
+                                        $sqlText .= "?";
+                                        $whereCodes .= $typeCode;
+                                        $whereData[] = &$sourceColumn->CompareValue[$key];
+                                    }
+                                    $sqlText .= ')';
+                                }
+                                //Is our operation an is (not)
+                                elseif (strpos(strtolower($sourceColumn->Operation), 'is') !== false) {
+                                    //We totally ignore whatever the value is and assume it's null anyways
+                                    $sqlText .= ' NULL ';
+                                } elseif (is_string($joinedColumn)) {
+                                    //Still joining just this table's column
+                                    if (in_array($joinedColumn, $joinSubQueryExposed)) {
+                                        $sqlText .= (isset($join->alias) ? '`' . $join->alias . '`' : $join->Table->dbTableName()) .
+                                        '.`'. $joinedColumn . '` ';
+                                    } else {
+                                        $errors[] ='Unable to handle join parameter ' . $joinedColumn . ' because it wasn\'t included?';
+                                    }
+                                } else {
+                                    //Just a normal value
+                                    $sqlText .=($sourceColumn->EncapsulationFunction != null && $sourceColumn->EncapsulationColumnOnly !== true) ? $sourceColumn->EncapsulationFunction : '?';
+                                    $whereCodes .= $typeCode;
+                                    $whereData[] = &$sourceColumn->CompareValue;
+                                }
+                            }
+                        } else {
+                            $errors[] ='Unable to handle join parameter ' . $joinedColumn . ' because it attempted to use subSearch, which is not supported here.';
+                        }
                     }
                 }
             }
@@ -653,17 +758,19 @@ abstract class Table
         }
         $terms = array();
         if (!!$id) {
-            if (count($this->PrimaryKeys) == 1) {
-                $terms[] = new SearchTerm($this->PrimaryKeys[0], $id);
+            if (isset($this->ColumnDefs['id'])) {
+                $terms[] = new SearchTerm('id', $id);
+            } elseif (count($this->PrimaryKeys) == 1) {
+                $terms[] = new SearchTerm(key($this->PrimaryKeys), $id);
             } else {
                 //TODO: multi-key not yet supported.
             }
         }
         if (!!$uuid) {
             if (isset($this->ColumnDefs['uuid_raw'])) {
-                $terms[] = new SearchTerm('uuid_raw', $this->PrimaryKeys[0], EncapsulationFunction: 'UUID_TO_BIN(?)', EncapsulationColumnOnly: false);
+                $terms[] = new SearchTerm('uuid_raw', $uuid, EncapsulationFunction: 'UUID_TO_BIN(?)', EncapsulationColumnOnly: false);
             } elseif (isset($this->ColumnDefs['uuid'])) {
-                $terms[] = new SearchTerm('uuid', $this->PrimaryKeys[0]);
+                $terms[] = new SearchTerm('uuid', $uuid);
             } else {
                 //Some other UUID?
                 //TODO: Maybe search for the UUID column if it's by another name?

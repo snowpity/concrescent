@@ -75,7 +75,7 @@ final class ListApplicationBadges
               new Join(
                   $this->submission,
                   array(
-                    'id'=>'badge_type_id',
+                    'badge_type_id'=>'id',
                   ),
                   'LEFT',
                   'q',
@@ -87,11 +87,17 @@ final class ListApplicationBadges
                    new SearchTerm('payment_status', 'Cancelled', "<>"),
                    new SearchTerm('payment_status', 'Rejected', "<>"),
                  )
+              ),
+              new Join(
+                  $this->group,
+                  array('id'=>'group_id'),
+                  alias: 'grp'
               )
             )
         );
 
         $whereParts = array(
+                  new SearchTerm('event_id', $params['event_id'], JoinedTableAlias: 'grp'),
                   new SearchTerm('active', 1)
                 );
 

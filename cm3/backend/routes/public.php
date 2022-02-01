@@ -15,6 +15,7 @@ return function (App $app) {
             //Default root, lists available events
             $app->get('', \CM3_Lib\Action\Public\ListEventInfo::class);
 
+            $app->get('/{event_id}/badges', \CM3_Lib\Action\Public\ListBadgeContexts::class);
             //What badges are available for a given context
             $app->get('/{event_id}/badges/A', \CM3_Lib\Action\Public\ListAttendeeBadges::class);
             $app->get('/{event_id}/badges/A/{badge_id}/Addons', \CM3_Lib\Action\Public\ListAttendeeAddons::class);
@@ -25,9 +26,10 @@ return function (App $app) {
             $app->get('/{event_id}/questions/{context}/{context_id}', \CM3_Lib\Action\Public\ListQuestions::class);
 
             //Log in. Also allows selecting a different event id.
+            $app->post('/login', \CM3_Lib\Action\Public\Login::class);
 
             //Register contact
-            $app->post('/CreateAccount', \CM3_Lib\Action\Public\CreateAccount::class);
+            $app->post('/createaccount', \CM3_Lib\Action\Public\CreateAccount::class);
 
             //Request magic link
         }

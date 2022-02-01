@@ -4,7 +4,7 @@ namespace CM3_Lib\database;
 
 class Join
 {
-    //$onColumns = left -> right
+    //$onColumns = joinedColumn -> sourceColumn
     //$Direction - '', 'LEFT', 'RIGHT', etc. Default 'INNTER'
     public function __construct(
         public Table $Table,

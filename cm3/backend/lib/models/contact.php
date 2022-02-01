@@ -19,7 +19,6 @@ class contact extends \CM3_Lib\database\Table
             'date_modified'	=> new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP', false, 'ON UPDATE CURRENT_TIMESTAMP'),
             'allow_marketing'=> new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
             'email_address' => new cm_Column('VARCHAR', '255', false, false, true, true),
-            'pass'			=> new cm_Column('VARCHAR', '255', true, false, false, true),
             'real_name'		=> new cm_Column('VARCHAR', '500', true),
             'phone_number'	=> new cm_Column('VARCHAR', '255', true),
             'address_1'		=> new cm_Column('VARCHAR', '255', true),

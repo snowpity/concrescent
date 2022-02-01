@@ -65,7 +65,7 @@ final class ListAttendeeBadges
             new Join(
                 $this->badge,
                 array(
-                  'id'=>'badge_type_id',
+                  'badge_type_id'=>'id',
                 ),
                 'LEFT',
                 'q',

@@ -89,7 +89,7 @@ class badge extends \CM3_Lib\database\Table
                 array(
                        new cm_Join(
                            $this->badgetypes_db,
-                           array('badge_type_id'=>'id'),
+                           array('id'=>'badge_type_id'),
                            'INNER',
                            alias: 'bt',
                            subQSelectColumns: array(

@@ -4,7 +4,7 @@ namespace CM3_Lib\models\admin;
 
 use CM3_Lib\database\Column as cm_Column;
 
-class users extends \CM3_Lib\database\Table
+class user extends \CM3_Lib\database\Table
 {
     protected function setupTableDefinitions(): void
     {

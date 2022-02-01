@@ -17,7 +17,10 @@ return function (App $app) {
             //Save account details
             $app->post('', \CM3_Lib\Action\Account\SetAccount::class);
             //Refresh the token
-            $app->get('/RefreshToken', \CM3_Lib\Action\Account\RefreshToken::class);
+            $app->get('/refreshtoken', \CM3_Lib\Action\Account\RefreshToken::class);
+            //Switch which event we're talking about
+            $app->post('/switchevent', \CM3_Lib\Action\Account\SwitchEvent::class);
+
             //What badges have been saved
             $app->get('/badges', \CM3_Lib\Action\Account\GetMyBadges::class);
             //What applications have been saved

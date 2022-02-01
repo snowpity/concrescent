@@ -26,6 +26,7 @@ return function (App $app, $s_config) {
 
     //Branca token authenticator
     $app->add(new Tuupola\Middleware\BrancaAuthentication([
+        "ttl" => $s_config['environment']['token_life'],
         "secret" => $s_config['environment']['token_secret'],
         "ignore" =>  $s_config['environment']['base_path'] .'/public',
         "before" => function ($request, $arguments) {

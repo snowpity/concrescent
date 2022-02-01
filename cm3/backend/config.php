@@ -28,7 +28,10 @@ return array(
       'use_gzip' => true,
       //Secret key to sign tokens with. Truncated to 32 bytes!
       //'token_secret' => hex2bin("f349e1808732b6c0bc545b1ee8926e69a55478d6985af34c3e99bfa45e1f64d8")
-      'token_secret' => 'AReallySecureKeyThatNobodyKnows!'
+      'token_secret' => 'AReallySecureKeyThatNobodyKnows!',
+      //If someone who signed in doesn't load in the site (and get their session renewed)
+      //How long (in seconds) until we log them out?
+      'token_life' => 345600 //Four days is exceptionally generous, adjust to your needs
     ),
     'error' => array(
 

@@ -56,7 +56,7 @@ final class ListQuestions
             new Join(
                 $this->questionmap,
                 array(
-                  'id'=>'question_id',
+                  'question_id'=>'id',
                 ),
                 'INNER',
                 'q',
