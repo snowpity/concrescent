@@ -4,6 +4,8 @@ use Slim\App;
 use Slim\Middleware\ErrorMiddleware;
 use CM3_Lib\Middleware\GZCompress;
 
+use CM3_Lib\util\EventPermissions;
+
 use MessagePack\BufferUnpacker;
 
 return function (App $app, $s_config) {
@@ -31,28 +33,24 @@ return function (App $app, $s_config) {
         "ignore" =>  $s_config['environment']['base_path'] .'/public',
         "before" => function ($request, $arguments) {
             //Load up the unpacker
-            $unpacker = new BufferUnpacker();
+            $unpacker = (new BufferUnpacker())
+                ->extendWith(new EventPermissions());
             $unpacker->reset($arguments["decoded"]);
 
             //Get the Contact ID first
             $contact_id = $unpacker->unpack();
             //And their selected event ID
             $event_id = $unpacker->unpack();
-            //Todo: This should be an object
-            $perms = array(
-              'has_perms'=>false,
-              'account_level'=>array(),
-              'app_groups' => array()
-          );
 
+            $perms = new EventPermissions();
+            //Does this token have permissions?
             if ($unpacker->hasRemaining()) {
                 //Ooh, has admin permissions! Decode that...
-                $perms['has_perms'] = true;
+                $perms = $unpacker->unpack();
             }
 
             //Throw the result in as attributes
             return $request
-              ->withAttribute('rawtoken', $arguments['decoded'])
               ->withAttribute("contact_id", $contact_id)
               ->withAttribute("event_id", $event_id)
               ->withAttribute("perms", $perms);

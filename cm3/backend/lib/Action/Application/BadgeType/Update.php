@@ -35,7 +35,9 @@ final class Update
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
+        //Ensure consistency with the enpoint being posted to
         $data['id'] = $params['id'];
+        $data['group_id'] = $params['group_id'];
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->badgetype->Update($data);

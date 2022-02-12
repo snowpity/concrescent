@@ -24,9 +24,11 @@ return array(
       //If not installed in the root, specify it here.
       //No trailing slash!
       'base_path' => '/concrescent/cm3/backend',
+      //For the purposes of generating links back to ConCrescent, where is the front-end hosted?
+      'frontend_host' => 'https://tsaukpaetra.com/concrescent/cm3/frontend/dist',
       //Should responses be GZipped?
       'use_gzip' => true,
-      //Secret key to sign tokens with. Truncated to 32 bytes!
+      //Secret key to sign tokens with. Must be exactly 32 bytes!
       //'token_secret' => hex2bin("f349e1808732b6c0bc545b1ee8926e69a55478d6985af34c3e99bfa45e1f64d8")
       'token_secret' => 'AReallySecureKeyThatNobodyKnows!',
       //If someone who signed in doesn't load in the site (and get their session renewed)

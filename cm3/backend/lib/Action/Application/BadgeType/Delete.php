@@ -31,11 +31,13 @@ final class Update
      *
      * @return ResponseInterface The response
      */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $id): ResponseInterface
+    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         // Extract the form data from the request body
-        $data = (array)$request->getParsedBody();
-        $data['id'] = $id['id'];
+        $data =array(
+            'id' => $params['id'],
+            'group_id' => $params['group_id']
+        );
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->badgetype->Delete($data);

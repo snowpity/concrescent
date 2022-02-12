@@ -20,8 +20,8 @@ class group extends \CM3_Lib\database\Table
             'name'          => new cm_Column('VARCHAR', '255', false),
             'menu_icon'     => new cm_Column('VARCHAR', '255', true),
             'description'   => new cm_Column('TEXT', null, true),
-            'appplication_name1'          => new cm_Column('VARCHAR', '255', false),
-            'appplication_name2'          => new cm_Column('VARCHAR', '255', true),
+            'application_name1'          => new cm_Column('VARCHAR', '255', false),
+            'application_name2'          => new cm_Column('VARCHAR', '255', true),
 
             'date_created'	=> new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP'),
             'date_modified'	=> new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP', false, 'ON UPDATE CURRENT_TIMESTAMP'),

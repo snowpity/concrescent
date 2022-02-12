@@ -39,6 +39,14 @@ class SendMagicLink
     {
         $data = (array)$request->getParsedBody();
 
+        // $mdb = new cm_mail_db($db);
+        // $reviewlinks = $atdb->retrieve_attendee_reviewlinks($json['email']);
+        // //echo json_encode($reviewlinks);
+        // $template = $mdb->get_mail_template('attendee-retrieve');
+        // foreach ($reviewlinks as $key => $item) {
+        //   $mdb->send_mail($json['email'], $template, array('review-link' => $item));
+        // }
+
 
         // Build the HTTP response
         return $this->responder

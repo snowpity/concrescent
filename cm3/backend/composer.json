@@ -8,7 +8,8 @@
         "tuupola/branca-middleware": "^0.7.0",
         "tuupola/branca": "^2.3",
         "fig/http-message-util": "^1.1",
-        "rybakit/msgpack": "^0.9.0"
+        "rybakit/msgpack": "^0.9.0",
+        "cruxinator/php-bitmask": "^0.1.2"
     },
     "autoload":{
       "psr-4":{

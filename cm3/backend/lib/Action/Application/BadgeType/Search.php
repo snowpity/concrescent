@@ -32,14 +32,14 @@ final class Search
      *
      * @return ResponseInterface The response
      */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
         $whereParts = array(
-          //new SearchTerm('active', 1)
+          new SearchTerm('group_id', $params['group_id'])
         );
 
         $order = array('id' => false);

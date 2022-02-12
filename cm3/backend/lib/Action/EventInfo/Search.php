@@ -34,13 +34,16 @@ final class Search
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $perms = $request->getAttribute('perms');
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
-        $whereParts = array(
-          new SearchTerm('active', 1)
-        );
+        $whereParts = array();
+        if (!$perms->EventPerms->isGlobalAdmin()) {
+            $whereParts[] =new SearchTerm('id', $request->getAttribute('event_id'));
+            $whereParts[] = new SearchTerm('active', 1);
+        }
 
         $order = array('date_end' => false);
 

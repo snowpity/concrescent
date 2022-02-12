@@ -3,6 +3,7 @@
 namespace CM3_Lib\models\application;
 
 use CM3_Lib\database\Column as cm_Column;
+use Slim\Exception\HttpBadRequestException;
 
 class badgetype extends \CM3_Lib\database\Table
 {
@@ -53,6 +54,18 @@ class badgetype extends \CM3_Lib\database\Table
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
-        $this->DefaultSearchColumns = array('id','name','price','quantity','dates_available');
+        $this->DefaultSearchColumns = array('id','name','base_price','base_applicant_count','dates_available');
+    }
+
+    public function verifyBadgeTypeBelongsToGroup(int $id, int $group_id)
+    {
+        $bt = $this->GetByIDorUUID($id, null, array('group_id'));
+        if ($bt === false) {
+            return false;
+        }
+        if ($bt['group_id'] != $group_id) {
+            return false;
+        }
+        return true;
     }
 }

@@ -8,6 +8,7 @@ use CM3_Lib\database\View;
 use CM3_Lib\database\Join;
 
 use CM3_Lib\models\attendee\badge as a_badge;
+use CM3_Lib\models\attendee\badgetype as a_badge_type;
 use CM3_Lib\models\attendee\addonpurchase as a_addon;
 use CM3_Lib\models\application\submissionapplicant as g_badge;
 use CM3_Lib\models\application\submission as g_badge_submission;
@@ -27,6 +28,7 @@ class GetMyBadges
       'id',
       'display_id',
       'hidden',
+      'can_transfer',
       'uuid',
       'real_name',
       'fandom_name',
@@ -48,6 +50,7 @@ class GetMyBadges
     public function __construct(
         private Responder $responder,
         private a_badge $a_badge,
+        private a_badge_type $a_badge_type,
         private g_badge $g_badge,
         private g_badge_submission $g_badge_submission,
         private g_badge_type $g_badge_type,
@@ -68,18 +71,33 @@ class GetMyBadges
     {
         //Fetch the authenticated user's info
         $c_id = $request->getAttribute('contact_id');
+        $e_id = $request->getAttribute('event_id');
         $searchTerms = array(
           new SearchTerm('contact_id', $c_id)
         );
 
         //First, attendee badges
         $a_badges = $this->a_badge->Search(
-            array_merge(
-                $this->selectColumns,
+            new View(
+                array_merge(
+                    $this->selectColumns,
+                    array(
+                    new SelectColumn('context_code', EncapsulationFunction: "'A'", Alias:'context_code'),
+                    'badge_type_id',
+                    'payment_status'
+                  )
+                ),
                 array(
-              new SelectColumn('', EncapsulationFunction: "'A'", Alias: 'Context'),
-              'badge_type_id'
-           )
+
+                new Join(
+                    $this->a_badge_type,
+                    array(
+                      'id' => 'badge_type_id',
+                      new SearchTerm('event_id', $e_id)
+                    ),
+                    alias:'typ'
+                )
+              )
             ),
             $searchTerms
         );
@@ -90,8 +108,9 @@ class GetMyBadges
                 array_merge(
                     $this->selectColumns,
                     array(
-                new SelectColumn('context_code', JoinedTableAlias:'grp', Alias: 'Context'),
-                new SelectColumn('badge_type_id', JoinedTableAlias:'sub')
+                new SelectColumn('context_code', JoinedTableAlias:'grp'),
+                new SelectColumn('badge_type_id', JoinedTableAlias:'sub'),
+                new SelectColumn('payment_status', JoinedTableAlias:'sub')
              )
                 ),
              //And the join so we can get the badge_type_id
@@ -108,7 +127,10 @@ class GetMyBadges
                  ),
                new Join(
                    $this->g_group,
-                   array('id' =>  new SearchTerm('group_id', null, JoinedTableAlias:'typ')),
+                   array(
+                     'id' =>  new SearchTerm('group_id', null, JoinedTableAlias:'typ'),
+                     new SearchTerm('event_id', $e_id)
+                   ),
                    alias:'grp'
                )
              )

@@ -18,8 +18,8 @@ class submission extends \CM3_Lib\database\Table
             'display_id'	=> new cm_Column('INT', null, true),
             'hidden'        => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
 
-      'appplication_name1'          => new cm_Column('VARCHAR', '255', false),
-      'appplication_name2'          => new cm_Column('VARCHAR', '255', false),
+      'application_name1'          => new cm_Column('VARCHAR', '255', false),
+      'application_name2'          => new cm_Column('VARCHAR', '255', false),
       'applicant_count' => new cm_Column('INT', null, false),
       'assignment_count' => new cm_Column('INT', null, false),
             'application_status'		=> new cm_Column(
@@ -64,7 +64,7 @@ class submission extends \CM3_Lib\database\Table
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
-        $this->DefaultSearchColumns = array('id','name','price','quantity','dates_available');
+        $this->DefaultSearchColumns = array('id','application_name1','application_name2','display_id','application_status');
     }
 
     //TODO: Fix up

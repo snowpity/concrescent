@@ -41,9 +41,6 @@ final class ListApplicationBadges
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
-        // Extract the form data from the request body
-        $data = (array)$request->getParsedBody();
-
         $viewData = new View(
             array(
                   'id',

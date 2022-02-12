@@ -6,9 +6,10 @@ use CM3_Lib\database\SearchTerm;
 
 use CM3_Lib\models\admin\user;
 use CM3_Lib\models\eventinfo;
+use CM3_Lib\models\application\group;
+use CM3_Lib\util\TokenGenerator;
 
 use Branca\Branca;
-use MessagePack\MessagePack;
 use MessagePack\Packer;
 
 use CM3_Lib\Responder\Responder;
@@ -24,7 +25,7 @@ class Login
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private user $user, private eventinfo $eventinfo, private Branca $Branca)
+    public function __construct(private Responder $responder, private user $user, private TokenGenerator $TokenGenerator)
     {
     }
 
@@ -65,43 +66,11 @@ class Login
                 ->withStatus(401);
         }
 
-        //Looks good, start making their token!
-
-        //Determine the event ID if not provided
-        $thedate = date("Y/m/d");
-        $eventresult = $this->eventinfo->Search(
-            array('id'),
-            terms: array(
-                //This probably doesn't work like we think?
-                new SearchTerm('id', $data['event_id'], EncapsulationFunction: 'ifnull(?,0)', EncapsulationColumnOnly:false),
-                new SearchTerm('', null, TermType: 'OR', subSearch:array(
-                new SearchTerm('date_end', $thedate, ">="),
-                new SearchTerm('active', true),
-                new SearchTerm('', CompareValue: $data['event_id'], Raw: '? IS NULL')
-              ))
-        ),
-            order: array(
-            'date_start'=> false
-        ),
-            limit: 1
-        );
-        //Save the Event_id in the result in case they didn't know before
-        $data['event_id'] = $eventresult[0]['id'];
-
-
-        //Associate the brand new account by setting the authorization
-        $packer = new Packer();
-        //Initialize payload
-        $tokenPayload = $packer->pack($founduser['contact_id'])
-          . $packer->pack($data['event_id']);
-
-        //TODO: Load up and select their permissions for the selected event
-
-        $result = array();
+        //Looks good, request their token!
+        $result = $this->TokenGenerator->forUser($founduser['contact_id'], $data['event_id']);
+        //Add in some profile info
         $result['adminOnly'] = $founduser['adminOnly'];
         $result['preferences'] = $founduser['preferences'];
-        $result['token'] = $this->Branca->encode($tokenPayload);
-
 
         // Build the HTTP response
         return $this->responder

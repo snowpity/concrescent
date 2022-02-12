@@ -2,14 +2,7 @@
 
 namespace CM3_Lib\Action\Public;
 
-use CM3_Lib\database\SearchTerm;
-
-use CM3_Lib\models\contact;
-use CM3_Lib\models\eventinfo;
-
-use Branca\Branca;
-use MessagePack\MessagePack;
-use MessagePack\Packer;
+use CM3_Lib\util\TokenGenerator;
 
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
@@ -24,7 +17,7 @@ class RefreshToken
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private Branca $Branca)
+    public function __construct(private Responder $responder, private TokenGenerator $TokenGenerator)
     {
     }
 
@@ -38,9 +31,10 @@ class RefreshToken
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
-        $result['id'] = $request->getAttribute('contact_id');
-        $result['event_id'] = $request->getAttribute('event_id');
-        $result['token'] = $this->Branca->encode($request->getAttribute('rawtoken'));
+        $result = $this->TokenGenerator->forUser(
+            $request->getAttribute('contact_id'),
+            $request->getAttribute('event_id')
+        );
 
         // Build the HTTP response
         return $this->responder

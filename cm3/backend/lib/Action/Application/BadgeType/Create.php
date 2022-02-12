@@ -31,10 +31,13 @@ final class Create
      *
      * @return ResponseInterface The response
      */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
+
+        //Ensure consistency with the enpoint being posted to
+        $data['group_id'] = $params['group_id'];
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->badgetype->Create($data);

@@ -4,6 +4,7 @@ namespace CM3_Lib\Action\Application\Submission;
 
 use CM3_Lib\database\SearchTerm;
 use CM3_Lib\models\application\submission;
+use CM3_Lib\models\application\badgetype;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -20,7 +21,7 @@ final class Search
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private submission $submission)
+    public function __construct(private Responder $responder, private submission $submission, private badgetype $badgetype)
     {
     }
 
@@ -32,14 +33,20 @@ final class Search
      *
      * @return ResponseInterface The response
      */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
+        //Grab the list of valid badge_type_ids
+        $badge_type_ids = array_column($this->badgetype->Search(
+            array('id'),
+            array(new SearchTerm('group_id', $params['group_id']))
+        ), 'id');
+
         $whereParts = array(
-          //new SearchTerm('active', 1)
+          new SearchTerm('badge_type_id', $badge_type_ids, 'IN')
         );
 
         $order = array('id' => false);

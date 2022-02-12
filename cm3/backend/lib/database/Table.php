@@ -510,8 +510,14 @@ abstract class Table
                                 //Normal term, add it in
                                 $sqlText .= str_replace(
                                     '?',
-                                    (isset($sourceColumn->JoinedTableAlias) ? '`' . $sourceColumn->JoinedTableAlias . '`' : $this->dbTableName()) . '.' .
-                                                        '`' . $sourceColumn->ColumnName .'` ',
+                                    (isset($sourceColumn->JoinedTableAlias)
+                                       ? '`' . $sourceColumn->JoinedTableAlias . '`'
+                                       : (
+                                           is_string($joinedColumn)
+                                       ? $this->dbTableName()
+                                       : (isset($join->alias) ? '`' . $join->alias . '`' : $join->Table->dbTableName())
+                                       ))
+                                     . '.`' . $sourceColumn->ColumnName .'` ',
                                     $sourceColumn->EncapsulationFunction != null && $sourceColumn->EncapsulationColumnOnly !== false ? $sourceColumn->EncapsulationFunction : '?'
                                 ) . $sourceColumn->Operation . ' ';
                                 //Is our operation an IN ?
@@ -549,7 +555,7 @@ abstract class Table
                                     }
                                 } else {
                                     //Just a normal value
-                                    $sqlText .=($sourceColumn->EncapsulationFunction != null && $sourceColumn->EncapsulationColumnOnly !== true) ? $sourceColumn->EncapsulationFunction : '?';
+                                    $sqlText .=($sourceColumn->EncapsulationFunction != null && $sourceColumn->EncapsulationColumnOnly !== true) ? $sourceColumn->EncapsulationFunction : '? ';
                                     $whereCodes .= $typeCode;
                                     $whereData[] = &$sourceColumn->CompareValue;
                                 }
@@ -750,7 +756,39 @@ abstract class Table
         return $result .')';
     }
 
-    public function GetByIDorUUID($id, $uuid, array $columns = null)
+    public function Exists($id)
+    {
+        $result = $this->GetByID($id) !== false;
+    }
+
+    public function GetByID($id, View|array|string|null $columns = null)
+    {
+
+        //Were we even provided an ID?
+        if (!$id) {
+            return false;
+        }
+
+        $terms = array();
+        if (!!$id) {
+            if (isset($this->ColumnDefs['id'])) {
+                $terms[] = new SearchTerm('id', $id);
+            } elseif (count($this->PrimaryKeys) == 1) {
+                $terms[] = new SearchTerm(key($this->PrimaryKeys), $id);
+            } else {
+                //TODO: multi-key not yet supported.
+            }
+        }
+
+        $result = $this->Search($columns, $terms, limit: 1);
+        if ($result === false || is_null($result) || count($result) == 0) {
+            return false;
+        } else {
+            return $result[0];
+        }
+    }
+
+    public function GetByIDorUUID($id, $uuid, View|array|string|null $columns = null)
     {
         //Were we even provided an ID?
         if (!$id && !$uuid) {
@@ -778,7 +816,7 @@ abstract class Table
         }
 
         $result = $this->Search($columns, $terms, limit: 1);
-        if ($result === false) {
+        if ($result === false || is_null($result) || count($result) == 0) {
             return false;
         } else {
             return $result[0];

@@ -41,10 +41,6 @@ final class ListBadgeContexts
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
-        // Extract the form data from the request body
-        $data = (array)$request->getParsedBody();
-
-
         $whereParts = array(
                   new SearchTerm('event_id', $params['event_id'])
                 );

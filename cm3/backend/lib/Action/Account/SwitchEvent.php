@@ -1,11 +1,13 @@
 <?php
 
-namespace CM3_Lib\Action\Public;
+namespace CM3_Lib\Action\Account;
 
 use CM3_Lib\database\SearchTerm;
 
-use CM3_Lib\models\contact;
+use CM3_Lib\models\admin\user;
 use CM3_Lib\models\eventinfo;
+use CM3_Lib\util\Permissions;
+use CM3_Lib\util\TokenGenerator;
 
 use Branca\Branca;
 use MessagePack\MessagePack;
@@ -24,7 +26,7 @@ class SwitchEvent
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private Branca $Branca)
+    public function __construct(private Responder $responder, private TokenGenerator $TokenGenerator)
     {
     }
 
@@ -38,8 +40,10 @@ class SwitchEvent
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
-        $result['id'] = $request->getAttribute('contact_id');
-        //TODO: Implement
+        $data = (array)$request->getParsedBody();
+        $event_id = $data['event_id'] ?? null;
+
+        $result = $this->TokenGenerator->forUser($request->getAttribute('contact_id'), $event_id);
 
         // Build the HTTP response
         return $this->responder

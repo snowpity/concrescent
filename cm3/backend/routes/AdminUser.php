@@ -1,6 +1,8 @@
 <?php
 
 // Define app routes
+use CM3_Lib\util\PermEvent;
+use CM3_Lib\Middleware\PermCheckEventPerm;
 
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
@@ -8,7 +10,8 @@ use Slim\Routing\RouteContext;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-return function (App $app) {
+return function (App $app, $container) {
+    $accessPerm = $container->get(PermCheckEventPerm::class);
     $app->group(
         '/AdminUser',
         function (RouteCollectorProxy $app) {
@@ -18,5 +21,5 @@ return function (App $app) {
             $app->post('/{id}', \CM3_Lib\Action\AdminUser\Update::class);
             $app->delete('/{id}', \CM3_Lib\Action\AdminUser\Delete::class);
         }
-    );
+    )->add($accessPerm->withAllowedPerms(array(PermEvent::Manage_Users())));
 };

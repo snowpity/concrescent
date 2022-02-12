@@ -45,6 +45,6 @@ class submissionapplicant extends \CM3_Lib\database\Table
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
-        $this->DefaultSearchColumns = array('id','display_id','first_name','last_name','notify_email');
+        $this->DefaultSearchColumns = array('id','display_id','real_name','notify_email');
     }
 }

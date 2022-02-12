@@ -18,7 +18,7 @@ return function (App $app) {
             $app->get('/{event_id}/badges', \CM3_Lib\Action\Public\ListBadgeContexts::class);
             //What badges are available for a given context
             $app->get('/{event_id}/badges/A', \CM3_Lib\Action\Public\ListAttendeeBadges::class);
-            $app->get('/{event_id}/badges/A/{badge_id}/Addons', \CM3_Lib\Action\Public\ListAttendeeAddons::class);
+            $app->get('/{event_id}/badges/A/{badge_id}/addons', \CM3_Lib\Action\Public\ListAttendeeAddons::class);
             $app->get('/{event_id}/badges/S', \CM3_Lib\Action\Public\ListStaffBadges::class);
             $app->get('/{event_id}/badges/{context}', \CM3_Lib\Action\Public\ListApplicationBadges::class);
 
@@ -32,6 +32,7 @@ return function (App $app) {
             $app->post('/createaccount', \CM3_Lib\Action\Public\CreateAccount::class);
 
             //Request magic link
+            $app->post('/requestmagic', \CM3_Lib\Action\Public\SendMagicLink::class);
         }
     );
 };

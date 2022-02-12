@@ -18,6 +18,8 @@ use Slim\Exception\HttpNotFoundException;
 use Branca\Branca;
 use CM3_Lib\database\DbConnection;
 
+use CM3_Lib\Middleware\PermCheckEventId;
+
 return [
     // Application settings
     'config' => function () {
@@ -29,7 +31,7 @@ return [
 
         // Register routes, up to three folders deep
         foreach (glob(__DIR__ . '/../routes/{,*/,*/*/,*/*/*/}*.php', GLOB_BRACE) as $route) {
-            (require $route)($app);
+            (require $route)($app, $container);
         }
 
         /*

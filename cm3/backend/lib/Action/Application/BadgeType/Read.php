@@ -39,7 +39,8 @@ final class Read
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
         $whereParts = array(
-          new SearchTerm('id', $params['id'])
+            new SearchTerm('id', $params['id']),
+            new SearchTerm('group_id', $params['group_id'])
         );
 
         // Invoke the Domain with inputs and retain the result

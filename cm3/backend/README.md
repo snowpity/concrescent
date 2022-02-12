@@ -17,9 +17,8 @@ Token data, unpacked:
 
   contact ID, bigint
   Currently selected Event ID int
-  Special Permission bytes in the form of enums
+  Special Permission bytes in the form of bitmask
     Permission set 1
-      Blocked from applying for badges
       Attendee view
       Attendee Edit
       Attendee Export
@@ -42,6 +41,10 @@ Token data, unpacked:
       Staff apps Edit
       Staff apps export
       Staff apps manage types (including org chart), email templates, questions
+      Badge_Ice (See/edit bade ICE info)
+      Contact_Full (See/edit phone and address info)
+      Event admin (Manage active events, groups)
+      Blocked from applying for badges
       Global admin (access to create events, plugin configuration, etc)
 
   Application group Permission string, count byte
