@@ -37,6 +37,15 @@ final class Update
         $data = (array)$request->getParsedBody();
         $data['id'] = $params['id'];
 
+        $result = $this->group->GetByID($params['id'], array('event_id'));
+        if ($result === false) {
+            throw new HttpNotFoundException($request);
+        }
+        if ($result['event_id'] != $request->getAttribute('event_id')) {
+            throw new HttpBadRequestException($request, 'Group does not belong to the current event!');
+        }
+
+
         // Invoke the Domain with inputs and retain the result
         $data = $this->group->Update($data);
 

@@ -36,6 +36,9 @@ final class Create
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
 
+        //Ensure we're only attempting to create a location for the current Event
+        $data['event_id'] = $request->getAttribute('event_id');
+
         // Invoke the Domain with inputs and retain the result
         $data = $this->location->Create($data);
 

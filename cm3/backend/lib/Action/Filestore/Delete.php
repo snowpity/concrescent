@@ -1,8 +1,8 @@
 <?php
 
-namespace CM3_Lib\Action\Location;
+namespace CM3_Lib\Action\Filestore;
 
-use CM3_Lib\models\application\location;
+use CM3_Lib\models\filestore;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -22,7 +22,7 @@ final class Update
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private location $location)
+    public function __construct(private Responder $responder, private filestore $filestore)
     {
     }
 
@@ -37,18 +37,15 @@ final class Update
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         //Confirm group belongs to event
-        $current = $this->location->GetByID($params['id'], array('id'));
+        $current = $this->filestore->GetByID($params['id'], array('id'));
         if ($current === false) {
             throw new HttpNotFoundException($request);
         }
         if ($current['event_id'] != $request->getAttribute('event_id')) {
-            throw new HttpBadRequestException($request, 'Location does not belong to the current event!');
+            throw new HttpBadRequestException($request, 'Filestore item does not belong to the current event!');
         }
 
-        $data = $this->location->Update(array('id'=>$params['id'],'active'=>0));
-
-        // We don't delete, just deactivate
-        //$data = $this->group->Delete(array('id'=>$params['id']));
+        $data = $this->group->Delete(array('id'=>$params['id']));
 
         // Build the HTTP response
         return $this->responder

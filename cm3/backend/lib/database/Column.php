@@ -62,7 +62,9 @@ class Column
             return 'd';
         }
 
-        if (strpos(strtoupper($this->dbType), 'BLOB')!==false) {
+        if (strpos(strtoupper($this->dbType), 'BLOB')!==false
+        || strpos(strtoupper($this->dbType), 'TEXT')!==false
+        ) {
             return 'b';
         }
         return 's';

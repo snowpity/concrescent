@@ -163,12 +163,12 @@ abstract class Table
                 continue;
             }
             //Determine if the variable is a file reference or raw data
-            if (is_resource($paramData[$ix])) {
-                $fp = $paramData[$ix];
+            if (is_resource($paramData[$ix+1])) {
+                $fp = $paramData[$ix+1];
             } else {
                 //Open the object as a string resource
                 $fp = fopen('php://memory', 'r+');
-                fwrite($fp, $paramData[$ix]);
+                fwrite($fp, (string)$paramData[$ix+1]);
                 rewind($fp);
             }
             //Toss it into the pipe

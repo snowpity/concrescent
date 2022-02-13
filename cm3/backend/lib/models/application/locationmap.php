@@ -26,4 +26,15 @@ class locationmap extends \CM3_Lib\database\Table
         $this->PrimaryKeys = array('id'=>false);
         $this->DefaultSearchColumns = array('id','bgImageID','name');
     }
+    public function verifyMapBelongsToEvent(int $id, int $event_id)
+    {
+        $bt = $this->GetByIDorUUID($id, array('event_id'));
+        if ($bt === false) {
+            return false;
+        }
+        if ($bt['event_id'] != $group_id) {
+            return false;
+        }
+        return true;
+    }
 }

@@ -8,6 +8,10 @@ use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+
+use Slim\Exception\HttpBadRequestException;
+use Slim\Exception\HttpNotFoundException;
+
 /**
  * Action.
  */
@@ -36,6 +40,14 @@ final class Update
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
         $data['id'] = $params['id'];
+
+        $result = $this->location->GetByID($params['id'], array('event_id'));
+        if ($result === false) {
+            throw new HttpNotFoundException($request);
+        }
+        if ($result['event_id'] != $request->getAttribute('event_id')) {
+            throw new HttpBadRequestException($request, 'Location does not belong to the current event!');
+        }
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->location->Update($data);

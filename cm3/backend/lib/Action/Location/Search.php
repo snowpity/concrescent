@@ -39,6 +39,7 @@ final class Search
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
         $whereParts = array(
+            new SearchTerm('event_id', $request->getAttribute('event_id'))
           //new SearchTerm('active', 1)
         );
 

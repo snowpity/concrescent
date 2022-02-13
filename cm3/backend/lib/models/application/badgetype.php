@@ -59,7 +59,7 @@ class badgetype extends \CM3_Lib\database\Table
 
     public function verifyBadgeTypeBelongsToGroup(int $id, int $group_id)
     {
-        $bt = $this->GetByIDorUUID($id, null, array('group_id'));
+        $bt = $this->GetByIDorUUID($id, array('group_id'));
         if ($bt === false) {
             return false;
         }

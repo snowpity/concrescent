@@ -1,13 +1,16 @@
 <?php
 
-namespace CM3_Lib\Action\LocationMap\Coord;
+namespace CM3_Lib\Action\Filestore;
 
-use CM3_Lib\models\application\locationmap;
-use CM3_Lib\models\application\locationcoord;
+use CM3_Lib\models\filestore;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+
+
+use Slim\Exception\HttpBadRequestException;
+use Slim\Exception\HttpNotFoundException;
 
 /**
  * Action.
@@ -20,7 +23,7 @@ final class Update
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private locationcoord $locationcoord)
+    public function __construct(private Responder $responder, private filestore $filestore)
     {
     }
 
@@ -36,20 +39,26 @@ final class Update
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
+        $data['id'] = $params['id'];
 
-        $current = $this->locationcoord->GetByID($params['id'], array('map_id'));
-        if ($current === false) {
+        $result = $this->filestore->GetByID($params['id'], array('event_id'));
+        if ($result === false) {
             throw new HttpNotFoundException($request);
         }
-        if ($current['map_id'] == $params['map_id'] && $this->locationmap->verifyMapBelongsToEvent($current['map_id'], $request->getAttribute('event_id'))) {
-            throw new HttpBadRequestException($request, 'Location Map does not belong to the current event!');
+        if ($result['event_id'] != $request->getAttribute('event_id')) {
+            throw new HttpBadRequestException($request, 'Filestore item does not belong to the current event!');
         }
 
-        $data['id'] = $params['id'];
-        $data['map_id'] = $params['map_id'];
+        $uploadedFiles = $request->getUploadedFiles();
+
+        if (isset($uploadedFiles['data'])) {
+            $data['data'] = $uploadedFiles['data']->getStream();
+        }
+        //echo is_resource($data['data']);
+        //die(print_r($data, true));
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->locationcoord->Update($data);
+        $data = $this->filestore->Update($data);
 
         // Build the HTTP response
         return $this->responder

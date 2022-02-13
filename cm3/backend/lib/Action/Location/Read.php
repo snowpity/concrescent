@@ -9,6 +9,9 @@ use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+use Slim\Exception\HttpBadRequestException;
+use Slim\Exception\HttpNotFoundException;
+
 /**
  * Action.
  */
@@ -38,15 +41,17 @@ final class Read
         $data = (array)$request->getParsedBody();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
-        $whereParts = array(
-          new SearchTerm('id', $params['id'])
-        );
+        $result = $this->location->GetByID($params['id'], '*');
+        if ($result === false) {
+            throw new HttpNotFoundException($request);
+        }
+        if ($result['event_id'] != $request->getAttribute('event_id')) {
+            throw new HttpBadRequestException($request, 'Location does not belong to the current event!');
+        }
 
-        // Invoke the Domain with inputs and retain the result
-        $data = $this->location->Search("*", $whereParts);
 
         // Build the HTTP response
         return $this->responder
-            ->withJson($response, $data);
+             ->withJson($response, $result);
     }
 }

@@ -1,17 +1,13 @@
 <?php
 
-namespace CM3_Lib\Action\LocationMap\Coord;
+namespace CM3_Lib\Action\Filestore;
 
 use CM3_Lib\database\SearchTerm;
-use CM3_Lib\models\application\locationmap;
-use CM3_Lib\models\application\locationcoord;
+use CM3_Lib\models\filestore;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-
-use Slim\Exception\HttpBadRequestException;
-use Slim\Exception\HttpNotFoundException;
 
 /**
  * Action.
@@ -24,7 +20,7 @@ final class Search
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private locationcoord $locationcoord)
+    public function __construct(private Responder $responder, private filestore $filestore)
     {
     }
 
@@ -42,12 +38,8 @@ final class Search
         $data = (array)$request->getParsedBody();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
-        if ($this->locationmap->verifyMapBelongsToEvent($params['map_id'], $request->getAttribute('event_id'))) {
-            throw new HttpBadRequestException($request, 'Location Map does not belong to the current event!');
-        }
-
         $whereParts = array(
-            new SearchTerm('map_id', $params['map_id'])
+            new SearchTerm('event_id', $request->getAttribute('event_id'))
           //new SearchTerm('active', 1)
         );
 
@@ -61,7 +53,11 @@ final class Search
         }
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->locationcoord->Search(array(), $whereParts, $order, $limit, $offset);
+        $data = $this->filestore->Search(array(), $whereParts, $order, $limit, $offset);
+
+        if (isset($data['data'])) {
+            $data['data'] = base64_encode($data['data']);
+        }
 
         // Build the HTTP response
         return $this->responder

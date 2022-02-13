@@ -17,7 +17,7 @@ class PermEvent extends Bitmask
     public const Badge_Checkin        = 128;
     public const Badge_PrintOneOff    = 256;
     public const Badge_ManageFormat   = 512;
-    public const Map_Edit             = 1024;
+    public const Location_Manage      = 1024;
     public const Payment_View         = 2048;
     public const Payment_CreateCancel = 4096;
     public const Payment_Edit         = 8192;
@@ -28,8 +28,8 @@ class PermEvent extends Bitmask
     public const Staff_Edit           = 262144;
     public const Staff_Export         = 524288;
     public const Staff_Manage         = 1048576;
+    public const Filestore_Manage     = 2097152;
 
-    // public const Reserved1            = 2097152;
     // public const Reserved2            = 4194304;
     // public const Reserved3            = 8388608;
     // public const Reserved4            = 16777216;
