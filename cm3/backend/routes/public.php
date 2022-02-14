@@ -25,6 +25,9 @@ return function (App $app) {
             //Questions, retrieves the associated form questions for a badge
             $app->get('/{event_id}/questions/{context}/{context_id}', \CM3_Lib\Action\Public\ListQuestions::class);
 
+            //Fetch a blob file
+            $app->get('/{event_id}/file/{id}/{extra:.+}', \CM3_Lib\Action\Public\GetFile::class);
+
             //Log in. Also allows selecting a different event id.
             $app->post('/login', \CM3_Lib\Action\Public\Login::class);
 
