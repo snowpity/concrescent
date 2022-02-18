@@ -1,8 +1,8 @@
 <?php
 
-namespace CM3_Lib\Action\Attendee;
+namespace CM3_Lib\Action\Attendee\Addon;
 
-use CM3_Lib\models\attendee;
+use CM3_Lib\models\attendee\addon;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -19,7 +19,7 @@ final class Update
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private attendee $attendee)
+    public function __construct(private Responder $responder, private addon $addon)
     {
     }
 
@@ -34,11 +34,18 @@ final class Update
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         // Extract the form data from the request body
-        $data = (array)$request->getParsedBody();
-        $data['id'] = $params['id'];
+        $data =array(
+            'id' => $params['id']
+        );
 
-        // Invoke the Domain with inputs and retain the result
-        $data = $this->attendee->Update($data);
+        if (!$this->addon->verifyAddonBelongsToEvent($params['id'], $request->getAttribute('event_id'))) {
+            throw new HttpBadRequestException($request, 'Addon does not belong to current event');
+        }
+
+        $data = $this->addon->Update(array('id'=>$params['id'],'active'=>0));
+
+        // We don't delete, just deactivate
+        //$data = $this->printjob->Delete(array('id'=>$params['id']));
 
         // Build the HTTP response
         return $this->responder

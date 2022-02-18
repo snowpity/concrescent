@@ -25,7 +25,7 @@ class format extends \CM3_Lib\database\Table
 
     public function verifyFormatBelongsToEvent(int $id, int $event_id)
     {
-        $bt = $this->GetByIDorUUID($id, array('event_id'));
+        $bt = $this->GetByID($id, array('event_id'));
         if ($bt === false) {
             return false;
         }

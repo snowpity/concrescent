@@ -1,7 +1,8 @@
 <?php
 
-namespace CM3_Lib\Action\Badge\Format;
+namespace CM3_Lib\Action\Badge\Format\PrintJob;
 
+use CM3_Lib\models\badge\printjob;
 use CM3_Lib\models\badge\format;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
@@ -14,7 +15,7 @@ use Slim\Exception\HttpNotFoundException;
 /**
  * Action.
  */
-final class Delete
+final class Create
 {
     /**
      * The constructor.
@@ -22,7 +23,7 @@ final class Delete
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private format $format)
+    public function __construct(private Responder $responder, private printjob $printjob, private format $format)
     {
     }
 
@@ -36,19 +37,25 @@ final class Delete
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
-        //Confirm format belongs to event
-        $current = $this->format->GetByID($params['id'], array('event_id'));
-        if ($current === false) {
+        // Extract the form data from the request body
+        $data = (array)$request->getParsedBody();
+
+        //Ensure we're only attempting to create a printjob for the current Event
+        $result = $this->format->GetByID($params['format_id'], array('event_id'));
+        if ($result === false) {
             throw new HttpNotFoundException($request);
         }
-        if ($current['event_id'] != $request->getAttribute('event_id')) {
+        if ($result['event_id'] != $request->getAttribute('event_id')) {
             throw new HttpBadRequestException($request, 'Badge Format does not belong to the current event!');
         }
 
-        $data = $this->format->Update(array('id'=>$params['id'],'active'=>0));
+        //TODO: Work on permissions
 
-        // We don't delete, just deactivate
-        //$data = $this->format->Delete(array('id'=>$params['id']));
+        $data['event_id'] = $result['event_id'];
+        $data['format_id'] = $params['format_id'];
+
+        // Invoke the Domain with inputs and retain the result
+        $data = $this->printjob->Create($data);
 
         // Build the HTTP response
         return $this->responder

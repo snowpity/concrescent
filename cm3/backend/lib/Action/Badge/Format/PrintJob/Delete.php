@@ -1,7 +1,8 @@
 <?php
 
-namespace CM3_Lib\Action\Badge\Format;
+namespace CM3_Lib\Action\Badge\Format\PrintJob;
 
+use CM3_Lib\models\badge\printjob;
 use CM3_Lib\models\badge\format;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
@@ -22,7 +23,7 @@ final class Delete
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private format $format)
+    public function __construct(private Responder $responder, private printjob $printjob, private format $format)
     {
     }
 
@@ -36,19 +37,19 @@ final class Delete
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
-        //Confirm format belongs to event
-        $current = $this->format->GetByID($params['id'], array('event_id'));
+        //Confirm printjob belongs to event
+        $current = $this->printjob->GetByID($params['id'], array('event_id'));
         if ($current === false) {
             throw new HttpNotFoundException($request);
         }
         if ($current['event_id'] != $request->getAttribute('event_id')) {
-            throw new HttpBadRequestException($request, 'Badge Format does not belong to the current event!');
+            throw new HttpBadRequestException($request, 'PrintJob does not belong to the current event!');
         }
 
-        $data = $this->format->Update(array('id'=>$params['id'],'active'=>0));
+        $data = $this->printjob->Update(array('id'=>$params['id'],'state'=>'Cancelling'));
 
         // We don't delete, just deactivate
-        //$data = $this->format->Delete(array('id'=>$params['id']));
+        //$data = $this->printjob->Delete(array('id'=>$params['id']));
 
         // Build the HTTP response
         return $this->responder

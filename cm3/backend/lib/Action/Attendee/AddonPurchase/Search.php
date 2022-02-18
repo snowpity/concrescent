@@ -1,18 +1,26 @@
 <?php
 
-namespace CM3_Lib\Action\Attendee;
+namespace CM3_Lib\Action\Attendee\AddonPurchase;
+
+use CM3_Lib\models\attendee\addonpurchase;
+use CM3_Lib\models\attendee\badge;
+use CM3_Lib\models\attendee\badgetype;
 
 use CM3_Lib\database\SearchTerm;
-use CM3_Lib\models\attendee\badge;
+use CM3_Lib\database\View;
+use CM3_Lib\database\Join;
+
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+use Slim\Exception\HttpBadRequestException;
+
 /**
  * Action.
  */
-final class Export
+final class Search
 {
     /**
      * The constructor.
@@ -20,7 +28,7 @@ final class Export
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private badge $badge)
+    public function __construct(private Responder $responder, private addonpurchase $addonpurchase, private badge $badge, private badgetype $badgetype)
     {
     }
 
@@ -32,14 +40,27 @@ final class Export
      *
      * @return ResponseInterface The response
      */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
+        //Confirm permission to delete this badge applicant
+        $badgeinfo = $this->badge->GetByID($params['attendee_id'], new View(
+            array('id'),
+            array(
+                new Join($this->badgetype, array('id'=>'badge_type_id', new SearchTerm('event_id', $params['event_id'])))
+            )
+        ));
+
+        if ($badgeinfo === false) {
+            throw new HttpBadRequestException($request, 'Invalid badge specified');
+        }
+
+
         $whereParts = array(
-          //new SearchTerm('active', 1)
+          new SearchTerm('attendee_id', $params['attendee_id'])
         );
 
         $order = array('id' => false);
@@ -52,7 +73,7 @@ final class Export
         }
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->attendee->Search(array(), $whereParts, $order, $limit, $offset);
+        $data = $this->addonpurchase->Search(array(), $whereParts, $order, $limit, $offset);
 
         // Build the HTTP response
         return $this->responder

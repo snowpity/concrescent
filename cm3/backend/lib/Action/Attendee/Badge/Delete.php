@@ -1,6 +1,6 @@
 <?php
 
-namespace CM3_Lib\Action\Attendee;
+namespace CM3_Lib\Action\Attendee\Badge;
 
 use CM3_Lib\models\attendee\badge;
 use CM3_Lib\Responder\Responder;
@@ -19,8 +19,11 @@ final class Update
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private badge $badge)
-    {
+    public function __construct(
+        private Responder $responder,
+        private badge $badge,
+        private badgetype $badgetype
+    ) {
     }
 
     /**
@@ -31,11 +34,17 @@ final class Update
      *
      * @return ResponseInterface The response
      */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $id): ResponseInterface
+    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
-        // Extract the form data from the request body
-        $data = (array)$request->getParsedBody();
-        $data['id'] = $id['id'];
+        //Confirm badge belongs to a badgetype in this event
+        $current = $this->badge->GetByID($params['id'], array('badge_type_id'));
+        if ($current === false) {
+            throw new HttpNotFoundException($request);
+        }
+
+        if (!$this->badgetype->verifyBadgeTypeBelongsToEvent($current['badge_type_id'], $request->getAttribute('event_id'))) {
+            throw new HttpBadRequestException($request, 'Badge does not belong to current event');
+        }
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->attendee->Delete($data);

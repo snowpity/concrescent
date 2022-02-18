@@ -70,9 +70,11 @@ final class Create
             throw new HttpBadRequestException($request, 'Invalid badge id specified');
         }
 
+        if (!$this->formatmap->Exists($data)) {
+            // Invoke the Domain with inputs and retain the result
+            $data = $this->formatmap->Create($data);
+        }
 
-        // Invoke the Domain with inputs and retain the result
-        $data = $this->format->Create($data);
 
         // Build the HTTP response
         return $this->responder

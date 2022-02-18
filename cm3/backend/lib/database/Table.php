@@ -758,7 +758,7 @@ abstract class Table
 
     public function Exists($id)
     {
-        $result = $this->GetByID($id) !== false;
+        return $this->GetByID($id) !== false;
     }
 
     public function GetByID($id, View|array|string|null $columns = null)
@@ -771,12 +771,20 @@ abstract class Table
 
         $terms = array();
         if (!!$id) {
-            if (isset($this->ColumnDefs['id'])) {
-                $terms[] = new SearchTerm('id', $id);
-            } elseif (count($this->PrimaryKeys) == 1) {
+            if (count($this->PrimaryKeys) == 1) {
                 $terms[] = new SearchTerm(key($this->PrimaryKeys), $id);
+            } elseif (count($this->PrimaryKeys) > 1 && is_array($id)) {
+                foreach ($this->PrimaryKeys as $key => $value) {
+                    if (isset($id[$key])) {
+                        $terms[] = new SearchTerm($key, $id[$key]);
+                    } else {
+                        throw new Exception('ID parameter missing: ' . $key);
+                    }
+                }
+            } elseif (isset($this->ColumnDefs['id']) && !is_array($id)) {
+                $terms[] = new SearchTerm('id', $id);
             } else {
-                //TODO: multi-key not yet supported.
+                throw new Exception('Incorrect ID parameter: ' . print_r($id));
             }
         }
 

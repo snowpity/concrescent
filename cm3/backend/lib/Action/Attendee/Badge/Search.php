@@ -1,6 +1,6 @@
 <?php
 
-namespace CM3_Lib\Action\Attendee;
+namespace CM3_Lib\Action\Attendee\Badge;
 
 use CM3_Lib\database\SearchTerm;
 use CM3_Lib\models\attendee\badge;
@@ -20,8 +20,11 @@ final class Search
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private badge $badge)
-    {
+    public function __construct(
+        private Responder $responder,
+        private badge $badge,
+        private badgetype $badgetype
+    ) {
     }
 
     /**
@@ -38,8 +41,14 @@ final class Search
         $data = (array)$request->getParsedBody();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
+        //Grab the list of valid badge_type_ids
+        $badge_type_ids = array_column($this->badgetype->Search(
+            array('id'),
+            array(new SearchTerm('event_id', $request->getAttribute('event_id')))
+        ), 'id');
+
         $whereParts = array(
-          //new SearchTerm('active', 1)
+          new SearchTerm('badge_type_id', $badge_type_ids, 'IN')
         );
 
         $order = array('id' => false);

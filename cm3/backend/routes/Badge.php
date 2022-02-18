@@ -35,4 +35,18 @@ return function (App $app, $container) {
             ->add($accessPerm);
         }
     );
+
+    $app->group(
+        '/Badge/Format/{format_id}/PrintJob',
+        function (RouteCollectorProxy $app) use ($accessPerm) {
+            $printPerm = $accessPerm->withAllowedPerm(PermEvent::Badge_Print());
+            $app->get('', \CM3_Lib\Action\Badge\Format\PrintJob\Search::class);
+            $app->post('', \CM3_Lib\Action\Badge\Format\PrintJob\Create::class);
+            $app->get('/{id}', \CM3_Lib\Action\Badge\Format\PrintJob\Read::class);
+            $app->post('/{id}', \CM3_Lib\Action\Badge\Format\PrintJob\Update::class)
+            ->add($printPerm);
+            $app->delete('/{id}', \CM3_Lib\Action\Badge\Format\PrintJob\Delete::class)
+            ->add($printPerm);
+        }
+    );
 };

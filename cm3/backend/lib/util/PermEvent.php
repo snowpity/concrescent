@@ -15,7 +15,7 @@ class PermEvent extends Bitmask
     public const Attendee_Refund      = 32;
     public const Badge_Stats          = 64;
     public const Badge_Checkin        = 128;
-    public const Badge_PrintOneOff    = 256;
+    public const Badge_Print          = 256;
     public const Badge_ManageFormat   = 512;
     public const Location_Manage      = 1024;
     public const Payment_View         = 2048;
