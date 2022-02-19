@@ -3,6 +3,7 @@
 namespace CM3_Lib\models\application;
 
 use CM3_Lib\database\Column as cm_Column;
+use CM3_Lib\database\ColumnIndex;
 
 class submissionapplicant extends \CM3_Lib\database\Table
 {
@@ -43,7 +44,13 @@ class submissionapplicant extends \CM3_Lib\database\Table
             'date_modified'	=> new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP', false, 'ON UPDATE CURRENT_TIMESTAMP'),
             'notes'			=> new cm_Column('TEXT', null, true)
         );
-        $this->IndexDefs = array();
+        $this->IndexDefs = array('ft_name' => new ColumnIndex(array(
+            'real_name' =>false,
+            'fandom_name'=>false,
+            'notify_email'=>false,
+            'ice_name'=>false,
+            'ice_email_address'=>false
+        ), 'fulltext'));
         $this->PrimaryKeys = array('id'=>false);
         $this->DefaultSearchColumns = array('id','display_id','real_name','notify_email');
     }

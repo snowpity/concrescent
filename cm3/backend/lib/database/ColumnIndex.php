@@ -21,6 +21,9 @@ class ColumnIndex
             case 'unique':
                 $sqlText = 'CONSTRAINT `' . $indexName . '` UNIQUE ';
                 break;
+            case 'fulltext':
+                $sqlText = 'FULLTEXT `' . $indexName . '` ';
+                break;
             default:
                 $sqlText = 'INDEX `' . $indexName . '` ';
                 break;

@@ -38,8 +38,6 @@ final class Search
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
-        // Extract the form data from the request body
-        $data = (array)$request->getParsedBody();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
         //Ensure we're only attempting to create a printjob for the current Event
         $fresult = $this->format->GetByID($params['format_id'], array('event_id'));
