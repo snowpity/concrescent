@@ -49,4 +49,16 @@ return function (App $app, $container) {
             ->add($printPerm);
         }
     );
+
+
+    $app->group(
+        '/Badge/CheckIn',
+        function (RouteCollectorProxy $app) use ($accessPerm) {
+            $app->get('', \CM3_Lib\Action\Badge\CheckIn\Search::class);
+            $app->post('/{category}/{badge_type_id}', \CM3_Lib\Action\Badge\Format\Map\Create::class)
+            ->add($accessPerm);
+            $app->delete('/{category}/{badge_type_id}', \CM3_Lib\Action\Badge\Format\Map\Delete::class)
+            ->add($accessPerm);
+        }
+    );
 };

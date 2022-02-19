@@ -39,7 +39,7 @@ class Column
         (isset($this->isNullable) ? ($this->isNullable ? '' : 'NOT ') . 'NULL ' : '').
         ($this->isPrimary ? 'PRIMARY ' . ($this->isKey ? ' KEY ' : '') : '') .
         ($this->isUnique ? 'UNIQUE ' . ($this->isKey ? ' KEY ' : '') : '') .
-        (isset($this->defaultValue) ? 'DEFAULT \'' . $this->defaultValue . '\' ' : '') .
+        (isset($this->defaultValue) ? 'DEFAULT ' . $this->defaultValue . ' ' : '') .
         ($this->isAutoIncrement ? 'AUTO_INCREMENT ' : '') .
         (isset($this->customPostfix) ? ' ' .$this->customPostfix . ' ' : '');
         return $result;

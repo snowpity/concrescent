@@ -22,7 +22,7 @@ class printjob extends \CM3_Lib\database\Table
                 'Batch',
                 'Cancelling',
                 'Cancelled'
-            ), false, defaultValue: 'Queued'),
+            ), false, defaultValue: '''Queued'''),
             'meta'			=> new cm_Column('VARCHAR', 255, true),
             'data'			=> new cm_Column('TEXT', null, true),
             'result'			=> new cm_Column('VARCHAR', 255, false, defaultValue: '')

@@ -37,6 +37,7 @@ class badge extends \CM3_Lib\database\Table
                 false
             ),
             'date_of_birth'      => new cm_Column('DATE', null, false),
+            'notify_email'	=> new cm_Column('VARCHAR', '255', true),
             'ice_name'           => new cm_Column('VARCHAR', '255', true),
             'ice_relationship'   => new cm_Column('VARCHAR', '255', true),
             'ice_email_address'  => new cm_Column('VARCHAR', '255', true),
