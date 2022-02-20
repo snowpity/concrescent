@@ -54,11 +54,15 @@ return function (App $app, $container) {
     $app->group(
         '/Badge/CheckIn',
         function (RouteCollectorProxy $app) use ($accessPerm) {
-            $app->get('', \CM3_Lib\Action\Badge\CheckIn\Search::class);
-            $app->post('/{category}/{badge_type_id}', \CM3_Lib\Action\Badge\Format\Map\Create::class)
-            ->add($accessPerm);
-            $app->delete('/{category}/{badge_type_id}', \CM3_Lib\Action\Badge\Format\Map\Delete::class)
-            ->add($accessPerm);
+            $checkinPerm = $accessPerm->withAllowedPerm(PermEvent::Badge_Checkin());
+            $app->get('', \CM3_Lib\Action\Badge\CheckIn\Search::class)
+            ->add($checkinPerm);
+            $app->get('/{context_code}/{badge_id}', \CM3_Lib\Action\Badge\CheckIn\Read::class)
+            ->add($checkinPerm);
+            $app->post('/{context_code}/{badge_id}/Pay', \CM3_Lib\Action\Badge\CheckIn\Pay::class)
+            ->add($checkinPerm);
+            $app->post('/{context_code}/{badge_id}/Finish', \CM3_Lib\Action\Badge\CheckIn\FinishCheckIn::class)
+            ->add($checkinPerm);
         }
     );
 };
