@@ -35,6 +35,18 @@ class question extends \CM3_Lib\database\Table
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
-        $this->DefaultSearchColumns = array('id');
+        $this->DefaultSearchColumns = array('id','context','active','title','type');
+    }
+
+    public function verifyQuestionBelongsToEvent(int $id, int $event_id)
+    {
+        $bt = $this->GetByID($id, array('event_id'));
+        if ($bt === false) {
+            return false;
+        }
+        if ($bt['event_id'] != $event_id) {
+            return false;
+        }
+        return true;
     }
 }

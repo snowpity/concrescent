@@ -3,7 +3,7 @@
 namespace CM3_Lib\models\application;
 
 use CM3_Lib\database\Column as cm_Column;
-use Slim\Exception\HttpBadRequestException;
+use CM3_Lib\database\View;
 
 class badgetype extends \CM3_Lib\database\Table
 {

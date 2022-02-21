@@ -778,13 +778,13 @@ abstract class Table
                     if (isset($id[$key])) {
                         $terms[] = new SearchTerm($key, $id[$key]);
                     } else {
-                        throw new Exception('ID parameter missing: ' . $key);
+                        throw new \Exception('ID parameter missing: ' . $key);
                     }
                 }
             } elseif (isset($this->ColumnDefs['id']) && !is_array($id)) {
                 $terms[] = new SearchTerm('id', $id);
             } else {
-                throw new Exception('Incorrect ID parameter: ' . print_r($id));
+                throw new \Exception('Incorrect ID parameter: ' . print_r($id));
             }
         }
 
