@@ -42,9 +42,7 @@ final class DefaultErrorHandler implements ErrorHandlerInterface
     ) {
         $this->responder = $responder;
         $this->responseFactory = $responseFactory;
-        $this->logger = $loggerFactory
-            ->addFileHandler('error.log')
-            ->createLogger('Main');
+        $this->logger = $loggerFactory->createLogger('Main');
         $this->installpath = dirname(__DIR__, 2);
     }
 
@@ -71,6 +69,8 @@ final class DefaultErrorHandler implements ErrorHandlerInterface
             $error = $this->getErrorDetails($exception, $logErrorDetails);
             $error['method'] = $request->getMethod();
             $error['url'] = (string)$request->getUri();
+            $error['contact_id'] = $request->getAttribute('contact_id');
+            $error['event_id'] = $request->getAttribute('event_id');
 
             $this->logger->error($exception->getMessage(), $error);
         }

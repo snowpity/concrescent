@@ -78,10 +78,10 @@ final class badgeinfo
         switch ($context_code) {
             case 'A':
                 $result =  $this->getASpecificBadge($id, $this->a_badge, $this->a_badge_type, 'A', $full ? $this->badgeViewFullAddAttendee() : null);
-                // no break
+                break;
             case 'S':
                 $result =  $this->getASpecificBadge($id, $this->s_badge, $this->s_badge_type, 'S', $full ? $this->badgeViewFullAddStaff() : null);
-                // no break
+                break;
             default:
                 $result =  $this->getASpecificGroupBadge($id, $full ? $this->badgeViewFullAddGroup() : null);
         }
@@ -92,6 +92,31 @@ final class badgeinfo
         return $this->addComputedColumns($result);
     }
 
+    public function UpdateSpecificBadgeUnchecked($id, $context_code, $data, $allowedColumns)
+    {
+        $result = false;
+        //Filter in the allowed columns to update
+        if ($allowedColumns != null) {
+            $data = array_intersect_key($data, array_flip($allowedColumns));
+        }
+        //Slide in the ID
+        $data['id'] = $id;
+        switch ($context_code) {
+            case 'A':
+                $result =  $this->a_badge->Update($data);
+                break;
+            case 'S':
+                $result =  $this->s_badge->Update($data);
+                break;
+            default:
+                $result =  $this->g_badge->Update($data);
+        }
+
+        if ($result === false || !$full) {
+            return $result;
+        }
+        return $this->addComputedColumns($result);
+    }
 
     public function SearchSpecificBadge($uuid, $context_code, $full)
     {

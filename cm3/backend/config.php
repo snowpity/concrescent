@@ -42,14 +42,12 @@ return array(
       'display_error_details' => true,
       // Should be set to false for the test environment
       'log_errors' => true,
-      // Display error details in error log
+      // Display error details (stack trace) in error log
       'log_error_details' => true,
     ),
     'logger' => array(
-      'name' => 'app',
-      'path' => dirname(__FILE__) .'/logs',
-      'filename' => 'app.log',
-      'level' => \Monolog\Logger::INFO,
-      'file_permission' => 0775,
+        //Comment out to stop file logging
+        'path' => dirname(__FILE__) .'/logs',
+        'level' => \Monolog\Logger::INFO,
     )
 );

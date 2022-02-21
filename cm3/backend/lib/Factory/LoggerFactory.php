@@ -8,6 +8,8 @@ use Monolog\Handler\RotatingFileHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
+use CM3_Lib\database\Table;
+use CM3_Lib\util\MonologDatabaseHandler;
 
 /**
  * Factory.
@@ -18,6 +20,7 @@ final class LoggerFactory
 
     private int $level;
 
+    private array $processors = [];
     private array $handler = [];
 
     private ?LoggerInterface $testLogger;
@@ -57,9 +60,23 @@ final class LoggerFactory
             $logger->pushHandler($handler);
         }
 
+        //Add in web processor
+        $logger->pushProcessor(new \Monolog\Processor\WebProcessor($_SERVER));
+
+        foreach ($this->processors as $processor) {
+            $logger->pushProcessor($processor);
+        }
+
         $this->handler = [];
+        $this->processors = [];
 
         return $logger;
+    }
+
+    public function addProcessor(\Monolog\Processor\ProcessorInterface $processor)
+    {
+        $this->processors[] = $processor;
+        return $this;
     }
 
     /**
@@ -86,7 +103,11 @@ final class LoggerFactory
      */
     public function addFileHandler(string $filename, int $level = null): self
     {
+        if (strlen($this->path) < 1) {
+            return $this;
+        }
         $filename = sprintf('%s/%s', $this->path, $filename);
+
         /** @phpstan-ignore-next-line */
         $rotatingFileHandler = new RotatingFileHandler($filename, 0, $level ?? $this->level, true, 0777);
 
@@ -112,6 +133,24 @@ final class LoggerFactory
         $streamHandler->setFormatter(new LineFormatter(null, null, false, true));
 
         $this->addHandler($streamHandler);
+
+        return $this;
+    }
+
+
+    /**
+     * Add rotating file logger handler.
+     *
+     * @param Table $table The database table to add to
+     * @param int|null $level The level (optional)
+     *
+     * @return self The logger factory
+     */
+    public function addDBHandler(Table $table, int $level = null): self
+    {
+        $handler = new MonologDatabaseHandler($table, $level ?? $this->level);
+
+        $this->addHandler($handler);
 
         return $this;
     }

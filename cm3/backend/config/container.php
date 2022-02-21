@@ -77,7 +77,16 @@ return [
 
     // The logger factory
     LoggerFactory::class => function (ContainerInterface $container) {
-        return new LoggerFactory($container->get('config')['logger']);
+        return (new LoggerFactory($container->get('config')['logger']))
+        ->addDBHandler($container->get(\CM3_Lib\models\admin\access_log::class))
+        ->addFileHandler('access.log')
+        ;
+    },
+    //And one for errors specifically
+    'ErrorLoggerFactory'=> function (ContainerInterface $container) {
+        return (new LoggerFactory($container->get('config')['logger']))
+        ->addDBHandler($container->get(\CM3_Lib\models\admin\error_log::class))
+        ->addFileHandler('error.log');
     },
 
     BasePathMiddleware::class => function (ContainerInterface $container) {
@@ -98,20 +107,18 @@ return [
         $s_config_error = $container->get('config')['error'];
         $app = $container->get(App::class);
 
-        $logger = $container->get(LoggerFactory::class)
-            ->addFileHandler('error.log')
-            ->createLogger();
-
         $errorMiddleware = new ErrorMiddleware(
             $app->getCallableResolver(),
             $app->getResponseFactory(),
             (bool)$s_config_error['display_error_details'],
             (bool)$s_config_error['log_errors'],
-            (bool)$s_config_error['log_error_details'],
-            $logger
+            (bool)$s_config_error['log_error_details']
         );
 
-        $errorMiddleware->setDefaultErrorHandler($container->get(DefaultErrorHandler::class));
+        $errorMiddleware->setDefaultErrorHandler(
+            //We're overriding the normal logger factory in the autowire here
+            $container->make(DefaultErrorHandler::class, array('loggerFactory'=> $container->get('ErrorLoggerFactory')))
+        );
 
         return $errorMiddleware;
     }

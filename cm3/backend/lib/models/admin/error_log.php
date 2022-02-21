@@ -5,24 +5,22 @@ namespace CM3_Lib\models\admin;
 use CM3_Lib\database\Column as cm_Column;
 use CM3_Lib\database\ColumnIndex as cm_ColumnIndex;
 
-class access_log extends \CM3_Lib\database\Table
+class error_log extends \CM3_Lib\database\Table
 {
     protected function setupTableDefinitions(): void
     {
-        $this->TableName = 'Admin_Access_Log';
+        $this->TableName = 'Admin_Error_Log';
         $this->ColumnDefs = array(
             'id'		 	=> new cm_Column('BIGINT', null, false, true, false, true, null, true),
             'timestamp'		=> new cm_Column('TIMESTAMP', null, false, defaultValue:'CURRENT_TIMESTAMP'),
-            'event_id' 	=> new cm_Column('INT', null, false),
-            'contact_id' 	=> new cm_Column('BIGINT', null, false),
+            'event_id' 	=> new cm_Column('INT', null, true),
+            'contact_id' 	=> new cm_Column('BIGINT', null, true),
             'remote_addr'	=> new cm_Column('VARCHAR', 255, false),
             'request_uri'	=> new cm_Column('VARCHAR', 255, false),
-            'http_referrer'	=> new cm_Column('VARCHAR', 255, false),
-            'http_user_agent'	=> new cm_Column('VARCHAR', 255, false),
-            'module'	=> new cm_Column('VARCHAR', 255, false),
-            'action'	=> new cm_Column('VARCHAR', 255, false),
             'message'	=> new cm_Column('VARCHAR', 500, false),
-            'postdata'	=> new cm_Column('TEXT', null, true),
+            'level'	=> new cm_Column('VARCHAR', 10, false),
+            'channel'	=> new cm_Column('VARCHAR', 40, false),
+            'data'	=> new cm_Column('TEXT', null, true),
 
         );
         $this->IndexDefs = array(

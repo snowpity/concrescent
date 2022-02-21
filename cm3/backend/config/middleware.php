@@ -10,7 +10,6 @@ use MessagePack\BufferUnpacker;
 
 return function (App $app, $s_config) {
     $app->setBasePath($s_config['environment']['base_path']);
-    $app->addBodyParsingMiddleware();
 
     /*
      * The routing middleware should be added earlier than the ErrorMiddleware
@@ -25,6 +24,8 @@ return function (App $app, $s_config) {
     if ($s_config['environment']['use_gzip']) {
         $app->add(GZCompress::class);
     }
+
+    $app->add(ErrorMiddleware::class);
 
     //Branca token authenticator
     $app->add(new Tuupola\Middleware\BrancaAuthentication([
@@ -56,6 +57,4 @@ return function (App $app, $s_config) {
               ->withAttribute("perms", $perms);
         }
     ]));
-
-    $app->add(ErrorMiddleware::class);
 };
