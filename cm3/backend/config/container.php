@@ -44,7 +44,7 @@ return [
 
 
         // Register middleware
-        (require __DIR__ . '/../config/middleware.php')($app, $container->get('config'));
+        (require __DIR__ . '/middleware.php')($app, $container->get('config'));
 
         return $app;
     },

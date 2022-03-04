@@ -23,6 +23,7 @@ class payment extends \CM3_Lib\database\Table
             'id' 			=> new cm_Column('BIGINT', null, false, true, false, true, null, true),
             'event_id'		=> new cm_Column('INT', null, false, false, false, true),
             'uuid_raw'		=> new cm_Column('BINARY', 16, false, false, true, false, '(UUID_TO_BIN(UUID()))'),
+            'uuid'			=> new cm_Column('CHAR', 36, null, false, false, false, null, false, 'GENERATED ALWAYS as (BIN_TO_UUID(`uuid_raw`)) VIRTUAL'),
             'requested_by'			=> new cm_Column('VARCHAR', '255', true),
             'contact_id'	=> new cm_Column('BIGINT', null, false, false, false, false),
             'items'			=> new cm_Column('TEXT', null, true),
@@ -39,10 +40,9 @@ class payment extends \CM3_Lib\database\Table
             'date_modified'	=> new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP', false, 'ON UPDATE CURRENT_TIMESTAMP'),
             'notes'			=> new cm_Column('TEXT', null, true),
             //Generated columns
-            'dates_available' => new cm_Column('VARCHAR', '50', null, customPostfix: 'GENERATED ALWAYS as (concat(case `start_date` is null when true then \'forever\' else `start_date` end,\' to \', case end_date is null when true then \'forever\' else `end_date` end)) VIRTUAL'),
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
-        $this->DefaultSearchColumns = array('id','name','price','quantity','dates_available');
+        $this->DefaultSearchColumns = array('id','contact_id', 'requested_by','mail_template','payment_system','payment_status');
     }
 }

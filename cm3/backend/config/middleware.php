@@ -25,8 +25,6 @@ return function (App $app, $s_config) {
         $app->add(GZCompress::class);
     }
 
-    $app->add(ErrorMiddleware::class);
-
     //Branca token authenticator
     $app->add(new Tuupola\Middleware\BrancaAuthentication([
         "ttl" => $s_config['environment']['token_life'],
@@ -57,4 +55,6 @@ return function (App $app, $s_config) {
               ->withAttribute("perms", $perms);
         }
     ]));
+
+    $app->add(ErrorMiddleware::class);
 };

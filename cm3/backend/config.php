@@ -21,7 +21,7 @@ return array(
         'timezone' => 'SYSTEM',
     ),
     'environment' => array(
-      //If not installed in the root, specify it here.
+      //If not installed in the web root, specify it here.
       //No trailing slash!
       'base_path' => '/concrescent/cm3/backend',
       //For the purposes of generating links back to ConCrescent, where is the front-end hosted?
@@ -49,5 +49,26 @@ return array(
         //Comment out to stop file logging
         'path' => dirname(__FILE__) .'/logs',
         'level' => \Monolog\Logger::INFO,
+    ),
+    'payments' => array(
+        'cash' => array(
+            //set to false if we don't even want the option to pay with cash
+            //Note that if enabled, attendees will be unable to complete their order online
+            //This means that they might not get get a limited-number badge
+            //
+            //Special exception is taken for the 'cash' payment type, in that
+            //it is only available for badges with the 'Payable on site' tickbox checked.
+            'allowed'      => true,
+            'SalesTax'     => 0.085,
+        ),
+        'paypal' => array(
+            'ClientID'     => 'YourPayPalClientID',
+            'ClientSecret' => 'YouPayPalClientSecret',
+            'CurrencyType' => 'USD',
+            'SalesTax'     => 0.085,
+            'sandbox'     => true,
+            //Note that redirect URL will be of the form:
+            //{frontend_host}#/CompletePayment
+        )
     )
 );

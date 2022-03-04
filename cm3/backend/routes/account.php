@@ -28,6 +28,13 @@ return function (App $app) {
 
             //Retrieve responses to forms
             $app->get('/formresponses', \CM3_Lib\Action\Account\GetMyResponses::class);
+
+            //Retrieve cart(s)
+            $app->get('/GetCart', \CM3_Lib\Action\Account\GetCart::class);
+            //Save cart
+            $app->post('/SaveCart', \CM3_Lib\Action\Account\SaveCart::class);
+            //Checkout cart
+            $app->post('/CheckoutCart', \CM3_Lib\Action\Account\CheckoutCart::class);
         }
     );
 };
