@@ -153,6 +153,16 @@ abstract class Table
 
         //Get us a statement
         $stmt = $this->cm_db->connection->prepare($sqlText);
+        if ($stmt === false) {
+            $this->checkAndThrowError(
+                "Failed to prepare SQL for $this->TableName.",
+                array(
+              'Submitted data:\n' . print_r($entrydata, true),
+              'LastError: ' . print_r($this->cm_db->connection->error, true)
+            ),
+                $sqlText
+            );
+        }
         //And tell it about our parameters
         //NOTE: Based off of https://www.php.net/manual/en/mysqli-stmt.bind-param.php#107154
         array_unshift($paramData, $paramCodes.$paramWhereCodes);

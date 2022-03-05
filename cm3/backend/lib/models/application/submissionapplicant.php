@@ -28,7 +28,8 @@ class submissionapplicant extends \CM3_Lib\database\Table
                     'Fandom Name Only',
                     'Real Name Only'
                 ),
-                false
+                false,
+                defaultValue: "'Real Name Only'"
             ),
             'date_of_birth'	=> new cm_Column('DATE', null, false),
             'notify_email'	=> new cm_Column('VARCHAR', '255', true),

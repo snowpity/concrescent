@@ -35,7 +35,8 @@ class badge extends \CM3_Lib\database\Table
                     'Fandom Name Only',
                     'Real Name Only'
                 ),
-                false
+                false,
+                defaultValue: "'Real Name Only'"
             ),
             'date_of_birth'	=> new cm_Column('DATE', null, false),
             'notify_email'	=> new cm_Column('VARCHAR', '255', true),
@@ -50,9 +51,9 @@ class badge extends \CM3_Lib\database\Table
                 /* Payment Info */
             'payment_badge_price'	=> new cm_Column('DECIMAL', '7,2', false),
             'payment_promo_code' 	=> new cm_Column('VARCHAR', '255', true),
-            'payment_promo_price'	=> new cm_Column('DECIMAL', '7,2', false),
-            'payment_txn_id'		=> new cm_Column('CHAR', 36, null, customPostfix: 'CHARACTER SET ascii'),
-            'payment_txn_id_hist'	=> new cm_Column('VARCHAR', 740, null, customPostfix: 'CHARACTER SET ascii'),
+            'payment_promo_price'	=> new cm_Column('DECIMAL', '7,2', true),
+            'payment_txn_id'		=> new cm_Column('CHAR', 36, true),
+            'payment_txn_id_hist'	=> new cm_Column('VARCHAR', 740, true),
             'payment_status'		=> new cm_Column(
                 'ENUM',
                 array(
@@ -64,7 +65,8 @@ class badge extends \CM3_Lib\database\Table
                     'Refunded',
                     'RefundedInPart',
                 ),
-                false
+                false,
+                defaultValue: '\'NotStarted\''
             ),
 
             'date_created'	=> new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP'),

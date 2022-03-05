@@ -13,6 +13,7 @@ class promocode extends \CM3_Lib\database\Table
             'id' 			=> new cm_Column('BIGINT', null, false, true, false, true, null, true),
             'event_id'		=> new cm_Column('INT', null, false, false, false, true),
             'valid_badge_type_ids' => new cm_Column('TEXT', null, true),
+            'is_percentage' => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
             'active'        => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
             'code'          => new cm_Column('VARCHAR', '255', false, false, true, true),
             'description'   => new cm_Column('TEXT', null, true),

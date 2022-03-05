@@ -7,37 +7,52 @@ use Respect\Validation\Exceptions\NestedValidationException;
 
 class TableValidator
 {
-    private ChainedValidator $rules;
+    private \Respect\Validation\Validator $rules;
     private array $lastValidationErrors;
     private $sourceTable;
     public function __construct(Table $sourceTable)
     {
         $this->sourceTable = $sourceTable;
         $this->rules = v::arrayType();
+        $this->lastValidationErrors = array();
         //Add all the columns
         foreach ($sourceTable->ColumnDefs as $columnName => $def) {
             //Set up our validator
-            $v = new Respect\Validation\Validator();
+            $v = new \Respect\Validation\Validator();
+            //Are we a custom column?
+            if ($def->customPostfix != null) {
+                if (
+                    strpos(strtoupper($def->customPostfix), 'GENERATED') !== false
+                    ||strpos(strtoupper($def->customPostfix), 'VIRTUAL') !== false
+                ) {
+                    //We don't have to check this
+                    continue;
+                }
+            }
+
             //First, the column type
             //Is it int-like?
-            if (strpos(strtoupper($this->dbType), 'INT')!==false) {
+            if (strpos(strtoupper($def->dbType), 'INT')!==false) {
                 //Is it unsigned int or bigint?
-                if (strpos(strtoupper($this->dbType), 'BIG')!==false || strpos(strtoupper($this->dbType), 'UNSIGNED INT')!==false) {
+                if (strpos(strtoupper($def->dbType), 'BIG')!==false || strpos(strtoupper($def->dbType), 'UNSIGNED INT')!==false) {
                     $v = $v->anyOf(v::intVal(), v::stringType());
                 }
                 //PHP can handle it
                 $v = $v->intVal();
             //What about floats?
-            } elseif (strpos(strtoupper($this->dbType), 'FLOAT')!==false
-                || strpos(strtoupper($this->dbType), 'REAL')!==false
-                || strpos(strtoupper($this->dbType), 'DOUBLE')!==false
+            } elseif (strpos(strtoupper($def->dbType), 'FLOAT')!==false
+                || strpos(strtoupper($def->dbType), 'REAL')!==false
+                || strpos(strtoupper($def->dbType), 'DOUBLE')!==false
                 ) {
                 $v = $v->FloatVal();
-            //File stream or string
-            } elseif (strpos(strtoupper($this->dbType), 'BLOB')!==false
-                || strpos(strtoupper($this->dbType), 'TEXT')!==false
+            //File stream or text block
+            } elseif (strpos(strtoupper($def->dbType), 'BLOB')!==false
+                || strpos(strtoupper($def->dbType), 'TEXT')!==false
                 ) {
                 $v = $v->anyOf(v::ResourceType(), v::stringType());
+            } elseif (strpos(strtoupper($def->dbType), 'CHAR')!==false
+                ) {
+                $v = $v->stringType();
             } else {
                 //We have no idea, leave it alone I guess?
             }
@@ -51,19 +66,21 @@ class TableValidator
             }
 
             //Are we required?
-            if ($def->isNullable == true) {
+            $optional = false;
+            if ($def->isNullable !== false || !is_null($def->defaultValue)) {
                 $v = v::Optional($v);
+                $optional = true;
             }
 
 
             //Finally, add it to the rules
-            $this->rules = $this->rules->key($columnName, $v);
+            $this->rules = $this->rules->key($columnName, $v, !$optional);
         }
     }
 
-    public function addColumnValidator(string $columnName, Validator $v)
+    public function addColumnValidator(string $columnName, v $v, bool $optional = false)
     {
-        $this->rules = $this->rules->key($columnName, $v);
+        $this->rules = $this->rules->key($columnName, $v, !$optional);
     }
 
     public function Validate(&$data): bool
@@ -83,7 +100,7 @@ class TableValidator
         try {
             $this->rules->assert($data);
             return true;
-        } catch (\NestedValidationException $e) {
+        } catch (NestedValidationException $e) {
             $this->lastValidationErrors = $e->getMessages();
             return false;
         }
