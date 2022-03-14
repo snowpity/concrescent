@@ -1,6 +1,7 @@
 <?php
 
 use CM3_Lib\Factory\LoggerFactory;
+use CM3_Lib\Factory\PaymentModuleFactory;
 use CM3_Lib\Middleware\DefaultErrorHandler;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Container\ContainerInterface;
@@ -101,6 +102,10 @@ return [
     //Auth signer
     Branca::class => function (ContainerInterface $container) {
         return new Branca($container->get('config')['environment']['token_secret']);
+    },
+
+    PaymentModuleFactory::class => function (ContainerInterface $container) {
+        return new PaymentModuleFactory($container->get('config')['payments']);
     },
 
     ErrorMiddleware::class => function (ContainerInterface $container) {

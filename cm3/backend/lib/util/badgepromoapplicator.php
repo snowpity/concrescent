@@ -19,16 +19,12 @@ final class badgepromoapplicator
         private badgetype $badgetype,
         private badge $badge,
         private promocode $promocode,
+        private CurrentUserInfo $CurrentUserInfo
     ) {
     }
 
     private array $loadedPromoCodes = array();
     private array $applicableIDs = array();
-    private $event_id = 0;
-    public function SetEventId($event_id)
-    {
-        $this->event_id = $event_id;
-    }
     public function LoadCode(string $code): bool
     {
         $code = strtoupper($code);
@@ -64,7 +60,7 @@ final class badgepromoapplicator
                             new Join(
                                 $this->badgetype,
                                 array('id'=> 'badge_type_id',
-                                    new SearchTerm('event_id', $this->event_id)
+                                    new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
                                 ),
                                 alias:'typ'
                             )

@@ -67,7 +67,7 @@ class TableValidator
 
             //Are we required?
             $optional = false;
-            if ($def->isNullable !== false || !is_null($def->defaultValue)) {
+            if ($def->isNullable !== false || $def->isAutoIncrement || !is_null($def->defaultValue)) {
                 $v = v::Optional($v);
                 $optional = true;
             }

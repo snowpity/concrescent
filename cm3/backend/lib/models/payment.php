@@ -8,6 +8,8 @@ class payment extends \CM3_Lib\database\Table
 {
     //TODO: Maybe make this public static so other classes don't need to repeat it?
     public $payment_statuses = array(
+        'NotReady',
+        'AwaitingApproval',
         'NotStarted',
         'Incomplete',
         'Cancelled',
@@ -30,7 +32,6 @@ class payment extends \CM3_Lib\database\Table
             'mail_template'			=> new cm_Column('VARCHAR', '255', true),
 
             'payment_system'			=> new cm_Column('VARCHAR', '255', true),
-            'payment_txn_id'			=> new cm_Column('CHAR', 36, null, false, false, false, null, false, 'GENERATED ALWAYS as (BIN_TO_UUID(`uuid_raw`)) VIRTUAL'),
             'payment_txn_amt'		=> new cm_Column('DECIMAL', '7,2', false),
             'payment_date'			=> new cm_Column('TIMESTAMP', null, true),
             'payment_details'		=> new cm_Column('TEXT', null, true),
@@ -44,5 +45,10 @@ class payment extends \CM3_Lib\database\Table
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
         $this->DefaultSearchColumns = array('id','contact_id', 'requested_by','mail_template','payment_system','payment_status');
+    }
+
+    public function getDbNow()
+    {
+        return $this->cm_db->now();
     }
 }

@@ -15,6 +15,8 @@ use CM3_Lib\models\application\submissionapplicant as g_badge;
 use CM3_Lib\models\application\group as g_group;
 use CM3_Lib\models\staff\badge as s_badge;
 
+use CM3_Lib\util\CurrentUserInfo;
+
 final class badgevalidator
 {
     public function __construct(
@@ -26,14 +28,9 @@ final class badgevalidator
         private s_badge $s_badge,
         private g_group $g_group,
         private g_badge_submission $g_badge_submission,
-        private badgepromoapplicator $badgepromoapplicator
+        private badgepromoapplicator $badgepromoapplicator,
+        private CurrentUserInfo $CurrentUserInfo
     ) {
-    }
-
-    private $event_id;
-    public function SetEventId($event_id)
-    {
-        $this->event_id = $event_id;
     }
 
     //Returns an array of the errors in this badge
@@ -63,11 +60,12 @@ final class badgevalidator
                 break;
             default: //Assume it's an application
                 //Init the validator
-                $v = new TableValidator($this->g_badge);
+                $v = new TableValidator($this->g_badge_submission);
                 //Add the badge-type validations
                 if (!empty($item['badge_type_id'])) {
                     $this->AddBadgeValidations($v, $this->g_badge_type->GetByID($item['badge_type_id'], $this->getBadgeTypeView()), $item);
                 }
+                //TODO: Add submission applicants
         }
 
         //Add the questions validator

@@ -37,6 +37,7 @@ class badgetype extends \CM3_Lib\database\Table
                 false
             ),
             'payable_onsite'            => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
+            'payment_deferred'          => new cm_Column('BOOLEAN', null, false, defaultValue: 'true'), //Whether they need to be accepted in order to pay
             'max_total_applications'    => new cm_Column('INT', null, false, defaultValue: '0'),
             'max_total_applicants'      => new cm_Column('INT', null, false, defaultValue: '0'),
             'max_total_assignments'     => new cm_Column('INT', null, false, defaultValue: '0'),

@@ -5,6 +5,7 @@ namespace CM3_Lib\Action\Account;
 use CM3_Lib\database\SearchTerm;
 
 use CM3_Lib\models\payment;
+use CM3_Lib\util\CurrentUserInfo;
 
 use Branca\Branca;
 use MessagePack\MessagePack;
@@ -23,7 +24,9 @@ class GetCart
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private payment $payment)
+    public function __construct(
+        private Responder $responder, private payment $payment,
+    private CurrentUserInfo $CurrentUserInfo)
     {
     }
 
@@ -40,8 +43,8 @@ class GetCart
         $data = (array)$request->getParsedBody();
 
         //Fetch the authenticated user's info
-        $c_id = $request->getAttribute('contact_id');
-        $e_id = $request->getAttribute('event_id');
+        $c_id = $this->CurrentUserInfo->GetContactId();
+        $e_id = $this->CurrentUserInfo->GetEventId()
         $searchTerms = array(
           new SearchTerm('event_id', $e_id),
           new SearchTerm('contact_id', $c_id),

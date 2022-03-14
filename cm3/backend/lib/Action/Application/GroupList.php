@@ -4,6 +4,7 @@ namespace CM3_Lib\Action\Application;
 
 use CM3_Lib\database\SearchTerm;
 use CM3_Lib\models\application\group;
+use CM3_Lib\util\CurrentUserInfo;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -20,8 +21,11 @@ final class GroupList
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private group $group)
-    {
+    public function __construct(
+        private Responder $responder,
+        private group $group,
+        private CurrentUserInfo $CurrentUserInfo
+    ) {
     }
 
     /**
@@ -48,7 +52,7 @@ final class GroupList
             'application_name1'
         );
 
-        $whereParts = array( new SearchTerm('event_id', $request->getAttribute('event_id')));
+        $whereParts = array( new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId()));
         if (!($perms->EventPerms->isEventAdmin() || $perms->EventPerms->isGlobalAdmin())) {
             $whereParts[] = new SearchTerm('id', array_keys($perms->GroupPerms), 'IN');
         }

@@ -73,8 +73,8 @@ class banlist extends \CM3_Lib\database\Table
         }
 
         $result                           = $this->Search(array('id'), array(
-                new cm_SearchTerm('date_expired', null, 'IS NULL'),
-                new cm_SearchTerm(null, null, subSearch: $whereTerms)
+                new cm_SearchTerm('date_expired', null, 'IS'),
+                new cm_SearchTerm('', null, subSearch: $whereTerms)
             ), limit: 1);
 
         return $result && count($result) > 0;

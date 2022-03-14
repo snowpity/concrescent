@@ -11,10 +11,14 @@ use CM3_Lib\models\attendee\badgetype as a_badge_type;
 use CM3_Lib\models\application\badgetype as g_badge_type;
 use CM3_Lib\models\staff\badgetype as s_badge_type;
 use CM3_Lib\models\attendee\badge as a_badge;
+use CM3_Lib\models\attendee\addonpurchase as a_addonpurchase;
 use CM3_Lib\models\application\submission as g_badge_submission;
 use CM3_Lib\models\application\submissionapplicant as g_badge;
 use CM3_Lib\models\application\group as g_group;
 use CM3_Lib\models\staff\badge as s_badge;
+use CM3_Lib\models\forms\question as f_question;
+use CM3_Lib\models\forms\response as f_response;
+use CM3_Lib\util\CurrentUserInfo;
 
 /**
  * Action.
@@ -26,10 +30,14 @@ final class badgeinfo
         private g_badge_type $g_badge_type,
         private s_badge_type $s_badge_type,
         private a_badge $a_badge,
+        private a_addonpurchase $a_addonpurchase,
         private g_badge $g_badge,
         private s_badge $s_badge,
         private g_group $g_group,
-        private g_badge_submission $g_badge_submission
+        private g_badge_submission $g_badge_submission,
+        private f_question $f_question,
+        private f_response $f_response,
+        private CurrentUserInfo $CurrentUserInfo
     ) {
     }
 
@@ -66,13 +74,30 @@ final class badgeinfo
       //qr_data
 
     );
-    private $event_id;
-    public function SetEventId($event_id)
+
+    public function CreateSpecificBadgeUnchecked($data, $allowedColumns = null)
     {
-        $this->event_id = $event_id;
+        $result = false;
+        //Filter in the allowed columns to update
+        if ($allowedColumns != null) {
+            $data = array_intersect_key($data, array_flip($allowedColumns));
+        }
+
+        switch ($data['context']) {
+            case 'A':
+                $result =  $this->a_badge->Create($data);
+                break;
+            case 'S':
+                $result =  $this->s_badge->Create($data);
+                break;
+            default:
+                $result =  $this->g_badge->Create($data);
+        }
+
+        return $result;
     }
 
-    public function GetSpecificBadge($id, $context_code, $full)
+    public function GetSpecificBadge($id, $context_code, $full = false)
     {
         $result = false;
         switch ($context_code) {
@@ -92,7 +117,7 @@ final class badgeinfo
         return $this->addComputedColumns($result);
     }
 
-    public function UpdateSpecificBadgeUnchecked($id, $context_code, $data, $allowedColumns)
+    public function UpdateSpecificBadgeUnchecked($id, $context_code, $data, $allowedColumns = null)
     {
         $result = false;
         //Filter in the allowed columns to update
@@ -111,11 +136,189 @@ final class badgeinfo
             default:
                 $result =  $this->g_badge->Update($data);
         }
+        return $result;
+    }
 
-        if ($result === false || !$full) {
-            return $result;
+    public function setNextDisplayIDSpecificBadge($id, $context_code)
+    {
+        $result = false;
+        //Slide in the ID
+        $data = array('id' => $id);
+        switch ($context_code) {
+            case 'A':
+                $next = $this->a_badge->Search(
+                    new View(
+                        array(
+                       'display_id',
+                    ),
+                        array(
+                       new Join(
+                           $this->a_badge_type,
+                           array(
+                             'id' => 'badge_type_id',
+                             new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
+                           ),
+                           alias:'typ'
+                       )
+                     )
+                    ),
+                    array(
+                        new SearchTerm('display_id', '', 'IS NOT')
+                    ),
+                    array('display_id'=>true),
+                    1
+                );
+                $data['display_id'] = (count($next) > 0) ? $next[0]['display_id'] + 1 : 1;
+                $result =  $this->a_badge->Update($data);
+                break;
+            case 'S':
+                $next = $this->s_badge->Search(
+                    new View(
+                        array(
+                       'display_id',
+                    ),
+                        array(
+                       new Join(
+                           $this->s_badge_type,
+                           array(
+                             'id' => 'badge_type_id',
+                             new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
+                           ),
+                           alias:'typ'
+                       )
+                     )
+                    ),
+                    array(
+                        new SearchTerm('display_id', '', 'IS NOT')
+                    ),
+                    array('display_id'=>true),
+                    1
+                );
+                $data['display_id'] = (count($next) > 0) ? $next[0]['display_id'] + 1 : 1;
+                $result =  $this->s_badge->Update($data);
+                break;
+            default:
+            //TODO: Fix
+                $next = $this->g_badge->Search(
+                    new View(
+                        array(
+                            'display_id'
+                         ),
+                        array(
+                           new Join(
+                               $this->g_badge_submission,
+                               array(
+                                 'id' => 'application_id',
+                               ),
+                               alias:'bs'
+                           ),
+
+                           new Join(
+                               $this->g_badge_type,
+                               array(
+                                 'id' =>new SearchTerm('badge_type_id', null, JoinedTableAlias: 'bs'),
+                               ),
+                               alias:'typ'
+                           ),
+                          new Join(
+                              $this->g_group,
+                              array(
+                                'id' => new SearchTerm('group_id', null, JoinedTableAlias: 'typ'),
+                                new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId()),
+                                new SearchTerm('context_code', $context_code)
+                              ),
+                              alias:'grp'
+                          )
+                         )
+                    ),
+                    array(
+                        new SearchTerm('display_id', '', 'IS NOT')
+                    ),
+                    array('display_id'=>true),
+                    1
+                );
+
+
+                $result =  $this->g_badge->Update($data);
         }
-        return $this->addComputedColumns($result);
+        return $result;
+    }
+
+    public function GetSpecificBadgeResponses($id, $context_code)
+    {
+        $data = $this->f_response->Search(
+            array('question_id','response'),
+            array(
+                new SearchTerm('context', $context_code),
+                new SearchTerm('context_id', $id),
+            )
+        );
+        //Zip together the responses
+        return array_combine(array_column($data, 'question_id'), array_column($data, 'response'));
+    }
+
+    public function SetSpecificBadgeResponses($id, $context_code, $responses)
+    {
+        //First fetch any that might exist already
+        $existing =array_flip($this->f_response->Search(
+            array('question_id'),
+            array(
+                new SearchTerm('context', $context_code),
+                new SearchTerm('context_id', $id),
+            )
+        ));
+        //Create/Update
+        foreach ($responses as $question_id => $response) {
+            $item = array(
+                'context' => $context_code,
+                'context_id' => $id,
+                'question_id' => $question_id,
+                'response' => $response
+            );
+            if (isset($existing[$question_id])) {
+                $this->f_response->Update($item);
+            } else {
+                $this->f_response->Create($item);
+            }
+        }
+        //Delete the missing ones
+        foreach (array_diff($existing, $responses) as $question_id => $response) {
+            $item = array(
+                'context' => $context_code,
+                'context_id' => $id,
+                'question_id' => $question_id
+            );
+            $this->f_response->Delete($item);
+        }
+    }
+
+    public function GetAttendeeAddons($attendee_id)
+    {
+        return $this->a_addonpurchase->Search(
+            array(
+                'addon_id',
+                'payment_txn_id',
+                'payment_status'
+            ),
+            array(
+                new SearchTerm('attendee_id', $attendee_id)
+            )
+        );
+    }
+    public function AddUpdateABadgeAddonUnchecked(&$data)
+    {
+        $current = $this->a_addonpurchase->Search(
+            '*',
+            array(
+            new SearchTerm('attendee_id', $data['attendee_id']),
+            new SearchTerm('addon_id', $data['addon_id']),
+        )
+        );
+        if (count($current) > 0) {
+            $this->a_addonpurchase->Update($data);
+        } else {
+            $this->a_addonpurchase->Create($data);
+        }
     }
 
     public function SearchSpecificBadge($uuid, $context_code, $full)
@@ -177,7 +380,21 @@ final class badgeinfo
         }
         return $this->g_badge->GetByIDorUUID($id, null, $view);
     }
-
+    public function getBadgetType($context_code, $badge_type_id)
+    {
+        $result = false;
+        switch ($context_code) {
+                case 'A':
+                    $result =  $this->a_badge_type->GetByID($badge_type_id, $this->badgeTypeColumns());
+                    break;
+                case 'S':
+                    $result =  $this->s_badge_type->GetByID($badge_type_id, $this->badgeTypeColumns());
+                    break;
+                default:
+                    $result =  $this->g_badge_type->GetByID($badge_type_id, $this->badgeTypeColumns(true));
+            }
+        return $result;
+    }
 
 
     public function searchASpecificBadge($uuid, $badge, $badgetype, $contextCode, $addView)
@@ -217,7 +434,10 @@ final class badgeinfo
                new SelectColumn('application_status', EncapsulationFunction: "''", Alias:'application_status'),
                'badge_type_id',
                'payment_status',
-               new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ')
+               'payment_promo_price',
+               'payment_badge_price',
+               new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ'),
+               new SelectColumn('payable_onsite', Alias:'badge_type_payable_onsite', JoinedTableAlias:'typ'),
              )
             ),
             array(
@@ -226,7 +446,7 @@ final class badgeinfo
                    $badgetype,
                    array(
                      'id' => 'badge_type_id',
-                     new SearchTerm('event_id', $this->event_id)
+                     new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
                    ),
                    alias:'typ'
                )
@@ -265,7 +485,9 @@ final class badgeinfo
                    new SelectColumn('application_status', EncapsulationFunction: "''", Alias:'application_status'),
                    new SelectColumn('badge_type_id', JoinedTableAlias:'bs'),
                    new SelectColumn('payment_status', JoinedTableAlias:'bs'),
-                   new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ')
+                   new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ'),
+                   new SelectColumn('payable_onsite', Alias:'badge_type_payable_onsite', JoinedTableAlias:'typ'),
+                   new SelectColumn('payment_deferred', Alias:'badge_type_payment_deferred', JoinedTableAlias:'typ')
                  )
             ),
             array(
@@ -288,7 +510,7 @@ final class badgeinfo
                       $this->g_group,
                       array(
                         'id' => new SearchTerm('group_id', null, JoinedTableAlias: 'typ'),
-                        new SearchTerm('event_id', $this->event_id)
+                        new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
                       ),
                       alias:'grp'
                   )
@@ -301,6 +523,21 @@ final class badgeinfo
             array(
                 'notes',
                 'uuid'
+            ),
+            array()
+        );
+    }
+
+    public function badgeTypeColumns($include_defferred_pay = false)
+    {
+        return new View(
+            array(
+                'active',
+                'name',
+                'description',
+                'price',
+                'payable_onsite',
+                $include_defferred_pay ? 'payment_deferred' : null
             ),
             array()
         );

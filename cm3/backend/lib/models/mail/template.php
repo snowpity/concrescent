@@ -10,7 +10,7 @@ class template extends \CM3_Lib\database\Table
     {
         $this->TableName = 'Mail_Templates';
         $this->ColumnDefs = array(
-            'id' 			=> new cm_Column('BIGINT', null, false, true, false, true, null),
+            'id' 			=> new cm_Column('INT', null, false, true, false, true, null),
             'event_id'		=> new cm_Column('INT', null, false, false, false, true),
             'name'			=> new cm_Column('VARCHAR', 255, false),
             'active'        => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
@@ -27,7 +27,9 @@ class template extends \CM3_Lib\database\Table
                 ),
                 false
             ),
-            'body'			=> new cm_Column('TEXT', null, true)
+            'body'			=> new cm_Column('TEXT', null, true),
+            //Files from the Filestore to attach if not interpreted from the body
+            'attachments'   => new cm_Column('VARCHAR', 300, true),
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);

@@ -3,17 +3,19 @@
 namespace CM3_Lib\Action\Account;
 
 use CM3_Lib\database\SearchTerm;
+use CM3_Lib\database\DbConnection;
+use CM3_Lib\Factory\PaymentModuleFactory;
+use CM3_Lib\util\PaymentBuilder;
 
-use CM3_Lib\models\contact;
-
-use Branca\Branca;
-use MessagePack\MessagePack;
-use MessagePack\Packer;
+use CM3_Lib\models\payment;
 
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+
+use Slim\Exception\HttpBadRequestException;
+use Slim\Exception\HttpNotFoundException;
 
 class CheckoutCart
 {
@@ -23,8 +25,11 @@ class CheckoutCart
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private contact $contact)
-    {
+    public function __construct(
+        private Responder $responder,
+        private PaymentBuilder $PaymentBuilder,
+        private payment $payment
+    ) {
     }
 
     /**
@@ -39,20 +44,63 @@ class CheckoutCart
     {
         $data = (array)$request->getParsedBody();
 
-        // // Verify cart and attempt checkout
-        // $errors = cm_reg_cart_verify_availability($json['payment_method']);
-        // if ($errors) {
-        //     http_response_code(400);
-        //     echo json_encode(array('errors' => $errors));
-        //     exit(0);
-        // }
-        // //Looks good!
-        //   $_SESSION['payment_method'] = $json['payment_method'];
-        // cm_reg_cart_set_state('ready');
+        //Check if we have specified a cart
+        $cart_id = $data['id'] ?? 0;
+        $cart_uuid = $data['uuid'] ?? null;
 
-        //require dirname(__FILE__).'/../register/checkout.php';
+        if (!$this->PaymentBuilder->loadCart($cart_id, $cart_uuid)) {
+            throw new HttpNotFoundException($request);
+        }
 
+        //If the cart is in progress, we cannot adjust it until cancelled or completed...
+        if (!$this->PaymentBuilder->canCheckout()
+        ) {
+            throw new HttpBadRequestException($request, 'Cart not in correct state to checkout: ' .$this->PaymentBuilder->getCartStatus());
+        }
 
+        if ($this->PaymentBuilder->getCartStatus() == 'Incomplete') {
+            //Hrm, they've already initiated the payment request. Check if it's completed
+
+            if ($this->PaymentBuilder->CompletePayment($data)) {
+
+                // Build the HTTP response
+                return $this->responder
+                ->withJson($response, array(
+                    'orderstatus' => $this->PaymentBuilder->getCartStatus()
+                ));
+            } else {
+                $pp = $this->PaymentBuilder->getPayProcessor();
+                // Build the HTTP response
+                return $this->responder
+                ->withJson($response, array(
+                    'paymentURL' => $pp->RetrievePaymentRedirectURL(),
+                    'payment_status' => $this->PaymentBuilder->getCartStatus()
+                ));
+            }
+        } elseif ($this->PaymentBuilder->getCartStatus() == 'Cancelled') {
+            //They want to try paying again after cancelling
+            $this->PaymentBuilder->CancelPayment();
+        }
+        //Build the payment
+        $errors = $this->PaymentBuilder->prepPayment();
+
+        if (count($errors) > 0) {
+            throw new \Exception('Errors! ' . var_dump($errors));
+        }
+
+        if (isset($data['payment_system'])) {
+            $this->PaymentBuilder->setPayProcessor($data['payment_system']);
+        } elseif (empty($this->PaymentBuilder->getPaymentProcessor())) {
+            throw new Exception('payment_system not specified!');
+        }
+        //Finish the prep
+        if ($this->PaymentBuilder->confirmPrep()) {
+            return $this->responder
+                ->withJson($response, array(
+                    'paymentURL' => $this->PaymentBuilder->getPayProcessor()->RetrievePaymentRedirectURL(),
+                    'payment_status' => $this->PaymentBuilder->getCartStatus()
+                ));
+        }
         // Build the HTTP response
         return $this->responder
             ->withJson($response, $result);

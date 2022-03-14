@@ -10,9 +10,9 @@ interface PayProcessorInterface
     public function Init(array $config);
     public function ProcessorOk(): bool;
     //Load order state
-    public function LoadOrder($data);
+    public function LoadOrder(string $data);
     //Save order state
-    public function SaveOrder($data);
+    public function SaveOrder(string &$data);
     //Set internal ID if not provided by the processor
     public function SetOrderID(string $id);
     //Set customer-facing ID (i.e. on the receipt)

@@ -61,9 +61,9 @@ return array(
             'allowed'      => true,
             'SalesTax'     => 0.085,
         ),
-        'paypal' => array(
             'ClientID'     => 'YourPayPalClientID',
             'ClientSecret' => 'YouPayPalClientSecret',
+        'PayPal' => array(
             'CurrencyType' => 'USD',
             'SalesTax'     => 0.085,
             'sandbox'     => true,

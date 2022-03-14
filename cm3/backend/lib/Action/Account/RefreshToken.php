@@ -3,6 +3,7 @@
 namespace CM3_Lib\Action\Public;
 
 use CM3_Lib\util\TokenGenerator;
+use CM3_Lib\util\CurrentUserInfo;
 
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
@@ -17,7 +18,11 @@ class RefreshToken
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private TokenGenerator $TokenGenerator)
+    public function __construct(
+        private Responder $responder,
+        private TokenGenerator $TokenGenerator,
+        private CurrentUserInfo $CurrentUserInfo
+    )
     {
     }
 
@@ -32,8 +37,8 @@ class RefreshToken
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         $result = $this->TokenGenerator->forUser(
-            $request->getAttribute('contact_id'),
-            $request->getAttribute('event_id')
+            $this->CurrentUserInfo->GetContactId(),
+            $this->CurrentUserInfo->GetEventId()
         );
 
         // Build the HTTP response

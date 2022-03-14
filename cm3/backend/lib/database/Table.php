@@ -376,7 +376,7 @@ abstract class Table
                     $groupNames[] = $value->ColumnName;
                 }
                 $sqlText .= ', ';
-            } else {
+            } elseif (!is_null($value)) {
                 $errors[] ="Unable to add select column:\n" . print_r($value, true);
             }
         }

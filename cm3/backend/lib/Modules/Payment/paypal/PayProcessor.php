@@ -2,11 +2,13 @@
 
 namespace CM3_Lib\Modules\Payment\paypal;
 
+use GuzzleHttp\Exception\RequestException;
+
 class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
 {
     private string $api_url = '';
-    private array $config;
-    private array $token;
+    private array $config = array();
+    private array $token = array();
     private string $tokenFile = '';
     private \GuzzleHttp\Client $client;
     private int $retries = 0;
@@ -59,11 +61,28 @@ class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
     {
         return $this->get_token() != '';
     }
-    public function LoadOrder($data)
+    public function LoadOrder(string $data)
     {
+        $this->orderData = json_decode($data, true);
+        //Check the status of any in-progress order
+        if (!empty($this->orderData['order_id'])) {
+            try {
+                $currentOrder = $this->api('checkout/orders/'.$this->orderData['order_id']);
+                $this->orderData['inflight_data'] =  array_intersect_key($currentOrder, array_flip(array(
+                    'id','status','links'
+                )));
+                $this->orderData['stage'] = $this->orderData['inflight_data']['status'];
+                //If we happen to be complete, try and fetch HATEOAS links
+                if (isset($currentOrder['purchase_units'][0]['payments']['captures'][0]['links'])) {
+                    $this->orderData['inflight_data']['links'] = $currentOrder['purchase_units'][0]['payments']['captures'][0]['links'];
+                }
+            } catch (\Exception $e) {
+            }
+        }
     }
-    public function SaveOrder($data)
+    public function SaveOrder(string &$data)
     {
+        $data = json_encode($this->orderData);
     }
     public function SetOrderID(string $id)
     {
@@ -132,30 +151,40 @@ class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
             return false;
         }
         //PayPal normal instant orders don't need cancellation, they'll just fall off after some time
-        array_merge($this->orderData, array(
+        $this->orderData = array_merge($this->orderData, array(
             'stage'=>'init',
             'order_id'=>'',
             'inflight_data' => array()
-        );
+        ));
         return true;
     }
     public function RetrievePaymentRedirectURL(): string
     {
         if ($this->orderData['stage'] != 'CREATED') {
-            throw new \Exception('Order not in correct state?');
+            throw new \Exception('Order not in correct state? ' . $this->orderData['stage']);
         }
         return $this->getHATEOAS('approve');
     }
     public function CompleteOrder($data): bool
     {
-        //Ensure our ID is the same we're expecting
-        if ($data['token'] != $this->orderData['order_id']) {
-            throw new \Exception('Token mismatch');
+        // //Ensure our ID is the same we're expecting
+        // if ($data['token'] != $this->orderData['order_id']) {
+        //     throw new \Exception('Token mismatch');
+        // }
+        //Did we already complete this?
+
+        if ($this->orderData['stage'] == 'COMPLETED') {
+            return true;
         }
 
         //Are we good to go?
-        if ($this->orderData['stage'] == 'CREATED') {
-            $orderResponse = $this->api('checkout/orders/' . $data['token'] . '/capture', array('capture'=>true));
+        if ($this->orderData['stage'] == 'CREATED' || $this->orderData['stage'] == 'APPROVED') {
+            try {
+                $orderResponse = $this->api('checkout/orders/' . $this->orderData['order_id'] . '/capture', array('capture'=>true));
+            } catch (RequestException $e) {
+                return false;
+            }
+
 
             //Note we expect a Created here, not an OK
             $this->orderData['inflight_data'] =$orderResponse;
@@ -167,16 +196,19 @@ class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
             if ($this->orderData['stage'] == 'COMPLETED') {
                 //Merge down the capture HATEOAS because they're more useful there
                 $this->orderData['inflight_data']['links'] = $this->orderData['inflight_data']['purchase_units'][0]['payments']['captures'][0]['links'];
+                return true;
             }
         }
+        return false;
     }
     public function GetOrderStatus(): string
     {
+        return $this->orderData['stage'] ?? 'UNKNOWN';
     }
 
     public function get_token()
     {
-        if ($this->token) {
+        if (count($this->token)>0) {
             //Check expiration
             if ($this->token['expires'] > time()) {
                 return $this->token;

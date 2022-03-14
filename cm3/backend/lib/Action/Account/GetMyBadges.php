@@ -15,7 +15,7 @@ use CM3_Lib\models\application\submission as g_badge_submission;
 use CM3_Lib\models\application\badgetype as g_badge_type;
 use CM3_Lib\models\application\group as g_group;
 use CM3_Lib\models\eventinfo;
-
+use CM3_Lib\util\CurrentUserInfo;
 
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
@@ -55,7 +55,8 @@ class GetMyBadges
         private g_badge_submission $g_badge_submission,
         private g_badge_type $g_badge_type,
         private g_group $g_group,
-        private eventinfo $eventinfo
+        private eventinfo $eventinfo,
+        private CurrentUserInfo $CurrentUserInfo
     ) {
     }
 
@@ -70,8 +71,8 @@ class GetMyBadges
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         //Fetch the authenticated user's info
-        $c_id = $request->getAttribute('contact_id');
-        $e_id = $request->getAttribute('event_id');
+        $c_id = $this->CurrentUserInfo->GetEventId();
+        $e_id = $this->CurrentUserInfo->GetContactId();
         $searchTerms = array(
           new SearchTerm('contact_id', $c_id)
         );

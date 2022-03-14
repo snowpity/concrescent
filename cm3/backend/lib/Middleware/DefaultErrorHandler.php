@@ -4,6 +4,7 @@ namespace CM3_Lib\Middleware;
 
 use CM3_Lib\Factory\LoggerFactory;
 use CM3_Lib\Responder\Responder;
+use CM3_Lib\util\CurrentUserInfo;
 use DomainException;
 use Fig\Http\Message\StatusCodeInterface;
 use InvalidArgumentException;
@@ -27,7 +28,7 @@ final class DefaultErrorHandler implements ErrorHandlerInterface
     private LoggerInterface $logger;
 
     private string $installpath;
-
+    private CurrentUserInfo $CurrentUserInfo;
     /**
      * The constructor.
      *
@@ -38,12 +39,14 @@ final class DefaultErrorHandler implements ErrorHandlerInterface
     public function __construct(
         Responder $responder,
         ResponseFactoryInterface $responseFactory,
-        LoggerFactory $loggerFactory
+        LoggerFactory $loggerFactory,
+        CurrentUserInfo $CurrentUserInfo
     ) {
         $this->responder = $responder;
         $this->responseFactory = $responseFactory;
         $this->logger = $loggerFactory->createLogger('Main');
         $this->installpath = dirname(__DIR__, 2);
+        $this->CurrentUserInfo = $CurrentUserInfo;
     }
 
     /**
@@ -69,8 +72,8 @@ final class DefaultErrorHandler implements ErrorHandlerInterface
             $error = $this->getErrorDetails($exception, $logErrorDetails);
             $error['method'] = $request->getMethod();
             $error['url'] = (string)$request->getUri();
-            $error['contact_id'] = $request->getAttribute('contact_id');
-            $error['event_id'] = $request->getAttribute('event_id');
+            $error['contact_id'] = $this->CurrentUserInfo->GetContactId();
+            $error['event_id'] = $this->CurrentUserInfo->GetEventId();
 
             $this->logger->error($exception->getMessage(), $error);
         }

@@ -4,6 +4,7 @@ namespace CM3_Lib\Middleware;
 
 use CM3_Lib\util\PermEvent;
 use CM3_Lib\util\EventPermissions;
+use CM3_Lib\util\CurrentUserInfo;
 
 use CM3_Lib\Responder\Responder;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -20,7 +21,7 @@ class PermCheckEventId
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct()
+    public function __construct(private CurrentUserInfo $CurrentUserInfo)
     {
     }
     /**
@@ -40,7 +41,7 @@ class PermCheckEventId
         //If we have an AttributeName, check it
         if (!is_null($this->AttributeName)) {
             if (isset($routeArguments[$this->AttributeName])) {
-                if ($routeArguments[$this->AttributeName] != $request->getAttribute('event_id')&& !$perms->EventPerms->isGlobalAdmin()) {
+                if ($routeArguments[$this->AttributeName] != $this->CurrentUserInfo->GetEventId()&& !$perms->EventPerms->isGlobalAdmin()) {
                     throw new HttpUnauthorizedException($request, 'Event ID not accessible from current login');
                 } else {
                     $hasPerm = true;
