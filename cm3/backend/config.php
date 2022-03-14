@@ -50,6 +50,23 @@ return array(
         'path' => dirname(__FILE__) .'/logs',
         'level' => \Monolog\Logger::INFO,
     ),
+    'mailer' => array(
+        //Can be:
+        //Mail: Uses PHP's mail() function (Default)
+        //SMTP: Provide credentials
+        //Sendmail: uses PHP's configured sendmail
+        //Gmail: Uses App token to send mail via Gmail
+        'mode' => 'SMTP',
+
+        //Credentials, Username/password is ClientID/ClientSecret with oauth/gmail
+        //Leave blank for no auth
+        'Host' => 'mail.example.com',
+        'Port' => 465,
+        'Username' => 'yoursmtpuser@example.com',
+        'Password' => 'therealpassword',
+
+        'defaultFrom' => 'yoursmtpuser@example.com'
+    ),
     'payments' => array(
         'cash' => array(
             //set to false if we don't even want the option to pay with cash

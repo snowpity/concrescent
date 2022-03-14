@@ -15,6 +15,7 @@ use Slim\Factory\AppFactory;
 use Slim\Interfaces\RouteParserInterface;
 use Slim\Middleware\ErrorMiddleware;
 use Slim\Exception\HttpNotFoundException;
+use PHPMailer\PHPMailer\PHPMailer;
 
 use Branca\Branca;
 use CM3_Lib\database\DbConnection;
@@ -106,6 +107,52 @@ return [
 
     PaymentModuleFactory::class => function (ContainerInterface $container) {
         return new PaymentModuleFactory($container->get('config')['payments']);
+    },
+
+    PHPMailer::class => function (ContainerInterface $container) {
+        $mail = new PHPMailer();
+        $mc = $container->get('config')['mailer'];
+        switch ($mc['mode']) {
+            case 'SMTP':
+                $mail->isSMTP();
+                $mail->Host = $mc['Host'];
+                $mail->Port = $mc['Port'];
+                if(!empty($mc['Username'])){
+                    $mail->SMTPAuth =  true;
+                    $mail->Username =  $mc['Username'];
+                    $mail->Password =  $mc['Password'];
+                }
+                break;
+            case 'Sendmail':
+                $mail->isSendmail();
+                break;
+            case 'Gmail':
+                //TODO: Finish
+                $mail->Host = 'smtp.gmail.com';
+                $mail->Port = 587;
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                $mail->SMTPAuth = true;
+                $mail->AuthType = 'XOAUTH2';
+
+                //Pass the OAuth provider instance to PHPMailer
+                $mail->setOAuth(
+                    new \PHPMailer\PHPMailer\OAuth(
+                        [
+                            'provider' => = new \League\OAuth2\Client\Provider\Google(
+                                [
+                                    'clientId' => $mc['Username'],
+                                    'clientSecret' => $mc['Password'],
+                                ]
+                            ),
+                            'clientId' => $mc['Username'],
+                            'clientSecret' => $mc['Password'],
+                            'refreshToken' => $refreshToken,
+                            'userName' => $mc['defaultFrom'],
+                        ]
+                    )
+                );
+                break;
+        }
     },
 
     ErrorMiddleware::class => function (ContainerInterface $container) {
