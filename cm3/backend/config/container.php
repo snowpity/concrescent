@@ -16,6 +16,7 @@ use Slim\Interfaces\RouteParserInterface;
 use Slim\Middleware\ErrorMiddleware;
 use Slim\Exception\HttpNotFoundException;
 use PHPMailer\PHPMailer\PHPMailer;
+use League\CommonMark\MarkdownConverter;
 
 use Branca\Branca;
 use CM3_Lib\database\DbConnection;
@@ -117,7 +118,7 @@ return [
                 $mail->isSMTP();
                 $mail->Host = $mc['Host'];
                 $mail->Port = $mc['Port'];
-                if(!empty($mc['Username'])){
+                if (!empty($mc['Username'])) {
                     $mail->SMTPAuth =  true;
                     $mail->Username =  $mc['Username'];
                     $mail->Password =  $mc['Password'];
@@ -138,7 +139,7 @@ return [
                 $mail->setOAuth(
                     new \PHPMailer\PHPMailer\OAuth(
                         [
-                            'provider' => = new \League\OAuth2\Client\Provider\Google(
+                            'provider' => new \League\OAuth2\Client\Provider\Google(
                                 [
                                     'clientId' => $mc['Username'],
                                     'clientSecret' => $mc['Password'],
@@ -153,6 +154,39 @@ return [
                 );
                 break;
         }
+        $mail->setFrom($mc['defaultFrom']);
+        return $mail;
+    },
+
+    MarkdownConverter::class => function (ContainerInterface $container) {
+        $config = [
+            'renderer' => [
+                'block_separator' => "\n",
+                'inner_separator' => "\n",
+                'soft_break'      => "\n",
+            ],
+            'commonmark' => [
+                'enable_em' => true,
+                'enable_strong' => true,
+                'use_asterisk' => true,
+                'use_underscore' => true,
+                'unordered_list_markers' => ['-', '*', '+'],
+            ],
+            'html_input' => 'escape',
+            'allow_unsafe_links' => false,
+            'max_nesting_level' => PHP_INT_MAX,
+            'slug_normalizer' => [
+                'max_length' => 255,
+            ],
+        ];
+        $environment = new \League\CommonMark\Environment\Environment($config);
+
+        // TODO: Extension for the filestore links
+        $environment->addExtension(new \League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension());
+        $environment->addExtension(new \League\CommonMark\Extension\Autolink\AutolinkExtension());
+
+        // Go forth and convert you some Markdown!
+        return new MarkdownConverter($environment);
     },
 
     ErrorMiddleware::class => function (ContainerInterface $container) {

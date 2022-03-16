@@ -3,7 +3,6 @@
 namespace CM3_Lib\Action\Account;
 
 use CM3_Lib\database\SearchTerm;
-use CM3_Lib\database\DbConnection;
 use CM3_Lib\Factory\PaymentModuleFactory;
 use CM3_Lib\util\PaymentBuilder;
 

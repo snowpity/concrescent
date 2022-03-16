@@ -10,7 +10,7 @@ class log extends \CM3_Lib\database\Table
     {
         $this->TableName = 'Mail_Log';
         $this->ColumnDefs = array(
-            'id' 			=> new cm_Column('BIGINT', null, false, true, false, true, null),
+            'id' 			=> new cm_Column('BIGINT', null, false, true, false, true, null, true),
             'template_id'		=> new cm_Column('INT', null, false, false, false, true),
             'success'        => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
             'meta'			=> new cm_Column('VARCHAR', 255, true),

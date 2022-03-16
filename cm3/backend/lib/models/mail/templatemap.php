@@ -1,11 +1,11 @@
 <?php
 
-namespace CM3_Lib\models\forms;
+namespace CM3_Lib\models\mail;
 
 use CM3_Lib\database\Column as cm_Column;
 use CM3_Lib\database\ColumnIndex as cm_ColumnIndex;
 
-class questionmap extends \CM3_Lib\database\Table
+class templatemap extends \CM3_Lib\database\Table
 {
     protected function setupTableDefinitions(): void
     {
@@ -20,7 +20,7 @@ class questionmap extends \CM3_Lib\database\Table
             'primary' => new cm_ColumnIndex(array(
                 'context' => false,
                 'badge_type_id' => false,
-                'question_id' => false,
+                'template_id' => false,
             ), 'primary key')
         );
         $this->PrimaryKeys = array(

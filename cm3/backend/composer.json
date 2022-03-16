@@ -11,7 +11,8 @@
         "rybakit/msgpack": "^0.9.0",
         "cruxinator/php-bitmask": "^0.1.2",
         "respect/validation": "^2.2",
-        "phpmailer/phpmailer": "^6.6"
+        "phpmailer/phpmailer": "^6.6",
+        "league/commonmark": "^2.2"
     },
     "autoload":{
       "psr-4":{

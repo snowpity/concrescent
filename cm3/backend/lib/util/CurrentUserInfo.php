@@ -2,6 +2,8 @@
 
 namespace CM3_Lib\util;
 
+use CM3_Lib\database\SearchTerm;
+
 class CurrentUserInfo
 {
     private $event_id = 0;
@@ -12,6 +14,10 @@ class CurrentUserInfo
     public function GetEventId()
     {
         return $this->event_id;
+    }
+    public function EventIdSearchTerm(string $event_id_name = 'event_id')
+    {
+        return new SearchTerm($event_id_name, $this->event_id);
     }
     private $contact_id = 0;
     public function SetContactId($contact_id)
