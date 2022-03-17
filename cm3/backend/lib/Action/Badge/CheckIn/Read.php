@@ -46,7 +46,6 @@ final class Read
     {
         //TODO: Also, provide some sane defaults
         $qp = $request->getQueryParams();
-        $this->badgeinfo->SetEventId($request->getAttribute('event_id'));
 
         $result = $this->badgeinfo->GetSpecificBadge($params['badge_id'], $params['context_code'], true);
 

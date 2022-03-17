@@ -1,0 +1,9 @@
+{
+  "name": "attendee-retrieve",
+  "reply_to": "registration@example.com",
+  "from": "registration@example.com",
+  "bcc": "registration@example.com",
+  "subject": "Your registration for [[event.display_name]]",
+  "format": "Markdown",
+  "body": "Greetings,\n\nFind below your magic link to review your badges for *[[event.display_name]]*.\n\n[[[review-link]]]([[review-link]])\n\nThanks again,\n[[event.display_name]] Registration"
+}

@@ -184,6 +184,7 @@ return [
         // TODO: Extension for the filestore links
         $environment->addExtension(new \League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension());
         $environment->addExtension(new \League\CommonMark\Extension\Autolink\AutolinkExtension());
+        $environment->addExtension(new \League\CommonMark\Extension\Table\TableExtension());
 
         // Go forth and convert you some Markdown!
         return new MarkdownConverter($environment);

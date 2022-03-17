@@ -19,6 +19,7 @@ use CM3_Lib\models\staff\badge as s_badge;
 use CM3_Lib\models\forms\question as f_question;
 use CM3_Lib\models\forms\response as f_response;
 use CM3_Lib\util\CurrentUserInfo;
+use CM3_Lib\util\barcode;
 
 /**
  * Action.
@@ -545,16 +546,20 @@ final class badgeinfo
 
     public function addComputedColumns($result)
     {
-
+        $result['display_name'] = $result['real_name'];
         //Add some computed helper columns
         switch ($result['name_on_badge']) {
             case 'Fandom Name Large, Real Name Small':
+                $result['only_name'] = '';
                 $result['large_name'] = $result['fandom_name'];
                 $result['small_name'] = $result['real_name'];
+                $result['display_name'] = trim($result['fandom_name']) .' (' . $result['real_name'] . ')';
                 break;
             case 'Real Name Large, Fandom Name Small':
+                $result['only_name'] = '';
                 $result['large_name'] = $result['real_name'];
                 $result['small_name'] = $result['fandom_name'];
+                $result['display_name'] = trim($result['real_name']) .' (' . $result['fandom_name'] . ')';
                 break;
             case 'Fandom Name Only':
                 $result['only_name'] = $result['fandom_name'];
@@ -565,6 +570,23 @@ final class badgeinfo
         }
         $result['badge_id_display'] = $result['context_code'] . $result['display_id'];
         $result['qr_data'] = 'CM*' . $result['context_code'] . $result['display_id'] . '*' . $result['uuid'];
+        $bc = new barcode_generator();
+
+        $image = $bc->render_image('qr', $result['qr_data'], array(
+            'w'=>150,
+            'h'=>150
+        ));
+        //Open a stream to buffer the output
+        $stream = fopen("php://memory", "w+");
+        //write it out with max compression
+        imagepng($image, $stream, 9);
+        //Release resource for the image since we're done with it
+        imagedestroy($image);
+        //Set the cursor to the beginning
+        rewind($stream);
+        //Stuff it into a string
+        $png = stream_get_contents($stream);
+        $result['qr_data_uri'] = 'data:image/png;base64,' . base64_encode($png);
         return $result;
     }
 }
