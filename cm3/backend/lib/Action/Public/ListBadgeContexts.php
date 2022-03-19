@@ -55,7 +55,7 @@ final class ListBadgeContexts
           ), $whereParts, $order);
 
         //Append the hard-coded contexts
-        $data[] = array('context_code'=>'A', 'name'=>'Attendee');
+        array_unshift($data, array('context_code'=>'A', 'name'=>'Attendee'));
         $data[] = array('context_code'=>'S', 'name'=>'Staff');
 
         // Build the HTTP response

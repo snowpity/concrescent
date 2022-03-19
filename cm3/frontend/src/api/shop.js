@@ -1,8 +1,27 @@
 const axios = require('axios').default;
 
 export default {
-  getProducts(cb) {
-    axios.get(global.config.apiHostURL + "badges.php")
+
+  getEventInfo(cb) {
+    axios.get(global.config.apiHostURL + "public")
+      .then(function(response) {
+        cb(response.data);
+      })
+      .catch(function(error) {
+        error + "oops"
+      })
+  },
+  getProductContexts(event_id, cb) {
+    axios.get(global.config.apiHostURL + "public/"+ event_id + '/badges')
+      .then(function(response) {
+        cb(response.data);
+      })
+      .catch(function(error) {
+        error + "oops"
+      })
+  },
+  getProducts(event_id,context,cb) {
+    axios.get(global.config.apiHostURL + "public/" + event_id + '/badges/' + context)
       .then(function(response) {
         cb(response.data);
       })

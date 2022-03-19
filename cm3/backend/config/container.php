@@ -20,7 +20,7 @@ use League\CommonMark\MarkdownConverter;
 
 use Branca\Branca;
 use CM3_Lib\database\DbConnection;
-
+use CM3_Lib\util\FrontendUrlTranslator;
 use CM3_Lib\Middleware\PermCheckEventId;
 
 return [
@@ -104,6 +104,11 @@ return [
     //Auth signer
     Branca::class => function (ContainerInterface $container) {
         return new Branca($container->get('config')['environment']['token_secret']);
+    },
+
+    FrontendUrlTranslator::class => function (ContainerInterface $container) {
+        $env = $container->get('config')['environment'];
+        return new FrontendUrlTranslator($env['frontend_host'], $env['frontend_isHashMode']);
     },
 
     PaymentModuleFactory::class => function (ContainerInterface $container) {

@@ -20,6 +20,7 @@ use CM3_Lib\models\forms\question as f_question;
 use CM3_Lib\models\forms\response as f_response;
 use CM3_Lib\util\CurrentUserInfo;
 use CM3_Lib\util\barcode;
+use CM3_Lib\util\FrontendUrlTranslator;
 
 /**
  * Action.
@@ -38,13 +39,15 @@ final class badgeinfo
         private g_badge_submission $g_badge_submission,
         private f_question $f_question,
         private f_response $f_response,
-        private CurrentUserInfo $CurrentUserInfo
+        private CurrentUserInfo $CurrentUserInfo,
+        private FrontendUrlTranslator $FrontendUrlTranslator
     ) {
     }
 
 
     private $selectColumns = array(
       'id',
+      'uuid',
       'display_id',
       'real_name',
       'fandom_name',
@@ -587,6 +590,8 @@ final class badgeinfo
         //Stuff it into a string
         $png = stream_get_contents($stream);
         $result['qr_data_uri'] = 'data:image/png;base64,' . base64_encode($png);
+        //Add in the retrieve url
+        $result['retrieve_url'] = $this->FrontendUrlTranslator->GetBadgeLoad($result);
         return $result;
     }
 }

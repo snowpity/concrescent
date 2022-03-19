@@ -1,0 +1,8 @@
+{
+  "reply_to": "registration@example.com",
+  "from": "registration@example.com",
+  "bcc": "registration@example.com",
+  "subject": "Your magic link for [[event.display_name]]",
+  "format": "Markdown",
+  "body": "Greetings,\n\nFind below your magic link to login to **[[event.display_name]]**.\n\n[Here]([[login_url]])\n\nThanks again,\n[[event.display_name]] Registration"
+}

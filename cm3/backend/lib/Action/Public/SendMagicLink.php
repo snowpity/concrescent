@@ -1,10 +1,14 @@
 <?php
 
-namespace CM3_Lib\Action\Account;
+namespace CM3_Lib\Action\Public;
 
 use CM3_Lib\database\SearchTerm;
 
 use CM3_Lib\models\contact;
+use CM3_Lib\Modules\Notification\Mail;
+use CM3_Lib\util\TokenGenerator;
+use CM3_Lib\util\FrontendUrlTranslator;
+use CM3_Lib\util\CurrentUserInfo;
 
 use Branca\Branca;
 use MessagePack\MessagePack;
@@ -23,8 +27,14 @@ class SendMagicLink
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private contact $contact)
-    {
+    public function __construct(
+        private Responder $responder,
+        private contact $contact,
+        private TokenGenerator $TokenGenerator,
+        private Mail $Mail,
+        private FrontendUrlTranslator $FrontendUrlTranslator,
+        private CurrentUserInfo $CurrentUserInfo,
+    ) {
     }
 
     /**
@@ -35,21 +45,53 @@ class SendMagicLink
      *
      * @return ResponseInterface The response
      */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
-    {
-        $data = (array)$request->getParsedBody();
+    public function __invoke(
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        $params
+    ): ResponseInterface {
+        $data = (array) $request->getParsedBody();
 
-        // $mdb = new cm_mail_db($db);
-        // $reviewlinks = $atdb->retrieve_attendee_reviewlinks($json['email']);
-        // //echo json_encode($reviewlinks);
-        // $template = $mdb->get_mail_template('attendee-retrieve');
-        // foreach ($reviewlinks as $key => $item) {
-        //   $mdb->send_mail($json['email'], $template, array('review-link' => $item));
-        // }
+        //Confirm event_id is valid
+        $data['event_id'] = $this->TokenGenerator->checkEventID($data['event_id'] ?? null);
+        //Let our session know of the possible event change
+        $this->CurrentUserInfo->SetEventId($data['event_id']);
 
+        $contact = $this->contact->Search(
+            ["id", "uuid", "email_address", "real_name"],
+            [
+                new SearchTerm(
+                    "email_address",
+                    $data["email_address"],
+                    EncapsulationFunction: "lower(?)"
+                ),
+            ]
+        );
+
+        if ($contact !== false && count($contact) > 0) {
+            $contact = $contact[0];
+            //Add in necessary info
+            $contact["login_url"] = $this->FrontendUrlTranslator->GetLoginConfirm($this->TokenGenerator->forLoginOnly(
+                $contact["id"],
+                $data["event_id"]
+            ));
+
+            if (
+                $this->Mail->SendTemplate(
+                    $data["email_address"],
+                    "login-link",
+                    $contact
+                )
+            ) {
+                $result = "Sent.";
+            } else {
+                throw new \Exception($mail->GetLastMessage(true));
+            }
+        } else {
+            $result = "Sent";
+        }
 
         // Build the HTTP response
-        return $this->responder
-            ->withJson($response, $result);
+        return $this->responder->withJson($response, $result);
     }
 }

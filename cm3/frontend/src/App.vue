@@ -1,6 +1,21 @@
 <template>
 <v-app id="app" :style="{ background: $vuetify.theme.themes.light.backgroundcolor}">
     <v-navigation-drawer v-model="drawer" app temporary>
+        <v-list>
+            <v-list-item>
+            <v-select
+                v-model="selectedEventId"
+                label="Selected event"
+                :items="events"
+                item-text="display_name"
+                item-value="id"
+                >
+            </v-select>
+        </v-list-item>
+        <v-list-item>
+            {{eventDates}}
+        </v-list-item>
+        </v-list>
         <v-list dense>
             <v-list-item v-for="menuitem in drawerItems" :key="menuitem.route" :to="menuitem.route" v-show="menuitem.show == null || menuitem.show()">
                 <v-list-item-action>
@@ -16,11 +31,15 @@
                 </v-list-item-content>
             </v-list-item>
         </v-list>
+        <v-spacer></v-spacer>
+        thing
     </v-navigation-drawer>
 
     <v-app-bar app color="appbar" dark>
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
         <v-toolbar-title>{{appTitle}}</v-toolbar-title>
+        <v-spacer></v-spacer>
+        thing
     </v-app-bar>
     <v-content>
         <router-view/>
@@ -35,6 +54,7 @@ import { mapGetters } from 'vuex'
 export default {
   data: () => ({
   "drawer":false,
+  "selectedEventId":0
   }),
   computed: {
     appTitle: function() {
@@ -75,13 +95,21 @@ export default {
     ...mapGetters('mydata', {
       'ownedBadgeCount': 'ownedBadgeCount'
     }),
+    ...mapGetters('products', {
+        'events': 'events',
+        'productselectedEventId':'selectedEventId',
+        'productselectedEvent':'selectedEvent'
+    }),
     isAdmin: function() {
       //TODO: Detect this. :P
       return false;
     },
     AppName: function() {
       return this.isAdmin ? config.AppNameAdmin : config.AppName;
-    }
+      },
+      eventDates: function() {
+          return this.productselectedEvent.date_start + "-" + this.productselectedEvent.date_end;
+      }
   },
   watch: {
   '$route.name' : function(name) {
@@ -92,6 +120,10 @@ export default {
   },
   created() {
     document.title = this.appTitle;
+    this.$store.dispatch('products/getEventInfo').then(() =>{
+        this.selectedEventId = this.productselectedEventId;
+        this.$store.dispatch('products/getBadgeContexts');
+    });
   }
 };
 </script>

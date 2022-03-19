@@ -27,3 +27,18 @@ yarn run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+
+Getting Yarn:
+Get NodeJS 16
+`corepack enable`
+Yarn should now be available.
+
+Getting Vue UI (to help manage project)
+yarn global add @vue/ui
+
+Add global yarn bin to your path if not already:
+Linux: `export PATH="$(yarn global bin):$PATH"`
+Windows: `for /f "delims=" %i in ('yarn global bin') do set PATH=%PATH%;%i`
+then:
+vue ui

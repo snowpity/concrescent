@@ -22,7 +22,6 @@ module.exports = {
     config
       .plugin('define')
       .tap(args => {
-        args[0]['process.env']['LEGACY_REDIRECT'] = 'Somewhere';
         return args
       });
 

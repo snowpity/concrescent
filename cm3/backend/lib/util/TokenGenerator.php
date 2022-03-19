@@ -19,6 +19,19 @@ class TokenGenerator
     {
     }
 
+    public function forLoginOnly($contact_id, $event_id)
+    {
+        $event_id = $this->checkEventID($event_id);
+
+        //Generate the token proper
+        $packer = (new Packer())
+            ->extendWith(new EventPermissions());
+        //Initialize payload
+        $tokenPayload = $packer->pack($contact_id)
+          . $packer->pack($event_id);
+        return $this->Branca->encode($tokenPayload);
+    }
+
     public function forUser($contact_id, $event_id)
     {
 
