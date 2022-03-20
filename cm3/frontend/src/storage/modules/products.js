@@ -100,33 +100,44 @@ const actions = {
             resolve();
           }
       })
-})
+  })
   },
   getAllQuestions({
+      dispatch,
     commit,
     state
   }) {
     return new Promise((resolve) => {
       //Load only if necessary
       if (!state.gotQuestions) {
-        shop.getQuestions(questions => {
-          commit('setQuestions', questions)
-        })
+            return dispatch('getBadgeContexts').then(() =>{
+                shop.getQuestions(state.selectedEventId,
+                    state.badgecontextselected.context_code,
+                    questions => {
+                  commit('setQuestions', questions)
+              });
+          })
       } else {
         resolve();
       }
     })
   },
   getAllAddons({
+      dispatch,
     commit,
     state
   }) {
     return new Promise((resolve) => {
       //Load only if necessary
-      if (!state.gotAddons)
-        shop.getAddons(addons => {
-          commit('setAddons', addons)
-        })
+      if (!state.gotAddons) {
+          return dispatch('getBadgeContexts').then(() =>{
+            shop.getAddons(state.selectedEventId,
+                state.badgecontextselected.context_code,
+                addons => {
+                  commit('setAddons', addons)
+                })
+          })
+      }
       else {
         resolve();
       }

@@ -58,8 +58,8 @@ export default {
       });
   },
 
-  getQuestions(cb) {
-    axios.get(global.config.apiHostURL + "questions.php")
+  getQuestions(event_id,context,cb) {
+    axios.get(global.config.apiHostURL + "public/" + event_id + '/questions/' + context)
       .then(function(response) {
         cb(response.data);
       })
@@ -68,8 +68,8 @@ export default {
       })
   },
 
-  getAddons(cb) {
-    axios.get(global.config.apiHostURL + "addons.php")
+  getAddons(event_id,context,cb) {
+    axios.get(global.config.apiHostURL + "public/" + event_id + '/badges/' + context + '/addons')
       .then(function(response) {
         cb(response.data);
       })
@@ -107,12 +107,11 @@ export default {
     var Products = JSON.parse(JSON.stringify(inProducts));
     const pMap = {
       cartId: "index",
-      nameFirst: "first-name",
-      nameLast: "last-name",
-      nameFandom: "fandom-name",
-      nameDisplay: "name-on-badge",
-      birthday: "date-of-birth",
-      selectedBadgeId: "badge-type-id",
+      real_name: "real_name",
+      fandom_name: "fandom-name",
+      name_on_badge: "name-on-badge",
+      date_of_birth: "date-of-birth",
+      badge_type_id: "badge-type-id",
       contactEmail: "email-address",
       contactSubscribePromotions: "subscribed",
       contactPhone: "phone-number",
@@ -122,15 +121,15 @@ export default {
       contactState: "state",
       contactPostalCode: "zip-code",
       contactCountry: "country",
-      contactEmergencyName: "ice-name",
-      contactEmergencyRelationship: "ice-relationship",
-      contactEmergencyEmail: "ice-email-address",
-      contactEmergencyPhone: "ice-phone-number",
+      ice_name: "ice-name",
+      ice_relationship: "ice-relationship",
+      ice_email_address: "ice-email-address",
+      ice_phone_number: "ice-phone-number",
       promo: "payment-promo-code",
       promoType: "payment-promo-type",
       promoPrice: "payment-promo-amount",
       addonsSelected: "addon-ids",
-      questionResponses: "form-answers",
+      form_responses: "form-answers",
       editBadgeId: "editing-badge",
       editBadgeIdUUID: "uuid",
       editBadgePriorBadgeId: "editing-prior-id",
@@ -162,9 +161,9 @@ export default {
         });
       } else {
         //Fixup questions
-        if (typeof product["questionResponses"] != 'undefined')
-          Object.keys(product["questionResponses"]).forEach(key => {
-            product["questionResponses"][key] = product["questionResponses"][key].join("\n");
+        if (typeof product["form_responses"] != 'undefined')
+          Object.keys(product["form_responses"]).forEach(key => {
+            product["form_responses"][key] = product["form_responses"][key].join("\n");
           });
         //Remove addons
         delete product.addons;

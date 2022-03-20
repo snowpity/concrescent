@@ -1,6 +1,7 @@
 module.exports = {
   productionSourceMap: false,
   publicPath: '',
+
   devServer: {
     proxy: {
       '^/concrescent/': {
@@ -25,5 +26,12 @@ module.exports = {
         return args
       });
 
+  },
+  transpileDependencies: [
+        // can be string or regex
+    ],
+
+  pluginOptions: {
+    vuetify: {}
   }
 }

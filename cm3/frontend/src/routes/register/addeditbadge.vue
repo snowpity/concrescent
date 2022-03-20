@@ -6,28 +6,23 @@
         <v-form ref="fGenInfo" v-model="validGenInfo">
             <v-row>
                 <v-col cols="12" md="6">
-                    <v-text-field v-model="nameFirst" :counter="20" :rules="RulesName" label="First Name" required></v-text-field>
+                    <v-text-field v-model="real_name" :counter="500" :rules="RulesName" label="Real Name" required></v-text-field>
                 </v-col>
-                <v-col cols="12" md="6">
-                    <v-text-field v-model="nameLast" :counter="20" :rules="RulesName" label="Last Name" required></v-text-field>
-                </v-col>
-            </v-row>
-            <v-row>
 
                 <v-col cols="12" md="6">
-                    <v-text-field v-model="nameFandom" :counter="30" :rules="RulesNameFandom" label="Fandom Name (Optional)"></v-text-field>
+                    <v-text-field v-model="fandom_name" :counter="255" :rules="RulesNameFandom" label="Fandom Name (Optional)"></v-text-field>
                 </v-col>
                 <v-col cols="12" md="6">
-                    <v-select v-if="nameFandom" v-model="nameDisplay" :rules="RulesNameDisplay" :items="nameDisplayType" label="Display on badge"></v-select>
+                    <v-select v-if="fandom_name" v-model="name_on_badge" :rules="RulesNameDisplay" :items="name_on_badgeType" label="Display on badge"></v-select>
                 </v-col>
             </v-row>
             <v-row>
                 <v-col cols="12" md="6">
                     <v-menu ref="menuBDay" v-model="menuBDay" :close-on-content-click="false" transition="scale-transition" offset-y min-width="290px">
                         <template v-slot:activator="{ on }">
-                            <v-text-field v-model="birthday" type="date" label="Date of Birth" prepend-icon="mdi-calendar" v-on="on" :rules="RulesRequired"></v-text-field>
+                            <v-text-field v-model="date_of_birth" type="date" label="Date of Birth" v-on="on" :rules="RulesRequired"></v-text-field>
                         </template>
-                        <v-date-picker ref="pickerBDay" v-model="birthday" :max="new Date().toISOString().substr(0, 10)" min="1920-01-01" @change="saveBDay"></v-date-picker>
+                        <v-date-picker ref="pickerBDay" v-model="date_of_birth" :max="new Date().toISOString().substr(0, 10)" min="1920-01-01" @change="saveBDay" :active-picker.sync="bdayActivePicker"></v-date-picker>
                     </v-menu>
                 </v-col>
                 <v-col cols="12" md="6">
@@ -54,10 +49,10 @@
                                 {{ product.name | subname(true)}}&nbsp;
                             </v-card-text>
                             <v-card-actions>&nbsp;
-                                <h4 text v-if="product['quantity-remaining']">Only
-                                    {{product['quantity-remaining']}}
+                                <h4 text v-if="product.quantity_remaining">Only
+                                    {{product.quantity_remaining}}
                                     left!</h4>
-                                <h4 v-else-if="product['quantity-remaining'] == 0">Sold out!</h4>
+                                <h4 v-else-if="product.quantity_remaining == 0">Sold out!</h4>
                                 <v-spacer></v-spacer>
                                 <v-btn color="green" dark>{{product.price | currency}}</v-btn>
                             </v-card-actions>
@@ -77,10 +72,10 @@
                                 {{ item.name | subname(true)}}&nbsp;
                             </v-card-text>
                             <v-card-actions>&nbsp;
-                                <h4 text v-if="item['quantity-remaining']">Only
-                                    {{item['quantity-remaining']}}
+                                <h4 text v-if="item.quantity_remaining">Only
+                                    {{item.quantity_remaining}}
                                     left!</h4>
-                                <h4 v-else-if="item['quantity-remaining'] == 0">Sold out!</h4>
+                                <h4 v-else-if="item.quantity_remaining == 0">Sold out!</h4>
                                 <v-spacer></v-spacer>
                                 <v-btn color="green" dark>{{item.price | currency}}</v-btn>
                             </v-card-actions>
@@ -96,10 +91,10 @@
                                 {{ item.name | subname(true)}}&nbsp;
                             </v-card-text>
                             <v-card-actions>&nbsp;
-                                <h4 text v-if="item['quantity-remaining']">Only
-                                    {{item['quantity-remaining']}}
+                                <h4 text v-if="item.quantity_remaining">Only
+                                    {{item.quantity_remaining}}
                                     left!</h4>
-                                <h4 v-else-if="item['quantity-remaining'] == 0">Sold out!</h4>
+                                <h4 v-else-if="item.quantity_remaining == 0">Sold out!</h4>
                                 <v-spacer></v-spacer>
                                 <v-btn color="green" dark>{{item.price | currency}}</v-btn>
                             </v-card-actions>
@@ -124,84 +119,39 @@
         <v-btn color="primary" :disabled="!validGenInfo" @click="step = 2">Continue</v-btn>
     </v-stepper-content>
 
-    <v-stepper-step :editable="reachedStep >= 2" :complete="step > 2" step="2">Contact Information</v-stepper-step>
+    <v-stepper-step :editable="reachedStep >= 2" :complete="step > 2" step="2">Additional Contact Information</v-stepper-step>
     <v-stepper-content step="2">
-        <v-form ref="fContactInfo" v-model="validContactInfo">
-            <v-row>
-                <v-col cols="12" sm="6" md="3">
-                    <v-switch v-model="contactReuse" inset label="Reuse previous"></v-switch>
-                </v-col>
-                <v-col cols="12" sm="6" md="3">
-                    <v-text-field label="Email Address" v-model="contactEmail" :rules="RulesEmailRequired">
-                    </v-text-field>
-                </v-col>
-                <v-col cols="12" sm="6" md="3">
-                    <v-checkbox dense hide-details v-model="contactSubscribePromotions">
-                    <template v-slot:label>
-                          <small> You may contact me with promotional emails.<br>(You may
-                            <router-link
-                              :to="'unsubscribe'"
-                            >Unsubscribe</router-link>
-                            at any time)
-                          </small>
-                        </template>
-                    </v-checkbox>
-                </v-col>
-                <v-col cols="12" sm="6" md="3">
-                    <v-text-field label="Phone" v-model="contactPhone" :rules="RulesPhoneRequired"></v-text-field>
-                </v-col>
-            </v-row>
+        <h3>Notify email</h3>
+        <v-row>
+            <v-col cols="12" sm="6" md="6">
+                <v-text-field label="Alternate Email address to send confirmation to" v-model="notify_email" :rules="RulesEmail"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6" md="6">
+                <v-checkbox dense hide-details v-model="can_transfer">
+                <template v-slot:label>
+                      <small>Allow badge transfer to the owner of this email.</small>
+                    </template>
+                </v-checkbox>
+            </v-col>
+        </v-row>
 
-            <vuetify-google-autocomplete
-                id="map"
-                append-icon="mdi-map-search"
-                @placechanged="retrieveAddress"
-                placeholder="Search Address"
-                types="address"
-                fields="address_components"></vuetify-google-autocomplete>
-            <v-row>
-                <v-col cols="12" sm="6" md="3">
-                    <v-text-field label="Street Address" v-model="contactStreet1" :rules="RulesRequired"></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="6" md="3">
-                    <v-text-field label="Street Address 2" v-model="contactStreet2"></v-text-field>
-                </v-col>
-            </v-row>
-            <v-row>
-                <v-col cols="12" sm="6" md="3">
-                    <v-text-field label="City" v-model="contactCity"  :rules="RulesRequired"></v-text-field>
-                </v-col>
-                <v-col cols="6" sm="3" md="2">
-                    <v-text-field label="State/Province" v-model="contactState"></v-text-field>
-                </v-col>
-                <v-col cols="6" sm="3" md="2">
-                    <v-text-field label="Zip/Postal Code" v-model="contactPostalCode"></v-text-field>
-                </v-col>
-            </v-row>
-            <v-row>
+        <h3>In case of Emergency</h3>
+        <v-row>
 
-                <v-col cols="12" sm="6" md="3">
-                    <v-text-field label="Country" v-model="contactCountry"></v-text-field>
-                </v-col>
-            </v-row>
-            <h3>In case of Emergency</h3>
-            <v-row>
-
-                <v-col cols="12" sm="6" md="3">
-                    <v-text-field label="Emergency Contact Name" v-model="contactEmergencyName"></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="6" md="3">
-                    <v-text-field label="Relationship" v-model="contactEmergencyRelationship"></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="6" md="3">
-                    <v-text-field label="Email address" v-model="contactEmergencyEmail" :rules="RulesEmail"></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="6" md="3">
-                    <v-text-field label="Phone Number" v-model="contactEmergencyPhone" :rules="RulesPhone"></v-text-field>
-                </v-col>
-            </v-row>
-        </v-form>
-        <v-btn color="primary" :disabled="!validContactInfo" @click="step = 3">Continue</v-btn>
+            <v-col cols="12" sm="6" md="3">
+                <v-text-field label="Emergency Contact Name" v-model="ice_name"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6" md="3">
+                <v-text-field label="Relationship" v-model="ice_relationship"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6" md="3">
+                <v-text-field label="Email address" v-model="ice_email_address" :rules="RulesEmail"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6" md="3">
+                <v-text-field label="Phone Number" v-model="ice_phone_number" :rules="RulesPhone"></v-text-field>
+            </v-col>
+        </v-row>
+        <v-btn color="primary" @click="step = 3">Continue</v-btn>
         <v-btn text @click="step = 1">Back</v-btn>
     </v-stepper-content>
 
@@ -210,8 +160,11 @@
     <v-stepper-content step="3">
         <v-form ref="fAdditionalInfo" v-model="validAdditionalInfo">
             <v-row v-for="question in badgeQuestions" v-bind:key="question.id">
-                <badgeQuestionRender v-bind:question="question" v-model="questionResponses[question['question-id'].toString()]"></badgeQuestionRender>
+                <badgeQuestionRender v-bind:question="question" v-model="form_responses[question['id'].toString()]"></badgeQuestionRender>
             </v-row>
+            <div v-if="badgeQuestions.length == 0">
+                Nothing else needed at the moment!
+            </div>
         </v-form>
         <v-btn color="primary" :disabled="!validAdditionalInfo" @click="step = 4">Continue</v-btn>
         <v-btn text @click="step = 2">Back</v-btn>
@@ -223,22 +176,22 @@
         <v-expansion-panels v-model="addonDisplayState" multiple v-if="badgeAddons.length">
             <v-expansion-panel v-for="addon in badgeAddons" v-bind:key="addon.id">
                 <v-expansion-panel-header>
-                    <v-checkbox hide-details multiple :value="addon['id']" v-model="addonsSelected" :disabled="badgeAddonPriorSelected(addon['id']) || addon['quantity-remaining'] == 0">
+                    <v-checkbox hide-details multiple :value="addon['id']" v-model="addonsSelected" :disabled="badgeAddonPriorSelected(addon['id']) || addon.quantity_remaining == 0">
                         <template slot="label">
                             <h3 class="black--text">{{addon.name}}</h3>
                         </template>
                     </v-checkbox>
                     <template slot="actions">
-                        <h4 text v-if="addon['quantity-remaining']">Only
-                            {{addon['quantity-remaining']}}
+                        <h4 text v-if="addon.quantity_remaining">Only
+                            {{addon.quantity_remaining}}
                             left!</h4>
-                        <h4 v-else-if="addon['quantity-remaining'] == 0">Sold out!</h4>
+                        <h4 v-else-if="addon.quantity_remaining == 0">Sold out!</h4>
                         <v-btn class="ml-5" color="green" dark>{{addon.price | currency}}</v-btn>
                         <v-icon class="px-3" color="primary">$expand</v-icon>
                     </template>
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-                    <div v-html="addon.description"></div>
+                    <badgePerksRender :description="addon.description" :rewardlist="addon.rewards"></badgePerksRender>
                 </v-expansion-panel-content>
             </v-expansion-panel>
 
@@ -272,34 +225,25 @@ export default {
         editBadgePriorAddons: [],
 
         validGenInfo: false,
-        nameFirst:"",
-        nameLast:"",
-        nameFandom:"",
-        nameDisplay:"Real Name Only",
-        nameDisplayType: ["Fandom Name Large, Real Name Small", "Real Name Large, Fandom Name Small","Real Name Only", "Fandom Name Only"],
-        birthday:null,
+        real_name:"",
+        fandom_name:"",
+        name_on_badge:"Real Name Only",
+        name_on_badgeType: ["Fandom Name Large, Real Name Small", "Real Name Large, Fandom Name Small","Real Name Only", "Fandom Name Only"],
+        date_of_birth:null,
+        bdayActivePicker:'YEAR',
         selectedBadge: null,
-        selectedBadgeId: -1,
+        badge_type_id: -1,
         menuBDay:false,
 
-        validContactInfo: false,
-        contactReuse: false,
-        contactEmail:"",
-        contactSubscribePromotions:false,
-        contactPhone:"",
-        contactStreet1:"",
-        contactStreet2:"",
-        contactCity:"",
-        contactState:"",
-        contactPostalCode:"",
-        contactCountry:"",
-        contactEmergencyName:"",
-        contactEmergencyRelationship:"",
-        contactEmergencyEmail:"",
-        contactEmergencyPhone:"",
+        notify_email:"",
+        can_transfer:false,
+        ice_name:"",
+        ice_relationship:"",
+        ice_email_address:"",
+        ice_phone_number:"",
 
         validAdditionalInfo: false,
-        questionResponses: {},
+        form_responses: {},
         addonsSelected: [],
 
 
@@ -308,30 +252,21 @@ export default {
         ],
         RulesName: [
           v => !!v || 'Name is required',
-          v => (v && v.length <= 20) || 'Name must be less than 20 characters',
+          v => (v && v.length <= 500) || 'Name must be less than 500 characters',
         ],
         RulesNameFandom: [
 
-          v => (v == "" || (v && v.length <= 30)) || 'Name must be less than 30 characters',
+          v => (v == "" || (v && v.length <= 255)) || 'Name must be less than 255 characters',
         ],
         RulesNameDisplay: [
-          v => ((this.nameFandom.length < 1) || (this.nameFandom.length > 0 && v != "")) || 'Please select a display type'
+          v => ((this.fandom_name.length < 1) || (this.fandom_name.length > 0 && v != "")) || 'Please select a display type'
         ],
         RulesEmail: [
           v => !v || /.+@.+\..+/.test(v) || 'E-mail must be valid',
         ],
-        RulesEmailRequired: [
-          v => !!v || 'E-mail is required',
-          v => /.+@.+\..+/.test(v) || 'E-mail must be valid',
-        ],
         RulesPhone: [
           v =>  !v || v.length > 6 || 'Phone number too short',
-          v =>  !v || /^\D?(\d{3})\D?\D?(\d{3})\D?(\d{4})$/.test(v) || 'Phone number should be valid'
-        ],
-        RulesPhoneRequired: [
-          v => !!v || 'Phone number is required',
-          v => v.length > 6 || 'Phone number too short',
-          v => /^\D?(\d{3})\D?\D?(\d{3})\D?(\d{4})$/.test(v) || 'Phone number should be valid'
+          /*v =>  !v || /^\D?(\d{3})\D?\D?(\d{3})\D?(\d{4})$/.test(v) || 'Phone number should be valid'*/
         ],
 
       addonDisplayState:[]
@@ -345,14 +280,14 @@ export default {
     }),
     rewardlist: function() {
       //return this.$options.filters.split_carriagereturn(this.badges[this.selectedBadge].rewards);
-      return this.badges[this.selectedBadge] ? this.badges[this.selectedBadge].rewards : [];
+      return this.badges[this.selectedBadge] ? this.badges[this.selectedBadge].rewards : "";
     },
     badges: function() {
       //Crude clone
       let badges = JSON.parse(JSON.stringify(this.products));
-      //First, do we have a birthday?
-      var bday = new Date(this.birthday)
-      if(this.birthday && bday)
+      //First, do we have a date_of_birth?
+      var bday = new Date(this.date_of_birth)
+      if(this.date_of_birth && bday)
       {
         badges = badges.filter(badge => {
           if(!(
@@ -391,27 +326,17 @@ export default {
         editBadgePriorBadgeId:this.editBadgePriorBadgeId,
         editBadgePriorAddons:this.editBadgePriorAddons,
 
-        nameFirst: this.nameFirst,
-        nameLast: this.nameLast,
-        nameFandom: this.nameFandom,
-        nameDisplay: this.nameDisplay,
-        birthday: this.birthday,
-        selectedBadgeId: this.selectedBadgeId,
+        real_name: this.real_name,
+        fandom_name: this.fandom_name,
+        name_on_badge: this.name_on_badge,
+        date_of_birth: this.date_of_birth,
+        badge_type_id: this.badge_type_id,
 
-        contactEmail:this.contactEmail,
-        subscribed:this.contactSubscribePromotions,
-        contactPhone:this.contactPhone,
-        contactStreet1:this.contactStreet1,
-        contactStreet2:this.contactStreet2,
-        contactCity:this.contactCity,
-        contactState:this.contactState,
-        contactPostalCode:this.contactPostalCode,
-        contactCountry:this.contactCountry,
-        contactEmergencyName:this.contactEmergencyName,
-        contactEmergencyRelationship:this.contactEmergencyRelationship,
-        contactEmergencyEmail:this.contactEmergencyEmail,
-        contactEmergencyPhone:this.contactEmergencyPhone,
-        questionResponses:this.questionResponses,
+        ice_name:this.ice_name,
+        ice_relationship:this.ice_relationship,
+        ice_email_address:this.ice_email_address,
+        ice_phone_number:this.ice_phone_number,
+        form_responses:this.form_responses,
         addonsSelected:this.addonsSelected
 
       };
@@ -441,25 +366,21 @@ export default {
                 contactState:this.contactState,
                 contactPostalCode:this.contactPostalCode,
                 contactCountry:this.contactCountry,
-                contactEmergencyName:this.contactEmergencyName,
-                contactEmergencyRelationship:this.contactEmergencyRelationship,
-                contactEmergencyEmail:this.contactEmergencyEmail,
-                contactEmergencyPhone:this.contactEmergencyPhone,
+                ice_name:this.ice_name,
+                ice_relationship:this.ice_relationship,
+                ice_email_address:this.ice_email_address,
+                ice_phone_number:this.ice_phone_number,
       };
     },
     badgeQuestions: function() {
       //Todo: Filter by badge context
       var badgeId = typeof this.badges[this.selectedBadge] == "undefined" ? "" : this.badges[this.selectedBadge].id.toString();
+      if(!(badgeId in this.questions)) return {};
       //Filter out the ones that don't apply to this badge
-      var result = this.questions.filter (function(question){
-        var include = true;
-        include = include && question.active;
-        include = include && (question.visible == '*' || question.visible.includes(badgeId));
-        return include;
-      });
-      //Apply logic to required
+      var result = this.questions[badgeId];
+      //Apply display logic
       result.forEach(function(question){
-        question.isRequired = question.required == '*' || question.required.includes(badgeId)
+
       })
       //Sort it out
       result.sort((a,b) => a.order - b.order);
@@ -468,17 +389,14 @@ export default {
     badgeAddons: function() {
       //Todo: Filter by badge context
       var badgeId = typeof this.badges[this.selectedBadge] == "undefined" ? "" : this.badges[this.selectedBadge].id.toString();
+      //Do we have questions at all for this badge?
+      if(!(badgeId in this.addons)) return {};
       //Filter out the ones that don't apply to this badge
-      var result = this.addons.filter (function(addon){
-        var include = true;
-        include = include && addon.active;
-        include = include && (addon["badge-type-ids"] == '*' || addon["badge-type-ids"].includes(badgeId));
-        return include;
-      });
+      var result = this.addons[badgeId];
 
-      //First, do we have a birthday?
-      var bday = new Date(this.birthday)
-      if(this.birthday && bday)
+      //First, do we have a date_of_birth?
+      var bday = new Date(this.date_of_birth)
+      if(this.date_of_birth && bday)
       {
         result = result.filter(badge => {
           if(!(
@@ -505,7 +423,8 @@ export default {
       this.autoSaveBadge();
     },
     menuBDay (val) {
-      val && setTimeout(() => (this.$refs.pickerBDay.activePicker = 'YEAR'))
+        //Whenever opening the picker, always reset it back to start with the Year
+      val && setTimeout(() => (this.bdayActivePicker = 'YEAR'))
     },
     contactReuse(val) {
       if(val){
@@ -514,13 +433,13 @@ export default {
         Object.assign(this, contactInfo);
       }
     },
-    birthday () {
+    date_of_birth () {
 
       this.checkBadge();
     },
     selectedBadge(val) {
 
-      this.selectedBadgeId =  typeof this.badges[val] == "undefined" ? this.selectedBadgeId : this.badges[val].id;
+      this.badge_type_id =  typeof this.badges[val] == "undefined" ? this.badge_type_id : this.badges[val].id;
     },
     compiledBadge() {
       this.autoSaveBadge();
@@ -533,7 +452,7 @@ export default {
         this.resetBadge();
       }
     },
-    $route(to, from) {
+    $route(/*to, from*/) {
       // react to route changes...
       this.loadBadge();
     }
@@ -545,13 +464,13 @@ export default {
     ]),
     saveBDay(date) {
       this.$refs.menuBDay.save(date);
-      this.birthday = this.birthday;
+      this.date_of_birth = this.date_of_birth;
     },
     loadBadge(){
       var cartItem;
       this.cartId = parseInt(this.$route.params.cartId);
       var editBadgeIdString = this.$route.params.editId;
-      var selectedBadgeId = -1;
+      var badge_type_id = -1;
       if(this.cartId > -1 )
       {
         //Load up the badge from the cart
@@ -561,7 +480,7 @@ export default {
       {
         //Load up the badge from the cart
         cartItem = this.$store.getters["mydata/getBadgeAsCart"](editBadgeIdString);
-        this.editBadgePriorBadgeId = cartItem.selectedBadgeId;
+        this.editBadgePriorBadgeId = cartItem.badge_type_id;
         this.reachedStep = 4;
       }
       else if(this.$route.params.cartId == undefined)
@@ -569,19 +488,19 @@ export default {
         //It's a new badge or they're back here from a refresh/navigation
         cartItem = this.$store.getters["cart/getCurrentlyEditingItem"];
         //Should only be needed if we didn't have a selectedBadge?
-        //this.selectedBadge = this.badges.findIndex(badge => badge.id == cartItem.selectedBadgeId);
+        //this.selectedBadge = this.badges.findIndex(badge => badge.id == cartItem.badge_type_id);
       }
 
       //Pull out the BadgeId
-      selectedBadgeId = cartItem.selectedBadgeId;
-      //delete cartItem.selectedBadgeId;
+      badge_type_id = cartItem.badge_type_id || 0;
+      //delete cartItem.badge_type_id;
       Object.assign(this, cartItem);
       //Special props
       var _this = this;
 
       this.checkBadge();
       setTimeout(() => {
-        var newIndex = _this.badges.findIndex(badge => badge.id == selectedBadgeId)
+        var newIndex = _this.badges.findIndex(badge => badge.id == badge_type_id)
         if(newIndex > -1)
           _this.selectedBadge =newIndex;
 
@@ -606,7 +525,7 @@ export default {
       //Ensure only applicable badges are selected!
       if(this.badges.length > 0)
       {
-        var bid = this.selectedBadgeId;
+        var bid = this.badge_type_id;
         var badge = this.badges.findIndex(badge => badge.id == bid);
         if(badge == -1) badge = 0;
         this.selectedBadge = badge;
@@ -614,15 +533,17 @@ export default {
 
       //Ensure only applicable badge addons are selected!
       var badgeAddons = this.badgeAddons;
-      if(typeof this.addonsSelected.filter == 'function')
-      this.addonsSelected = this.addonsSelected.filter(function(aid) {
-        return undefined != badgeAddons.find(addon => addon.id == aid);
-      });
+      if(badgeAddons.length > 0)
+      {
+          if(typeof this.addonsSelected.filter == 'function')
+          this.addonsSelected = this.addonsSelected.filter(function(aid) {
+            return undefined != badgeAddons[aid];
+          });
+      }
     },
     addBadgeToCart() {
 
       this.addProductToCart(this.compiledBadge);
-      this.$store.commit("cart/setLatestContactInfo", this.currentContactInfo);
       //TODO: Resolve a promise from the above so we can update the history to point to the edit-badge version of this
       this.resetBadge();
       //Also reset the saved info so we don't accidentally resume editing
@@ -635,16 +556,6 @@ export default {
     },
     quantityZero: function(item) {
       return item.quantity == 0;
-    },
-    retrieveAddress: function(addressdata){
-      if(addressdata == null)
-        return;
-      this.contactStreet1=(typeof addressdata.street_number == "undefined" ? "" : addressdata.street_number + " ")  + addressdata.route;
-      this.contactStreet2="";
-      this.contactCity=addressdata.locality;
-      this.contactState=addressdata.administrative_area_level_1;
-      this.contactPostalCode=addressdata.postal_code;
-      this.contactCountry=addressdata.country;
     },
     badgeAddonPriorSelected: function(addonid) {
       return this.editBadgePriorAddons.indexOf(addonid) != -1;

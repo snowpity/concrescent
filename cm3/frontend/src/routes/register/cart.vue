@@ -37,9 +37,9 @@
                 </v-card-actions>
                 <v-card-actions v-for="addonid in filterAddons(product)" :key="addonid">
                   <v-icon>mdi-plus</v-icon>
-                  {{getAddonByID(addonid) ? getAddonByID(addonid).name : "Loading..."}}
+                  {{getAddonByID(product.badge_type_id, addonid) ? getAddonByID(product.badge_type_id, addonid).name : "Loading..."}}
                   &nbsp;|&nbsp;
-                  <span>{{ (getAddonByID(addonid) ? getAddonByID(addonid).price : "Loading" ) | currency }}&nbsp;</span>
+                  <span>{{ (getAddonByID(product.badge_type_id, addonid) ? getAddonByID(product.badge_type_id, addonid).price : "Loading" ) | currency }}&nbsp;</span>
                 </v-card-actions>
             </v-card>
         </v-col>
@@ -270,8 +270,10 @@ methods: {
       return product.addonsSelected;
     return product.addonsSelected.filter(addon => !product.editBadgePriorAddons.includes(addon));
   },
-  getAddonByID(id) {
-    return this.addons.find(addon => addon.id == id);
+  getAddonByID(badge_type_id, id) {
+      if(undefined == this.addons[badge_type_id])
+      return undefined;
+    return this.addons[badge_type_id].find(addon => addon.id == id);
   }
 },
 watch :{

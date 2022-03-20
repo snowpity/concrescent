@@ -26,6 +26,8 @@ return array(
       'base_path' => '/concrescent/cm3/backend',
       //For the purposes of generating links back to ConCrescent, where is the front-end hosted?
       'frontend_host' => 'https://tsaukpaetra.com/concrescent/cm3/frontend/dist',
+      //If the frontend is in Hash Mode
+      'frontend_isHashMode' => true,
       //Should responses be GZipped?
       'use_gzip' => true,
       //Secret key to sign tokens with. Must be exactly 32 bytes!

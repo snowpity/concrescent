@@ -16,7 +16,7 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * Action.
  */
-final class ListQuestions
+final class ListAllQuestions
 {
     /**
      * The constructor.
@@ -47,7 +47,8 @@ final class ListQuestions
               'type',
               'values',
               'visible_condition',
-              new SelectColumn('required', JoinedTableAlias: 'q')
+              new SelectColumn('required', JoinedTableAlias: 'q'),
+              new SelectColumn('badge_type_id', JoinedTableAlias: 'q')
           ),
             array(
             new Join(
@@ -57,10 +58,9 @@ final class ListQuestions
                 ),
                 'INNER',
                 'q',
-                array('question_id','required'),
+                array('question_id','required','badge_type_id'),
                 array(
-                 new SearchTerm('context', $params['context']),
-                 new SearchTerm('badge_type_id', $params['context_id']),
+                 new SearchTerm('context', $params['context'])
                )
             )
           )
@@ -78,14 +78,19 @@ final class ListQuestions
         $data = $this->question->Search($viewData, $whereParts, $order);
 
         //Post-process
-        array_walk($data, function (&$entry) {
+        //Bring out the badge_type_id as the key to the data
+        $newdata = array_fill_keys(array_unique(array_column($data, 'badge_type_id')), array());
+        $removekeys = array_flip(array('badge_type_id'));
+        array_walk($data, function (&$entry) use (&$newdata, $removekeys) {
             $entry['values'] = array_map(function ($value) {
                 return trim($value);
             }, explode("\n", $entry['values']));
+            //Add it in
+            $newdata[$entry['badge_type_id']][] = array_diff_key($entry, $removekeys);
         });
 
         // Build the HTTP response
         return $this->responder
-            ->withJson($response, $data);
+            ->withJson($response, $newdata);
     }
 }

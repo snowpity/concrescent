@@ -16,6 +16,15 @@ import {
 import router from './router'
 import store from './storage'
 
+//Just the renderer
+import mdRenderer from "vue-markdown-renderer";
+Vue.use(mdRenderer, {/* Configuration */});
+
+
+//Phat editor:
+import mavonEditor from 'md-editor2'
+import 'md-editor2/dist/css/index.css'
+Vue.use(mavonEditor)
 
 Vue.config.productionTip = false
 Vue.filter('currency', currency)

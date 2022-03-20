@@ -25,7 +25,7 @@ function calcPromoPrice(basePrice, promoData) {
 const getters = {
   cartProducts: (state, getters, rootState) => {
     return state.items.map((badge) => {
-      const product = rootState.products.all.find(product => product.id == badge.selectedBadgeId)
+      const product = rootState.products.all.find(product => product.id == badge.badge_type_id)
       //if product not found, and we don't have any, assume loading
       if (product == undefined && rootState.products.all.length == 0) {
         return {
@@ -75,7 +75,7 @@ const getters = {
         else
           addonsSelected = product.addonsSelected.filter(addon => !product.editBadgePriorAddons.includes(addon));
         addonTotal = addonsSelected.reduce((addonTotle, addonid) => {
-          var addon = addons.find(addon => addon.id == addonid);
+          var addon = addons[product.badge_type_id].find(addon => addon.id == addonid);
           return addonTotle + (addon == undefined ? 0 : parseFloat(addon.price));
         }, 0);
       }
@@ -142,7 +142,7 @@ const actions = {
     rootState
   }, badge) {
     commit('setCheckoutStatus', null)
-    const product = rootState.products.all.find(product => product.id === badge.selectedBadgeId)
+    const product = rootState.products.all.find(product => product.id === badge.badge_type_id   )
     if (product.quantity == null | product.quantity > 0) {
       const cartItem = state.items.find(item => item.cartId === badge.cartId && item.cartId != null)
       if (!cartItem) {

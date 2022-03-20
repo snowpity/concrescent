@@ -18,43 +18,41 @@ export function badgeDisplayName(value, secondary) {
   if (typeof value == "undefined" || value == null)
     return null;
   //Fixup raw DB values if the corrected values don't exist
-  if (typeof value.nameDisplay == "undefined" && typeof value['name-on-badge'] == "string")
-    value.nameDisplay = value['name-on-badge'];
-  if (typeof value.nameFirst == "undefined" && typeof value['first-name'] == "string")
-    value.nameFirst = value['first-name'];
-  if (typeof value.nameLast == "undefined" && typeof value['last-name'] == "string")
-    value.nameLast = value['last-name'];
-  if (typeof value.nameFandom == "undefined" && typeof value['fandom-name'] == "string")
-    value.nameFandom = value['fandom-name'];
+  if (typeof value.name_on_badge == "undefined" && typeof value['name-on-badge'] == "string")
+    value.name_on_badge = value['name-on-badge'];
+  if (typeof value.real_name == "undefined" && typeof value['real-name'] == "string")
+    value.real_name = value['real-name'];
+  if (typeof value.fandom_name == "undefined" && typeof value['fandom-name'] == "string")
+    value.fandom_name = value['fandom-name'];
 
 
-  if (!value.nameFandom) {
+  if (!value.fandom_name) {
     //We don't really care, just put the first and last name
-    return secondary ? null : value.nameFirst + " " + value.nameLast;
+    return secondary ? null : value.real_name;
   }
-  var nameDisplay = value.nameDisplay;
+  var name_on_badge = value.name_on_badge;
   //default it if not set
-  if (nameDisplay == null) {
-    nameDisplay = "Fandom Name Large, Real Name Small"
+  if (name_on_badge == null) {
+    name_on_badge = "Fandom Name Large, Real Name Small"
   }
 
   if (!secondary) {
 
-    switch (nameDisplay) {
+    switch (name_on_badge) {
       case "Fandom Name Large, Real Name Small":
       case "Fandom Name Only":
-        return value.nameFandom;
+        return value.fandom_name;
       case "Real Name Large, Fandom Name Small":
       case "Real Name Only":
-        return value.nameFirst + " " + value.nameLast;
+        return value.real_name;
     }
   } else {
 
-    switch (nameDisplay) {
+    switch (name_on_badge) {
       case "Fandom Name Large, Real Name Small":
-        return value.nameFirst + " " + value.nameLast;
+        return value.real_name;
       case "Real Name Large, Fandom Name Small":
-        return value.nameFandom;
+        return value.fandom_name;
       case "Real Name Only":
       case "Fandom Name Only":
         return null;

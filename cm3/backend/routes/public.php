@@ -18,11 +18,13 @@ return function (App $app) {
             $app->get('/{event_id}/badges', \CM3_Lib\Action\Public\ListBadgeContexts::class);
             //What badges are available for a given context
             $app->get('/{event_id}/badges/A', \CM3_Lib\Action\Public\ListAttendeeBadges::class);
+            $app->get('/{event_id}/badges/A/addons', \CM3_Lib\Action\Public\ListAllAttendeeAddons::class);
             $app->get('/{event_id}/badges/A/{badge_id}/addons', \CM3_Lib\Action\Public\ListAttendeeAddons::class);
             $app->get('/{event_id}/badges/S', \CM3_Lib\Action\Public\ListStaffBadges::class);
             $app->get('/{event_id}/badges/{context}', \CM3_Lib\Action\Public\ListApplicationBadges::class);
 
             //Questions, retrieves the associated form questions for a badge
+            $app->get('/{event_id}/questions/{context}', \CM3_Lib\Action\Public\ListAllQuestions::class);
             $app->get('/{event_id}/questions/{context}/{context_id}', \CM3_Lib\Action\Public\ListQuestions::class);
 
             //Fetch a blob file
