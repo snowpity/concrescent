@@ -5,6 +5,9 @@ namespace CM3_Lib\Action\AdminUser;
 use CM3_Lib\database\SearchTerm;
 use CM3_Lib\models\admin\user;
 use CM3_Lib\Responder\Responder;
+use CM3_Lib\util\TokenGenerator;
+use CM3_Lib\util\CurrentUserInfo;
+use CM3_Lib\util\EventPermissions;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -20,8 +23,12 @@ final class Read
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private admin\user $admin\user)
-    {
+    public function __construct(
+        private Responder $responder,
+        private user $user,
+        private TokenGenerator $TokenGenerator,
+        private CurrentUserInfo $CurrentUserInfo
+    ) {
     }
 
     /**
@@ -38,12 +45,17 @@ final class Read
         $data = (array)$request->getParsedBody();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
-        $whereParts = array(
-          new SearchTerm('id', $params['id'])
-        );
-
         // Invoke the Domain with inputs and retain the result
-        $data = $this->admin\user->Search("*", $whereParts);
+        $data = $this->user->GetByID($params['id'], "*");
+
+        //Translate permissions
+        $eperms = $this->TokenGenerator->decodePermissionsString($data['permissions']);
+        if (isset($eperms->EventPerms[$this->CurrentUserInfo->GetEventId()])) {
+            $data['permissions'] = $eperms->EventPerms[$this->CurrentUserInfo->GetEventId()]->getPermEnumeration();
+        } else {
+            //They don't have permissions in this event, send an empty one
+            $data['permissions'] = new EventPermissions();
+        }
 
         // Build the HTTP response
         return $this->responder

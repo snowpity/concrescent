@@ -17,10 +17,10 @@ class user extends \CM3_Lib\database\Table
             //Do not allow this contact to have badges
             'adminOnly'     => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
             'preferences'	=> new cm_Column('TEXT', null, true),
-            'permissions'	=> new cm_Column('TEXT', null, true)
+            'permissions'	=> new cm_Column('BLOB', null, true)
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('contact_id'=>false);
-        $this->DefaultSearchColumns = array('username','active');
+        $this->DefaultSearchColumns = array('contact_id','username','active');
     }
 }

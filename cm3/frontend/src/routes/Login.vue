@@ -39,24 +39,39 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions } from 'vuex';
 
 export default {
   data: () => ({
-    showpassword:false,
-    email:"",
-    username:"",
-    password:"",
-    emailsent: false
+    showpassword: false,
+    email: '',
+    username: '',
+    password: '',
+    emailsent: false,
   }),
   methods: {
     ...mapActions('mydata', [
-      'sendRetrieveBadgeEmail'
+      'sendRetrieveBadgeEmail',
+      'loginToken',
     ]),
-    login: function() {
-      this.sendRetrieveBadgeEmail(this.email);
-      this.emailsent = true;
+    login() {
+        if(this.showpassword) {
+
+        } else {
+          this.sendRetrieveBadgeEmail(this.email);
+          this.emailsent = true;
+        }
+    },
+  },
+  created() {
+    let { query } = this.$route;
+    if (query.token != undefined) {
+      this.loginToken(query.token);
+      // Presumably they're here from a Magic link
+      // Which *probably* means it was successful, so... clear the cart!
+      //this.$router.replace({ ...this.$router.currentRoute, query: {} });
     }
+
   }
 };
 </script>

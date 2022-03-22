@@ -15,7 +15,6 @@
                 class="fill-height align-end"
                 v-text="card.title"
               ></v-card-title>
-            
 
             <v-card-actions>
               <v-spacer></v-spacer>
@@ -29,19 +28,25 @@
 
 <script>
 // @ is an alias to /src
-//import HelloWorld from '@/components/HelloWorld.vue'
+// import HelloWorld from '@/components/HelloWorld.vue'
 
 export default {
   data: () => ({
-cards: [
-{ title: 'Register', icon: 'mdi-cart-plus', route: 'addbadge', actiontext: "Add Badge", flex: 12 },
-       { title: 'View Cart', icon: 'mdi-cart', route: 'cart', actiontext: "Checkout",flex: 6 },
-       { title: 'Login', icon: 'mdi-login',route: 'login',  actiontext: "Access your badges",flex: 6 },
-]
+    cards: [
+      {
+        title: 'Register', icon: 'mdi-cart-plus', route: 'addbadge', actiontext: 'Add Badge', flex: 12,
+      },
+      {
+        title: 'View Cart', icon: 'mdi-cart', route: 'cart', actiontext: 'Checkout', flex: 6,
+      },
+      {
+        title: 'Login', icon: 'mdi-login', route: 'login', actiontext: 'Access your badges', flex: 6,
+      },
+    ],
 
   }),
   components: {
-//    HelloWorld
-  }
-}
+    //    HelloWorld
+  },
+};
 </script>

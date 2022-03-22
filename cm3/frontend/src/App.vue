@@ -17,7 +17,11 @@
         </v-list-item>
         </v-list>
         <v-list dense>
-            <v-list-item v-for="menuitem in drawerItems" :key="menuitem.route" :to="menuitem.route" v-show="menuitem.show == null || menuitem.show()">
+            <v-list-item
+            v-for="menuitem in drawerItems"
+            :key="menuitem.route"
+            :to="menuitem.route"
+            v-show="menuitem.show == null || menuitem.show()">
                 <v-list-item-action>
                   <v-badge :value="menuitem.badge != null && menuitem.badge() != null">
                     <template v-slot:badge>
@@ -32,14 +36,13 @@
             </v-list-item>
         </v-list>
         <v-spacer></v-spacer>
-        thing
     </v-navigation-drawer>
 
     <v-app-bar app color="appbar" dark>
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
         <v-toolbar-title>{{appTitle}}</v-toolbar-title>
         <v-spacer></v-spacer>
-        thing
+        <v-icon>mdi-{{profileIcon}}</v-icon>
     </v-app-bar>
     <v-main>
         <router-view/>
@@ -89,21 +92,29 @@ export default {
 
       return items;
     },
+    profileIcon : function() {
+        if(this.isLoggedIn) {
+            if(this.isAdmin) {
+                return 'badge-account';
+            }else{
+                return 'account';
+            }
+        }
+        return 'account-alert-outline';
+    },
     ...mapGetters('cart', {
       'cartCount': 'cartCount'
     }),
     ...mapGetters('mydata', {
-      'ownedBadgeCount': 'ownedBadgeCount'
+      'ownedBadgeCount': 'ownedBadgeCount',
+      'isLoggedIn': 'getIsLoggedIn',
+      'isAdmin': 'getHasPerms'
     }),
     ...mapGetters('products', {
         'events': 'events',
         'productselectedEventId':'selectedEventId',
         'productselectedEvent':'selectedEvent'
     }),
-    isAdmin: function() {
-      //TODO: Detect this. :P
-      return false;
-    },
     AppName: function() {
       return this.isAdmin ? config.AppNameAdmin : config.AppName;
       },

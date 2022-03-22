@@ -260,8 +260,7 @@ methods: {
     this.processingCheckoutDialog = true;
     var _this = this;
     //Fancy delays
-    setTimeout(function()
-      {
+    setTimeout(function() {
         _this.$store.dispatch('cart/checkout', products);
       }, 1000);
   },

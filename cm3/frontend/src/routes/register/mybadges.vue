@@ -95,95 +95,94 @@
 
 
 <script>
-import { mapGetters, mapState, mapActions } from 'vuex'
+import { mapGetters, mapState, mapActions } from 'vuex';
 
-import VueQRCodeComponent from 'vue-qrcode-component'
-import badgePerksRender from '@/components/badgePerksRender.vue'
+import VueQRCodeComponent from 'vue-qrcode-component';
+import badgePerksRender from '@/components/badgePerksRender.vue';
 
 export default {
   components: {
     'qr-code': VueQRCodeComponent,
-          badgePerksRender
+    badgePerksRender,
   },
   data: () => ({
     promocodeDialog: false,
     promoAppliedDialog: false,
-    displayBadge: "",
-    printingBadge: false
+    displayBadge: '',
+    printingBadge: false,
   }),
-computed: {
-  ...mapState({
-    ownedbadges: state => state.mydata.ownedbadges,
-    products: state => state.products.all,
-    questions: state => state.products.questions,
-    addons: state => state.products.addons,
-    importResult: state => state.mydata.BadgeRetrievalResult
+  computed: {
+    ...mapState({
+      ownedbadges: (state) => state.mydata.ownedbadges,
+      products: (state) => state.products.all,
+      questions: (state) => state.products.questions,
+      addons: (state) => state.products.addons,
+      importResult: (state) => state.mydata.BadgeRetrievalResult,
   }),
-  ...mapGetters('cart', {
-    badges: 'cartProducts',
-    total: 'cartTotalPrice'
+    ...mapGetters('cart', {
+      badges: 'cartProducts',
+      total: 'cartTotalPrice',
   }),
-  ownedbadgecount: function() {return Object.keys(this.ownedbadges).length;},
-  displayBadgeModal: function() { return this.displayBadge != "";},
-  displayBadgeData: function() {
-    if(!this.displayBadgeModal) return null;
+    ownedbadgecount() { return Object.keys(this.ownedbadges).length; },
+    displayBadgeModal() { return this.displayBadge != ''; },
+    displayBadgeData() {
+    if (!this.displayBadgeModal) return null;
     return this.ownedbadges[this.displayBadge];
   },
-  displayBadgeProduct: function() {
-    if(!this.displayBadgeModal) return null;
-    var badgeId = this.displayBadgeData['badge-type-id'];
-    var result = this.products.find(function(item){return item.id == badgeId})
-    return result;
+    displayBadgeProduct() {
+    if (!this.displayBadgeModal) return null;
+    let badgeId = this.displayBadgeData['badge-type-id'];
+    let result = this.products.find((item)=> { return item.id == badgeId });
+      return result;
   },
-  displayImportResult: function() {
+    displayImportResult() {
     return this.importResult.length > 0;
-  }
-},
-methods: {
-  ...mapActions('mydata', [
-    'retrieveBadges',
-    'clearBadgeRetrievalResult'
+  },
+  },
+  methods: {
+    ...mapActions('mydata', [
+      'retrieveBadges',
+      'clearBadgeRetrievalResult',
   ]),
-  ...mapActions('cart', [
-    'clearCart'
+    ...mapActions('cart', [
+      'clearCart',
   ]),
-  printBadgeInfo: function() {
+    printBadgeInfo() {
     this.printingBadge = true;
-    if(this.printingBadge)
+    if (this.printingBadge)
     {
-      (function(app){
-          setTimeout(function() {
+      (function (app) {
+          setTimeout(() => {
               window.print();
-              setTimeout(function(){
-                app.printingBadge =false;
-                //Also, spin up a function to zoom back out
-                var viewport = document.querySelector('meta[name="viewport"]');
-                var original = viewport.getAttribute("content");
-                var force_scale = original + ", maximum-scale=0.99";
-                viewport.setAttribute("content", force_scale);
-                setTimeout(function()
-                  {
-                      viewport.setAttribute("content", original);
+              setTimeout(()=> {
+                app.printingBadge = false;
+                // Also, spin up a function to zoom back out
+                let viewport = document.querySelector('meta[name="viewport"]');
+                let original = viewport.getAttribute('content');
+                let force_scale = `${original  }, maximum-scale=0.99`;
+                viewport.setAttribute('content', force_scale);
+                setTimeout(()=> {
+                      viewport.setAttribute('content', original);
                   }, 100);
               }, 1000);
           }, 30);
-      })(this);
+      }(this));
     }
 
+    },
   },
-},
-created(){
-  var query = this.$route.query;
-  if(query.gid != undefined){
-    this.retrieveBadges(query);
-    //Presumably they're here from a Review Order link or the checkout summary page
-    //Which *probably* means it was successful, so... clear the cart!
-    this.clearCart();
-    this.$router.replace({...this.$router.currentRoute, query: {}})
-  }
-  this.$store.dispatch('products/getAllProducts')
-  this.$store.dispatch('products/getAllAddons')
+  created() {
+    let { query } = this.$route;
+    if (query.gid != undefined) {
+      this.retrieveBadges(query);
+      // Presumably they're here from a Review Order link or the checkout summary page
+      // Which *probably* means it was successful, so... clear the cart!
+      this.clearCart();
+      this.$router.replace({ ...this.$router.currentRoute, query: {} });
+    }
+    this.$store.dispatch('products/getAllProducts');
+    this.$store.dispatch('products/getAllAddons');
 
-}
-}
+  }
+};
 </script>

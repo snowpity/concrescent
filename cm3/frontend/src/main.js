@@ -1,4 +1,5 @@
 const config = require("../customization/config.js");
+global.config = config;
 import Vue from 'vue'
 import App from './App.vue'
 import vuetify from './plugins/vuetify';

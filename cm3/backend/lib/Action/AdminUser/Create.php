@@ -4,6 +4,9 @@ namespace CM3_Lib\Action\AdminUser;
 
 use CM3_Lib\models\admin\user;
 use CM3_Lib\Responder\Responder;
+use CM3_Lib\util\TokenGenerator;
+use CM3_Lib\util\CurrentUserInfo;
+use CM3_Lib\util\UserPermissions;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -19,8 +22,12 @@ final class Create
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private admin\user $admin\user)
-    {
+    public function __construct(
+        private Responder $responder,
+        private user $user,
+        private TokenGenerator $TokenGenerator,
+        private CurrentUserInfo $CurrentUserInfo
+    ) {
     }
 
     /**
@@ -36,8 +43,26 @@ final class Create
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
 
+        //Hash their password if they provided it
+        if (isset($data['password'])) {
+            $data['password'] =  password_hash($data['password'], PASSWORD_DEFAULT);
+        }
+
+        //If given a permissions object, convert it into a permissions string
+        if (isset($data['permissions']) && !is_string($data['permissions'])) {
+            //Convert to perms
+            $data['permissions'] =
+            $this->TokenGenerator->packPermissions(
+                $this->TokenGenerator->mergePermsFromArray(
+                    new UserPermissions(),
+                    $this->CurrentUserInfo->GetEventId(),
+                    $data['permissions'],
+                )
+            );
+        }
+
         // Invoke the Domain with inputs and retain the result
-        $data = $this->admin\user->Create($data);
+        $data = $this->user->Create($data);
 
         // Build the HTTP response
         return $this->responder

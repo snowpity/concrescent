@@ -8,6 +8,7 @@ use CM3_Lib\models\admin\user;
 use CM3_Lib\models\eventinfo;
 use CM3_Lib\models\application\group;
 use CM3_Lib\util\Permissions;
+use CM3_Lib\util\EventPermissions;
 
 use Branca\Branca;
 use MessagePack\Packer;
@@ -48,7 +49,7 @@ class TokenGenerator
             $perms = new EventPermissions();
         }
 
-        if ($eperms->IsGlobalAdmin ||true) {
+        if ($eperms->IsGlobalAdmin) {
             //Flag them as GlobalAdmin
             $perms->EventPerms->setGlobalAdmin(true);
             //Load groups for the selected event
@@ -90,16 +91,56 @@ class TokenGenerator
         //Fetch their permissions (if they have any)
         $founduser = $this->user->GetByIDorUUID($contact_id, null, array('permissions'));
 
-        if ($founduser !== false && !is_null($founduser['permissions'])) {
-            $unpacker = (new BufferUnpacker())
-                ->extendWith(new UserPermissions())
-                ->extendWith(new EventPermissions());
-
-            $unpacker->reset($founduser['permissions']);
-            return $unpacker->unpack();
+        if ($founduser !== false) {
+            return $this->decodePermissionsString($founduser['permissions']);
         } else {
             return new UserPermissions();
         }
+    }
+    public function decodePermissionsString(string $perms): UserPermissions
+    {
+        if (empty($perms)) {
+            return new UserPermissions();
+        }
+
+        $unpacker = (new BufferUnpacker())
+                ->extendWith(new UserPermissions())
+                ->extendWith(new EventPermissions());
+
+        $unpacker->reset($perms);
+        return $unpacker->unpack();
+    }
+    public function packPermissions(UserPermissions $Perms)
+    {
+        $packer = (new Packer())
+                ->extendWith(new UserPermissions())
+                ->extendWith(new EventPermissions());
+        return $packer->pack($Perms);
+    }
+
+    public function mergePermsFromArray(UserPermissions $initialPerms, int $event_id, array $EventPerms)
+    {
+        //Create EventPermissions
+        $newEventPerms = new EventPermissions();
+        //Loop all the permissions and set them
+        foreach ($EventPerms['EventPerms'] as $perm) {
+            $newEventPerms->EventPerms->{'set' . $perm}(true);
+        }
+        //Loop all the groups and create them
+        if (isset($EventPerms['GroupPerms'])) {
+            foreach ($EventPerms['GroupPerms'] as $groupId => $gpermdata) {
+                $gPerm = new PermGroup(0);
+                //Loop all the permissions in the group and set them
+                foreach ($gpermdata as $perm) {
+                    $gPerm->{'set' . $perm}(true);
+                }
+                //Set the group
+                $newEventPerms->GroupPerms[$groupId] = $gPerm;
+            }
+        }
+        //Replace the event perms with this one!
+        $initialPerms->EventPerms[$event_id] = $newEventPerms;
+        return $initialPerms;
     }
 
     public function setPermissions($contact_id, UserPermissions $newPerms)
@@ -108,12 +149,7 @@ class TokenGenerator
         $founduser = $this->user->GetByIDorUUID($contact_id, null, array('contact_id'));
 
         if ($founduser !== false) {
-            $packer = (new Packer())
-                ->extendWith(new UserPermissions())
-                ->extendWith(new EventPermissions());
-
-            $founduser['permissions'] = $packer->pack($newPerms);
-
+            $founduser['permissions'] = $this->packPermissions($newPerms);
             $this->user->Update($founduser);
         } else {
             throw new Exception('User does not exist');

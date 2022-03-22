@@ -1,6 +1,6 @@
 <?php
 
-namespace CM3_Lib\Action\Public;
+namespace CM3_Lib\Action\Account;
 
 use CM3_Lib\util\TokenGenerator;
 use CM3_Lib\util\CurrentUserInfo;
@@ -22,8 +22,7 @@ class RefreshToken
         private Responder $responder,
         private TokenGenerator $TokenGenerator,
         private CurrentUserInfo $CurrentUserInfo
-    )
-    {
+    ) {
     }
 
     /**

@@ -20,7 +20,7 @@ final class Search
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private admin\user $admin\user)
+    public function __construct(private Responder $responder, private user $user)
     {
     }
 
@@ -42,7 +42,7 @@ final class Search
           //new SearchTerm('active', 1)
         );
 
-        $order = array('id' => false);
+        $order = array('contact_id' => false);
 
         $page      = ($request->getQueryParams()['page']?? 0 > 0) ? $request->getQueryParams()['page'] : 1;
         $limit     = $request->getQueryParams()['itemsPerPage']?? -1; // Number of posts on one page
@@ -52,7 +52,7 @@ final class Search
         }
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->admin\user->Search(array(), $whereParts, $order, $limit, $offset);
+        $data = $this->user->Search(array(), $whereParts, $order, $limit, $offset);
 
         // Build the HTTP response
         return $this->responder

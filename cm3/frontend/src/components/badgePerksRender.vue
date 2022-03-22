@@ -17,7 +17,7 @@
 export default {
   components: {
   },
-  props: ['description','rewardlist'],
+  props: ['description', 'rewardlist'],
   data: () => ({
   }),
 };

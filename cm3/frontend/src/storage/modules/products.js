@@ -50,6 +50,12 @@ const getters = {
 
 // actions
 const actions = {
+    selectEventId({commit},event_id) {
+        return new Promise((resolve) => {
+            commit('selectEvent', event_id);
+            resolve();
+        })
+    },
     getEventInfo({commit,state}){
 
           return new Promise((resolve) => {
@@ -142,7 +148,7 @@ const actions = {
         resolve();
       }
     })
-  }
+  },
 }
 
 // mutations

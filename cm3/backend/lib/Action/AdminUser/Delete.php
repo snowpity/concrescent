@@ -19,7 +19,7 @@ final class Update
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private admin\user $admin\user)
+    public function __construct(private Responder $responder, private user $user)
     {
     }
 
@@ -35,10 +35,10 @@ final class Update
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
-        $data['id'] = $id['id'];
+        $data['contact_id'] = $id['id'];
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->admin\user->Delete($data);
+        $data = $this->user->Delete($data);
 
         // Build the HTTP response
         return $this->responder

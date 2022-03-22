@@ -208,123 +208,118 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from 'vuex';
 
-import badgeQuestionRender from '@/components/badgeQuestionRender.vue'
-import badgePerksRender from '@/components/badgePerksRender.vue'
+import badgeQuestionRender from '@/components/badgeQuestionRender.vue';
+import badgePerksRender from '@/components/badgePerksRender.vue';
 
 export default {
-  data () {
-      return {
-        step: 1,
-        reachedStep: 1,
-        cartId:-1,
-        editBadgeId:-1, //Attendee's ID, not the badgeType
-        editBadgeIdUUID:'',
-        editBadgePriorBadgeId: -1,
-        editBadgePriorAddons: [],
+  data() {
+    return {
+      step: 1,
+      reachedStep: 1,
+      cartId: -1,
+      editBadgeId: -1, // Attendee's ID, not the badgeType
+      editBadgeIdUUID: '',
+      editBadgePriorBadgeId: -1,
+      editBadgePriorAddons: [],
 
-        validGenInfo: false,
-        real_name:"",
-        fandom_name:"",
-        name_on_badge:"Real Name Only",
-        name_on_badgeType: ["Fandom Name Large, Real Name Small", "Real Name Large, Fandom Name Small","Real Name Only", "Fandom Name Only"],
-        date_of_birth:null,
-        bdayActivePicker:'YEAR',
-        selectedBadge: null,
-        badge_type_id: -1,
-        menuBDay:false,
+      validGenInfo: false,
+      real_name: '',
+      fandom_name: '',
+      name_on_badge: 'Real Name Only',
+      name_on_badgeType: ['Fandom Name Large, Real Name Small', 'Real Name Large, Fandom Name Small', 'Real Name Only', 'Fandom Name Only'],
+      date_of_birth: null,
+      bdayActivePicker: 'YEAR',
+      selectedBadge: null,
+      badge_type_id: -1,
+      menuBDay: false,
 
-        notify_email:"",
-        can_transfer:false,
-        ice_name:"",
-        ice_relationship:"",
-        ice_email_address:"",
-        ice_phone_number:"",
+      notify_email: '',
+      can_transfer: false,
+      ice_name: '',
+      ice_relationship: '',
+      ice_email_address: '',
+      ice_phone_number: '',
 
-        validAdditionalInfo: false,
-        form_responses: {},
-        addonsSelected: [],
+      validAdditionalInfo: false,
+      form_responses: {},
+      addonsSelected: [],
 
+      RulesRequired: [
+        (v) => !!v || 'Required',
+      ],
+      RulesName: [
+        (v) => !!v || 'Name is required',
+        (v) => (v && v.length <= 500) || 'Name must be less than 500 characters',
+      ],
+      RulesNameFandom: [
 
-        RulesRequired: [
-          v => !!v || 'Required'
-        ],
-        RulesName: [
-          v => !!v || 'Name is required',
-          v => (v && v.length <= 500) || 'Name must be less than 500 characters',
-        ],
-        RulesNameFandom: [
+        (v) => (v == '' || (v && v.length <= 255)) || 'Name must be less than 255 characters',
+      ],
+      RulesNameDisplay: [
+        (v) => ((this.fandom_name.length < 1) || (this.fandom_name.length > 0 && v != '')) || 'Please select a display type',
+      ],
+      RulesEmail: [
+        (v) => !v || /.+@.+\..+/.test(v) || 'E-mail must be valid',
+      ],
+      RulesPhone: [
+        (v) => !v || v.length > 6 || 'Phone number too short',
+        /* v =>  !v || /^\D?(\d{3})\D?\D?(\d{3})\D?(\d{4})$/.test(v) || 'Phone number should be valid' */
+      ],
 
-          v => (v == "" || (v && v.length <= 255)) || 'Name must be less than 255 characters',
-        ],
-        RulesNameDisplay: [
-          v => ((this.fandom_name.length < 1) || (this.fandom_name.length > 0 && v != "")) || 'Please select a display type'
-        ],
-        RulesEmail: [
-          v => !v || /.+@.+\..+/.test(v) || 'E-mail must be valid',
-        ],
-        RulesPhone: [
-          v =>  !v || v.length > 6 || 'Phone number too short',
-          /*v =>  !v || /^\D?(\d{3})\D?\D?(\d{3})\D?(\d{4})$/.test(v) || 'Phone number should be valid'*/
-        ],
-
-      addonDisplayState:[]
-      }
-    },
+      addonDisplayState: [],
+    };
+  },
   computed: {
     ...mapState({
-      products: state => state.products.all,
-      questions: state => state.products.questions,
-      addons: state => state.products.addons
+      products: (state) => state.products.all,
+      questions: (state) => state.products.questions,
+      addons: (state) => state.products.addons,
     }),
-    rewardlist: function() {
-      //return this.$options.filters.split_carriagereturn(this.badges[this.selectedBadge].rewards);
-      return this.badges[this.selectedBadge] ? this.badges[this.selectedBadge].rewards : "";
+    rewardlist() {
+      // return this.$options.filters.split_carriagereturn(this.badges[this.selectedBadge].rewards);
+      return this.badges[this.selectedBadge] ? this.badges[this.selectedBadge].rewards : '';
     },
-    badges: function() {
-      //Crude clone
+    badges() {
+      // Crude clone
       let badges = JSON.parse(JSON.stringify(this.products));
-      //First, do we have a date_of_birth?
-      var bday = new Date(this.date_of_birth)
-      if(this.date_of_birth && bday)
-      {
-        badges = badges.filter(badge => {
-          if(!(
-               (badge['min-birthdate'] != null && bday < new Date(badge['min-birthdate']))
-             ||(badge['max-birthdate'] != null && bday > new Date(badge['max-birthdate']))
-          ))
-            return badge;
+      // First, do we have a date_of_birth?
+      const bday = new Date(this.date_of_birth);
+      if (this.date_of_birth && bday) {
+        badges = badges.filter((badge) => {
+          if (!(
+            (badge['min-birthdate'] != null && bday < new Date(badge['min-birthdate']))
+             || (badge['max-birthdate'] != null && bday > new Date(badge['max-birthdate']))
+          )) { return badge; }
         });
       }
 
-      //Are we editing a badge?
-      if(this.editBadgeId > -1)
-      {
-        var oldBadge =  badges.find(badge => badge.id == this.editBadgePriorBadgeId);
-        if(oldBadge != undefined)
-        {
-          var oldPrice =  parseFloat(oldBadge.price)
-          //Determine price difference
-          badges.forEach(function(badge){
+      // Are we editing a badge?
+      if (this.editBadgeId > -1) {
+        const oldBadge = badges.find((badge) => badge.id == this.editBadgePriorBadgeId);
+        if (oldBadge != undefined) {
+          const oldPrice = parseFloat(oldBadge.price);
+          // Determine price difference
+          badges.forEach((badge) => {
             badge.originalprice = badge.price;
-            badge.price = Math.max(parseFloat(badge.price) - oldPrice,0).toFixed(2);
-          })
+            badge.price = Math.max(parseFloat(badge.price) - oldPrice, 0).toFixed(2);
+          });
         }
       }
 
-      badges.sort((a,b) => a.order - b.order);
+      badges.sort((a, b) => a.order - b.order);
       return badges;
     },
-    compiledBadge: function() {
-      //Special because of how the select dropdown works
+    compiledBadge() {
+      // Special because of how the select dropdown works
       return {
 
-        cartId:this.cartId,
-        editBadgeId:this.editBadgeId,
-        editBadgeIdUUID:this.editBadgeIdUUID,
-        editBadgePriorBadgeId:this.editBadgePriorBadgeId,
-        editBadgePriorAddons:this.editBadgePriorAddons,
+        cartId: this.cartId,
+        editBadgeId: this.editBadgeId,
+        editBadgeIdUUID: this.editBadgeIdUUID,
+        editBadgePriorBadgeId: this.editBadgePriorBadgeId,
+        editBadgePriorAddons: this.editBadgePriorAddons,
 
         real_name: this.real_name,
         fandom_name: this.fandom_name,
@@ -332,133 +327,126 @@ export default {
         date_of_birth: this.date_of_birth,
         badge_type_id: this.badge_type_id,
 
-        ice_name:this.ice_name,
-        ice_relationship:this.ice_relationship,
-        ice_email_address:this.ice_email_address,
-        ice_phone_number:this.ice_phone_number,
-        form_responses:this.form_responses,
-        addonsSelected:this.addonsSelected
+        ice_name: this.ice_name,
+        ice_relationship: this.ice_relationship,
+        ice_email_address: this.ice_email_address,
+        ice_phone_number: this.ice_phone_number,
+        form_responses: this.form_responses,
+        addonsSelected: this.addonsSelected,
 
       };
     },
-    isUpdatingItem: function() {
+    isUpdatingItem() {
       return (this.cartId != null && this.cartId > -1) || (this.editBadgeId != null && this.editBadgeId > -1);
     },
-    isProbablyDowngrading: function() {
-      if(! this.isUpdatingItem)
-        return false;
+    isProbablyDowngrading() {
+      if (!this.isUpdatingItem) { return false; }
 
-      var oldBadge =  this.badges.find(badge => badge.id == this.editBadgePriorBadgeId);
-      var selectedBadge = this.badges[this.selectedBadge];
-      return typeof oldBadge != 'undefined'
-        && typeof selectedBadge != 'undefined'
+      const oldBadge = this.badges.find((badge) => badge.id == this.editBadgePriorBadgeId);
+      const selectedBadge = this.badges[this.selectedBadge];
+      return typeof oldBadge !== 'undefined'
+        && typeof selectedBadge !== 'undefined'
         && parseFloat(oldBadge.originalprice) > parseFloat(selectedBadge.originalprice);
     },
-    currentContactInfo: function() {
+    currentContactInfo() {
       return {
 
-                contactEmail:this.contactEmail,
-                subscribed:this.contactSubscribePromotions,
-                contactPhone:this.contactPhone,
-                contactStreet1:this.contactStreet1,
-                contactStreet2:this.contactStreet2,
-                contactCity:this.contactCity,
-                contactState:this.contactState,
-                contactPostalCode:this.contactPostalCode,
-                contactCountry:this.contactCountry,
-                ice_name:this.ice_name,
-                ice_relationship:this.ice_relationship,
-                ice_email_address:this.ice_email_address,
-                ice_phone_number:this.ice_phone_number,
+        contactEmail: this.contactEmail,
+        subscribed: this.contactSubscribePromotions,
+        contactPhone: this.contactPhone,
+        contactStreet1: this.contactStreet1,
+        contactStreet2: this.contactStreet2,
+        contactCity: this.contactCity,
+        contactState: this.contactState,
+        contactPostalCode: this.contactPostalCode,
+        contactCountry: this.contactCountry,
+        ice_name: this.ice_name,
+        ice_relationship: this.ice_relationship,
+        ice_email_address: this.ice_email_address,
+        ice_phone_number: this.ice_phone_number,
       };
     },
-    badgeQuestions: function() {
-      //Todo: Filter by badge context
-      var badgeId = typeof this.badges[this.selectedBadge] == "undefined" ? "" : this.badges[this.selectedBadge].id.toString();
-      if(!(badgeId in this.questions)) return {};
-      //Filter out the ones that don't apply to this badge
-      var result = this.questions[badgeId];
-      //Apply display logic
-      result.forEach(function(question){
+    badgeQuestions() {
+      // Todo: Filter by badge context
+      const badgeId = typeof this.badges[this.selectedBadge] === 'undefined' ? '' : this.badges[this.selectedBadge].id.toString();
+      if (!(badgeId in this.questions)) return {};
+      // Filter out the ones that don't apply to this badge
+      const result = this.questions[badgeId];
+      // Apply display logic
+      result.forEach((question) => {
 
-      })
-      //Sort it out
-      result.sort((a,b) => a.order - b.order);
+      });
+      // Sort it out
+      result.sort((a, b) => a.order - b.order);
       return result;
     },
-    badgeAddons: function() {
-      //Todo: Filter by badge context
-      var badgeId = typeof this.badges[this.selectedBadge] == "undefined" ? "" : this.badges[this.selectedBadge].id.toString();
-      //Do we have questions at all for this badge?
-      if(!(badgeId in this.addons)) return {};
-      //Filter out the ones that don't apply to this badge
-      var result = this.addons[badgeId];
+    badgeAddons() {
+      // Todo: Filter by badge context
+      const badgeId = typeof this.badges[this.selectedBadge] === 'undefined' ? '' : this.badges[this.selectedBadge].id.toString();
+      // Do we have questions at all for this badge?
+      if (!(badgeId in this.addons)) return {};
+      // Filter out the ones that don't apply to this badge
+      let result = this.addons[badgeId];
 
-      //First, do we have a date_of_birth?
-      var bday = new Date(this.date_of_birth)
-      if(this.date_of_birth && bday)
-      {
-        result = result.filter(badge => {
-          if(!(
-               (badge['min-birthdate'] != null && bday < new Date(badge['min-birthdate']))
-             ||(badge['max-birthdate'] != null && bday > new Date(badge['max-birthdate']))
-          ))
-            return badge;
+      // First, do we have a date_of_birth?
+      const bday = new Date(this.date_of_birth);
+      if (this.date_of_birth && bday) {
+        result = result.filter((badge) => {
+          if (!(
+            (badge['min-birthdate'] != null && bday < new Date(badge['min-birthdate']))
+             || (badge['max-birthdate'] != null && bday > new Date(badge['max-birthdate']))
+          )) { return badge; }
         });
-
       }
-      ////Apply logic to required
-      //result.forEach(function(question){
+      /// /Apply logic to required
+      // result.forEach(function(question){
       //  question.isRequired = question.required == '*' || question.required.includes(badgeId)
-      //})
+      // })
 
-      //Sort it out
-      result.sort((a,b) => a.order - b.order);
+      // Sort it out
+      result.sort((a, b) => a.order - b.order);
       return result;
-    }
+    },
   },
   watch: {
-    step: function(newStep){
-      this.reachedStep = Math.max(this.reachedStep,newStep);
+    step(newStep) {
+      this.reachedStep = Math.max(this.reachedStep, newStep);
       this.autoSaveBadge();
     },
-    menuBDay (val) {
-        //Whenever opening the picker, always reset it back to start with the Year
-      val && setTimeout(() => (this.bdayActivePicker = 'YEAR'))
+    menuBDay(val) {
+      // Whenever opening the picker, always reset it back to start with the Year
+      val && setTimeout(() => (this.bdayActivePicker = 'YEAR'));
     },
     contactReuse(val) {
-      if(val){
-        //Apply the contact info
-        var contactInfo  = this.$store.getters["cart/getLatestContactInfo"];
+      if (val) {
+        // Apply the contact info
+        const contactInfo = this.$store.getters['cart/getLatestContactInfo'];
         Object.assign(this, contactInfo);
       }
     },
-    date_of_birth () {
-
+    date_of_birth() {
       this.checkBadge();
     },
     selectedBadge(val) {
-
-      this.badge_type_id =  typeof this.badges[val] == "undefined" ? this.badge_type_id : this.badges[val].id;
+      this.badge_type_id = typeof this.badges[val] === 'undefined' ? this.badge_type_id : this.badges[val].id;
     },
     compiledBadge() {
       this.autoSaveBadge();
     },
-    '$route.name' : function(name) {
-      //The only way this changes is... if they click the Add Badge from the main menu while still here
-      //Still, in case of weirdness...
-      if(name == "addbadge")
-      {
+    '$route.name': function (name) {
+      // The only way this changes is... if they click the Add Badge from the main menu while still here
+      // Still, in case of weirdness...
+      if (name == 'addbadge') {
         this.resetBadge();
       }
     },
-    $route(/*to, from*/) {
+    $route(/* to, from */) {
       // react to route changes...
       this.loadBadge();
-    }
+    },
   },
   methods: {
-      ...mapActions('cart', [
+    ...mapActions('cart', [
       'addProductToCart',
       'setLatestContactInfo',
     ]),
@@ -466,110 +454,96 @@ export default {
       this.$refs.menuBDay.save(date);
       this.date_of_birth = this.date_of_birth;
     },
-    loadBadge(){
-      var cartItem;
+    loadBadge() {
+      let cartItem;
       this.cartId = parseInt(this.$route.params.cartId);
-      var editBadgeIdString = this.$route.params.editId;
-      var badge_type_id = -1;
-      if(this.cartId > -1 )
-      {
-        //Load up the badge from the cart
-        cartItem = this.$store.getters["cart/getProductInCart"](this.cartId);
+      const editBadgeIdString = this.$route.params.editId;
+      let badge_type_id = -1;
+      if (this.cartId > -1) {
+        // Load up the badge from the cart
+        cartItem = this.$store.getters['cart/getProductInCart'](this.cartId);
         this.reachedStep = 4;
-      } else if(editBadgeIdString && editBadgeIdString.length > 0)
-      {
-        //Load up the badge from the cart
-        cartItem = this.$store.getters["mydata/getBadgeAsCart"](editBadgeIdString);
+      } else if (editBadgeIdString && editBadgeIdString.length > 0) {
+        // Load up the badge from the cart
+        cartItem = this.$store.getters['mydata/getBadgeAsCart'](editBadgeIdString);
         this.editBadgePriorBadgeId = cartItem.badge_type_id;
         this.reachedStep = 4;
-      }
-      else if(this.$route.params.cartId == undefined)
-      {
-        //It's a new badge or they're back here from a refresh/navigation
-        cartItem = this.$store.getters["cart/getCurrentlyEditingItem"];
-        //Should only be needed if we didn't have a selectedBadge?
-        //this.selectedBadge = this.badges.findIndex(badge => badge.id == cartItem.badge_type_id);
+      } else if (this.$route.params.cartId == undefined) {
+        // It's a new badge or they're back here from a refresh/navigation
+        cartItem = this.$store.getters['cart/getCurrentlyEditingItem'];
+        // Should only be needed if we didn't have a selectedBadge?
+        // this.selectedBadge = this.badges.findIndex(badge => badge.id == cartItem.badge_type_id);
       }
 
-      //Pull out the BadgeId
+      // Pull out the BadgeId
       badge_type_id = cartItem.badge_type_id || 0;
-      //delete cartItem.badge_type_id;
+      // delete cartItem.badge_type_id;
       Object.assign(this, cartItem);
-      //Special props
-      var _this = this;
+      // Special props
+      const _this = this;
 
       this.checkBadge();
       setTimeout(() => {
-        var newIndex = _this.badges.findIndex(badge => badge.id == badge_type_id)
-        if(newIndex > -1)
-          _this.selectedBadge =newIndex;
-
+        const newIndex = _this.badges.findIndex((badge) => badge.id == badge_type_id);
+        if (newIndex > -1) { _this.selectedBadge = newIndex; }
       }, 200);
     },
-    resetBadge(){
+    resetBadge() {
       Object.assign(this.$data, this.$options.data.apply(this));
-      this.$store.commit("cart/setCurrentlyEditingItem", this.compiledBadge);
+      this.$store.commit('cart/setCurrentlyEditingItem', this.compiledBadge);
       this.step = 1;
     },
-    autoSaveBadge(){
-
-      var cartItem = this.compiledBadge;
+    autoSaveBadge() {
+      const cartItem = this.compiledBadge;
       cartItem.reachedStep = this.reachedStep;
       cartItem.step = parseInt(this.step);
-      cartItem.selectedBadge=this.selectedBadge;
-      this.$store.commit("cart/setCurrentlyEditingItem", cartItem);
-
+      cartItem.selectedBadge = this.selectedBadge;
+      this.$store.commit('cart/setCurrentlyEditingItem', cartItem);
     },
     checkBadge() {
-
-      //Ensure only applicable badges are selected!
-      if(this.badges.length > 0)
-      {
-        var bid = this.badge_type_id;
-        var badge = this.badges.findIndex(badge => badge.id == bid);
-        if(badge == -1) badge = 0;
+      // Ensure only applicable badges are selected!
+      if (this.badges.length > 0) {
+        const bid = this.badge_type_id;
+        let badge = this.badges.findIndex((badge) => badge.id == bid);
+        if (badge == -1) badge = 0;
         this.selectedBadge = badge;
       }
 
-      //Ensure only applicable badge addons are selected!
-      var badgeAddons = this.badgeAddons;
-      if(badgeAddons.length > 0)
-      {
-          if(typeof this.addonsSelected.filter == 'function')
-          this.addonsSelected = this.addonsSelected.filter(function(aid) {
-            return undefined != badgeAddons[aid];
-          });
+      // Ensure only applicable badge addons are selected!
+      const { badgeAddons } = this;
+      if (badgeAddons.length > 0) {
+        if (typeof this.addonsSelected.filter === 'function') {
+          this.addonsSelected = this.addonsSelected.filter((aid) => undefined != badgeAddons[aid]);
+        }
       }
     },
     addBadgeToCart() {
-
       this.addProductToCart(this.compiledBadge);
-      //TODO: Resolve a promise from the above so we can update the history to point to the edit-badge version of this
+      // TODO: Resolve a promise from the above so we can update the history to point to the edit-badge version of this
       this.resetBadge();
-      //Also reset the saved info so we don't accidentally resume editing
+      // Also reset the saved info so we don't accidentally resume editing
       this.autoSaveBadge();
-      //Go to the cart
-      this.$router.push("/cart");
+      // Go to the cart
+      this.$router.push('/cart');
     },
-    badgeIndex: function(item){
+    badgeIndex(item) {
       return this.badges.indexOf(item);
     },
-    quantityZero: function(item) {
+    quantityZero(item) {
       return item.quantity == 0;
     },
-    badgeAddonPriorSelected: function(addonid) {
+    badgeAddonPriorSelected(addonid) {
       return this.editBadgePriorAddons.indexOf(addonid) != -1;
-    }
+    },
   },
   components: {
     badgeQuestionRender,
-    badgePerksRender
+    badgePerksRender,
   },
-  created () {
-      this.$store.dispatch('products/getAllProducts').then(this.loadBadge())
-      this.$store.dispatch('products/getAllQuestions')
-      this.$store.dispatch('products/getAllAddons')
-
-  }
-}
+  created() {
+    this.$store.dispatch('products/getAllProducts').then(this.loadBadge());
+    this.$store.dispatch('products/getAllQuestions');
+    this.$store.dispatch('products/getAllAddons');
+  },
+};
 </script>

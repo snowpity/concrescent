@@ -1,14 +1,15 @@
-const config = require("../../customization/config.js");
-import '@mdi/font/css/materialdesignicons.css' // Ensure you are using css-loader
+import '@mdi/font/css/materialdesignicons.css'; // Ensure you are using css-loader
 import Vue from 'vue';
 import Vuetify, {
-  VTextField
+  VTextField,
 } from 'vuetify/lib';
+
+const config = require('../../customization/config.js');
 
 Vue.use(Vuetify, {
   components: {
-    VTextField
-  }
+    VTextField,
+  },
 });
 
 export default new Vuetify({
@@ -18,7 +19,7 @@ export default new Vuetify({
   theme: {
     themes: {
       light: config.themeLight,
-      dark: config.themeDark
+      dark: config.themeDark,
     },
   },
 });

@@ -30,6 +30,73 @@ export default {
       })
   },
 
+  getQuestions(event_id,context,cb) {
+    axios.get(global.config.apiHostURL + "public/" + event_id + '/questions/' + context)
+      .then(function(response) {
+        cb(response.data);
+      })
+      .catch(function(error) {
+        error + "oops"
+      })
+  },
+
+  getAddons(event_id,context,cb) {
+    axios.get(global.config.apiHostURL + "public/" + event_id + '/badges/' + context + '/addons')
+      .then(function(response) {
+        cb(response.data);
+      })
+      .catch(function(error) {
+        error + "oops"
+      })
+  },
+
+
+
+  //Response should be a token
+  createAccount(accountInfo, cb, errorCb) {
+    axios.post(global.config.apiHostURL + "public/createaccount" , accountInfo)
+      .then(function(response) {
+        cb(response.data);
+      })
+      .catch(function(response) {
+        errorCb(response.response.data);
+      });
+  },
+  loginAccount(accountCreds, cb, errorCb) {
+    axios.post(global.config.apiHostURL + "public/login" , accountCreds)
+      .then(function(response) {
+        cb(response.data);
+      })
+      .catch(function(response) {
+        errorCb(response.response.data);
+      });
+  },
+  getLatestContactInfo(token, cb, errorCb) {
+    axios.get(global.config.apiHostURL + "account" , {
+          headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(function(response) {
+        cb(response.data);
+      })
+      .catch(function(response) {
+        errorCb(response.response.data);
+      });
+  },
+  switchEvent(token, event_id, cb, errorCb){
+      axios.post(global.config.apiHostURL + "account/switchevent" ,
+      {
+          "event_id":event_id
+      },{
+            headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(function(response) {
+          cb(response.data);
+        })
+        .catch(function(response) {
+          errorCb(response.response.data);
+        });
+  },
+
   buyProducts(products, cb, errorCb) {
     axios.post(global.config.apiHostURL + "cart.php", {
         action: 'checkout',
@@ -58,26 +125,6 @@ export default {
       });
   },
 
-  getQuestions(event_id,context,cb) {
-    axios.get(global.config.apiHostURL + "public/" + event_id + '/questions/' + context)
-      .then(function(response) {
-        cb(response.data);
-      })
-      .catch(function(error) {
-        error + "oops"
-      })
-  },
-
-  getAddons(event_id,context,cb) {
-    axios.get(global.config.apiHostURL + "public/" + event_id + '/badges/' + context + '/addons')
-      .then(function(response) {
-        cb(response.data);
-      })
-      .catch(function(error) {
-        error + "oops"
-      })
-  },
-
   getMyBadges(gid, tid, cb, errorCb) {
     axios.post(global.config.apiHostURL + "mybadges.php", {
         gid: gid,
@@ -92,8 +139,8 @@ export default {
   },
   sentEmailRetrieveBadges(email, cb, errorCb) {
 
-    axios.post(global.config.apiHostURL + "mybadges.php", {
-        email: email
+    axios.post(global.config.apiHostURL + "public/requestmagic", {
+        email_address: email
       })
       .then(function(response) {
         cb(response.data);

@@ -74,39 +74,39 @@
 
 <script>
 export default {
-  props: ['question','value'],
+  props: ['question', 'value'],
   data: () => ({
-    //userResponse: ""
+    // userResponse: ""
     RulesRequired: [
-      v => !!v || 'Answer is required'
+      (v) => !!v || 'Answer is required',
     ],
     RulesEmail: [
-      v => !v || /.+@.+\..+/.test(v) || 'E-mail must be valid',
+      (v) => !v || /.+@.+\..+/.test(v) || 'E-mail must be valid',
     ],
     RulesEmailRequired: [
-      v => !!v || 'E-mail is required',
-      v => /.+@.+\..+/.test(v) || 'E-mail must be valid',
+      (v) => !!v || 'E-mail is required',
+      (v) => /.+@.+\..+/.test(v) || 'E-mail must be valid',
     ],
     RulesURL: [
-      v => !v || /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/.test(v) || 'URL must be valid',
+      (v) => !v || /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/.test(v) || 'URL must be valid',
     ],
     RulesURLRequired: [
-      v => !!v || 'URL is required',
-      v => /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/.test(v) || 'URL must be valid',
+      (v) => !!v || 'URL is required',
+      (v) => /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/.test(v) || 'URL must be valid',
     ],
   }),
   computed: {
-    listItems: function() {
-      return this.question.values;//.split("\n")
+    listItems() {
+      return this.question.values;// .split("\n")
     },
     userResponse: {
-        get() { return this.value },
-        set(userResponse) {this.$emit('input', userResponse)}
+      get() { return this.value; },
+      set(userResponse) { this.$emit('input', userResponse); },
     },
     multiSelectResponse: {
-      get() { return (this.userResponse || "").split("\n").filter(Boolean) || [];},
-      set(multiSelectResponse) { this.userResponse = multiSelectResponse ? multiSelectResponse.join("\n") : "";}
-    }
+      get() { return (this.userResponse || '').split('\n').filter(Boolean) || []; },
+      set(multiSelectResponse) { this.userResponse = multiSelectResponse ? multiSelectResponse.join('\n') : ''; },
+    },
 
   },
 

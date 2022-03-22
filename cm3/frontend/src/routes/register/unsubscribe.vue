@@ -25,7 +25,7 @@
 <script>
 export default {
   data: () => ({
-    showpassword:false,
+    showpassword: false,
   }),
 };
 </script>

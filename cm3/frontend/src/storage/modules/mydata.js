@@ -2,9 +2,12 @@ import shop from '../../api/shop'
 
 // initial state
 const state = {
+  token:"",
+  permissions:null,
   ownedbadges: {},
   BadgeRetrievalStatus: false,
-  BadgeRetrievalResult: ''
+  BadgeRetrievalResult: '',
+  contactInfo: null,
 }
 
 
@@ -26,10 +29,52 @@ const getters = {
       result.editBadgeId = result.id;
       return result;
     },
+    getIsLoggedIn: (state) => {
+        return state.token != "" && state.contactInfo.id != undefined;
+    },
+    getHasPerms: (state) => {
+        return state.permissions != null;
+    }
 }
 
 // actions
 const actions = {
+    createAccount({dispatch, commit}, accountInfo){
+        return new Promise((resolve, reject)=>{
+            shop.createAccount(accountInfo)
+            .then((token) => {
+                resolve(dispatch('loginToken', token));
+            })
+            .catch(reject);
+        })
+    },
+    loginToken({dispatch,commit,state}, token){
+        return new Promise((resolve) => {
+            shop.switchEvent(token,state.event_id,(data) => {
+                commit('setToken',data.token);
+                commit('setPermissions',data.permissions);
+                dispatch('products/selectEventId', data.event_id, { root: true });
+                dispatch('refreshContactInfo');
+            });
+
+        })
+    },
+    loginPassword({dispatch,commit,state}, username, password){
+        return new Promise((resolve) => {
+            shop.loginAccount({username, password}, state.selectedEventId,(data) => {
+                commit('setToken',data.token);
+                dispatch('products/selectEventId', data.event_id, { root: true });
+                dispatch('refreshContactInfo');
+            });
+        })
+    },
+    refreshContactInfo({commit,state}) {
+            return new Promise((resolve) => {
+                shop.getLatestContactInfo(state.token, (data) =>{
+                    commit('setContactInfo',data);
+                })
+            })
+    },
   clearCart({
     commit
   }) {
@@ -60,6 +105,8 @@ const actions = {
       },
       function(data) {
         //Error?
+        commit('setBadgeRetrievalResult', "Error requesting badge retrieval email. " + data);
+            //console.log(data);
       });
   },
   retrieveBadges({
@@ -82,7 +129,8 @@ const actions = {
       },
       function(data) {
         //Error?
-        commit('setBadgeRetrievalResult', "Error retrieving badges.");
+        commit('setBadgeRetrievalResult', "Error retrieving badges." + data);
+            //console.log(data);
       }
     )
   },
@@ -105,6 +153,15 @@ const mutations = {
     }
   },
 
+    setToken(state,newtoken){
+      state.token = newtoken;
+    },
+    setPermissions(state,newPermissions){
+      state.permissions = newPermissions;
+    },
+    setContactInfo(state,newContactInfo){
+        state.contactInfo = newContactInfo;
+    },
 
   setOwnedBadges(state, {
     items
