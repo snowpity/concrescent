@@ -64,6 +64,7 @@ final class badgeinfo
       //badge_type_name
 
       //Full view will add:
+      //payment_txn_id
       //notes
       //large_name
       //small_name
@@ -345,16 +346,21 @@ final class badgeinfo
         return $this->addComputedColumns($result);
     }
 
-    public function SearchBadges($find, $order, $limit, $offset)
+    public function SearchBadges($find, $order, $limit, $offset, &$totalRows)
     {
-        $whereParts = array(
+        $whereParts =
+            empty($find) ? null :
+             array(
             new SearchTerm('real_name', $find, Raw: 'MATCH(`real_name`, `fandom_name`, `notify_email`, `ice_name`, `ice_email_address`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
         );
         // Invoke the Domain with inputs and retain the result
-        $a_data = $this->a_badge->Search($this->badgeView($this->a_badge_type, 'A'), $whereParts, $order, $limit, $offset);
-        $s_data = $this->s_badge->Search($this->badgeView($this->s_badge_type, 'S'), $whereParts, $order, $limit, $offset);
-        $g_data = $this->g_badge->Search($this->groupBadgeView(), $whereParts, $order, $limit, $offset);
-
+        $trA = 0;
+        $trG = 0;
+        $trS = 0;
+        $a_data = $this->a_badge->Search($this->badgeView($this->a_badge_type, 'A'), $whereParts, $order, $limit, $offset, $trA);
+        $s_data = $this->s_badge->Search($this->badgeView($this->s_badge_type, 'S'), $whereParts, $order, $limit, $offset, $trG);
+        $g_data = $this->g_badge->Search($this->groupBadgeView(), $whereParts, $order, $limit, $offset, $trS);
+        $totalRows =  $trA + $trG + $trS;
         return array_merge($a_data, $s_data, $g_data);
     }
 
@@ -462,7 +468,8 @@ final class badgeinfo
         return new View(
             array(
                 'notes',
-                'uuid'
+                'uuid',
+                'payment_txn_id'
             ),
             array(
 
@@ -474,7 +481,8 @@ final class badgeinfo
         return new View(
             array(
                 'notes',
-                'uuid'
+                'uuid',
+                'payment_txn_id'
             )
         );
     }
@@ -489,6 +497,7 @@ final class badgeinfo
                    new SelectColumn('application_status', EncapsulationFunction: "''", Alias:'application_status'),
                    new SelectColumn('badge_type_id', JoinedTableAlias:'bs'),
                    new SelectColumn('payment_status', JoinedTableAlias:'bs'),
+                   new SelectColumn('payment_txn_id', JoinedTableAlias:'bs'),
                    new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ'),
                    new SelectColumn('payable_onsite', Alias:'badge_type_payable_onsite', JoinedTableAlias:'typ'),
                    new SelectColumn('payment_deferred', Alias:'badge_type_payment_deferred', JoinedTableAlias:'typ')

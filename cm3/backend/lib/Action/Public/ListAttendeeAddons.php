@@ -12,6 +12,8 @@ use CM3_Lib\models\attendee\addon;
 use CM3_Lib\models\attendee\addonmap;
 use CM3_Lib\models\attendee\addonpurchase;
 
+use CM3_Lib\util\CurrentUserInfo;
+
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -28,7 +30,7 @@ final class ListAttendeeAddons
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private badgetype $badgetype, private addon $addon, private addonmap $addonmap, private addonpurchase $addonpurchase)
+    public function __construct(private Responder $responder, private badgetype $badgetype, private addon $addon, private addonmap $addonmap, private addonpurchase $addonpurchase, private CurrentUserInfo $CurrentUserInfo)
     {
     }
 
@@ -94,7 +96,8 @@ final class ListAttendeeAddons
         );
 
         $whereParts = array(
-          new SearchTerm('active', 1)
+          new SearchTerm('active', 1),
+          new SearchTerm('event_id', $params['event_id'])
         );
 
         $order = array('display_order' => false);

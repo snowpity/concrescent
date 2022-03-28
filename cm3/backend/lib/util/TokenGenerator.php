@@ -97,7 +97,7 @@ class TokenGenerator
             return new UserPermissions();
         }
     }
-    public function decodePermissionsString(string $perms): UserPermissions
+    public function decodePermissionsString(?string $perms): UserPermissions
     {
         if (empty($perms)) {
             return new UserPermissions();

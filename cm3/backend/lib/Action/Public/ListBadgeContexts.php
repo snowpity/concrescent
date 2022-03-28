@@ -50,13 +50,15 @@ final class ListBadgeContexts
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->group->Search(array(
-          'context_code',
-          'name'
-          ), $whereParts, $order);
+            'id',
+           'context_code',
+           'name',
+           'menu_icon'
+         ), $whereParts, $order);
 
         //Append the hard-coded contexts
-        array_unshift($data, array('context_code'=>'A', 'name'=>'Attendee'));
-        $data[] = array('context_code'=>'S', 'name'=>'Staff');
+        array_unshift($data, array('id'=>-1,'context_code'=>'A', 'name'=>'Attendee'));
+        $data[] = array('id'=>0,'context_code'=>'S', 'name'=>'Staff');
 
         // Build the HTTP response
         return $this->responder

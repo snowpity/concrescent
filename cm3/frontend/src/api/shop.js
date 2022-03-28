@@ -93,6 +93,7 @@ export default {
           cb(response.data);
         })
         .catch(function(response) {
+            if(typeof errorCb != "undefined")
           errorCb(response.response.data);
         });
   },

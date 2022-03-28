@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 import Home from './routes/Home.vue';
+import AdminRoutes from './router-admin'
 
 Vue.use(Router);
 
@@ -93,5 +94,26 @@ export default new Router({
     },
     component: () => import(/* webpackChunkName: "Cart" */ './routes/register/unsubscribe.vue'),
   },
+  {
+    path: '/account/profile',
+    name: 'profile',
+    meta: {
+      title: 'My Profile',
+    },
+    component: () => import(/* webpackChunkName: "Cart" */ './routes/account/profile.vue'),
+  },
+  {
+    path: '/account/logout',
+    name: 'logout',
+    meta: {
+      title: 'Logged out',
+    },
+    component: () => import(/* webpackChunkName: "Cart" */ './routes/account/logout.vue'),
+  },
+  {
+      path: "/Admin",
+      children: AdminRoutes,
+      component: ()=> import('./views/dummy.vue')
+  }
   ],
 });

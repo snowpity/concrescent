@@ -37,7 +37,7 @@ const getters = {
             "date_end": ""
         };
       },
-      badgecontexts: (state) => {
+      badgeContexts: (state) => {
         return state.badgecontexts|| [];
       },
       selectedbadgecontext: (state) => {

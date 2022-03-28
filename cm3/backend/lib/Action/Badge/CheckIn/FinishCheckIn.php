@@ -49,7 +49,6 @@ final class FinishCheckIn
         $data = (array)$request->getParsedBody();
         $bid = $params['badge_id'];
         $cx = $params['context_code'];
-        $this->badgeinfo->SetEventId($request->getAttribute('event_id'));
 
         $current = $this->badgeinfo->GetSpecificBadge($bid, $cx, true);
 

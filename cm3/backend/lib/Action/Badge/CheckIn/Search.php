@@ -47,7 +47,6 @@ final class Search
     {
         //TODO: Also, provide some sane defaults
         $qp = $request->getQueryParams();
-        $this->badgeinfo->SetEventId($request->getAttribute('event_id'));
         $find = $qp['find'];
 
 
@@ -72,7 +71,22 @@ final class Search
         }
 
         //Not a scanned badge. Let's search then...
-        $order = array('id' => false);
+        //Interpret order parameters
+        $sortBy = explode(',', $qp['sortBy'] ??'');
+        //Add the ID
+        if (empty($sortBy[0])) {
+            $sortBy[0] = 'id';
+        } else {
+            $sortBy[] = 'id';
+        }
+        $sortDesc = array_map(function ($v) {
+            return $v == 'true';
+        }, explode(',', $qp['sortDesc']??''));
+
+        $order =array_combine(
+            $sortBy,
+            $sortDesc
+        );
 
         $page      = ($qp['page']?? 0 > 0) ? $qp['page'] : 1;
         $limit     = $qp['itemsPerPage']?? -1; // Number of posts on one page
@@ -80,7 +94,10 @@ final class Search
         if ($offset < 0) {
             $offset = 0;
         }
-        $data = $this->badgeinfo->SearchBadges($find, $order, $limit, $offset);
+        $totalRows = 0;
+        $data = $this->badgeinfo->SearchBadges($find, $order, $limit, $offset, $totalRows);
+
+        $response = $response->withHeader('X-Total-Rows', (string)$totalRows);
 
         // Build the HTTP response
         return $this->responder

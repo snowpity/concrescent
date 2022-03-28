@@ -11,12 +11,16 @@ return function (App $app) {
     });
     $app->add(function ($request, $handler) {
         $methods = RouteContext::fromRequest($request)->getRoutingResults()->getAllowedMethods();
+        $extraheaders = array(
+            'X-Total-Rows'
+        );
 
         $response = $handler->handle($request);
         return $response
               ->withHeader('Access-Control-Allow-Origin', '*')//Detect?
               ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
-              ->withHeader('Access-Control-Allow-Methods', implode(",", $methods));
+              ->withHeader('Access-Control-Allow-Methods', implode(",", $methods))
+              ->withHeader('Access-Control-Expose-Headers', implode(",", $extraheaders));
         ;
     });
 };

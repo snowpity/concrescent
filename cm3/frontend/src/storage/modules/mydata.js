@@ -4,6 +4,7 @@ import shop from '../../api/shop'
 const state = {
   token:"",
   permissions:null,
+  adminMode:false,
   ownedbadges: {},
   BadgeRetrievalStatus: false,
   BadgeRetrievalResult: '',
@@ -29,11 +30,37 @@ const getters = {
       result.editBadgeId = result.id;
       return result;
     },
-    getIsLoggedIn: (state) => {
-        return state.token != "" && state.contactInfo.id != undefined;
+    getAuthToken: (state) => {
+            return state.token;
     },
-    getHasPerms: (state) => {
+    getIsLoggedIn: (state) => {
+        return state.token != "" && state.contactInfo != undefined && state.contactInfo.id != undefined;
+    },
+    getAdminMode: (state) => {
+        return state.token != "" && state.adminMode;
+    },
+    hasPerms: (state) => {
         return state.permissions != null;
+    },
+    hasEventPerm: (state) => (permName) => {
+        if(state.permissions == null || state.permissions == undefined) return false;
+        return state.permissions.EventPerms.findIndex((perm)=> perm == permName || perm == 'GlobalAdmin') > -1;
+    },
+    hasGroupPerm: (state,getters) => (groupId, permName) => {
+        if(state.permissions == null || state.permissions == undefined) return false;
+        //Check if they're a GlobalAdmin
+        if(getters.hasEventPerm("GlobalAdmin")) return true;
+        if(state.permissions.GrouPerms[groupId] == undefined) return false;
+        return state.permissions.GrouPerms[groupId].findIndex((perm)=> perm == permName) > -1;
+    },
+    getContactInfo: (state) => {
+            return state.contactInfo;
+    },
+    getLoggedInName: (state) => {
+        if(state.contactInfo != undefined)
+        return state.contactInfo.real_name || state.contactInfo.email_address;
+        else
+        return "Guest";
     }
 }
 
@@ -55,18 +82,35 @@ const actions = {
                 commit('setPermissions',data.permissions);
                 dispatch('products/selectEventId', data.event_id, { root: true });
                 dispatch('refreshContactInfo');
-            });
+                resolve(true);
+            },
+            (error)=>resolve(error || "Failed, maybe the link expired?")
+        );
 
         })
     },
-    loginPassword({dispatch,commit,state}, username, password){
+    loginPassword({dispatch,commit,state}, credentials){
         return new Promise((resolve) => {
-            shop.loginAccount({username, password}, state.selectedEventId,(data) => {
+            shop.loginAccount(credentials, (data) => {
                 commit('setToken',data.token);
+                commit('setPermissions',data.permissions);
+                commit('setAdminMode', data.permissions != undefined)
                 dispatch('products/selectEventId', data.event_id, { root: true });
                 dispatch('refreshContactInfo');
+                resolve(true);
+            }, (error) => {
+                resolve(error.error.message);
             });
         })
+    },
+    logout({commit}){
+            commit('setToken',"");
+            commit('setPermissions',null);
+            commit('setContactInfo',null);
+            commit('setAdminMode',false);
+    },
+    setAdminMode({commit}, newAdminMode) {
+        commit('setAdminMode', newAdminMode);
     },
     refreshContactInfo({commit,state}) {
             return new Promise((resolve) => {
@@ -158,6 +202,9 @@ const mutations = {
     },
     setPermissions(state,newPermissions){
       state.permissions = newPermissions;
+    },
+    setAdminMode(state, newAdminMode) {
+        state.adminMode = newAdminMode;
     },
     setContactInfo(state,newContactInfo){
         state.contactInfo = newContactInfo;

@@ -304,12 +304,12 @@ abstract class Table
         return $count;
     }
 
-    public function Search(View|array|string|null $columns = null, ?array $terms = null, ?array $order = null, int $limit = -1, int $offset = 0)
+    public function Search(View|array|string|null $columns = null, ?array $terms = null, ?array $order = null, int $limit = -1, int $offset = 0, &$resultTotal = null)
     {
         $errors = array();
         $groupNames = array();
         $viewName = null;
-        $sqlText = 'SELECT ';
+        $selectParts = 'SELECT ';
 
         //If columns is a string, check that the view exists
         if (gettype($columns) == 'string') {
@@ -359,30 +359,31 @@ abstract class Table
             //TODO: Check column name is correct
             //A bare string is just the column name
             if (gettype($value) == 'string') {
-                $sqlText .= (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`.' : $this->dbTableName()) .
+                $selectParts .= (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`.' : $this->dbTableName()) .
                 '.`' . $value .'`, ';
             } elseif ($value instanceof SelectColumn) {
-                $sqlText .= str_replace(
+                $selectParts .= str_replace(
                     '?',
                     (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`.' : $this->dbTableName() .'.').
                         '`' . $value->ColumnName .'`',
                     $value->EncapsulationFunction != null ? $value->EncapsulationFunction : '?'
                 );
                 if (!is_null($value->Alias)) {
-                    $sqlText .= ' as `' . $value->Alias . '`';
+                    $selectParts .= ' as `' . $value->Alias . '`';
                 }
                 //Are we grouping this column?
                 if ($value->GroupBy) {
                     $groupNames[] = $value->ColumnName;
                 }
-                $sqlText .= ', ';
+                $selectParts .= ', ';
             } elseif (!is_null($value)) {
                 $errors[] ="Unable to add select column:\n" . print_r($value, true);
             }
         }
 
         //Snip the trailing comma
-        $sqlText = substr($sqlText, 0, -2) . ' FROM ' . $this->dbTableName() . ' ';
+        $selectParts = substr($selectParts, 0, -2);
+        $sqlBody = ' FROM ' . $this->dbTableName() . ' ';
 
         $whereCodes = '';
         $whereData = array();
@@ -393,14 +394,14 @@ abstract class Table
                 $joinSubQueryExposed = array();
                 if (!isset($join->subQSelectColumns) && !isset($join->subQSearchTerms)) {
                     //Normal flat join
-                    $sqlText .= $join->Direction . ' JOIN ' . $join->Table->dbTableName();
+                    $sqlBody .= $join->Direction . ' JOIN ' . $join->Table->dbTableName();
                     if (isset($join->alias)) {
-                        $sqlText .= ' as `' . $join->alias . '` ';
+                        $sqlBody .= ' as `' . $join->alias . '` ';
                     }
                     $joinSubQueryExposed = array_keys($join->OnColumns);
                 } else {
                     //Sub-query style join. Add the select columns
-                    $sqlText .= $join->Direction . ' JOIN ( SELECT ';
+                    $sqlBody .= $join->Direction . ' JOIN ( SELECT ';
                     //Track columns exposed
                     $joinSubQuerygroupNames = array();
 
@@ -408,18 +409,18 @@ abstract class Table
                         //TODO: Check column name is correct
                         //A bare string is just the column name
                         if (gettype($value) == 'string') {
-                            $sqlText .= (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`' : $join->Table->dbTableName()) .
+                            $sqlBody .= (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`' : $join->Table->dbTableName()) .
                             '.`' . $value .'`, ';
                             $joinSubQueryExposed[] = $value;
                         } elseif ($value instanceof SelectColumn) {
-                            $sqlText .= str_replace(
+                            $sqlBody .= str_replace(
                                 '?',
                                 (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`.' : $join->Table->dbTableName() .'.').
                                     '`' . $value->ColumnName .'`',
                                 $value->EncapsulationFunction != null ? $value->EncapsulationFunction : '?'
                             );
                             if (!is_null($value->Alias)) {
-                                $sqlText .= ' as ' . $value->Alias;
+                                $sqlBody .= ' as ' . $value->Alias;
                                 $joinSubQueryExposed[] = $value->Alias;
                             } else {
                                 $joinSubQueryExposed[] = $value->ColumnName;
@@ -429,44 +430,44 @@ abstract class Table
                             if ($value->GroupBy) {
                                 $joinSubQuerygroupNames[] = $value->ColumnName;
                             }
-                            $sqlText .= ', ';
+                            $sqlBody .= ', ';
                         } else {
                             $errors[] ="Unable to add select column in subQuery join for $join->Table->dbTableName:\n" . print_r($value, true);
                         }
                     }
 
                     //Snip the trailing comma
-                    $sqlText = substr($sqlText, 0, -2) . ' FROM ' . $join->Table->dbTableName() . ' ';
+                    $sqlBody = substr($sqlBody, 0, -2) . ' FROM ' . $join->Table->dbTableName() . ' ';
 
                     //Do we have any terms?
                     if ($join->subQSearchTerms != null && count($join->subQSearchTerms)) {
-                        $sqlText .= 'WHERE ' . $join->Table->_WhereBuilder($join->subQSearchTerms, $whereCodes, $whereData);
+                        $sqlBody .= 'WHERE ' . $join->Table->_WhereBuilder($join->subQSearchTerms, $whereCodes, $whereData);
                     }
 
                     //Are we grouping?
                     if (count($joinSubQuerygroupNames)) {
-                        $sqlText .= ' GROUP BY ';
+                        $sqlBody .= ' GROUP BY ';
                         foreach ($joinSubQuerygroupNames as $value) {
-                            $sqlText .= '`' . $value .'`, ';
+                            $sqlBody .= '`' . $value .'`, ';
                         }
 
                         //Snip the trailing comma
-                        $sqlText = substr($sqlText, 0, -2);
+                        $sqlBody = substr($sqlBody, 0, -2);
                     }
 
                     //End the subquery
-                    $sqlText .= ') ';
+                    $sqlBody .= ') ';
 
 
                     if (isset($join->alias)) {
-                        $sqlText .= ' as `' . $join->alias . '` ';
+                        $sqlBody .= ' as `' . $join->alias . '` ';
                     } else {
                         //No alias, call the subquery the join table name
-                        $sqlText .= ' as ' . $join->Table->dbTableName() .' ';
+                        $sqlBody .= ' as ' . $join->Table->dbTableName() .' ';
                     }
                 }
                 //Map the provided columns
-                $sqlText .= ' ON ';
+                $sqlBody .= ' ON ';
                 $firstInGroup = true;
                 foreach ($join->OnColumns as $joinedColumn => $sourceColumn) {
                     //A subset of WhereBuilder
@@ -478,11 +479,11 @@ abstract class Table
                         if ($firstInGroup) {
                             $firstInGroup = false;
                         } else {
-                            $sqlText .= ' AND '	;
+                            $sqlBody .= ' AND '	;
                         }
                         //Straight column join
                         if (in_array($joinedColumn, $joinSubQueryExposed)) {
-                            $sqlText .= $this->dbTableName() .'.`' . $sourceColumn . '` = ' .
+                            $sqlBody .= $this->dbTableName() .'.`' . $sourceColumn . '` = ' .
                             (isset($join->alias) ? '`' . $join->alias . '`' : $join->Table->dbTableName()) .
                             '.`'. $joinedColumn . '` ';
                         } else {
@@ -495,7 +496,7 @@ abstract class Table
                             if ($firstInGroup) {
                                 $firstInGroup = false;
                             } else {
-                                $sqlText .= ' ' . $sourceColumn->TermType . ' ';
+                                $sqlBody .= ' ' . $sourceColumn->TermType . ' ';
                             }
 
 
@@ -509,7 +510,7 @@ abstract class Table
                             //Do we have a Raw clause?
                             if ($sourceColumn->Raw != null) {
                                 //Append it to the result
-                                $sqlText .= $sourceColumn->Raw;
+                                $sqlBody .= $sourceColumn->Raw;
                                 // Was there a ?
                                 if (strpos($sourceColumn->Raw, '?') !== false) {
                                     //Add it to the parameters
@@ -518,7 +519,7 @@ abstract class Table
                                 }
                             } else {
                                 //Normal term, add it in
-                                $sqlText .= str_replace(
+                                $sqlBody .= str_replace(
                                     '?',
                                     (isset($sourceColumn->JoinedTableAlias)
                                        ? '`' . $sourceColumn->JoinedTableAlias . '`'
@@ -532,40 +533,40 @@ abstract class Table
                                 ) . $sourceColumn->Operation . ' ';
                                 //Is our operation an IN ?
                                 if (strpos(strtolower($sourceColumn->Operation), 'in') !== false) {
-                                    $sqlText .= '(';
+                                    $sqlBody .= '(';
                                     $firstNeedle = true;
                                     foreach ($sourceColumn->CompareValue as $key => $needle) {
                                         if ($firstNeedle) {
                                             $firstNeedle = false;
                                         } else {
-                                            $sqlText .= ', ';
+                                            $sqlBody .= ', ';
                                         }
                                         $typeCode = 's'; //String by default
                                         switch (gettype($needle)) {
                                                             case 'integer': $typeCode = 'i'; break;
                                                             case 'double': $typeCode = 'd'; break;
                                                         }
-                                        $sqlText .= "?";
+                                        $sqlBody .= "?";
                                         $whereCodes .= $typeCode;
                                         $whereData[] = &$sourceColumn->CompareValue[$key];
                                     }
-                                    $sqlText .= ')';
+                                    $sqlBody .= ')';
                                 }
                                 //Is our operation an is (not)
                                 elseif (strpos(strtolower($sourceColumn->Operation), 'is') !== false) {
                                     //We totally ignore whatever the value is and assume it's null anyways
-                                    $sqlText .= ' NULL ';
+                                    $sqlBody .= ' NULL ';
                                 } elseif (is_string($joinedColumn)) {
                                     //Still joining just this table's column
                                     if (in_array($joinedColumn, $joinSubQueryExposed)) {
-                                        $sqlText .= (isset($join->alias) ? '`' . $join->alias . '`' : $join->Table->dbTableName()) .
+                                        $sqlBody .= (isset($join->alias) ? '`' . $join->alias . '`' : $join->Table->dbTableName()) .
                                         '.`'. $joinedColumn . '` ';
                                     } else {
                                         $errors[] ='Unable to handle join parameter ' . $joinedColumn . ' because it wasn\'t included?';
                                     }
                                 } else {
                                     //Just a normal value
-                                    $sqlText .=($sourceColumn->EncapsulationFunction != null && $sourceColumn->EncapsulationColumnOnly !== true) ? $sourceColumn->EncapsulationFunction : '? ';
+                                    $sqlBody .=($sourceColumn->EncapsulationFunction != null && $sourceColumn->EncapsulationColumnOnly !== true) ? $sourceColumn->EncapsulationFunction : '? ';
                                     $whereCodes .= $typeCode;
                                     $whereData[] = &$sourceColumn->CompareValue;
                                 }
@@ -581,44 +582,47 @@ abstract class Table
 
         //Do we have any terms?
         if ($terms != null && count($terms)) {
-            $sqlText .= 'WHERE ' . $this->_WhereBuilder($terms, $whereCodes, $whereData);
+            $sqlBody .= 'WHERE ' . $this->_WhereBuilder($terms, $whereCodes, $whereData);
         }
 
         //Are we grouping?
         if (count($groupNames)) {
-            $sqlText .= ' GROUP BY ';
+            $sqlBody .= ' GROUP BY ';
             foreach ($groupNames as $value) {
-                $sqlText .= '`' . $value .'`, ';
+                $sqlBody .= '`' . $value .'`, ';
             }
 
             //Snip the trailing comma
-            $sqlText = substr($sqlText, 0, -2);
+            $sqlBody = substr($sqlBody, 0, -2);
         }
 
         //Are we ordering?
+        $sqlOrdering = '';
         if ($order != null && count($order)) {
-            $sqlText .= ' ORDER BY ';
+            $sqlOrdering .= ' ORDER BY ';
             foreach ($order as $key=>$value) {
                 if (gettype($value) == 'string') {
-                    $sqlText .= '`' . $value .'`, ';
+                    $sqlOrdering .= '`' . $value .'`, ';
                 } else {
-                    $sqlText .= '`' . $key .'`' . ($value ? ' DESC' : '') . ', ';
+                    $sqlOrdering .= '`' . $key .'`' . ($value ? ' DESC' : '') . ', ';
                 }
             }
 
             //Snip the trailing comma
-            $sqlText = substr($sqlText, 0, -2);
+            $sqlOrdering = substr($sqlOrdering, 0, -2);
         }
 
         //Are we limiting?
         if ($limit > -1) {
-            $sqlText .= ' LIMIT ' . $limit . ' ';
+            $sqlOrdering .= ' LIMIT ' . $limit . ' ';
         }
 
         //Skipping?
         if ($offset > 0) {
-            $sqlText .= ' OFFSET ' . $offset . ' ';
+            $sqlOrdering .= ' OFFSET ' . $offset . ' ';
         }
+
+        $sqlText = $selectParts . $sqlBody . $sqlOrdering;
 
         //die($sqlText);
         $this->checkAndThrowError("Error while attempting to generate select query for $this->TableName.", $errors, $sqlText);
@@ -643,6 +647,15 @@ abstract class Table
             ( new \ReflectionMethod('mysqli_stmt', 'bind_param'))->invokeArgs($stmt, $whereData);
         }
 
+        $resultCountStmt = false;
+        if ($resultTotal !== null) {
+            //Prepare the resultCountStmt since we asked for a count
+            $resultCountStmt = $this->cm_db->connection->prepare('Select count(*) ' . $sqlBody);
+            if (strlen($whereCodes) > 0) {
+                ( new \ReflectionMethod('mysqli_stmt', 'bind_param'))->invokeArgs($resultCountStmt, $whereData);
+            }
+        }
+
         //Do it!
         if ($stmt->execute()) {
             //Seemed fine, let's get the data
@@ -664,8 +677,21 @@ abstract class Table
                     $result[] = $row;
                 }
                 $stmt->free_result();
+
+                //Did we ask for a total?
+                if ($resultCountStmt !== false) {
+                    if ($limit > -1) {
+                        $resultCountStmt->execute();
+                        $resultCountStmt->bind_result($resultTotal);
+                        $resultCountStmt->fetch();
+                        $resultCountStmt->close();
+                    } else {
+                        //We didn't limit so the result count is the final result
+                        $resultTotal = count($result);
+                    }
+                }
             } else {
-                $result = $stmt->affected_rows();
+                $result = $resultTotal = $stmt->affected_rows();
             }
         } else {
             $this->checkAndThrowError(

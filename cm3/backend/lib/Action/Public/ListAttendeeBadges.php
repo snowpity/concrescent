@@ -10,6 +10,8 @@ use CM3_Lib\database\Join;
 use CM3_Lib\models\attendee\badgetype;
 use CM3_Lib\models\attendee\badge;
 
+use CM3_Lib\util\CurrentUserInfo;
+
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -26,7 +28,7 @@ final class ListAttendeeBadges
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private badgetype $badgetype, private badge $badge)
+    public function __construct(private Responder $responder, private badgetype $badgetype, private badge $badge, private CurrentUserInfo $CurrentUserInfo)
     {
     }
 
@@ -78,7 +80,8 @@ final class ListAttendeeBadges
         );
 
         $whereParts = array(
-          new SearchTerm('active', 1)
+          new SearchTerm('active', 1),
+          new SearchTerm('event_id', $params['event_id'])
         );
 
         $order = array('display_order' => false);
