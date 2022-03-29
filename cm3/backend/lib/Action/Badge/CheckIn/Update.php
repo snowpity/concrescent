@@ -59,20 +59,27 @@ final class FinishCheckIn
             throw new HttpBadRequestException($request, 'Badge is not in an allowed state!');
         }
 
-        if ($current['time_printed'] == null) {
-            //We need to (re)print now!
-            //TODO:Implement
-        }
+        $result = array();
 
-        $result['time_checked_in'] = date('Y-m-d H:i:s');
-        //Finalize their checkin
         $didUpdate = $this->badgeinfo->UpdateSpecificBadgeUnchecked(
             $bid,
             $cx,
+            $data,
             array(
-                'time_checked_in'=>$result['time_checked_in']
+                'real_name',
+                'fandom_name',
+                'name_on_badge',
+                'date_of_birth',
+                'notes'
             )
         );
+
+        if ($didUpdate > 0 || $current['time_printed'] == null) {
+            //TODO: Check banlist...
+
+            //We need to (re)print now!
+            //TODO:Implement
+        }
 
         // Build the HTTP response
         return $this->responder

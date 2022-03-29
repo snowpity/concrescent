@@ -24,7 +24,43 @@ export default {
         })
         .catch(function(error) {
             if(typeof errorCb != "undefined")
-              errorCb(response.response.data);
+              errorCb(error.response.data);
+        })
+    },
+    badgeCheckinSave(token, badgeData, cb,errorCb) {
+      axios.post(global.config.apiHostURL + "Badge/CheckIn/" + badgeData.context_code + "/" + badgeData.id + "/Update",badgeData, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(function(response) {
+          cb(response.data);
+        })
+        .catch(function(error) {
+            if(typeof errorCb != "undefined")
+              errorCb(error.response.data);
+        })
+    },
+    badgeCheckinConfirmPayment(token, context,id, payData, cb,errorCb) {
+      axios.post(global.config.apiHostURL + "Badge/CheckIn/" + context + "/" + id + "/Pay",payData, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(function(response) {
+          cb(response.data);
+        })
+        .catch(function(error) {
+            if(typeof errorCb != "undefined")
+              errorCb(error.response.data);
+        })
+    },
+    badgeCheckinFinish(token, context,id, cb,errorCb) {
+      axios.post(global.config.apiHostURL + "Badge/CheckIn/" + context + "/" + id + "/Finish",null, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(function(response) {
+          cb(response.data);
+        })
+        .catch(function(error) {
+            if(typeof errorCb != "undefined")
+              errorCb(error.response.data);
         })
     },
 
