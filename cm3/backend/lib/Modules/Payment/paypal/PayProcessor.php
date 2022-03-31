@@ -203,7 +203,14 @@ class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
     }
     public function GetOrderStatus(): string
     {
-        return $this->orderData['stage'] ?? 'UNKNOWN';
+        $status = $this->orderData['stage'] ?? 'UNKNOWN';
+        switch ($status) {
+            case 'CREATED': return 'Incomplete';
+            case 'COMPLETED': return 'Completed';
+            case 'APPROVED': return 'Incomplete'; //Still need to confirm with PayPal
+
+        }
+        return 'NotStarted';
     }
 
     public function get_token()

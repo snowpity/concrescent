@@ -4,7 +4,8 @@ import shop from '../../api/shop';
 // initial state
 const state = {
   currentlyEditingItem: {},
-  latestContactInfo: {},
+  activeCarts:[],
+  cartId:null,
   items: [],
   checkoutStatus: null,
 };
@@ -73,7 +74,7 @@ const getters = {
   },
   getProductInCart: (state) => (cartId) => state.items.find((item) => item.cartId === cartId && item.cartId != null),
   getCurrentlyEditingItem: (state) => state.currentlyEditingItem,
-  getLatestContactInfo: (state) => state.latestContactInfo,
+  getContactInfo: (state) => state.latestContactInfo,
 };
 
 // actions

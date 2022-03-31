@@ -84,7 +84,7 @@
                             <v-card-actions>
                                 {{selectedBadge['badge_type_name']}}
 
-                                <v-spacer></v-spacer>
+                                <v-spacer></v-spacer>{{selectedBadge.context_code}}{{selectedBadge.display_id}}
                                 <v-btn icon
                                        @click="editingBadge = true">
                                     <v-icon>mdi-pencil</v-icon>
@@ -150,9 +150,14 @@
                 </v-row>
             </v-stepper-content>
             <v-stepper-content step="4">
-                <v-card class="mb-12"
-                        color="grey lighten-1"
-                        height="200px">Finish</v-card>
+                <badgeFullRender :badge="selectedBadge" />
+
+                <v-btn color="green"
+                       :disabled="printing"
+                       :loading="printing"
+                       @click="ExecutePrint">
+                    {{selectedBadge.time_printed != null ? "(Re)" : ""}}Print Badge
+                </v-btn>
 
                 <v-row>
                     <v-col>
@@ -260,7 +265,6 @@
                     <v-col>
                         <v-textarea label="Notes"
                                     rows="3"
-                                    readonly
                                     :value="edit_notes"></v-textarea>
 
                     </v-col>
@@ -316,10 +320,12 @@ import {
     debounce
 } from '@/plugins/debounce';
 import badgeSampleRender from '@/components/badgeSampleRender.vue';
+import badgeFullRender from '@/components/badgeFullRender.vue';
 
 export default {
     components: {
         badgeSampleRender,
+        badgeFullRender
     },
     data: () => ({
         checkinStage: 1,
@@ -342,6 +348,7 @@ export default {
         edit_menuBDay: false,
         savingEditedBadge: false,
         paying: false,
+        printing: false,
         finishing: false,
 
         SmartHealthData: "",
@@ -510,6 +517,10 @@ export default {
                 this.paying = false;
             })
         },
+        ExecutePrint: function() {
+            if (this.selectedBadge.id == undefined) return;
+            this.printing = true;
+        },
         FinishCheckIn: function() {
             if (this.selectedBadge.id == undefined) return;
             this.finishing = true;
@@ -556,6 +567,7 @@ export default {
             } else if (this.checkinStage > 1 && sb.id == undefined) {
                 this.checkinStage = 1;
                 this.alreadyCheckedInDialog = false;
+                this.printing = false;
             }
         },
         editingBadge: function(isEditing) {

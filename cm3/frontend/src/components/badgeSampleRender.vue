@@ -1,14 +1,11 @@
 <template>
 <div>
-    <v-row>
-        <v-spacer></v-spacer>
-        <v-card-title>{{badge | badgeDisplayName}}</v-card-title>
-        <v-spacer></v-spacer>
+    <v-row justify="center">
+        <v-card-title class="text-h4">{{badge | badgeDisplayName}}</v-card-title>
     </v-row>
-    <v-row>
-        <v-spacer></v-spacer>
-        <h3>{{badge | badgeDisplayName(true)}}&zwj;</h3>
-        <v-spacer></v-spacer>
+    <v-row justify="center"
+           class="mt-n6">
+        <v-card-subtitle class="text-h5">{{badge | badgeDisplayName(true)}}&zwj;</v-card-subtitle>
     </v-row>
 </div>
 </template>

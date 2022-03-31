@@ -602,8 +602,9 @@ export default {
                 // this.selectedBadge = this.badges.findIndex(badge => badge.id == cartItem.badge_type_id);
             }
 
-            // Pull out the BadgeId
+            // Pull out the BadgeId and selected addons
             badge_type_id = cartItem.badge_type_id || 0;
+            let addonsSelected = cartItem.addonsSelected || [];
             // delete cartItem.badge_type_id;
             Object.assign(this, cartItem);
             // Special props
@@ -615,6 +616,9 @@ export default {
                 if (newIndex > -1) {
                     _this.selectedBadge = newIndex;
                 }
+                //Also select any selected addons
+                _this.addonsSelected = addonsSelected;
+
             }, 200);
         },
         resetBadge() {

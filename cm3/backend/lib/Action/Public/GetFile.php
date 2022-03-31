@@ -49,8 +49,8 @@ final class GetFile
         if ($result === false || (isset($result['visible']) && $result['visible'] != 1)) {
             throw new HttpNotFoundException($request);
         }
-        if ($result['event_id'] != $request->getAttribute('event_id')) {
-            throw new HttpBadRequestException($request, 'Filestore item does not belong to the current event!');
+        if ($result['event_id'] != $params['event_id']) {
+            throw new HttpBadRequestException($request, 'Filestore item does not belong to the specified event!');
         }
         //Provide the HTTP-compliant modified time format
         $dateTime = new \DateTime($result['date_modified']);

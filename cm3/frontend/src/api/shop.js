@@ -71,8 +71,19 @@ export default {
         errorCb(response.response.data);
       });
   },
-  getLatestContactInfo(token, cb, errorCb) {
+  getContactInfo(token, cb, errorCb) {
     axios.get(global.config.apiHostURL + "account" , {
+          headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(function(response) {
+        cb(response.data);
+      })
+      .catch(function(response) {
+        errorCb(response.response.data);
+      });
+  },
+  setContactInfo(token, data, cb, errorCb) {
+    axios.post(global.config.apiHostURL + "account", data , {
           headers: { Authorization: `Bearer ${token}` }
       })
       .then(function(response) {

@@ -68,11 +68,13 @@ const getters = {
 const actions = {
     createAccount({dispatch, commit}, accountInfo){
         return new Promise((resolve, reject)=>{
-            shop.createAccount(accountInfo)
-            .then((token) => {
+            shop.createAccount(accountInfo,
+            (token) => {
                 resolve(dispatch('loginToken', token));
-            })
-            .catch(reject);
+            },(error) => {
+                reject(error);
+            });
+
         })
     },
     loginToken({dispatch,commit,state}, token){
@@ -114,10 +116,20 @@ const actions = {
     },
     refreshContactInfo({commit,state}) {
             return new Promise((resolve) => {
-                shop.getLatestContactInfo(state.token, (data) =>{
+                shop.getContactInfo(state.token, (data) =>{
                     commit('setContactInfo',data);
                 })
             })
+    },
+    updateContactInfo({commit,state}, newData) {
+        return new Promise((resolve) =>{
+            shop.setContactInfo(state.token,newData,(data)=>{
+                commit('setContactInfo',data);
+                resolve(true);
+            })
+        }, (error) => {
+            resolve(error.error.message);
+        });
     },
   clearCart({
     commit

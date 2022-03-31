@@ -30,6 +30,9 @@ return function (App $app) {
             //Fetch a blob file
             $app->get('/{event_id}/file/{id}/{extra:.+}', \CM3_Lib\Action\Public\GetFile::class);
 
+            //Fetch available payment methods
+            $app->get('/paymethods', \CM3_Lib\Action\Public\ListPayMethods::class);
+
             //Log in. Also allows selecting a different event id.
             $app->post('/login', \CM3_Lib\Action\Public\Login::class);
 
