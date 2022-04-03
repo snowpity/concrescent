@@ -63,7 +63,7 @@ export default new Router({
     component: () => import(/* webpackChunkName: "AddEditBadge" */ './routes/register/addeditbadge.vue'),
   },
   {
-    path: '/editbadge/:cartId?',
+    path: '/editbadge/:cartIx?',
     name: 'editbadge',
     meta: {
       title: 'Edit badge',

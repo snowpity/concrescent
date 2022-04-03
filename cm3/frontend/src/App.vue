@@ -239,7 +239,7 @@ export default {
                     return !this.isLoggedIn;
                 }
             }, {
-                route: "/createAccount",
+                route: "/account/profile",
                 icon: "mdi-account-plus",
                 label: "Create Account",
                 show: () => {
@@ -248,7 +248,7 @@ export default {
             }, {
                 route: "/account/profile",
                 icon: "mdi-account-box",
-                label: "Contact Profile",
+                label: "Account Profile",
                 show: () => {
                     return this.isLoggedIn;
                 }
@@ -348,6 +348,9 @@ export default {
             //this.selectedEventId = this.productselectedEventId;
             this.$store.dispatch('products/getBadgeContexts');
         });
+        if (this.isLoggedIn) {
+            this.$store.dispatch('mydata/RefreshToken');
+        }
     }
 };
 </script>

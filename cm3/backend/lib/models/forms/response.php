@@ -23,7 +23,9 @@ class response extends \CM3_Lib\database\Table
                 'context_id' => false
             ), 'primary key')
         );
-        $this->PrimaryKeys = array('id'=>false);
+        $this->PrimaryKeys = array('question_id'=>false,
+        'context' => false,
+        'context_id' => false);
         $this->DefaultSearchColumns = array('question_id', 'context','context_id');
     }
 }

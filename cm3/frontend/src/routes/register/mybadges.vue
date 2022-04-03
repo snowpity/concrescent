@@ -1,30 +1,22 @@
 <template>
 <v-container class="pa-2"
              fluid>
-    <p v-show="!ownedbadgecount">
-        <i>You have no badges. Click on the link in your confirmation email, or Add one.</i><br />
-    </p>
+    <v-row>
+        <p>
+            <i v-show="!ownedbadgecount">You have no badges. Click on the link in your confirmation email, or Add one.</i>
+        </p>
+    </v-row>
     <v-row>
         <v-col cols="12"
                md="6"
                lg="4"
                xl="3"
                v-for="(badge, idx) in ownedbadges"
-               :key="badge['id-string']">
+               :key="badge['uuid']">
             <v-card>
                 <badgeSampleRender :badge="badge" />
-                <v-row>
-                    <v-spacer></v-spacer>
-                    <v-card-title>{{badge | badgeDisplayName}}</v-card-title>
-                    <v-spacer></v-spacer>
-                </v-row>
-                <v-row>
-                    <v-spacer></v-spacer>
-                    <h3>{{badge | badgeDisplayName(true)}}&zwj;</h3>
-                    <v-spacer></v-spacer>
-                </v-row>
                 <v-card-actions>
-                    {{badge['badge-type-name']}}
+                    {{badge['badge_type_name']}}
 
                     <v-spacer></v-spacer>
                     <v-btn icon
@@ -32,9 +24,17 @@
                         <v-icon>mdi-information</v-icon>
                     </v-btn>
                     <v-btn icon
-                           :to="{name:'editbadge', params: {editId: badge['id-string']}}">
+                           :to="{name:'editbadge', params: {editIx: idx}}">
                         <v-icon>mdi-pencil</v-icon>
                     </v-btn>
+                </v-card-actions>
+
+                <v-card-actions v-for="addonid in badge.addons"
+                                :key="addonid">
+                    <v-icon>mdi-plus</v-icon>
+                    <div class="text-truncate">
+                        {{getAddonByID(badge.badge_type_id, addonid) ? getAddonByID(badge.badge_type_id, addonid).name : "Loading..."}}
+                    </div>
                 </v-card-actions>
             </v-card>
         </v-col>
@@ -42,7 +42,7 @@
     <v-row>
         <v-col>
             <v-btn color="primary"
-                   :to="{name:'addbadge', params: {cartId: 0}}"
+                   :to="{name:'addbadge', params: {cartIx: 0}}"
                    left
                    absolute>Add a badge</v-btn>
         </v-col>
@@ -68,7 +68,7 @@
                     <v-icon>mdi-printer</v-icon>
                 </v-btn>
                 <v-btn color="success"
-                       @click="displayBadge = ''">
+                       @click="displayBadge = -1">
                     <v-icon>mdi-close</v-icon>
                 </v-btn>
             </v-card-actions>
@@ -78,7 +78,7 @@
                     <v-btn height=266
                            width=266
                            elevation=4>
-                        <qr-code :text="displayBadgeData ? displayBadgeData['qr-data'] : ''"></qr-code>
+                        <qr-code :text="displayBadgeData ? displayBadgeData['qr_data'] : ''"></qr-code>
                     </v-btn>
                 </p>
                 <v-row>
@@ -109,7 +109,7 @@
         </v-card>
     </v-dialog>
     <v-snackbar v-model="displayImportResult"
-                :timeout="0">
+                :timeout="16000">
         {{ importResult }}
         <v-btn color="primary"
                text
@@ -141,7 +141,7 @@ export default {
     data: () => ({
         promocodeDialog: false,
         promoAppliedDialog: false,
-        displayBadge: '',
+        displayBadge: -1,
         printingBadge: false,
     }),
     computed: {
@@ -159,8 +159,13 @@ export default {
         ownedbadgecount() {
             return Object.keys(this.ownedbadges).length;
         },
-        displayBadgeModal() {
-            return this.displayBadge != '';
+        displayBadgeModal: {
+            get() {
+                return this.displayBadge != -1;
+            },
+            set(show) {
+                this.displayBadge = show ? 0 : -1;
+            }
         },
         displayBadgeData() {
             if (!this.displayBadgeModal) return null;
@@ -168,7 +173,7 @@ export default {
         },
         displayBadgeProduct() {
             if (!this.displayBadgeModal) return null;
-            let badgeId = this.displayBadgeData['badge-type-id'];
+            let badgeId = this.displayBadgeData.badge_type_id;
             let result = this.products.find((item) => {
                 return item.id == badgeId
             });
@@ -181,6 +186,7 @@ export default {
     methods: {
         ...mapActions('mydata', [
             'retrieveBadges',
+            'retrieveTransactionBadges',
             'clearBadgeRetrievalResult',
         ]),
         ...mapActions('cart', [
@@ -208,13 +214,18 @@ export default {
             }
 
         },
+        getAddonByID(badge_type_id, id) {
+            if (undefined == this.addons[badge_type_id])
+                return undefined;
+            return this.addons[badge_type_id].find(addon => addon.id == id);
+        }
     },
     created() {
         let {
             query
         } = this.$route;
         if (query.gid != undefined) {
-            this.retrieveBadges(query);
+            this.retrieveTransactionBadges(query);
             // Presumably they're here from a Review Order link or the checkout summary page
             // Which *probably* means it was successful, so... clear the cart!
             this.clearCart();

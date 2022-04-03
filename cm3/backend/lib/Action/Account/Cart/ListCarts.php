@@ -1,6 +1,6 @@
 <?php
 
-namespace CM3_Lib\Action\Account;
+namespace CM3_Lib\Action\Account\Cart;
 
 use CM3_Lib\database\SearchTerm;
 
@@ -16,7 +16,7 @@ use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class GetCart
+class ListCarts
 {
     /**
      * The constructor.
@@ -25,9 +25,10 @@ class GetCart
      * @param eventinfo $eventinfo The service
      */
     public function __construct(
-        private Responder $responder, private payment $payment,
-    private CurrentUserInfo $CurrentUserInfo)
-    {
+        private Responder $responder,
+        private payment $payment,
+        private CurrentUserInfo $CurrentUserInfo
+    ) {
     }
 
     /**
@@ -40,18 +41,18 @@ class GetCart
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
-        $data = (array)$request->getParsedBody();
+        $data = (array)$request->getQueryParams();
 
         //Fetch the authenticated user's info
         $c_id = $this->CurrentUserInfo->GetContactId();
-        $e_id = $this->CurrentUserInfo->GetEventId()
+        $e_id = $this->CurrentUserInfo->GetEventId();
         $searchTerms = array(
           new SearchTerm('event_id', $e_id),
           new SearchTerm('contact_id', $c_id),
         );
 
         //Do we want the non-in-progress ones?
-        if (()$data['include_inactive'] ?? false) != true) {
+        if (($data['include_all'] ?? "false") == "false") {
             $searchTerms[] = new SearchTerm('payment_status', array('NotStarted','Incomplete'), 'IN');
         }
 
@@ -61,8 +62,8 @@ class GetCart
                 'id','uuid',
                 'requested_by',
                 'payment_system',
-                'items',
-                'payment_status'
+                'payment_status',
+                'date_modified'
             ),
             $searchTerms
         );

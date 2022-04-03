@@ -78,7 +78,16 @@ final class PaymentBuilder
     }
     public function setPayProcessor(string $PayProcessor)
     {
-        $this->cart['payment_system'] = $PayProcessor;
+        if ($this->cart['payment_system'] != $PayProcessor) {
+            $this->cart['payment_system'] = $PayProcessor;
+            $this->cart['payment_details'] ="";
+            //Save the current status
+            $this->payment->Update($this->cart);
+        }
+    }
+    public function getPayProcessorName(): ?string
+    {
+        return $this->cart['payment_system'];
     }
     public function getPayProcessor(): PayProcessorInterface
     {
@@ -113,6 +122,9 @@ final class PaymentBuilder
 
         foreach ($this->cart_items as $key => &$item) {
             //Create/Update the badge
+            if (!isset($item['context'])) {
+                $item['context']='A';
+            }
             $bt = $this->badgeinfo->getBadgetType($item['context'], $item['badge_type_id']);
             $bi = $this->badgeinfo->getSpecificBadge($item['id'] ?? 0, $item['context']);
             $item['payment_txn_id'] = $this->cart['id'];
@@ -237,7 +249,6 @@ final class PaymentBuilder
                         //Not able to complete
                         break;
                 }
-                die($this->pp->GetOrderStatus());
                 $this->saveCart();
                 return false;
             }

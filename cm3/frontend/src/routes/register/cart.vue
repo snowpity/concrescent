@@ -11,7 +11,7 @@
                lg="4"
                xl="3"
                v-for="(product, idx) in products"
-               :key="product.cartId">
+               :key="product.cartIx">
             <v-card>
                 <badgeSampleRender :badge="product" />
                 <v-card-actions>
@@ -27,10 +27,10 @@
                     <v-spacer></v-spacer>
                     <v-badge color="error"
                              overlap
-                             :content="badgeErrorCount[product.cartId]"
-                             :value="!!badgeErrorCount[product.cartId]">
+                             :content="badgeErrorCount[product.cartIx]"
+                             :value="!!badgeErrorCount[product.cartIx]">
                         <v-btn icon
-                               :to="{name:'editbadge', params: {cartId: product.cartId}}">
+                               :to="{name:'editbadge', params: {cartIx: product.cartIx}}">
                             <v-icon>mdi-pencil</v-icon>
                         </v-btn>
                     </v-badge>
@@ -53,7 +53,7 @@
     <v-row>
         <v-col>
             <v-btn color="primary"
-                   :to="{name:'addbadge', params: {cartId: -1}}"
+                   :to="{name:'addbadge', params: {cartIx: -1}}"
                    left
                    absolute>Add
                 {{products.length ? "another" : "a"}}
@@ -181,7 +181,7 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
-    <p v-show="checkoutStatus? checkoutStatus.errors : false">Can't checkout now, there are problems!</p>
+    <p v-show="itemsHaveErrors">Can't checkout now, there are problems!</p>
 
     <v-dialog v-model="processingCheckoutDialog"
               persistent
@@ -196,7 +196,27 @@
             </v-card-text>
         </v-card>
     </v-dialog>
-
+    <v-dialog transition="dialog-top-transition"
+              max-width="600"
+              v-model="isCartLocked">
+        <v-card>
+            <v-toolbar color="error"
+                       dark>
+                <h1>Cart locked error</h1>
+            </v-toolbar>
+            <v-card-text>
+                <div class="text-h5 pa-4">{{cartLocked}}</div>
+            </v-card-text>
+            <v-card-actions>
+                <v-btn color="red"
+                       v-show="products.length"
+                       @click="confirmClearCart">Reset cart?</v-btn>
+                <v-spacer />
+                <v-btn color="primary"
+                       @click="checkout(products)">Retry Checkout</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
     <v-dialog v-model="createAccountDialog"
               transition="dialog-bottom-transition">
         <v-card>
@@ -210,6 +230,46 @@
                        :disabled="creatingAccount"
                        :loading="creatingAccount"
                        @click="createAccount">Save</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
+    <v-dialog transition="dialog-top-transition"
+              max-width="600"
+              v-model="isCreateError">
+        <v-card>
+            <v-toolbar color="error"
+                       dark>
+                <h1>Profile creation error</h1>
+            </v-toolbar>
+            <v-card-text>
+                <div class="text-h5 pa-4">{{createError}}</div>
+            </v-card-text>
+            <v-card-actions>
+                <v-btn color="green"
+                       :disabled="sendingmagicemail"
+                       :loading="sendingmagicemail"
+                       @click="SendMagicLink">Send magic link?</v-btn>
+                <v-spacer />
+                <v-btn color="primary"
+                       @click="createError = ''">Try again</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+    <v-dialog max-width="600"
+              v-model="sentmagicmail">
+        <v-card>
+            <v-toolbar color="primary"
+                       dark>
+                <h1>Magic link sent</h1>
+            </v-toolbar>
+            <v-card-text>
+                <v-card-text>If you have purchased any badges with the contact email <b>{{newAccountData.email_address}}</b>, you should receive the badge retrieval email shortly to confirm.</v-card-text>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer />
+                <v-btn color="primary"
+                       @click="closeerror">Ok</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -235,7 +295,7 @@
 
         <v-btn color="primary"
                v-if="isLoggedIn"
-               :disabled="!products.length"
+               :disabled="canNotCheckout"
                @click="checkout(products)">Checkout:
             {{ total | currency }}
         </v-btn>
@@ -265,6 +325,9 @@ export default {
         createAccountDialog: false,
         newAccountData: {},
         creatingAccount: false,
+        createError: "",
+        sendingmagicemail: false,
+        sentmagicmail: false,
         promocodeDialog: false,
         promocode: '',
         promoCodeProcessing: false,
@@ -279,7 +342,8 @@ export default {
             'ready': 'Directing to Merchant...',
             'refused': 'Paypal has refused the payment. That\'s all we know.'
         },
-        cartState: 'undefined'
+        cartState: 'undefined',
+        cartLocked: ''
     }),
     computed: {
         ...mapState({
@@ -291,23 +355,53 @@ export default {
         }),
         ...mapGetters('cart', {
             products: 'cartProducts',
-            total: 'cartTotalPrice'
+            total: 'cartTotalPrice',
+            needsave: 'isDirty'
         }),
         removeBadgeModal: function() {
             return this.removeBadge > -1;
         },
         promoAppliedDialogModal: function() {
             return this.promoAppliedDialog > -1;
-        }
+        },
+        itemsHaveErrors: function() {
+            if (this.checkoutStatus == null)
+                return false;
+            if (typeof this.checkoutStatus.errors == "undefined")
+                return false;
+            return this.checkoutStatus.errors.reduce((result, currentItem) => result | currentItem.length > 0, false);
+        },
+        canNotCheckout: function() {
+            return this.itemsHaveErrors || this.products.length == 0;
+        },
+        isCreateError: {
+            get() {
+                return this.createError.length > 0;
+            },
+            set(newval) {
+                this.createError = newval ? "???" : "";
+            }
+        },
+        isCartLocked: {
+            get() {
+                return this.cartLocked.length > 0;
+            },
+            set(newval) {
+                this.cartLocked = newval ? "???" : "";
+            }
+        },
     },
     methods: {
         ...mapActions('mydata', {
-            'submitCreateAccount': 'createAccount'
+            'submitCreateAccount': 'createAccount',
+            'sendRetrieveBadgeEmail': 'sendRetrieveBadgeEmail',
         }),
         ...mapActions('cart', [
             'applyPromoToProducts',
             'removePromoFromProduct',
             'removeProductFromCart',
+            'saveCart',
+            'checkoutCart',
             'clearCart'
         ]),
         updatedbadgeErrorCount: function() {
@@ -315,7 +409,7 @@ export default {
             //populate all the badges
             var result = [];
             this.promoCodeErrors = [];
-            this.products.forEach(product => result[product.cartId + ''] = 0);
+            this.products.forEach(product => result[product.cartIx + ''] = 0);
             if (this.checkoutStatus) {
                 if (this.checkoutStatus.errors) {
                     Object.keys(this.checkoutStatus.errors).forEach(key => {
@@ -334,15 +428,23 @@ export default {
                 this.creatingAccount = false;
                 this.createAccountDialog = false;
             }).catch((error) => {
+                this.createError = error.error.message;
                 this.creatingAccount = false;
             })
+        },
+        SendMagicLink() {
+            this.sendingmagicemail = true;
+            this.sendRetrieveBadgeEmail(this.newAccountData.email_address).then(() => {
+                this.sentmagicmail = true;
+                this.sendingmagicemail = false;
+            });
         },
         submitPromoCode: function() {
             this.promoCodeProcessing = true;
             this.applyPromoToProducts(this.promocode);
         },
         promoRemove: function() {
-            this.removePromoFromProduct(this.products[this.promoAppliedDialog].cartId);
+            this.removePromoFromProduct(this.products[this.promoAppliedDialog].cartIx);
             this.promoAppliedDialog = -1;
         },
         confirmRemoveBadge: function() {
@@ -352,14 +454,20 @@ export default {
         confirmClearCart: function() {
             this.clearCart();
             this.clearCartDialog = false;
+            this.cartLocked = "";
         },
         checkout(products) {
             this.processingCheckoutDialog = true;
             var _this = this;
             //Fancy delays
             setTimeout(function() {
-                _this.$store.dispatch('cart/checkout', products);
+                _this.checkoutCart();
             }, 1000);
+        },
+        closeerror: function() {
+            this.createError = "";
+            this.sentmagicmail = false;
+            this.creatingAccount = false;
         },
         filterAddons(product) {
             if (product.editBadgePriorAddons == undefined)
@@ -378,21 +486,27 @@ export default {
             this.cartState = newstatus ? newstatus.state : 'undefined';
             if (newstatus)
                 switch (newstatus.state) {
-                    case 'ready':
+                    case 'Incomplete':
                         //Direct to the checkout.php
                         var _this = this;
                         setTimeout(function() {
                             _this.processingCheckoutDialog = false;
                         }, 15000);
                         //TODO: This is a hack!
-                        window.location.href = global.config.apiHostURL + "cart.php?action=checkout";
+                        if (newstatus.paymentURL != undefined)
+                            window.location.href = newstatus.paymentURL;
+                        break;
+                    case 'Completed':
+                        //Clear the cart and send them to retrieve their badges
+                        this.clearCart();
+                        this.$router.push('/myBadges')
                         break;
                     case 'promoapplied':
 
                         this.promoCodeProcessing = false;
                         this.promocodeDialog = false;
                         break;
-                    case undefined:
+                    default:
                         this.promoCodeProcessing = false;
                         this.processingCheckoutDialog = false;
                 }
@@ -419,6 +533,13 @@ export default {
         }
         this.$store.dispatch('products/getAllProducts')
         this.$store.dispatch('products/getAllAddons')
+        if (this.needsave) {
+            this.saveCart()
+                .catch((error) => {
+                    this.cartLocked = error.error.message;
+                });
+        }
+        this.updatedbadgeErrorCount();
     }
 }
 </script>

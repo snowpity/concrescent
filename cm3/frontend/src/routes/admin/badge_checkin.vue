@@ -445,7 +445,7 @@ export default {
             }
 
             // Are we editing a badge?
-            if (this.editBadgeId > -1) {
+            if (this.id > -1) {
                 const oldBadge = badges.find((badge) => badge.id == this.editBadgePriorBadgeId);
                 if (oldBadge != undefined) {
                     const oldPrice = parseFloat(oldBadge.price);

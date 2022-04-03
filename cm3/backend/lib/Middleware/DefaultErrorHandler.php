@@ -140,6 +140,7 @@ final class DefaultErrorHandler implements ErrorHandlerInterface
 
         return [
             'message' => $exception->getMessage(),
+            'code' => $exception->getCode(),
         ];
     }
 

@@ -50,7 +50,7 @@ final class ListApplicationBadges
                   'rewards',
                   'max_applicant_count',
                   'max_assignment_count',
-                  'base_price',
+                  'price',
                   'base_applicant_count',
                   'base_assignment_count',
                   'price_per_applicant',

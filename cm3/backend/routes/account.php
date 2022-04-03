@@ -29,12 +29,15 @@ return function (App $app) {
             //Retrieve responses to forms
             $app->get('/formresponses', \CM3_Lib\Action\Account\GetMyResponses::class);
 
-            //Retrieve cart(s)
-            $app->get('/GetCart', \CM3_Lib\Action\Account\GetCart::class);
+            //Retrieve cart
+            $app->get('/cart', \CM3_Lib\Action\Account\Cart\ListCarts::class);
+            $app->get('/cart/{id}', \CM3_Lib\Action\Account\Cart\GetCart::class);
             //Save cart
-            $app->post('/SaveCart', \CM3_Lib\Action\Account\SaveCart::class);
+            $app->post('/cart[/{id}]', \CM3_Lib\Action\Account\Cart\SaveCart::class);
             //Checkout cart
-            $app->post('/CheckoutCart', \CM3_Lib\Action\Account\CheckoutCart::class);
+            $app->post('/cart/{id}/checkout', \CM3_Lib\Action\Account\Cart\CheckoutCart::class);
+            //Cancel the cart
+            $app->delete('/cart/{id}', \CM3_Lib\Action\Account\Cart\CancelCart::class);
         }
     );
 };

@@ -85,6 +85,7 @@ class GetMyBadges
                     array(
                     new SelectColumn('context_code', EncapsulationFunction: "'A'", Alias:'context_code'),
                     'badge_type_id',
+                    new SelectColumn('name', Alias: 'badge_type_name', JoinedTableAlias:'typ'),
                     'payment_status'
                   )
                 ),
@@ -111,6 +112,7 @@ class GetMyBadges
                     array(
                 new SelectColumn('context_code', JoinedTableAlias:'grp'),
                 new SelectColumn('badge_type_id', JoinedTableAlias:'sub'),
+                new SelectColumn('name', Alias: 'badge_type_name', JoinedTableAlias:'typ'),
                 new SelectColumn('payment_status', JoinedTableAlias:'sub')
              )
                 ),
@@ -140,6 +142,11 @@ class GetMyBadges
         );
 
         $result = array_merge($a_badges, $g_badges);
+
+        //Munge in some extras
+        array_walk($result, function (&$badge) {
+            $badge['qr_data'] = 'CM*' . $badge['context_code'] . $badge['display_id'] . '*' . $badge['uuid'];
+        });
 
         // Build the HTTP response
         return $this->responder

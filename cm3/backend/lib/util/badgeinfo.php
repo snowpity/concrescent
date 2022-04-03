@@ -265,13 +265,13 @@ final class badgeinfo
     public function SetSpecificBadgeResponses($id, $context_code, $responses)
     {
         //First fetch any that might exist already
-        $existing =array_flip($this->f_response->Search(
+        $existing =array_flip(array_column($this->f_response->Search(
             array('question_id'),
             array(
                 new SearchTerm('context', $context_code),
                 new SearchTerm('context_id', $id),
             )
-        ));
+        ), 'question_id'));
         //Create/Update
         foreach ($responses as $question_id => $response) {
             $item = array(

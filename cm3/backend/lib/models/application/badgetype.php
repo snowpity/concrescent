@@ -20,7 +20,7 @@ class badgetype extends \CM3_Lib\database\Table
             'rewards'                   => new cm_Column('TEXT', null, true),
             'max_applicant_count'       => new cm_Column('INT', null, false),
             'max_assignment_count'      => new cm_Column('INT', null, false),
-            'base_price'                => new cm_Column('DECIMAL', '7,2', false),
+            'price'                     => new cm_Column('DECIMAL', '7,2', false),
 
             'base_applicant_count'      => new cm_Column('INT', null, false),
             'base_assignment_count'     => new cm_Column('INT', null, false),
@@ -54,7 +54,7 @@ class badgetype extends \CM3_Lib\database\Table
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
-        $this->DefaultSearchColumns = array('id','name','base_price','base_applicant_count','dates_available');
+        $this->DefaultSearchColumns = array('id','name','price','base_applicant_count','dates_available');
     }
 
     public function verifyBadgeTypeBelongsToEvent(int $id, int $event_id)

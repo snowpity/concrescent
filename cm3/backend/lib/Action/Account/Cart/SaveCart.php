@@ -1,6 +1,6 @@
 <?php
 
-namespace CM3_Lib\Action\Account;
+namespace CM3_Lib\Action\Account\Cart;
 
 use CM3_Lib\database\SearchTerm;
 
@@ -49,7 +49,7 @@ class SaveCart
         $data = (array)$request->getParsedBody();
 
         //Check if we have specified a cart
-        $cart_id = $data['id'] ?? 0;
+        $cart_id = $data['id'] ?? $params['id'] ?? 0;
         $cart_uuid = $data['uuid'] ?? '';
         $cart = $this->payment->GetByIDorUUID($cart_id, $cart_uuid, array('id','event_id','contact_id','payment_status'));
         if ($cart !== false) {
@@ -87,7 +87,7 @@ class SaveCart
         $result = array('errors'=>array());
 
         if (!isset($data['items'])) {
-            $result['id'] = $card['id'];
+            $result['id'] = $cart['id'];
 
             // Build the HTTP response
             return $this->responder
@@ -99,14 +99,14 @@ class SaveCart
         foreach ($data['items'] as $key => $badge) {
             //Ensure this badge is owned by the user and is good on the surface
             $badge['contact_id'] = $cart['contact_id'];
-            $errors[isset($badge['index']) ? $badge['index'] : ($key .'')] = $this->badgevalidator->ValdateCartBadge($badge);
+            $errors[isset($badge['cartIx']) ? $badge['cartIx'] : ($key .'')] = $this->badgevalidator->ValdateCartBadge($badge);
             $newitem = $badge;
             //Try to apply promo code?
             if (!empty($data['promocode'])) {
                 $promoApplied = $promoApplied || $this->badgepromoapplicator->TryApplyCode($newitem, $data['promocode']);
             }
             //Ensure there is an index associated
-            $newitem['index'] = isset($badge['index']) ? $badge['index'] : ($key .'');
+            $newitem['cartIx'] = isset($badge['cartIx']) ? $badge['cartIx'] : ($key .'');
             $items[] = $newitem;
         }
         //Do we have errors?

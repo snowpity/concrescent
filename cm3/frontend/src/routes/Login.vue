@@ -1,9 +1,21 @@
 <template>
-<v-container fluid fill-height>
-    <v-layout align-center justify-center>
-        <v-flex xs12 sm8 md4>
-            <v-tabs v-model="state" show-arrows background-color="deep-purple accent-4" class="elevation-12" icons-and-text dark grow>
-                <v-toolbar color="primary" dark flat>
+<v-container fluid
+             fill-height>
+    <v-layout align-center
+              justify-center>
+        <v-flex xs12
+                sm8
+                md4>
+            <v-tabs v-model="state"
+                    show-arrows
+                    background-color="deep-purple accent-4"
+                    class="elevation-12"
+                    icons-and-text
+                    dark
+                    grow>
+                <v-toolbar color="primary"
+                           dark
+                           flat>
                     <v-toolbar-title v-show="state==0">Retrieve badges</v-toolbar-title>
                     <v-toolbar-title v-show="state==1">Login</v-toolbar-title>
                     <v-toolbar-title v-show="state==2">Email sent!</v-toolbar-title>
@@ -11,73 +23,100 @@
                     <v-toolbar-title v-show="state==4">Failed!</v-toolbar-title>
 
                 </v-toolbar>
-                    <v-tab-item>
-                        <v-card class="px-4">
-                            <v-form @submit.prevent="SendMagicLink" v-model="formEMValid">
+                <v-tab-item>
+                    <v-card class="px-4">
+                        <v-form @submit.prevent="SendMagicLink"
+                                v-model="formEMValid">
                             <v-card-text>
-                                <v-text-field label="Email used to purchase" v-model="email" name="email" prepend-icon="mdi-email" type="email"
-                                :rules="[rules.required]"></v-text-field>
+                                <v-text-field label="Email used to purchase"
+                                              v-model="email"
+                                              name="email"
+                                              prepend-icon="mdi-email"
+                                              type="email"
+                                              :rules="[rules.required]"></v-text-field>
                             </v-card-text>
                             <v-card-actions>
-                                <v-btn color="default" @click="state=1" v-if="!loading">Use a password</v-btn>
+                                <v-btn color="default"
+                                       @click="state=1"
+                                       v-if="!loading">Use a password</v-btn>
                                 <v-spacer></v-spacer>
-                                <v-btn color="primary" type="submit" :disabled="!formEMValid || loading"
-                                  :loading="loading"
-                                  >Send Magic Link</v-btn>
+                                <v-btn color="primary"
+                                       type="submit"
+                                       :disabled="!formEMValid || loading"
+                                       :loading="loading">Send Magic Link</v-btn>
                             </v-card-actions>
                         </v-form>
-                        </v-card>
-                    </v-tab-item>
-                    <v-tab-item>
-                        <v-card class="px-4">
-                            <v-form @submit.prevent="login" v-model="formPWValid">
+                    </v-card>
+                </v-tab-item>
+                <v-tab-item>
+                    <v-card class="px-4">
+                        <v-form @submit.prevent="login"
+                                v-model="formPWValid">
                             <v-card-text>
-                                <v-text-field id="username" label="Username" v-model="username"  name="username" prepend-icon="mdi-account"
-                                type="text"
-                                :rules="[rules.required]"
-                                ></v-text-field>
-                                <v-text-field id="password" label="Password" v-model="password" name="password" prepend-icon="mdi-lock"
-                                    :append-icon="showpassword ? 'mdi-eye' : 'mdi-eye-off'"
-                                    :rules="[rules.required]"
-                                    :type="showpassword ? 'text' : 'password'"></v-text-field>
+                                <v-text-field id="username"
+                                              label="Username"
+                                              v-model="username"
+                                              name="username"
+                                              prepend-icon="mdi-account"
+                                              type="text"
+                                              :rules="[rules.required]"></v-text-field>
+                                <v-text-field id="password"
+                                              label="Password"
+                                              v-model="password"
+                                              name="password"
+                                              prepend-icon="mdi-lock"
+                                              :append-icon="showpassword ? 'mdi-eye' : 'mdi-eye-off'"
+                                              :rules="[rules.required]"
+                                              :type="showpassword ? 'text' : 'password'"></v-text-field>
                             </v-card-text>
                             <v-card-actions>
-                                    <v-btn color="default" @click="state=0"  v-if="!loading">Send a magic link</v-btn>
+                                <v-btn color="default"
+                                       @click="state=0"
+                                       v-if="!loading">Send a magic link</v-btn>
                                 <v-spacer></v-spacer>
-                                <v-btn color="primary"  type="submit" :disabled="!formPWValid || loading"
-                                  :loading="loading">Login</v-btn>
+                                <v-btn color="primary"
+                                       type="submit"
+                                       :disabled="!formPWValid || loading"
+                                       :loading="loading">Login</v-btn>
                             </v-card-actions>
-                            </v-form>
-                        </v-card>
-                    </v-tab-item>
-                    <v-tab-item>
-                        <v-card>
-                          <v-card-text>If you have purchased any badges with the contact email <b>{{email}}</b>, you should receive the badge retrieval email shortly to confirm.</v-card-text>
-                          <v-card-actions>
+                        </v-form>
+                    </v-card>
+                </v-tab-item>
+                <v-tab-item>
+                    <v-card>
+                        <v-card-text>If you have purchased any badges with the contact email <b>{{email}}</b>, you should receive the badge retrieval email shortly to confirm.</v-card-text>
+                        <v-card-actions>
                             <v-spacer></v-spacer>
-                            <v-btn color="green darken-1" @click="state = 0">Try again</v-btn>
-                          </v-card-actions>
-                        </v-card>
-                    </v-tab-item>
-                    <v-tab-item>
-                        <v-card>
-                          <v-card-text>Login Success!</v-card-text>
-                          <v-card-actions>
+                            <v-btn color="green darken-1"
+                                   @click="state = 0">Try again</v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-tab-item>
+                <v-tab-item>
+                    <v-card>
+                        <v-card-text>Login Success!</v-card-text>
+                        <v-card-actions>
                             <v-spacer></v-spacer>
-                            <v-btn color="green darken-1" to="/">OK</v-btn>
-                          </v-card-actions>
-                        </v-card>
-                    </v-tab-item>
-                    <v-tab-item>
-                        <v-card>
-                          <v-card-text>{{loginFailReason}}</v-card-text>
-                          <v-card-actions>
+                            <v-btn v-if="isAdmin"
+                                   color="green darken-1"
+                                   to="/">OK</v-btn>
+                            <v-btn v-else
+                                   color="green darken-1"
+                                   to="/myBadges">My Badges</v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-tab-item>
+                <v-tab-item>
+                    <v-card>
+                        <v-card-text>{{loginFailReason}}</v-card-text>
+                        <v-card-actions>
                             <v-spacer></v-spacer>
-                            <v-btn color="green darken-1" @click="state = 1">Try again</v-btn>
-                          </v-card-actions>
-                        </v-card>
-                    </v-tab-item>
-                </v-tabs>
+                            <v-btn color="green darken-1"
+                                   @click="state = 1">Try again</v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-tab-item>
+            </v-tabs>
 
         </v-flex>
     </v-layout>
@@ -85,55 +124,52 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import {
+    mapActions
+} from 'vuex';
 
 export default {
-  data: () => ({
-    state:0,
-    loading:false,
-    formEMValid: false,
-    formPWValid: false,
-    formValid: false,
-    email: '',
-    username: '',
-    password: '',
-    showpassword:false,
-    loginFailReason:"???",
+    data: () => ({
+        state: 0,
+        loading: false,
+        formEMValid: false,
+        formPWValid: false,
+        formValid: false,
+        email: '',
+        username: '',
+        password: '',
+        showpassword: false,
+        loginFailReason: "???",
 
-    rules: {
-      required: value => !!value || 'Required.',
+        rules: {
+            required: value => !!value || 'Required.',
+        },
+    }),
+    computed: {
+        isAdmin: function() {
+            return this.$store.getters['mydata/hasPerms'];
+        }
     },
-  }),
-  methods: {
-    ...mapActions('mydata', [
-      'sendRetrieveBadgeEmail',
-      'loginToken',
-      'loginPassword',
-    ]),
-    SendMagicLink() {
-        this.loading = true;
-        this.sendRetrieveBadgeEmail(this.email).then(()=>{
-            this.state = 2;
-            this.loading = false;
-        });
-    },
-    login() {
-        this.loading = true;
-        this.loginPassword({username: this.username,password: this.password}).then((success)=>{
-            if(success ===true) {
-                this.state = 3;
-            } else {
-                this.loginFailReason = success;
-                this.state = 4;
-            }
-            this.loading = false;
-        });
-    },
-    completeLogin() {
-          let { query } = this.$route;
-          if (query.token != undefined) {
-            this.loginToken(query.token).then((success)=>{
-                if(success ===true) {
+    methods: {
+        ...mapActions('mydata', [
+            'sendRetrieveBadgeEmail',
+            'loginToken',
+            'loginPassword',
+        ]),
+        SendMagicLink() {
+            this.loading = true;
+            this.sendRetrieveBadgeEmail(this.email).then(() => {
+                this.state = 2;
+                this.loading = false;
+            });
+        },
+        login() {
+            this.loading = true;
+            this.loginPassword({
+                username: this.username,
+                password: this.password
+            }).then((success) => {
+                if (success === true) {
                     this.state = 3;
                 } else {
                     this.loginFailReason = success;
@@ -141,19 +177,34 @@ export default {
                 }
                 this.loading = false;
             });
-            // Presumably they're here from a Magic link
-            // Which *probably* means it was successful, so... clear the cart!
-            //this.$router.replace({ ...this.$router.currentRoute, query: {} });
-          }
+        },
+        completeLogin() {
+            let {
+                query
+            } = this.$route;
+            if (query.token != undefined) {
+                this.loginToken(query.token).then((success) => {
+                    if (success === true) {
+                        this.state = 3;
+                    } else {
+                        this.loginFailReason = success;
+                        this.state = 4;
+                    }
+                    this.loading = false;
+                });
+                // Presumably they're here from a Magic link
+                // Which *probably* means it was successful, so... clear the cart!
+                //this.$router.replace({ ...this.$router.currentRoute, query: {} });
+            }
+        }
+    },
+    watch: {
+        $route() {
+            this.$nextTick(this.completeLogin);
+        }
+    },
+    created() {
+        this.completeLogin();
     }
-  },
-  watch: {
-     $route() {
-         this.$nextTick(this.completeLogin);
-      }
-  },
-  created() {
-      this.completeLogin();
-  }
 };
 </script>

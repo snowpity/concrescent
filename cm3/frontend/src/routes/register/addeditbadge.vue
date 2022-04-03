@@ -346,9 +346,9 @@ export default {
         return {
             step: 1,
             reachedStep: 1,
-            cartId: -1,
-            editBadgeId: -1, // Attendee's ID, not the badgeType
-            editBadgeIdUUID: '',
+            cartIx: -1,
+            id: -1, // Attendee's ID, not the badgeType
+            idUUID: '',
             editBadgePriorBadgeId: -1,
             editBadgePriorAddons: [],
 
@@ -360,6 +360,7 @@ export default {
             date_of_birth: null,
             bdayActivePicker: 'YEAR',
             selectedBadge: null,
+            context: 'A',
             badge_type_id: -1,
             menuBDay: false,
 
@@ -426,7 +427,7 @@ export default {
             }
 
             // Are we editing a badge?
-            if (this.editBadgeId > -1) {
+            if (this.id > -1) {
                 const oldBadge = badges.find((badge) => badge.id == this.editBadgePriorBadgeId);
                 if (oldBadge != undefined) {
                     const oldPrice = parseFloat(oldBadge.price);
@@ -445,9 +446,9 @@ export default {
             // Special because of how the select dropdown works
             return {
 
-                cartId: this.cartId,
-                editBadgeId: this.editBadgeId,
-                editBadgeIdUUID: this.editBadgeIdUUID,
+                cartIx: this.cartIx,
+                id: this.id,
+                idUUID: this.idUUID,
                 editBadgePriorBadgeId: this.editBadgePriorBadgeId,
                 editBadgePriorAddons: this.editBadgePriorAddons,
 
@@ -455,6 +456,7 @@ export default {
                 fandom_name: this.fandom_name,
                 name_on_badge: this.name_on_badge,
                 date_of_birth: this.date_of_birth,
+                context: this.context,
                 badge_type_id: this.badge_type_id,
 
                 ice_name: this.ice_name,
@@ -467,7 +469,7 @@ export default {
             };
         },
         isUpdatingItem() {
-            return (this.cartId != null && this.cartId > -1) || (this.editBadgeId != null && this.editBadgeId > -1);
+            return (this.cartIx != null && this.cartIx > -1) || (this.id != null && this.id > -1);
         },
         isProbablyDowngrading() {
             if (!this.isUpdatingItem) {
@@ -479,24 +481,6 @@ export default {
             return typeof oldBadge !== 'undefined' &&
                 typeof selectedBadge !== 'undefined' &&
                 parseFloat(oldBadge.originalprice) > parseFloat(selectedBadge.originalprice);
-        },
-        currentContactInfo() {
-            return {
-
-                contactEmail: this.contactEmail,
-                subscribed: this.contactSubscribePromotions,
-                contactPhone: this.contactPhone,
-                contactStreet1: this.contactStreet1,
-                contactStreet2: this.contactStreet2,
-                contactCity: this.contactCity,
-                contactState: this.contactState,
-                contactPostalCode: this.contactPostalCode,
-                contactCountry: this.contactCountry,
-                ice_name: this.ice_name,
-                ice_relationship: this.ice_relationship,
-                ice_email_address: this.ice_email_address,
-                ice_phone_number: this.ice_phone_number,
-            };
         },
         badgeQuestions() {
             // Todo: Filter by badge context
@@ -583,24 +567,29 @@ export default {
         },
         loadBadge() {
             let cartItem;
-            this.cartId = parseInt(this.$route.params.cartId);
-            const editBadgeIdString = this.$route.params.editId;
+            this.cartIx = parseInt(this.$route.params.cartIx);
+            const idString = this.$route.params.editIx;
+            console.log('load a badge')
             let badge_type_id = -1;
-            if (this.cartId > -1) {
+            if (this.cartIx > -1) {
                 // Load up the badge from the cart
-                cartItem = this.$store.getters['cart/getProductInCart'](this.cartId);
+                cartItem = this.$store.getters['cart/getProductInCart'](this.cartIx);
                 this.reachedStep = 4;
-            } else if (editBadgeIdString && editBadgeIdString.length > 0) {
-                // Load up the badge from the cart
-                cartItem = this.$store.getters['mydata/getBadgeAsCart'](editBadgeIdString);
+            } else if (idString != undefined) {
+                // Load up the badge from the owned badges
+                cartItem = this.$store.getters['mydata/getBadgeAsCart'](idString);
                 this.editBadgePriorBadgeId = cartItem.badge_type_id;
                 this.reachedStep = 4;
-            } else if (this.$route.params.cartId == undefined) {
+            } else if (this.$route.params.cartIx == undefined) {
                 // It's a new badge or they're back here from a refresh/navigation
                 cartItem = this.$store.getters['cart/getCurrentlyEditingItem'];
+
                 // Should only be needed if we didn't have a selectedBadge?
                 // this.selectedBadge = this.badges.findIndex(badge => badge.id == cartItem.badge_type_id);
             }
+
+            //If nothing loaded,  early exit
+            if (cartItem == undefined) return;
 
             // Pull out the BadgeId and selected addons
             badge_type_id = cartItem.badge_type_id || 0;
