@@ -207,6 +207,16 @@ export default {
                 errorCb(error.response.data);
             })
     },
+    getSpecificBadge(context_code, id, uuid, cb, errorCb) {
+        axios.get(global.config.apiHostURL + "public/getspecificbadge?context_code=" +
+                context_code + "&id=" + id + "&uuid=" + uuid)
+            .then(function(response) {
+                cb(response.data);
+            })
+            .catch(function(error) {
+                errorCb(error.response.data);
+            })
+    },
     sentEmailRetrieveBadges(email, cb, errorCb) {
 
         axios.post(global.config.apiHostURL + "public/requestmagic", {

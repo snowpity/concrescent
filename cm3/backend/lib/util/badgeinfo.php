@@ -49,6 +49,7 @@ final class badgeinfo
       'id',
       'uuid',
       'display_id',
+      'contact_id',
       'real_name',
       'fandom_name',
       'name_on_badge',

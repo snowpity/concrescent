@@ -8,6 +8,7 @@ use CM3_Lib\models\payment;
 use CM3_Lib\util\badgevalidator;
 use CM3_Lib\util\badgepromoapplicator;
 use CM3_Lib\util\CurrentUserInfo;
+use CM3_Lib\util\badgeinfo;
 
 use Branca\Branca;
 use MessagePack\MessagePack;
@@ -32,7 +33,8 @@ class SaveCart
         private payment $payment,
         private badgevalidator $badgevalidator,
         private badgepromoapplicator $badgepromoapplicator,
-        private CurrentUserInfo $CurrentUserInfo
+        private CurrentUserInfo $CurrentUserInfo,
+        private badgeinfo $badgeinfo,
     ) {
     }
 
@@ -98,8 +100,30 @@ class SaveCart
         $promoApplied = false;
         $promocode = $data['promocode'] ?? "";
         foreach ($data['items'] as $key => $badge) {
-            //Ensure this badge is owned by the user and is good on the surface
-            $badge['contact_id'] = $cart['contact_id'];
+            //Ensure this badge is owned by the user (if we're not editing) and is good on the surface
+            if (!isset($badge['id'])) {
+                $badge['contact_id'] = $cart['contact_id'];
+            } else {
+                $bi = $this->badgeinfo->getSpecificBadge($badge['id'], $badge['context_code']);
+                //If this isn't ours, ensure certain fields aren't tampered with
+                if ($bi['contact_id'] != $cart['contact_id']) {
+                    $allowed = array(
+                        'notify_email',
+                        'can_transfer',
+                        'contact_id'
+                    );
+                    array_walk($allowed, function ($col) use ($badge, $bi) {
+                        if (isset($bi[$col])) {
+                            $badge[$col] = $bi[$col];
+                        } else {
+                            unset($badge[$col]);
+                        }
+                    });
+                    //And set the contact_id
+                    $badge['contact_id'] = $bi['contact_id'];
+                }
+            }
+
             $errors[isset($badge['cartIx']) ? $badge['cartIx'] : ($key .'')] = $this->badgevalidator->ValdateCartBadge($badge);
 
             //Try to apply promo code?

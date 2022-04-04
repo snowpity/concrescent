@@ -239,7 +239,41 @@ const actions = {
         state
     }) {
         shop.getMyBadges(state.token, (data) => {
-            commit('setOwnedBadges', data);
+
+            var updatedBadges = state.ownedbadges.map(badge => {
+                var found = data.find(d => badge.uuid == d.uuid);
+                if (found != undefined)
+                    return found;
+                return badge;
+            });
+            //Add any that didn't exist before
+            data.forEach((item, i) => {
+                if (-1 == updatedBadges.findIndex(badge => badge.uuid == item.uuid))
+                    updatedBadges.push(item);
+            });
+            commit('setOwnedBadges', updatedBadges);
+
+        })
+    },
+    retrieveSpecificBadge({
+        commit,
+        state
+    }, {
+        context_code,
+        id,
+        uuid
+    }) {
+        shop.getSpecificBadge(context_code, id, uuid, (data) => {
+
+            var updatedBadges = state.ownedbadges.map(badge => {
+                if (badge.uuid == data.uuid)
+                    return data;
+                return badge;
+            });
+            //Check that we have it
+            if (-1 == updatedBadges.findIndex(badge => badge.uuid == data.uuid))
+                updatedBadges.push(data);
+            commit('setOwnedBadges', updatedBadges);
         })
     },
     retrieveTransactionBadges({

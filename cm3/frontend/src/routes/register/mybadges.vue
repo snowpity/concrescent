@@ -62,6 +62,10 @@
               :fullscreen="printingBadge">
         <v-card>
             <v-card-actions class="d-print-none">
+                <v-btn color="red lighten-1"
+                       @click="removeBadge">
+                    <v-icon>mdi-delete</v-icon>
+                </v-btn>
                 <v-spacer></v-spacer>
                 <v-btn color="blue darken-1"
                        @click="printBadgeInfo">
@@ -186,12 +190,16 @@ export default {
     methods: {
         ...mapActions('mydata', [
             'retrieveBadges',
+            'retrieveSpecificBadge',
             'retrieveTransactionBadges',
             'clearBadgeRetrievalResult',
         ]),
         ...mapActions('cart', [
             'clearCart',
         ]),
+        removeBadge() {
+
+        },
         printBadgeInfo() {
             this.printingBadge = true;
             if (this.printingBadge) {
@@ -236,6 +244,10 @@ export default {
         }
         if (query.refresh) {
             this.retrieveBadges();
+        }
+        if (query.context_code) {
+            //A specific badge was clicked, load it up
+            this.retrieveSpecificBadge(query);
         }
         this.$store.dispatch('products/getAllProducts');
         this.$store.dispatch('products/getAllAddons');

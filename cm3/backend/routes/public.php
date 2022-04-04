@@ -33,6 +33,9 @@ return function (App $app) {
             //Fetch available payment methods
             $app->get('/paymethods', \CM3_Lib\Action\Public\ListPayMethods::class);
 
+            //An anonymous user has a badge link
+            $app->get('/getspecificbadge', \CM3_Lib\Action\Public\GetSpecificBadge::class);
+
             //Log in. Also allows selecting a different event id.
             $app->post('/login', \CM3_Lib\Action\Public\Login::class);
 

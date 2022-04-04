@@ -27,7 +27,7 @@ class FrontendUrlTranslator
     }
     public function GetBadgeLoad(array $badge)
     {
-        return $this->routedURL('myBadges?id=' . $badge['id'] . '&uuid=' . $badge['uuid']);
+        return $this->routedURL('myBadges?context_code='. $badge['context_code'] . '&id=' . $badge['id'] . '&uuid=' . $badge['uuid']);
     }
     public function GetLoginConfirm(string $authString)
     {

@@ -32,9 +32,12 @@ class CurrentUserInfo
     {
         return $this->contact_id;
     }
-    public function GetContactEmail(): string
+    public function GetContactEmail(?int $contact_id = null): string
     {
-        $result = $this->contact->GetByID($this->contact_id, array('email_address'));
+        if ($contact_id == null) {
+            $contact_id = $this->contact_id;
+        }
+        $result = $this->contact->GetByID($contact_id, array('email_address'));
         if ($result === false) {
             return '';
         }

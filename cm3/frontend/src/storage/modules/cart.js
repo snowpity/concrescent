@@ -189,14 +189,14 @@ const actions = {
     }, badge) {
         commit('setCheckoutStatus', null);
         const product = rootState.products.all.find((product) => product.id === badge.badge_type_id);
-        if (product.quantity == null | product.quantity > 0) {
-            const cartItem = state.items.find((item) => item.cartIx === badge.cartIx && item.cartIx != null);
-            if (!cartItem) {
-                badge.cartIx = Math.max.apply(this, state.items.map((l) => l.cartIx)) + 1;
-                if (badge.cartIx == -Infinity) {
-                    badge.cartIx = 0;
-                }
-                commit('pushProductToCart', badge);
+        const cartItem = state.items.find((item) => item.cartIx === badge.cartIx && item.cartIx != null);
+        if (!cartItem) {
+            badge.cartIx = Math.max.apply(this, state.items.map((l) => l.cartIx)) + 1;
+            if (badge.cartIx == -Infinity) {
+                badge.cartIx = 0;
+            }
+            commit('pushProductToCart', badge);
+            if (product.quantity == null | product.quantity > 0) {
 
                 // remove 1 item from stock
                 commit('products/decrementProductQuantity', {
@@ -204,10 +204,10 @@ const actions = {
                 }, {
                     root: true,
                 });
-            } else {
-                // Item already in cart, just update it
-                commit('updateProductInCart', badge);
             }
+        } else {
+            // Item already in cart, just update it
+            commit('updateProductInCart', badge);
         }
     },
     removeProductFromCart({
