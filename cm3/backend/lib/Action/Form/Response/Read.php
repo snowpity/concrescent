@@ -60,7 +60,7 @@ final class Read
 
 
         //Get the badge table
-        switch ($params['context']) {
+        switch ($params['context_code']) {
             case 'A':   $badge = $this->a_badge; break;
             case 'S':   $badge = $this->s_badge; break;
             default:    $badge = $this->g_badge; break;
@@ -71,7 +71,7 @@ final class Read
             array('id'),
             array(
                 new Join($this->questionmap, array(
-                    new SearchTerm('context', $params['context']),
+                    new SearchTerm('context_code', $params['context_code']),
                     'question_id'=>'id',
                 ), alias: 'qm'),
                 new Join($badge, array(
@@ -88,7 +88,7 @@ final class Read
         // Invoke the Domain with inputs and retain the result
         $data = $this->response->GetByID(array(
             'badge_type_id' => $params['badge_type_id'],
-            'context' => $params['context'],
+            'context_code' => $params['context_code'],
             'question_id' => $params['question_id']
         ), '*');
 

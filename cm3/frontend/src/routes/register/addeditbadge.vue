@@ -360,7 +360,7 @@ export default {
             date_of_birth: null,
             bdayActivePicker: 'YEAR',
             selectedBadge: null,
-            context: 'A',
+            context_code: 'A',
             badge_type_id: -1,
             menuBDay: false,
 
@@ -456,7 +456,7 @@ export default {
                 fandom_name: this.fandom_name,
                 name_on_badge: this.name_on_badge,
                 date_of_birth: this.date_of_birth,
-                context: this.context,
+                context_code: this.context_code,
                 badge_type_id: this.badge_type_id,
 
                 notify_email: this.notify_email,

@@ -52,7 +52,7 @@ final class Create
         $event_id = $request->getAttribute('event_id');
         // Extract the form data from the request
         $data =array_merge($data, array(
-            'context'       => $params['context'],
+            'context_code'       => $params['context_code'],
             'badge_type_id' => $params['badge_type_id'],
             'question_id'   => $params['question_id'],
         ));
@@ -63,7 +63,7 @@ final class Create
         }
 
         //Also confirm the specified badge_type_id belongs to the event id
-        switch ($params['context']) {
+        switch ($params['context_code']) {
             case 'A':
                 $badge_type = $this->a_badge_type;
                 break;

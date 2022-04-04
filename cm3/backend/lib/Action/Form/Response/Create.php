@@ -56,7 +56,7 @@ final class Create
         $data = (array)$request->getParsedBody();
 
         //Get the badge table
-        switch ($params['context']) {
+        switch ($params['context_code']) {
             case 'A':   $badge = $this->a_badge; break;
             case 'S':   $badge = $this->s_badge; break;
             default:    $badge = $this->g_badge; break;
@@ -67,7 +67,7 @@ final class Create
             array('id'),
             array(
                 new Join($this->questionmap, array(
-                    new SearchTerm('context', $params['context']),
+                    new SearchTerm('context_code', $params['context_code']),
                     'question_id'=>'id',
                 ), alias: 'qm'),
                 new Join($badge, array(
@@ -84,7 +84,7 @@ final class Create
         //Ensure our new response will be assocaited to the question
         // (in case they're trying to be funny about the data)
         $data['question_id'] = $params['question_id'];
-        $data['context'] = $params['context'];
+        $data['context_code'] = $params['context_code'];
         $data['context_id'] = $params['context_id'];
 
         //TODO: Validate?

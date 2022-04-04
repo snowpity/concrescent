@@ -11,20 +11,20 @@ class templatemap extends \CM3_Lib\database\Table
     {
         $this->TableName = 'Mail_Template_Maps';
         $this->ColumnDefs = array(
-            'context'		=> new cm_Column('VARCHAR', 3, false),
+            'context_code'		=> new cm_Column('VARCHAR', 3, false),
             'badge_type_id'	=> new cm_Column('INT', null, false),
             'template_id'	=> new cm_Column('INT', null, false),
             'reason'        => new cm_Column('varchar', 20, false)
         );
         $this->IndexDefs = array(
             'primary' => new cm_ColumnIndex(array(
-                'context' => false,
+                'context_code' => false,
                 'badge_type_id' => false,
                 'template_id' => false,
             ), 'primary key')
         );
         $this->PrimaryKeys = array(
-            'context' => false,
+            'context_code' => false,
             'badge_type_id' => false,
             'template_id' => false);
         $this->DefaultSearchColumns = array('template_id','reason');

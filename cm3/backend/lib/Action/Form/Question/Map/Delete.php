@@ -51,7 +51,7 @@ final class Delete
         // Extract the form data from the request
         $data = array(
             'question_id'     => $params['question_id'],
-            'context'      => $params['context'],
+            'context_code'      => $params['context_code'],
             'badge_type_id' => $params['badge_type_id'],
         );
 

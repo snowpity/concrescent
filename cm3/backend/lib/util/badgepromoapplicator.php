@@ -88,7 +88,7 @@ final class badgepromoapplicator
     {
         if (!empty($code)) {
             //First, does this badge match our type?
-            if ($item['context'] != 'A') {
+            if ($item['context_code'] != 'A') {
                 return false;
             }
             if (empty($code)) {

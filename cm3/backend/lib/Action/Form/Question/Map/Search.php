@@ -49,7 +49,7 @@ final class Search
           //new SearchTerm('active', 1)
         );
 
-        $order = array('context' => false,'badge_type_id'=>false);
+        $order = array('context_code' => false,'badge_type_id'=>false);
 
         $page      = ($request->getQueryParams()['page']?? 0 > 0) ? $request->getQueryParams()['page'] : 1;
         $limit     = $request->getQueryParams()['itemsPerPage']?? -1; // Number of posts on one page
@@ -59,7 +59,7 @@ final class Search
         }
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->questionmap->Search(array('context','badge_type_id'), $whereParts, $order, $limit, $offset);
+        $data = $this->questionmap->Search(array('context_code','badge_type_id'), $whereParts, $order, $limit, $offset);
 
         // Build the HTTP response
         return $this->responder

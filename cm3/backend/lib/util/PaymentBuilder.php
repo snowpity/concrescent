@@ -125,17 +125,17 @@ final class PaymentBuilder
 
         foreach ($this->cart_items as $key => &$item) {
             //Create/Update the badge
-            if (!isset($item['context'])) {
-                $item['context']='A';
+            if (!isset($item['context_code'])) {
+                $item['context_code']='A';
             }
-            $bt = $this->badgeinfo->getBadgetType($item['context'], $item['badge_type_id']);
-            $bi = $this->badgeinfo->getSpecificBadge($item['id'] ?? 0, $item['context']);
+            $bt = $this->badgeinfo->getBadgetType($item['context_code'], $item['badge_type_id']);
+            $bi = $this->badgeinfo->getSpecificBadge($item['id'] ?? 0, $item['context_code']);
             $item['payment_txn_id'] = $this->cart['id'];
             if ($bi !== false) {
                 //Preserve the current badge state
                 $item['existing'] = $bi;
                 $item['payment_status'] = 'Incomplete';
-                $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context'], $item);
+                $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
             } else {
                 //Ensure the badge has an owner
                 $item['contact_id'] =$item['contact_id'] ?? $this->CurrentUserInfo->GetContactId();
@@ -148,7 +148,7 @@ final class PaymentBuilder
             }
             //Save the form responses
             if (isset($item['form_responses'])) {
-                $this->badgeinfo->SetSpecificBadgeResponses($item['id'], $item['context'], $item['form_responses']);
+                $this->badgeinfo->SetSpecificBadgeResponses($item['id'], $item['context_code'], $item['form_responses']);
             }
 
             //Check for bans
@@ -166,7 +166,7 @@ final class PaymentBuilder
                 $bt['price'],
                 1,
                 $bt['description'],
-                $this->CurrentUserInfo->GetEventId() . ':' . $item['context'] . ':' . $item['badge_type_id'],
+                $this->CurrentUserInfo->GetEventId() . ':' . $item['context_code'] . ':' . $item['badge_type_id'],
                 max(0, $bt['price'] - ($item['payment_promo_price'] ?? $item['payment_badge_price'])),
                 $item['payment_promo_code'] ?? null
             );
@@ -273,19 +273,19 @@ final class PaymentBuilder
 
         foreach ($this->cart_items as $key => &$item) {
             //Update the badge
-            if (!isset($item['context'])) {
-                $item['context']='A';
+            if (!isset($item['context_code'])) {
+                $item['context_code']='A';
             }
-            $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context']);
+            $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code']);
             if ($bi !== false) {
                 $item['payment_status'] = 'Completed';
 
-                $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context'], $item);
+                $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
                 if (!isset($item['existing'])) {
-                    $this->badgeinfo->setNextDisplayIDSpecificBadge($item['id'], $item['context']);
+                    $this->badgeinfo->setNextDisplayIDSpecificBadge($item['id'], $item['context_code']);
                 }
             } else {
-                throw new \Exception('Badge not found?!?' . $item['context'] . $item['id']);
+                throw new \Exception('Badge not found?!?' . $item['context_code'] . $item['id']);
             }
 
             //Check for addons
@@ -310,9 +310,9 @@ final class PaymentBuilder
             //Revert the badge
             $item['payment_status'] = 'Cancelled';
             if (isset($item['existing'])) {
-                $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context'], $item['existing']);
+                $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item['existing']);
             } else {
-                $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context'], $item);
+                $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
             }
 
             //Check for addons
@@ -333,8 +333,10 @@ final class PaymentBuilder
         $to = $this->CurrentUserInfo->GetContactEmail();
 
         foreach ($this->cart_items as $item) {
+            //Get the current info, not what's in the order
+            $badge = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code']);
             $template = $this->cart['mail_template'] ?? ($item['context_code'] . '-payment-' .$this->cart['payment_status']);
-            $this->Mail->SendTemplate($to, $template, $item);
+            $this->Mail->SendTemplate($to, $template, $badge, $badge['notify_email']);
         }
     }
 }

@@ -12,7 +12,7 @@ class question extends \CM3_Lib\database\Table
         $this->ColumnDefs = array(
             'id' 			=> new cm_Column('INT', null, false, true, false, true, null, true),
             'event_id'		=> new cm_Column('INT', null, false, false, false, true),
-            'context'		=> new cm_Column('VARCHAR', '3', false),
+            'context_code'		=> new cm_Column('VARCHAR', '3', false),
             'active'    => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
             'order'			=> new cm_Column('INT', null, false),
             'title'     => new cm_Column('VARCHAR', '255', false),
@@ -35,7 +35,7 @@ class question extends \CM3_Lib\database\Table
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
-        $this->DefaultSearchColumns = array('id','context','active','title','type');
+        $this->DefaultSearchColumns = array('id','context_code','active','title','type');
     }
 
     public function verifyQuestionBelongsToEvent(int $id, int $event_id)

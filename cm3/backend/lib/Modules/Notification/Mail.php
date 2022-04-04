@@ -126,7 +126,7 @@ class Mail
                     $template['id'] = 0;
                 }
                 if (is_null($template) || is_string($template)) {
-                    throw new \Exception('Unable to load mail template "' . $templatename .'"');
+                    throw new \Exception('Unable to load mail template "' . $template .'"');
                 }
             }
         }
@@ -156,7 +156,7 @@ class Mail
                             $this->templatemap,
                             array(
                                 'id'=>'template_id',
-                                new SearchTerm('context', $entity['context'] ?? 'A'),
+                                new SearchTerm('context_code', $entity['context_code'] ?? 'A'),
                                 new SearchTerm('badge_type_id', $entity['badge_type_id']??0),
                                 new SearchTerm('reason', $reason),
                             )
@@ -174,7 +174,7 @@ class Mail
             $template = $templatedata[0];
         } else {
             //Search the on-disk templates
-            $templatefile = __DIR__ . '/../../../config/templates/Mail/' . ($entity['context'] ??'A') . '-' . $reason . '.json';
+            $templatefile = __DIR__ . '/../../../config/templates/Mail/' . ($entity['context_code'] ??'A') . '-' . $reason . '.json';
             if (file_exists($templatefile)) {
                 //Load it up!
                 $template = json_decode(file_get_contents($templatefile), true);
@@ -230,8 +230,8 @@ class Mail
         if (isset($entity['badge_type_id'])) {
             $msgId .= 'bt'.$entity['badge_type_id'] .'-';
         }
-        if (isset($entity['context'])) {
-            $msgId .= 'cx'.$entity['context'] .'-';
+        if (isset($entity['context_code'])) {
+            $msgId .= 'cx'.$entity['context_code'] .'-';
         }
         if (isset($entity['id'])) {
             $msgId .= 'id'.$entity['id'] .'-';

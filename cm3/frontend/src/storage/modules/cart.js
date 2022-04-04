@@ -157,7 +157,7 @@ const actions = {
         commit,
         rootState
     }) {
-        if (state.cartId != null) {
+        if (state.cartId != null && state.checkoutStatus.state != 'Completed') {
             shop.deleteCart(
                 rootState.mydata.token,
                 state.cartId,

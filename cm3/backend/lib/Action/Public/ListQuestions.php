@@ -59,7 +59,7 @@ final class ListQuestions
                 'q',
                 array('question_id','required'),
                 array(
-                 new SearchTerm('context', $params['context']),
+                 new SearchTerm('context_code', $params['context_code']),
                  new SearchTerm('badge_type_id', $params['context_id']),
                )
             )

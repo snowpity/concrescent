@@ -30,15 +30,15 @@ return function (App $app, $container) {
         '/Form/Question/{question_id}/Map',
         function (RouteCollectorProxy $app) use ($accessPerm) {
             $app->get('', \CM3_Lib\Action\Form\Question\Map\Search::class);
-            $app->post('/{context}/{badge_type_id}', \CM3_Lib\Action\Form\Question\Map\Create::class)
+            $app->post('/{context_code}/{badge_type_id}', \CM3_Lib\Action\Form\Question\Map\Create::class)
             ->add($accessPerm);
-            $app->delete('/{context}/{badge_type_id}', \CM3_Lib\Action\Form\Question\Map\Delete::class)
+            $app->delete('/{context_code}/{badge_type_id}', \CM3_Lib\Action\Form\Question\Map\Delete::class)
             ->add($accessPerm);
         }
     );
 
     $app->group(
-        '/Form/Response/{context}/{context_id}',
+        '/Form/Response/{context_code}/{context_id}',
         function (RouteCollectorProxy $app) use ($accessPerm) {
             $app->get('', \CM3_Lib\Action\Form\Response\Search::class);
             $app->get('/{id}', \CM3_Lib\Action\Form\Response\Read::class);

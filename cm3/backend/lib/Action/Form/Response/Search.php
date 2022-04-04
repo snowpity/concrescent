@@ -52,7 +52,7 @@ final class Search
         //     array('id'),
         //     array(
         //         new Join($this->questionmap, array(
-        //             new SearchTerm('context', $params['context']),
+        //             new SearchTerm('context_code', $params['context_code']),
         //             new SearchTerm('badge_type_id', $params['badge_type_id']),
         //             'question_id'=>'id',
         //         )),
@@ -65,7 +65,7 @@ final class Search
 
 
         $whereParts = array(
-            new SearchTerm('context', $params['context']),
+            new SearchTerm('context_code', $params['context_code']),
             new SearchTerm('context_id', $params['context_id']),
         );
 

@@ -91,7 +91,7 @@ final class badgeinfo
         unset($data['id']);
         unset($data['uuid']);
 
-        switch ($data['context']) {
+        switch ($data['context_code']) {
             case 'A':
                 $result =  $this->a_badge->Create($data);
                 break;
@@ -259,7 +259,7 @@ final class badgeinfo
         $data = $this->f_response->Search(
             array('question_id','response'),
             array(
-                new SearchTerm('context', $context_code),
+                new SearchTerm('context_code', $context_code),
                 new SearchTerm('context_id', $id),
             )
         );
@@ -273,14 +273,14 @@ final class badgeinfo
         $existing =array_flip(array_column($this->f_response->Search(
             array('question_id'),
             array(
-                new SearchTerm('context', $context_code),
+                new SearchTerm('context_code', $context_code),
                 new SearchTerm('context_id', $id),
             )
         ), 'question_id'));
         //Create/Update
         foreach ($responses as $question_id => $response) {
             $item = array(
-                'context' => $context_code,
+                'context_code' => $context_code,
                 'context_id' => $id,
                 'question_id' => $question_id,
                 'response' => $response
@@ -294,7 +294,7 @@ final class badgeinfo
         //Delete the missing ones
         foreach (array_diff($existing, $responses) as $question_id => $response) {
             $item = array(
-                'context' => $context_code,
+                'context_code' => $context_code,
                 'context_id' => $id,
                 'question_id' => $question_id
             );

@@ -37,7 +37,7 @@ final class badgevalidator
     public function ValdateCartBadge(&$item)
     {
         $result = array();
-        switch ($item['context'] ?? 'A') {
+        switch ($item['context_code'] ?? 'A') {
             case 'A':
                 //Init the validator
                 $v = new TableValidator($this->a_badge);
