@@ -6,6 +6,10 @@ use CM3_Lib\database\SearchTerm;
 
 class CurrentUserInfo
 {
+    public function __construct(
+        private \CM3_Lib\models\contact $contact,
+    ) {
+    }
     private $event_id = 0;
     public function SetEventId($event_id)
     {
@@ -27,5 +31,13 @@ class CurrentUserInfo
     public function GetContactId()
     {
         return $this->contact_id;
+    }
+    public function GetContactEmail(): string
+    {
+        $result = $this->contact->GetByID($this->contact_id, array('email_address'));
+        if ($result === false) {
+            return '';
+        }
+        return $result['email_address'];
     }
 }

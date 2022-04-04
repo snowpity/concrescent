@@ -153,13 +153,33 @@ const actions = {
         );
     },
     clearCart({
+        state,
         commit,
+        rootState
     }) {
-        commit('setCheckoutStatus', null);
-        commit('setCartItems', {
-            items: [],
-        });
-        commit('setcartId', null);
+        if (state.cartId != null) {
+            shop.deleteCart(
+                rootState.mydata.token,
+                state.cartId,
+                (data) => {
+
+                    commit('setCheckoutStatus', null);
+                    commit('setCartItems', {
+                        items: [],
+                    });
+                    commit('setcartId', null);
+                }
+            );
+        } else {
+            //We don't know about any cart, just clear it
+
+
+            commit('setCheckoutStatus', null);
+            commit('setCartItems', {
+                items: [],
+            });
+            commit('setcartId', null);
+        }
     },
 
     addProductToCart({

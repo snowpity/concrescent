@@ -348,7 +348,7 @@ export default {
             reachedStep: 1,
             cartIx: -1,
             id: -1, // Attendee's ID, not the badgeType
-            idUUID: '',
+            uuid: '',
             editBadgePriorBadgeId: -1,
             editBadgePriorAddons: [],
 
@@ -448,7 +448,7 @@ export default {
 
                 cartIx: this.cartIx,
                 id: this.id,
-                idUUID: this.idUUID,
+                uuid: this.uuid,
                 editBadgePriorBadgeId: this.editBadgePriorBadgeId,
                 editBadgePriorAddons: this.editBadgePriorAddons,
 
@@ -459,6 +459,7 @@ export default {
                 context: this.context,
                 badge_type_id: this.badge_type_id,
 
+                notify_email: this.notify_email,
                 ice_name: this.ice_name,
                 ice_relationship: this.ice_relationship,
                 ice_email_address: this.ice_email_address,

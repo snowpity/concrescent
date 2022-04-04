@@ -34,7 +34,7 @@ class Mail
         return $this->PHPMailer->ErrorInfo;
     }
 
-    public function SendTemplate(string $to, string|array|int $template, array $entity)
+    public function SendTemplate(string $to, string|array|int $template, array $entity, ?string $cc = null)
     {
         //Start prepping the message
         $template = $this->GetTemplate($template);
@@ -42,6 +42,11 @@ class Mail
 
         //Set main recipient(s)
         $this->addAddress('Address', $to);
+
+        //Set CCs
+        if (!empty($cc)) {
+            $this->addAddress('CC', $cc);
+        }
 
         //Remove raw stuff
         unset($entity['uuid_raw']);

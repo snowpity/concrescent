@@ -271,7 +271,7 @@ export default {
                 icon: "mdi-cog",
                 label: "Preferences",
                 show: () => {
-                    return this.isLoggedIn;
+                    return this.adminMode;
                 }
             }];
 

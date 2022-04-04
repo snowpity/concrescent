@@ -158,6 +158,7 @@ const actions = {
             "country": ""
         });
         commit('setAdminMode', false);
+        commit('setOwnedBadges', []);
     },
     setAdminMode({
         commit

@@ -182,6 +182,11 @@ class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
             try {
                 $orderResponse = $this->api('checkout/orders/' . $this->orderData['order_id'] . '/capture', array('capture'=>true));
             } catch (RequestException $e) {
+                if ($e->getCode() == 404) {
+                    //It is no longer a thing, mark it disappeared
+                    $this->orderData['stage'] = 'Expired';
+                }
+
                 return false;
             }
 
@@ -209,6 +214,7 @@ class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
             case 'COMPLETED': return 'Completed';
             case 'APPROVED': return 'Incomplete'; //Still need to confirm with PayPal
 
+            case 'Expired': return 'NotStarted';
         }
         return 'NotStarted';
     }
@@ -335,8 +341,8 @@ class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
                 )
             ),
             'application_context'=>array(
-                'return_url'=>'https://tsaukpaetra.com/places/go',
-                'cancel_url'=>'https://tsaukpaetra.com/places/go?cancel'
+                'return_url'=>$this->orderData['prep']['return_urls']['return_url'],
+                'cancel_url'=>$this->orderData['prep']['return_urls']['cancel_url'],
             )
 
         );

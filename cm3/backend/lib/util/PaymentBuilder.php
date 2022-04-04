@@ -15,6 +15,7 @@ use CM3_Lib\database\SelectColumn;
 
 use CM3_Lib\Factory\PaymentModuleFactory;
 use CM3_Lib\Modules\Payment\PayProcessorInterface;
+use CM3_Lib\Modules\Notification\Mail;
 
 final class PaymentBuilder
 {
@@ -30,7 +31,9 @@ final class PaymentBuilder
         private CurrentUserInfo $CurrentUserInfo,
         private PaymentModuleFactory $PaymentModuleFactory,
         private banlist $banlist,
-        private payment $payment
+        private payment $payment,
+        private FrontendUrlTranslator $FrontendUrlTranslator,
+        private Mail $Mail
     ) {
     }
 
@@ -188,11 +191,22 @@ final class PaymentBuilder
             }
         }
 
+        $this->getPayProcessor();
+
+        $this->pp->SetReturnURLs(
+            $this->FrontendUrlTranslator->GetPaymentReturn($this->cart['id']),
+            $this->FrontendUrlTranslator->GetPaymentCancel($this->cart['id'])
+        );
+        foreach ($this->stagedItems as $sitem) {
+            call_user_func_array(array($this->pp,'AddItem'), $sitem);
+        }
+
+
         //Determine new cart status based on flags
         if (!$this->CanPay) {
             $this->cart['payment_status'] = 'AwaitingApproval';
         } else {
-            $this->cart['payment_status'] = 'Incomplete';
+            $this->cart['payment_status'] = 'NotStarted';
         }
 
         //TODO: Real sanity check please
@@ -216,23 +230,25 @@ final class PaymentBuilder
             $this->cart['payment_system']='Freeride';
             return true;
         }
-        $this->getPayProcessor();
 
-        foreach ($this->stagedItems as $item) {
-            call_user_func_array(array($this->pp,'AddItem'), $item);
-        }
+        //Are we in-progress already?
 
-        if ($this->AllowPay && $this->CanPay) {
-            if ($this->pp->ConfirmOrder()) {
-                $payment_details = $this->pp->GetDetails();
-
-                $this->saveCart();
-                return true;
-            } else {
-                throw new \Exception('Failed to confirm order with provider.');
+        if ($this->cart['payment_status'] == 'Incomplete') {
+            return true;
+        } elseif ($this->cart['payment_status'] == 'NotStarted') {
+            if ($this->AllowPay && $this->CanPay) {
+                $this->getPayProcessor();
+                if ($this->pp->ConfirmOrder()) {
+                    $payment_details = $this->pp->GetDetails();
+                    $this->cart['payment_status'] = 'Incomplete';
+                    $this->saveCart();
+                    return true;
+                } else {
+                    throw new \Exception('Failed to confirm order with provider.');
+                }
             }
+            $this->saveCart();
         }
-        $this->saveCart();
         return false;
     }
 
@@ -245,6 +261,7 @@ final class PaymentBuilder
                 switch ($this->pp->GetOrderStatus()) {
                     case 'Cancelled':
                     case 'Rejected':
+                    case 'NotReady':
                         $item['payment_status'] = $this->pp->GetOrderStatus();
                         //Not able to complete
                         break;
@@ -256,6 +273,9 @@ final class PaymentBuilder
 
         foreach ($this->cart_items as $key => &$item) {
             //Update the badge
+            if (!isset($item['context'])) {
+                $item['context']='A';
+            }
             $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context']);
             if ($bi !== false) {
                 $item['payment_status'] = 'Completed';
@@ -286,7 +306,7 @@ final class PaymentBuilder
 
     public function CancelPayment()
     {
-        foreach ($items as $key => &$item) {
+        foreach ($this->cart_items as $key => &$item) {
             //Revert the badge
             $item['payment_status'] = 'Cancelled';
             if (isset($item['existing'])) {
@@ -306,5 +326,15 @@ final class PaymentBuilder
         $this->getPayProcessor()->CancelOrder();
         $this->cart['payment_details'] = '';
         unset($this->pp);
+    }
+
+    public function SendStatusEmail()
+    {
+        $to = $this->CurrentUserInfo->GetContactEmail();
+
+        foreach ($this->cart_items as $item) {
+            $template = $this->cart['mail_template'] ?? ($item['context_code'] . '-payment-' .$this->cart['payment_status']);
+            $this->Mail->SendTemplate($to, $template, $item);
+        }
     }
 }

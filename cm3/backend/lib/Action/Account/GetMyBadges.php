@@ -71,8 +71,8 @@ class GetMyBadges
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         //Fetch the authenticated user's info
-        $c_id = $this->CurrentUserInfo->GetEventId();
-        $e_id = $this->CurrentUserInfo->GetContactId();
+        $e_id = $this->CurrentUserInfo->GetEventId();
+        $c_id = $this->CurrentUserInfo->GetContactId();
         $searchTerms = array(
           new SearchTerm('contact_id', $c_id)
         );

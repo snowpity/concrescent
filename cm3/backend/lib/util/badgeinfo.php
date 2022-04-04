@@ -87,6 +87,9 @@ final class badgeinfo
         if ($allowedColumns != null) {
             $data = array_intersect_key($data, array_flip($allowedColumns));
         }
+        //Actually don't accept updates to ID and uuid
+        unset($data['id']);
+        unset($data['uuid']);
 
         switch ($data['context']) {
             case 'A':
@@ -129,6 +132,8 @@ final class badgeinfo
         if ($allowedColumns != null) {
             $data = array_intersect_key($data, array_flip($allowedColumns));
         }
+        //Actually don't accept updates to uuid
+        unset($data['uuid']);
         //Slide in the ID
         $data['id'] = $id;
         switch ($context_code) {

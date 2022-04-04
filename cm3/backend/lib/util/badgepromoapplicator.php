@@ -86,33 +86,41 @@ final class badgepromoapplicator
 
     public function TryApplyCode(&$item, $code): bool
     {
-        //First, does this badge match our type?
-        if ($item['context'] != 'A') {
-            return false;
-        }
-        if (empty($code)) {
-            $this->resetCode($item);
-            return false;
-        }
-        //Did we load this code?
-        if (!$this->LoadCode($code)) {
-            if (isset($item['payment_promo_code']) && $code != $item['payment_promo_code']) {
-                //Re-apply the one they theoretically have already
-                $this->TryApplyCode($item, $item['payment_promo_code']);
-            } else {
-                $this->resetCode($item);
+        if (!empty($code)) {
+            //First, does this badge match our type?
+            if ($item['context'] != 'A') {
+                return false;
             }
-            return false;
-        }
+            if (empty($code)) {
+                $this->resetCode($item);
+                return false;
+            }
+            //Did we load this code?
+            if (!$this->LoadCode($code)) {
+                if (isset($item['payment_promo_code']) && $code != $item['payment_promo_code']) {
+                    //Re-apply the one they theoretically have already
+                    $this->TryApplyCode($item, $item['payment_promo_code']);
+                } else {
+                    $this->resetCode($item);
+                }
+                return false;
+            }
 
-        //Does this badge apply?
-        if (!in_array($item['badge_type_id'], $this->applicableIDs) && count($item['badge_type_id'])>0) {
-            $this->resetCode($item);
-            return false;
-        }
+            //Does this badge apply?
+            if (!in_array($item['badge_type_id'], $this->applicableIDs) && count($item['badge_type_id'])>0) {
+                $this->resetCode($item);
+                return false;
+            }
 
-        //Initial quote
-        $promo_code = $this->loadedPromoCode[$code];
+            //Initial quote
+            $promo_code = $this->loadedPromoCode[$code];
+        } else {
+            $promo_code = array(
+                'code'=>null,
+                'percentage'=>false,
+                'price'=>0
+            );
+        }
         $badge_price = (float)$item['payment_badge_price'];
         $promo_price = (float)$promo_code['price'];
         $final_price = (

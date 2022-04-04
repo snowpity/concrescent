@@ -340,7 +340,8 @@ export default {
         orderSteps: {
             'undefined': 'Processing order, please wait...',
             'ready': 'Directing to Merchant...',
-            'refused': 'Paypal has refused the payment. That\'s all we know.'
+            'refused': 'Paypal has refused the payment. That\'s all we know.',
+            'confirm': 'Confirming payment...'
         },
         cartState: 'undefined',
         cartLocked: ''
@@ -427,6 +428,7 @@ export default {
             this.submitCreateAccount(this.newAccountData).then((token) => {
                 this.creatingAccount = false;
                 this.createAccountDialog = false;
+                this.saveCart();
             }).catch((error) => {
                 this.createError = error.error.message;
                 this.creatingAccount = false;
@@ -499,7 +501,13 @@ export default {
                     case 'Completed':
                         //Clear the cart and send them to retrieve their badges
                         this.clearCart();
-                        this.$router.push('/myBadges')
+                        this.$router.push({
+                            path: '/myBadges',
+                            query: {
+                                refresh: true
+                            }
+                        });
+                        this.processingCheckoutDialog = false;
                         break;
                     case 'promoapplied':
 
@@ -515,15 +523,15 @@ export default {
     },
     created() {
         var query = this.$route.query;
-        if (query.result != undefined) {
-            if (query.result) {
+        if (query.checkout != undefined) {
+            if (query.checkout == "confirm") {
                 this.processingCheckoutDialog = true;
-                this.cartState = query.result;
+                this.cartState = query.checkout;
                 //Un-pop the dialog after a few seconds
                 var _this = this;
                 setTimeout(function() {
-                    _this.processingCheckoutDialog = false;
-                }, 6000);
+                    _this.checkoutCart();
+                }, 2000);
 
             }
             this.$router.replace({

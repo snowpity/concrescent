@@ -137,7 +137,19 @@ export default {
             })
             .catch(function(er) {
                 errorCb(er.response.data);
-                //errorCb(er.response.data);
+            });
+    },
+    deleteCart(token, cartId, cb, errorCb) {
+        axios.delete(global.config.apiHostURL + "account/cart/" + cartId, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then(function(response) {
+                cb(response.data);
+            })
+            .catch(function(er) {
+                errorCb(er.response.data);
             });
     },
     buyProducts(token, cartId, payment_system, cb, errorCb) {

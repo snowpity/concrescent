@@ -234,6 +234,9 @@ export default {
                 query: {}
             });
         }
+        if (query.refresh) {
+            this.retrieveBadges();
+        }
         this.$store.dispatch('products/getAllProducts');
         this.$store.dispatch('products/getAllAddons');
 

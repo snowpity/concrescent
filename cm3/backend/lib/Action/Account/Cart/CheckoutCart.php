@@ -54,6 +54,13 @@ class CheckoutCart
         //If the cart is in progress, we cannot adjust it until cancelled or completed...
         if (!$this->PaymentBuilder->canCheckout()
         ) {
+            if ($this->PaymentBuilder->getCartStatus() == 'Completed') {
+                //Weird, they're already completed. Let them know about that...
+                return $this->responder
+                ->withJson($response, array(
+                    'state' => $this->PaymentBuilder->getCartStatus()
+                ));
+            }
             throw new HttpBadRequestException($request, 'Cart not in correct state to checkout: ' .$this->PaymentBuilder->getCartStatus());
         }
 
@@ -61,20 +68,22 @@ class CheckoutCart
             //Hrm, they've already initiated the payment request. Check if it's completed
 
             if ($this->PaymentBuilder->CompletePayment($data)) {
-
+                $this->PaymentBuilder->SendStatusEmail();
                 // Build the HTTP response
                 return $this->responder
                 ->withJson($response, array(
                     'state' => $this->PaymentBuilder->getCartStatus()
                 ));
             } else {
-                $pp = $this->PaymentBuilder->getPayProcessor();
-                // Build the HTTP response
-                return $this->responder
-                ->withJson($response, array(
-                    'paymentURL' => $pp->RetrievePaymentRedirectURL(),
-                    'state' => $this->PaymentBuilder->getCartStatus()
-                ));
+                //Attempting to complete the payment and failing should have set us back to NotStarted
+                //Finish the prep
+                if ($this->PaymentBuilder->confirmPrep()) {
+                    return $this->responder
+                        ->withJson($response, array(
+                            'paymentURL' => $this->PaymentBuilder->getPayProcessor()->RetrievePaymentRedirectURL(),
+                            'state' => $this->PaymentBuilder->getCartStatus()
+                        ));
+                }
             }
         } elseif ($this->PaymentBuilder->getCartStatus() == 'Cancelled') {
             //They want to try paying again after cancelling
@@ -86,6 +95,7 @@ class CheckoutCart
         } elseif (empty($this->PaymentBuilder->getPayProcessorName())) {
             throw new \Exception('payment_system not specified!');
         }
+
         //Build the payment
         $errors = $this->PaymentBuilder->prepPayment();
 
@@ -94,11 +104,20 @@ class CheckoutCart
         }
         //Finish the prep
         if ($this->PaymentBuilder->confirmPrep()) {
-            return $this->responder
+            if ($this->PaymentBuilder->isFreeride() && $this->PaymentBuilder->CompletePayment($data)) {
+                $this->PaymentBuilder->SendStatusEmail();
+                // Build the HTTP response
+                return $this->responder
+                    ->withJson($response, array(
+                        'state' => $this->PaymentBuilder->getCartStatus()
+                    ));
+            } else {
+                return $this->responder
                 ->withJson($response, array(
                     'paymentURL' => $this->PaymentBuilder->getPayProcessor()->RetrievePaymentRedirectURL(),
                     'state' => $this->PaymentBuilder->getCartStatus()
                 ));
+            }
         }
         // Build the HTTP response
         return $this->responder

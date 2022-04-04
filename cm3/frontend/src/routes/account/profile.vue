@@ -3,7 +3,6 @@
     <v-card>
         <profileForm v-model="editingProfileData" />
     </v-card>
-    Things: {{JSON.stringify(editingProfileData)}}
 
     <v-snackbar v-model="saved"
                 color="primary"

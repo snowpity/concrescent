@@ -96,18 +96,19 @@ class SaveCart
         $items = array();
         $errors = array();
         $promoApplied = false;
+        $promocode = $data['promocode'] ?? "";
         foreach ($data['items'] as $key => $badge) {
             //Ensure this badge is owned by the user and is good on the surface
             $badge['contact_id'] = $cart['contact_id'];
             $errors[isset($badge['cartIx']) ? $badge['cartIx'] : ($key .'')] = $this->badgevalidator->ValdateCartBadge($badge);
-            $newitem = $badge;
+
             //Try to apply promo code?
-            if (!empty($data['promocode'])) {
-                $promoApplied = $promoApplied || $this->badgepromoapplicator->TryApplyCode($newitem, $data['promocode']);
-            }
+            //if (!empty($data['promocode'])) {
+            $promoApplied = $promoApplied | $this->badgepromoapplicator->TryApplyCode($badge, $promocode);
+            //}
             //Ensure there is an index associated
-            $newitem['cartIx'] = isset($badge['cartIx']) ? $badge['cartIx'] : ($key .'');
-            $items[] = $newitem;
+            $badge['cartIx'] = isset($badge['cartIx']) ? $badge['cartIx'] : ($key .'');
+            $items[] = $badge;
         }
         //Do we have errors?
         $cart['payment_status'] = count($errors) ? 'NotStarted' : 'NotReady';
