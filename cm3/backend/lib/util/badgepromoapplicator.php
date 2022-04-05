@@ -37,6 +37,7 @@ final class badgepromoapplicator
             new View(array(
             'valid_badge_type_ids',
             'is_percentage',
+            'discount',
             'start_date',
             'end_date',
             'limit_per_customer',
@@ -44,7 +45,8 @@ final class badgepromoapplicator
         ), ),
             array(
             new SearchTerm('code', $code),
-            new SearchTerm('Active', 1)
+            new SearchTerm('Active', 1),
+            $this->CurrentUserInfo->EventIdSearchTerm()
         )
         );
         //Did we find that code?
@@ -87,6 +89,7 @@ final class badgepromoapplicator
     public function TryApplyCode(&$item, $code): bool
     {
         if (!empty($code)) {
+            $code = strtoupper($code);
             //First, does this badge match our type?
             if ($item['context_code'] != 'A') {
                 return false;
@@ -107,7 +110,7 @@ final class badgepromoapplicator
             }
 
             //Does this badge apply?
-            if (!in_array($item['badge_type_id'], $this->applicableIDs) && count($item['badge_type_id'])>0) {
+            if (!in_array($item['badge_type_id'], $this->applicableIDs) && count($this->applicableIDs)>0) {
                 $this->resetCode($item);
                 return false;
             }
@@ -117,14 +120,15 @@ final class badgepromoapplicator
         } else {
             $promo_code = array(
                 'code'=>null,
-                'percentage'=>false,
-                'price'=>0
+                'is_percentage'=>0,
+                'discount'=>0
             );
         }
+
         $badge_price = (float)$item['payment_badge_price'];
-        $promo_price = (float)$promo_code['price'];
+        $promo_price = (float)$promo_code['discount'];
         $final_price = (
-            $promo_code['percentage']
+            $promo_code['is_percentage']
             ? ($badge_price * (100.0 - $promo_price) / 100.0)
             : ($badge_price - $promo_price)
         );
@@ -146,10 +150,10 @@ final class badgepromoapplicator
 
         //Only apply promo if it actually results in a price reduction or equality
         if ((isset($item['payment_promo_price']) && $item['payment_promo_price'] >= $final_price) || !isset($item['payment_promo_price'])) {
-            $item['payment_promo_code'] = $promo_code['code'];
+            $item['payment_promo_code'] = $code;
             $item['payment_promo_price'] = $final_price;
             //For display purposes
-            $item['payment_promo_type'] = $promo_code['percentage'] ? 1 : 0;
+            $item['payment_promo_type'] = $promo_code['is_percentage'] ? 1 : 0;
             $item['payment_promo_amount'] = $promo_price;
         }
 

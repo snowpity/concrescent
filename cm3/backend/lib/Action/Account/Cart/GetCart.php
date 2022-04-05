@@ -5,6 +5,7 @@ namespace CM3_Lib\Action\Account\Cart;
 use CM3_Lib\database\SearchTerm;
 
 use CM3_Lib\models\payment;
+use CM3_Lib\util\badgevalidator;
 use CM3_Lib\util\CurrentUserInfo;
 
 use Branca\Branca;
@@ -15,6 +16,8 @@ use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+
+use Slim\Exception\HttpNotFoundException;
 
 class GetCart
 {
@@ -27,6 +30,7 @@ class GetCart
     public function __construct(
         private Responder $responder,
         private payment $payment,
+        private badgevalidator $badgevalidator,
         private CurrentUserInfo $CurrentUserInfo
     ) {
     }
@@ -65,6 +69,24 @@ class GetCart
             ),
             $searchTerms
         );
+
+        if ($result === false) {
+            throw new HttpNotFoundException($request);
+        }
+
+        //We should have only one
+        $result = $result[0];
+
+        //Decode the items
+        $result['items'] = json_decode($result['items'], true);
+
+        //Sift through and determine current errors
+        $result['errors'] = array();
+        foreach ($result['items'] as $badge) {
+            $result['errors'][$badge['cartIx']] = $this->badgevalidator->ValdateCartBadge($badge);
+        }
+
+        $result['state'] = $result['payment_status'];
 
         // Build the HTTP response
         return $this->responder

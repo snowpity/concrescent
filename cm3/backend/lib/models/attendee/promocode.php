@@ -17,7 +17,7 @@ class promocode extends \CM3_Lib\database\Table
             'active'        => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
             'code'          => new cm_Column('VARCHAR', '255', false, false, true, true),
             'description'   => new cm_Column('TEXT', null, true),
-            'price'         => new cm_Column('DECIMAL', '7,2', false),
+            'discount'         => new cm_Column('DECIMAL', '7,2', false),
             'quantity'      => new cm_Column('INT', null, true),
             'start_date'	=> new cm_Column('DATE', null, false),
             'end_date'  	=> new cm_Column('DATE', null, false),
@@ -30,6 +30,6 @@ class promocode extends \CM3_Lib\database\Table
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
-        $this->DefaultSearchColumns = array('id','code','price','quantity','dates_available');
+        $this->DefaultSearchColumns = array('id','code','discount','quantity','dates_available');
     }
 }

@@ -101,9 +101,7 @@ class SaveCart
         $promocode = $data['promocode'] ?? "";
         foreach ($data['items'] as $key => $badge) {
             //Ensure this badge is owned by the user (if we're not editing) and is good on the surface
-            if (!isset($badge['id'])) {
-                $badge['contact_id'] = $cart['contact_id'];
-            } else {
+            if (isset($badge['id']) && $badge['id'] > 0) {
                 $bi = $this->badgeinfo->getSpecificBadge($badge['id'], $badge['context_code']);
                 //If this isn't ours, ensure certain fields aren't tampered with
                 if ($bi['contact_id'] != $cart['contact_id']) {
@@ -121,7 +119,11 @@ class SaveCart
                     });
                     //And set the contact_id
                     $badge['contact_id'] = $bi['contact_id'];
+                } else {
+                    $badge['contact_id'] = $cart['contact_id'];
                 }
+            } else {
+                $badge['contact_id'] = $cart['contact_id'];
             }
 
             $errors[isset($badge['cartIx']) ? $badge['cartIx'] : ($key .'')] = $this->badgevalidator->ValdateCartBadge($badge);

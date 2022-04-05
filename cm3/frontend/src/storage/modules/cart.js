@@ -11,14 +11,14 @@ const state = {
 };
 
 function calcPromoPrice(basePrice, promoData) {
-    if (promoData == null || typeof promoData.promoType === 'undefined') {
+    if (promoData == null || typeof promoData.payment_promo_type === 'undefined') {
         return basePrice;
     }
-    switch (promoData.promoType) {
+    switch (promoData.payment_promo_type) {
         case 0:
-            return Math.max(0, basePrice - promoData.promoPrice);
+            return Math.max(0, basePrice - promoData.payment_promo_amount);
         case 1:
-            return Math.max(0, basePrice * (100 - promoData.promoPrice) / 100);
+            return Math.max(0, basePrice * (100 - promoData.payment_promo_amount) / 100);
     }
 }
 
@@ -49,7 +49,8 @@ const getters = {
         // If we're editing, adjust some things
         if (badge.id > -1) {
             const oldproduct = rootState.products.all.find((product) => product.id == badge.editBadgePriorBadgeId);
-            result.price = Math.max(0, result.price - oldproduct.price);
+            if (oldproduct != undefined)
+                result.price = Math.max(0, result.price - oldproduct.price);
         }
         // if (badge.editBadgePriorAddons != undefined) {
         //  result.addonsSelected = badge.addonsSelected.filter(addon => !badge.editBadgePriorAddons.includes(addon));
@@ -92,6 +93,35 @@ const getters = {
 
 // actions
 const actions = {
+    loadCart({
+        commit,
+        state,
+        rootState
+    }, cartId) {
+        return new Promise((resolve, reject) => {
+            if (rootState.mydata.token.length > 0) {
+
+                shop.loadCart(rootState.mydata.token, cartId, (result) => {
+                    commit('setcartId', result.id);
+                    commit('setCheckoutStatus', {
+                        errors: result.errors,
+                        state: result.state
+                    });
+                    commit('setCartItems', result);
+                    commit('clearDirty');
+                    resolve();
+                }, (er) => {
+                    reject(er);
+                })
+            } else {
+                reject({
+                    error: {
+                        message: "Not logged in"
+                    }
+                });
+            }
+        });
+    },
     saveCart({
         commit,
         state,
@@ -219,29 +249,6 @@ const actions = {
             commit('removeProductFromCart', cartItem);
         }
     },
-    applyPromoToProducts({
-        commit,
-    }, promo) {
-        commit('setCheckoutStatus', null);
-        // Should we really empty cart before it's processed?
-        // commit('setCartItems', {
-        //  items: []
-        // })
-        shop.applyPromo(
-            shop.transformPOSTData(this.getters['cart/cartProducts'], false),
-            promo,
-            (data) => {
-                data.cart = shop.transformPOSTData(data.cart, true);
-                commit('setCartItems', {
-                    items: data.cart,
-                });
-                commit('setCheckoutStatus', data);
-            },
-            (data) => {
-                commit('setCheckoutStatus', data);
-            },
-        );
-    },
     removePromoFromProduct({
         state,
         commit,
@@ -282,9 +289,10 @@ const mutations = {
         state.dirty = true;
     },
     removePromoFromProduct(state, item) {
-        item.promo = undefined;
-        item.promoType = undefined;
-        item.promoPrice = undefined;
+        item.payment_promo_code = "";
+        item.payment_promo_type = undefined;
+        item.payment_promo_amount = undefined;
+        item.payment_promo_price = undefined;
         state.items[state.items.findIndex((el) => el.cartIx === item.cartIx)] = item;
         state.dirty = true;
     },

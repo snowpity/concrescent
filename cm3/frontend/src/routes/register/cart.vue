@@ -17,7 +17,7 @@
                 <v-card-actions>
                     <div class="text-truncate">{{product.name}}</div>
                     &nbsp;|&nbsp;
-                    <v-badge :value="product.promo != null"
+                    <v-badge :value="product.payment_promo_code"
                              color="cyan lighten-3">
                         <template v-slot:badge>
                             <v-icon @click.stop="promoAppliedDialog = idx">mdi-sale</v-icon>
@@ -51,13 +51,24 @@
         </v-col>
     </v-row>
     <v-row>
-        <v-col>
+        <v-col :cols="2">
             <v-btn color="primary"
                    :to="{name:'addbadge', params: {cartIx: -1}}"
                    left
                    absolute>Add
                 {{products.length ? "another" : "a"}}
                 badge
+            </v-btn>
+        </v-col>
+
+        <v-col :cols="2">
+            <v-btn right
+                   absolute
+                   v-show="products.length"
+                   color="green"
+                   dark
+                   @click="promocodeDialog = true">
+                Enter Promo Code
             </v-btn>
         </v-col>
     </v-row>
@@ -73,9 +84,9 @@
                 {{promoAppliedDialogModal ? products[promoAppliedDialog].promoDescription : null}}
             </v-card-text>
             <v-card-text class="text--primary">A discount of
-                <b>{{promoAppliedDialogModal ? (products[promoAppliedDialog].promoType == 1 ? "" : "$") : ""}}{{promoAppliedDialogModal ? products[promoAppliedDialog].promoPrice : ""}}{{promoAppliedDialogModal ? (products[promoAppliedDialog].promoType == 1 ? "%" : "") : ""}}</b>
+                <b>{{promoAppliedDialogModal ? (products[promoAppliedDialog].payment_promo_type == 1 ? "" : "$") : ""}}{{promoAppliedDialogModal ? products[promoAppliedDialog].payment_promo_amount : ""}}{{promoAppliedDialogModal ? (products[promoAppliedDialog].payment_promo_type == 1 ? "%" : "") : ""}}</b>
                 has been applied to the base price of
-                <b>{{(promoAppliedDialogModal ? products[promoAppliedDialog].basePrice  : "") | currency}}</b>.
+                <b>{{(promoAppliedDialogModal ? products[promoAppliedDialog].payment_badge_price  : "") | currency}}</b>.
             </v-card-text>
             <v-divider></v-divider>
 
@@ -95,20 +106,6 @@
     </v-dialog>
     <v-dialog v-model="promocodeDialog"
               width="500">
-        <template v-slot:activator="{ on }">
-            <v-row>
-                <v-col>
-                    <v-btn right
-                           absolute
-                           v-show="products.length"
-                           color="green"
-                           dark
-                           v-on="on">
-                        Enter Promo Code
-                    </v-btn>
-                </v-col>
-            </v-row>
-        </template>
 
         <v-card>
             <v-card-title class="headline grey lighten-2"
@@ -189,7 +186,7 @@
         <v-card color="primary"
                 dark>
             <v-card-text>
-                {{orderSteps[cartState]}}
+                {{orderSteps[cartState] || "Processing..."}}
                 <v-progress-linear indeterminate
                                    color="white"
                                    class="mb-0"></v-progress-linear>
@@ -293,7 +290,45 @@
         </v-btn>
         <v-spacer></v-spacer>
 
+        <v-select :items="activeCarts"
+                  v-model="cartIdSelected"
+                  dense
+                  solo
+                  full-width
+                  hide-details
+                  label="Active Carts"
+                  item-value="id">
+            <template v-slot:selection="{ item }">
+                {{item.id}} -> {{item.requested_by}} Saved {{new Date(item.date_modified).toLocaleString()}}
+                <v-spacer></v-spacer>
+                <v-chip :color="cartStateColor[item.payment_status]">{{ item.payment_status }}</v-chip>
+            </template>
+            <template v-slot:item="{  item, attrs, on }">
+                <v-list-item v-on="on"
+                             v-bind="attrs">
+                    <v-list-item-content>
+                        <v-list-item-title>
+                            <v-row no-gutters
+                                   align="center">{{item.id}} ->
+                                <span>Requestor: {{ item.requested_by }}</span>
+                                <span class="pull-right">Saved: {{new Date(item.date_modified).toLocaleString()}}</span>
+                                <v-spacer></v-spacer>
+                                <v-chip :color="cartStateColor[item.payment_status]">{{ item.payment_status }}</v-chip>
+                            </v-row>
+                        </v-list-item-title>
+                    </v-list-item-content>
+                    <v-list-item-action>
+                        <v-btn>
+                            <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                    </v-list-item-action>
+                </v-list-item>
+            </template>
+        </v-select>
+        <v-spacer></v-spacer>
+
         <v-btn color="primary"
+               class="float-right"
                v-if="isLoggedIn"
                :disabled="canNotCheckout"
                @click="checkout(products)">Checkout:
@@ -301,6 +336,7 @@
         </v-btn>
         <v-btn v-else
                color="primary"
+               class="float-right"
                @click="createAccountDialog = true">Specify Contact info</v-btn>
 
     </v-footer>
@@ -343,13 +379,27 @@ export default {
             'refused': 'Paypal has refused the payment. That\'s all we know.',
             'confirm': 'Confirming payment...'
         },
+        cartStateColor: {
+            'NotReady': 'purple',
+            'AwaitingApproval': 'yellow',
+            'NotStarted': 'gray',
+            'Incomplete': 'lime',
+            'Cancelled': 'red',
+            'Rejected': 'red',
+            'Completed': 'green',
+            'Refunded': 'indigo',
+            'RefundedInPart': 'indigo'
+        },
+        cartIdSelected: 0,
         cartState: 'undefined',
         cartLocked: ''
     }),
     computed: {
         ...mapState({
             checkoutStatus: state => state.cart.checkoutStatus,
-            addons: state => state.products.addons
+            addons: state => state.products.addons,
+            activeCarts: state => state.mydata.activeCarts,
+            currentCartId: state => state.cart.cartId
         }),
         ...mapGetters('mydata', {
             'isLoggedIn': 'getIsLoggedIn',
@@ -357,7 +407,7 @@ export default {
         ...mapGetters('cart', {
             products: 'cartProducts',
             total: 'cartTotalPrice',
-            needsave: 'isDirty'
+            needsave: 'isDirty',
         }),
         removeBadgeModal: function() {
             return this.removeBadge > -1;
@@ -398,9 +448,9 @@ export default {
             'sendRetrieveBadgeEmail': 'sendRetrieveBadgeEmail',
         }),
         ...mapActions('cart', [
-            'applyPromoToProducts',
             'removePromoFromProduct',
             'removeProductFromCart',
+            'loadCart',
             'saveCart',
             'checkoutCart',
             'clearCart'
@@ -443,7 +493,7 @@ export default {
         },
         submitPromoCode: function() {
             this.promoCodeProcessing = true;
-            this.applyPromoToProducts(this.promocode);
+            this.saveCart(this.promocode);
         },
         promoRemove: function() {
             this.removePromoFromProduct(this.products[this.promoAppliedDialog].cartIx);
@@ -452,6 +502,7 @@ export default {
         confirmRemoveBadge: function() {
             this.removeProductFromCart(this.products[this.removeBadge]);
             this.removeBadge = -1;
+            this.saveCart();
         },
         confirmClearCart: function() {
             this.clearCart();
@@ -509,15 +560,20 @@ export default {
                         });
                         this.processingCheckoutDialog = false;
                         break;
-                    case 'promoapplied':
-
+                    default:
+                        this.promocode = "";
                         this.promoCodeProcessing = false;
                         this.promocodeDialog = false;
-                        break;
-                    default:
-                        this.promoCodeProcessing = false;
                         this.processingCheckoutDialog = false;
                 }
+
+        },
+        'cartIdSelected': function(newId) {
+            console.log('load cart ' + newId);
+            (this.dirty ?
+                this.saveCart() : Promise.resolve()).then(() => {
+                this.loadCart(newId);
+            })
 
         }
     },
@@ -541,12 +597,16 @@ export default {
         }
         this.$store.dispatch('products/getAllProducts')
         this.$store.dispatch('products/getAllAddons')
+        this.$store.dispatch('mydata/fetchCarts', false).then(() => {
+            this.cartIdSelected = this.currentCartId;
+        })
         if (this.needsave) {
             this.saveCart()
                 .catch((error) => {
                     this.cartLocked = error.error.message;
                 });
         }
+
         this.updatedbadgeErrorCount();
     }
 }

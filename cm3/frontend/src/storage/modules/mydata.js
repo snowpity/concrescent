@@ -348,9 +348,9 @@ const mutations = {
     setCarts(state, cartsInfo) {
         //      {carts:null,include_all:include_all,success:false}
         if (cartsInfo.include_all) {
-            state.allCarts = carts;
+            state.allCarts = cartsInfo.carts;
         } else {
-            state.activeCarts = carts;
+            state.activeCarts = cartsInfo.carts;
         }
     },
 

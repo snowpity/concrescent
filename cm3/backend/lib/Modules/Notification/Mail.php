@@ -27,6 +27,7 @@ class Mail
         private PHPMailer $PHPMailer,
         private MarkdownConverter $MarkdownConverter
     ) {
+        $PHPMailer->CharSet = PHPMailer::CHARSET_UTF8;
     }
 
     public function getMailerErrorInfo()

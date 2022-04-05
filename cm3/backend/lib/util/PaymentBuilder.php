@@ -330,9 +330,8 @@ final class PaymentBuilder
 
     public function SendStatusEmail()
     {
-        $to = $this->CurrentUserInfo->GetContactEmail($this->cart['contact_id']);
-
         foreach ($this->cart_items as $item) {
+            $to = $this->CurrentUserInfo->GetContactEmail($item['contact_id']);
             //Get the current info, not what's in the order
             $badge = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code'], true);
             $template = $this->cart['mail_template'] ?? ($item['context_code'] . '-payment-' .$this->cart['payment_status']);

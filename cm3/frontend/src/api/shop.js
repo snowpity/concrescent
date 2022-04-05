@@ -60,6 +60,7 @@ export default {
                 cb(response.data);
             })
             .catch(function(response) {
+                console.log(response)
                 errorCb(response.response.data);
             });
     },
@@ -126,6 +127,19 @@ export default {
             });
     },
 
+    loadCart(token, cartId, cb, errorCb) {
+        axios.get(global.config.apiHostURL + "account/cart/" + cartId, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then(function(response) {
+                cb(response.data);
+            })
+            .catch(function(er) {
+                errorCb(er.response.data);
+            });
+    },
     saveCart(token, cart, cb, errorCb) {
         axios.post(global.config.apiHostURL + "account/cart", cart, {
                 headers: {
