@@ -303,6 +303,19 @@
                 <v-spacer></v-spacer>
                 <v-chip :color="cartStateColor[item.payment_status]">{{ item.payment_status }}</v-chip>
             </template>
+            <template v-slot:prepend-item>
+                <v-list-item ripple
+                             @click="createNew">
+                    <v-list-item-content>
+                        <v-list-item-title>
+                            <v-row no-gutters
+                                   align="center">Create New
+                            </v-row>
+                        </v-list-item-title>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider class="mt-2"></v-divider>
+            </template>
             <template v-slot:item="{  item, attrs, on }">
                 <v-list-item v-on="on"
                              v-bind="attrs">
@@ -317,11 +330,6 @@
                             </v-row>
                         </v-list-item-title>
                     </v-list-item-content>
-                    <v-list-item-action>
-                        <v-btn>
-                            <v-icon>mdi-delete</v-icon>
-                        </v-btn>
-                    </v-list-item-action>
                 </v-list-item>
             </template>
         </v-select>
@@ -504,6 +512,12 @@ export default {
             this.removeBadge = -1;
             this.saveCart();
         },
+        createNew: function() {
+            this.$store.commit('cart/setcartId', null);
+            this.clearCart();
+            this.cartIdSelected = null;
+            document.activeElement.blur();
+        },
         confirmClearCart: function() {
             this.clearCart();
             this.clearCartDialog = false;
@@ -572,7 +586,8 @@ export default {
             console.log('load cart ' + newId);
             (this.dirty ?
                 this.saveCart() : Promise.resolve()).then(() => {
-                this.loadCart(newId);
+                if (newId)
+                    this.loadCart(newId);
             })
 
         }
@@ -602,6 +617,9 @@ export default {
         })
         if (this.needsave) {
             this.saveCart()
+                .then((cartId) => {
+                    this.cartIdSelected = cartId;
+                })
                 .catch((error) => {
                     this.cartLocked = error.error.message;
                 });

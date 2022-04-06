@@ -70,7 +70,7 @@ class GetCart
             $searchTerms
         );
 
-        if ($result === false) {
+        if ($result === false || (count($result)==0)) {
             throw new HttpNotFoundException($request);
         }
 

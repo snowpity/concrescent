@@ -142,7 +142,7 @@ const actions = {
                     });
                     commit('setCartItems', result);
                     commit('clearDirty');
-                    resolve();
+                    resolve(result.id);
                 }, (er) => {
                     reject(er);
                 })
