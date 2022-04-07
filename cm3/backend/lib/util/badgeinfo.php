@@ -65,7 +65,7 @@ final class badgeinfo
       //badge_type_name
 
       //Full view will add:
-      //payment_txn_id
+      //payment_id
       //notes
       //large_name
       //small_name
@@ -308,7 +308,7 @@ final class badgeinfo
         return $this->a_addonpurchase->Search(
             array(
                 'addon_id',
-                'payment_txn_id',
+                'payment_id',
                 'payment_status'
             ),
             array(
@@ -475,7 +475,7 @@ final class badgeinfo
             array(
                 'notes',
                 'uuid',
-                'payment_txn_id'
+                'payment_id'
             ),
             array(
 
@@ -488,7 +488,7 @@ final class badgeinfo
             array(
                 'notes',
                 'uuid',
-                'payment_txn_id'
+                'payment_id'
             )
         );
     }
@@ -503,7 +503,7 @@ final class badgeinfo
                    new SelectColumn('application_status', EncapsulationFunction: "''", Alias:'application_status'),
                    new SelectColumn('badge_type_id', JoinedTableAlias:'bs'),
                    new SelectColumn('payment_status', JoinedTableAlias:'bs'),
-                   new SelectColumn('payment_txn_id', JoinedTableAlias:'bs'),
+                   new SelectColumn('payment_id', JoinedTableAlias:'bs'),
                    new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ'),
                    new SelectColumn('payable_onsite', Alias:'badge_type_payable_onsite', JoinedTableAlias:'typ'),
                    new SelectColumn('payment_deferred', Alias:'badge_type_payment_deferred', JoinedTableAlias:'typ')

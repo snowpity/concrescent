@@ -66,8 +66,8 @@ class badge extends \CM3_Lib\database\Table
             'payment_badge_price'	=> new cm_Column('DECIMAL', '7,2', false),
             'payment_promo_code' 	=> new cm_Column('VARCHAR', '255', true),
             'payment_promo_price'	=> new cm_Column('DECIMAL', '7,2', true),
-            'payment_txn_id'		=> new cm_Column('CHAR', 36, true),
-            'payment_txn_id_hist'	=> new cm_Column('VARCHAR', 740, true),
+            'payment_id'		=> new cm_Column('BIGINT', null, true),
+            'payment_id_hist'	=> new cm_Column('VARCHAR', 740, true),
             'payment_status'		=> new cm_Column(
                 'ENUM',
                 array(

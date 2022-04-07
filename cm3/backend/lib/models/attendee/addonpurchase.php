@@ -16,8 +16,8 @@ class addonpurchase extends \CM3_Lib\database\Table
             'payment_price'	=> new Column('DECIMAL', '7,2', false),
             'payment_promo_code' 	=> new Column('VARCHAR', '255', true),
             'payment_promo_price'	=> new Column('DECIMAL', '7,2', false),
-            'payment_txn_id'		=> new Column('CHAR', 36, null, customPostfix: 'CHARACTER SET ascii'),
-            'payment_txn_id_hist'	=> new Column('VARCHAR', 740, null, customPostfix: 'CHARACTER SET ascii'),
+            'payment_id'		=> new Column('BIGINT', null, true),
+            'payment_id_hist'	=> new Column('VARCHAR', 740, true),
             'payment_status'		=> new Column(
                 'ENUM',
                 array(

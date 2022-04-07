@@ -17,13 +17,13 @@ class FrontendUrlTranslator
         return $this->frontend_host . ($this->isHashMode ? '#/' : '') . $route;
     }
 
-    public function GetPaymentReturn(string $cartId = '')
+    public function GetPaymentReturn(string $cart_uuid = '')
     {
-        return $this->routedURL('cart?checkout=confirm&cartId=' . $cartId);
+        return $this->routedURL('cart?checkout=confirm&cart_uuid=' . $cart_uuid);
     }
-    public function GetPaymentCancel(string $cartId = '')
+    public function GetPaymentCancel(string $cart_uuid = '')
     {
-        return $this->routedURL('cart?checkout=cancel&cartId=' . $cartId);
+        return $this->routedURL('cart?checkout=cancel&cart_uuid=' . $cart_uuid);
     }
     public function GetBadgeLoad(array $badge)
     {

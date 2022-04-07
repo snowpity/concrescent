@@ -21,6 +21,7 @@ final class PaymentBuilder
 {
     private array $cart = array();
     private array $cart_items = array();
+    private string $cart_uuid = "";
     private float $cart_payment_txn_amt = 0;//Our own sanity check against the cart
     private bool $AllowPay = true;
     private bool $CanPay = true;
@@ -39,13 +40,16 @@ final class PaymentBuilder
 
     public function loadCart(int $cart_id, string $cart_uuid = null)
     {
-        $cart = $this->payment->GetByIDorUUID($cart_id, $cart_uuid, array('id','event_id','contact_id','payment_status','payment_system','payment_txn_amt','items','payment_details'));
+        $cart = $this->payment->GetByIDorUUID($cart_id, $cart_uuid, array('id','uuid','event_id','contact_id','payment_status','payment_system','payment_txn_amt','items','payment_details'));
 
         if ($cart === false) {
             $this->cart = array();
             return false;
         }
         $this->cart = $cart;
+        //Extract and remove the UUID, since we never want to try saving it back
+        $this->cart_uuid = $cart['uuid'];
+        unset($this->cart['uuid']);
         $this->cart_items = json_decode($cart['items'], true);
         return true;
     }
@@ -130,7 +134,7 @@ final class PaymentBuilder
             }
             $bt = $this->badgeinfo->getBadgetType($item['context_code'], $item['badge_type_id']);
             $bi = $this->badgeinfo->getSpecificBadge($item['id'] ?? 0, $item['context_code']);
-            $item['payment_txn_id'] = $this->cart['id'];
+            $item['payment_id'] = $this->cart['id'];
             if ($bi !== false) {
                 //Preserve the current badge state
                 $item['existing'] = $bi;
@@ -181,7 +185,7 @@ final class PaymentBuilder
             if (isset($item['addons'])) {
                 foreach ($item['addons'] as &$addon) {
                     $addon['attendee_id'] = $item['id'];
-                    $addon['payment_txn_id'] = $this->cart['id'];
+                    $addon['payment_id'] = $this->cart['id'];
                     $addon['payment_status'] = 'Incomplete';
                     $this->badgeinfo->AddUpdateABadgeAddonUncheckedon($addon);
 
@@ -194,8 +198,8 @@ final class PaymentBuilder
         $this->getPayProcessor();
 
         $this->pp->SetReturnURLs(
-            $this->FrontendUrlTranslator->GetPaymentReturn($this->cart['id']),
-            $this->FrontendUrlTranslator->GetPaymentCancel($this->cart['id'])
+            $this->FrontendUrlTranslator->GetPaymentReturn($this->cart_uuid),
+            $this->FrontendUrlTranslator->GetPaymentCancel($this->cart_uuid)
         );
         foreach ($this->stagedItems as $sitem) {
             call_user_func_array(array($this->pp,'AddItem'), $sitem);
@@ -258,14 +262,7 @@ final class PaymentBuilder
             $this->getPayProcessor();
             if (!$this->pp->CompleteOrder($completionData)) {
                 //Failed. Do we know why?
-                switch ($this->pp->GetOrderStatus()) {
-                    case 'Cancelled':
-                    case 'Rejected':
-                    case 'NotReady':
-                        $item['payment_status'] = $this->pp->GetOrderStatus();
-                        //Not able to complete
-                        break;
-                }
+                $this->cart['payment_status'] = $this->pp->GetOrderStatus();
                 $this->saveCart();
                 return false;
             }
