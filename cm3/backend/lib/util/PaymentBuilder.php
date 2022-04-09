@@ -183,14 +183,37 @@ final class PaymentBuilder
 
             //Check for addons
             if (isset($item['addons'])) {
-                foreach ($item['addons'] as &$addon) {
+                $existingAddons = array_column(
+                    $this->badgeinfo->GetAttendeeAddons($item['id']),
+                    'addon_id',
+                    'payment_status'
+                );
+                $availableaddons = array_column($this->badgeinfo->GetAttendeeAddonsAvailable($item['badge_type_id']), null, 'id');
+                foreach ($item['addons'] as $addon) {
+                    if (isset($existingAddons[$addon['addon_id']]) && $existingAddons[$addon['addon_id']] == 'Complete') {
+                        continue;
+                    }
                     $addon['attendee_id'] = $item['id'];
                     $addon['payment_id'] = $this->cart['id'];
                     $addon['payment_status'] = 'Incomplete';
-                    $this->badgeinfo->AddUpdateABadgeAddonUncheckedon($addon);
+
+                    $this->badgeinfo->AddUpdateABadgeAddonUnchecked($addon);
+
+                    //Add it to the payment
+                    $faddon = $availableaddons[$addon['addon_id']];
+
+                    $this->stagedItems[] = array(
+                        $faddon['name'],
+                        $faddon['price'],
+                        1,
+                        $faddon['description'],
+                        $this->CurrentUserInfo->GetEventId() . ':' . $item['context_code'] . ',a:' . $addon['addon_id'],
+                        max(0, $faddon['price'] - ($addon['payment_promo_price'] ?? $addon['payment_price'])),
+                        $addon['payment_promo_code'] ?? null
+                    );
 
                     //Prep Sanity check the cart's amount...
-                    $this->cart_payment_txn_amt += max(0, $addon['payment_promo_price'] ?? $addon['payment_badge_price']);
+                    $this->cart_payment_txn_amt += max(0, $addon['payment_promo_price'] ?? $addon['payment_price']);
                 }
             }
         }
@@ -288,8 +311,10 @@ final class PaymentBuilder
             //Check for addons
             if (isset($item['addons'])) {
                 foreach ($item['addons'] as &$addon) {
+                    $addon['attendee_id'] = $item['id'];
+                    $addon['payment_id'] = $this->cart['id'];
                     $addon['payment_status'] = 'Complete';
-                    $this->badgeinfo->AddUpdateABadgeAddonUncheckedon($addon);
+                    $this->badgeinfo->AddUpdateABadgeAddonUnchecked($addon);
                 }
             }
         }
@@ -315,6 +340,8 @@ final class PaymentBuilder
             //Check for addons
             if (isset($item['addons'])) {
                 foreach ($item['addons'] as &$addon) {
+                    $addon['attendee_id'] = $item['id'];
+                    $addon['payment_id'] = $this->cart['id'];
                     $addon['payment_status'] = 'Cancelled';
                     $this->badgeinfo->AddUpdateABadgeAddonUncheckedon($addon);
                 }

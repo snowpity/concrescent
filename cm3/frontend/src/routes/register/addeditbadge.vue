@@ -404,7 +404,7 @@ export default {
         ...mapState({
             products: (state) => state.products.all,
             questions: (state) => state.products.questions,
-            addons: (state) => state.products.addons,
+            addonsAvailable: (state) => state.products.addons,
         }),
         rewardlist() {
             // return this.$options.filters.split_carriagereturn(this.badges[this.selectedBadge].rewards);
@@ -465,7 +465,11 @@ export default {
                 ice_email_address: this.ice_email_address,
                 ice_phone_number: this.ice_phone_number,
                 form_responses: this.form_responses,
-                addonsSelected: this.addonsSelected,
+                addons: this.addonsSelected.map(id => {
+                    return {
+                        'addon_id': id
+                    }
+                }),
 
             };
         },
@@ -501,9 +505,9 @@ export default {
             // Todo: Filter by badge context
             const badgeId = typeof this.badges[this.selectedBadge] === 'undefined' ? '' : this.badges[this.selectedBadge].id.toString();
             // Do we have questions at all for this badge?
-            if (!(badgeId in this.addons)) return {};
+            if (!(badgeId in this.addonsAvailable)) return {};
             // Filter out the ones that don't apply to this badge
-            let result = this.addons[badgeId];
+            let result = this.addonsAvailable[badgeId];
 
             // First, do we have a date_of_birth?
             const bday = new Date(this.date_of_birth);
@@ -594,7 +598,7 @@ export default {
 
             // Pull out the BadgeId and selected addons
             badge_type_id = cartItem.badge_type_id || 0;
-            let addonsSelected = cartItem.addonsSelected || [];
+            let addons = cartItem.addons || [];
             // delete cartItem.badge_type_id;
             Object.assign(this, cartItem);
             // Special props
@@ -607,7 +611,7 @@ export default {
                     _this.selectedBadge = newIndex;
                 }
                 //Also select any selected addons
-                _this.addonsSelected = addonsSelected;
+                _this.addonsSelected = addons.map(addon => addon['addon_id']);
 
             }, 200);
         },

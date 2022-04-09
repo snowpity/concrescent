@@ -53,7 +53,7 @@ const getters = {
                 result.price = Math.max(0, result.price - oldproduct.price);
         }
         // if (badge.editBadgePriorAddons != undefined) {
-        //  result.addonsSelected = badge.addonsSelected.filter(addon => !badge.editBadgePriorAddons.includes(addon));
+        //  result.addons = badge.addons.filter(addon => !badge.editBadgePriorAddons.includes(addon));
         // }
 
         return result;
@@ -66,16 +66,16 @@ const getters = {
         } = rootState.products;
         return getters.cartProducts.reduce((total, product) => {
             let addonTotal = 0;
-            if (typeof product.addonsSelected.reduce === 'function') {
+            if (product.addons !== undefined && typeof product.addons.reduce === 'function') {
                 let addonsSelected = [];
                 if (product.editBadgePriorAddons == undefined) {
-                    addonsSelected = product.addonsSelected;
+                    addonsSelected = product.addons;
                 } else {
-                    addonsSelected = product.addonsSelected.filter((addon) => !product.editBadgePriorAddons.includes(addon));
+                    addonsSelected = product.addons.filter((addon) => !product.editBadgePriorAddons.includes(addon['addon_id']));
                 }
-                addonTotal = addonsSelected.reduce((addonTotle, addonid) => {
+                addonTotal = addonsSelected.reduce((addonTotle, saddon) => {
                     if (addons[product.badge_type_id] == undefined) return addonTotle;
-                    const addon = addons[product.badge_type_id].find((addon) => addon.id == addonid);
+                    const addon = addons[product.badge_type_id].find((addon) => addon.id == saddon['addon_id']);
                     return addonTotle + (addon == undefined ? 0 : parseFloat(addon.price));
                 }, 0);
             }

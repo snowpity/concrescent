@@ -11,6 +11,8 @@ use CM3_Lib\models\attendee\badgetype as a_badge_type;
 use CM3_Lib\models\application\badgetype as g_badge_type;
 use CM3_Lib\models\staff\badgetype as s_badge_type;
 use CM3_Lib\models\attendee\badge as a_badge;
+use CM3_Lib\models\attendee\addon as a_addon;
+use CM3_Lib\models\attendee\addonmap as a_addonmap;
 use CM3_Lib\models\attendee\addonpurchase as a_addonpurchase;
 use CM3_Lib\models\application\submission as g_badge_submission;
 use CM3_Lib\models\application\submissionapplicant as g_badge;
@@ -32,6 +34,8 @@ final class badgeinfo
         private g_badge_type $g_badge_type,
         private s_badge_type $s_badge_type,
         private a_badge $a_badge,
+        private a_addon $a_addon,
+        private a_addonmap $a_addonmap,
         private a_addonpurchase $a_addonpurchase,
         private g_badge $g_badge,
         private s_badge $s_badge,
@@ -303,6 +307,35 @@ final class badgeinfo
         }
     }
 
+    public function GetAttendeeAddonsAvailable($badge_type_id)
+    {
+        return $this->a_addon->Search(
+            new View(
+                array(
+                'id',
+                'active',
+                'name',
+                'description',
+                'price',
+                'payable_onsite',
+            ),
+                array(
+
+               new Join(
+                   $this->a_addonmap,
+                   array(
+                     'addon_id' => 'id',
+                     new SearchTerm('badge_type_id', $badge_type_id)
+                   ),
+                   alias:'map'
+               )
+            )
+            ),
+            array(
+                $this->CurrentUserInfo->EventIdSearchTerm()
+            )
+        );
+    }
     public function GetAttendeeAddons($attendee_id)
     {
         return $this->a_addonpurchase->Search(
@@ -318,17 +351,16 @@ final class badgeinfo
     }
     public function AddUpdateABadgeAddonUnchecked(&$data)
     {
-        $current = $this->a_addonpurchase->Search(
-            '*',
+        $current = $this->a_addonpurchase->Exists(
             array(
-            new SearchTerm('attendee_id', $data['attendee_id']),
-            new SearchTerm('addon_id', $data['addon_id']),
-        )
+                'attendee_id'=> $data['attendee_id'] ?? 0,
+                'addon_id'=> $data['addon_id'] ?? 0,
+            )
         );
-        if (count($current) > 0) {
-            $this->a_addonpurchase->Update($data);
+        if ($current > 0) {
+            return $this->a_addonpurchase->Update($data);
         } else {
-            $this->a_addonpurchase->Create($data);
+            return $this->a_addonpurchase->Create($data);
         }
     }
 

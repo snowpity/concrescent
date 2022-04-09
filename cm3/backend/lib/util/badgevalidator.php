@@ -5,6 +5,8 @@ namespace CM3_Lib\util;
 use Respect\Validation\Validator as v;
 use CM3_Lib\database\TableValidator;
 use CM3_Lib\database\View;
+use CM3_Lib\database\Join;
+use CM3_Lib\database\SearchTerm;
 
 use CM3_Lib\models\attendee\badgetype as a_badge_type;
 use CM3_Lib\models\application\badgetype as g_badge_type;
@@ -14,6 +16,8 @@ use CM3_Lib\models\application\submission as g_badge_submission;
 use CM3_Lib\models\application\submissionapplicant as g_badge;
 use CM3_Lib\models\application\group as g_group;
 use CM3_Lib\models\staff\badge as s_badge;
+use CM3_Lib\models\attendee\addon as a_addon;
+use CM3_Lib\models\attendee\addonmap as a_addonmap;
 
 use CM3_Lib\util\CurrentUserInfo;
 
@@ -27,6 +31,8 @@ final class badgevalidator
         private g_badge $g_badge,
         private s_badge $s_badge,
         private g_group $g_group,
+        private a_addon $a_addon,
+        private a_addonmap $a_addonmap,
         private g_badge_submission $g_badge_submission,
         private badgepromoapplicator $badgepromoapplicator,
         private CurrentUserInfo $CurrentUserInfo
@@ -45,6 +51,8 @@ final class badgevalidator
                 if (!empty($item['badge_type_id'])) {
                     $this->AddBadgeValidations($v, $this->a_badge_type->GetByID($item['badge_type_id'], $this->getBadgeTypeView()), $item);
                 }
+
+
                 //Special: Also apply the current promo if specified
                 if (isset($item['payment_promo_code'])) {
                     $this->badgepromoapplicator->TryApplyCode($item, $item['payment_promo_code']);
@@ -108,6 +116,43 @@ final class badgevalidator
         }
         if (isset($badgetypeData['price_per_applicant'])) {
             $item['payment_badge_price'] = $badgetypeData['price_per_applicant'];
+        }
+
+        //Addons validation
+        if (isset($item['addons'])) {
+            $availableaddons = array_column($this->a_addon->Search(
+                new View(
+                    array(
+                        'id',
+                        'price',
+                    ),
+                    array(
+                       new Join(
+                           $this->a_addonmap,
+                           array(
+                             'addon_id' => 'id',
+                             new SearchTerm('badge_type_id', $item['badge_type_id'])
+                           ),
+                           alias:'map'
+                       )
+                   )
+                ),
+                array(
+                    new SearchTerm('active', 1),
+                    $this->CurrentUserInfo->EventIdSearchTerm()
+                )
+            ), null, 'id');
+
+            $v->addColumnValidator('addons', v::ArrayVal()->key('addon_id', v::in(array_keys($availableaddons)), false), true);
+            foreach ($item['addons'] as &$addon) {
+                if (!isset($availableaddons[$addon['addon_id'] ?? null])) {
+                    //Wat this should have been verified?
+                    $addon['err'] = 'Not found this addon?';
+                    continue;
+                }
+                $faddon = $availableaddons[$addon['addon_id']];
+                $addon['payment_price'] = $faddon['price'];
+            }
         }
     }
 }

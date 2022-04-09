@@ -40,12 +40,12 @@
                     </v-btn>
                 </v-card-actions>
                 <v-card-actions v-for="addonid in filterAddons(product)"
-                                :key="addonid">
+                                :key="addonid['addon_id']">
                     <v-icon>mdi-plus</v-icon>
                     <div class="text-truncate">
-                        {{getAddonByID(product.badge_type_id, addonid) ? getAddonByID(product.badge_type_id, addonid).name : "Loading..."}}
+                        {{getAddonByID(product.badge_type_id, addonid['addon_id']) ? getAddonByID(product.badge_type_id, addonid['addon_id']).name : "Loading..."}}
                     </div>&nbsp;|&nbsp;
-                    <span>{{ (getAddonByID(product.badge_type_id, addonid) ? getAddonByID(product.badge_type_id, addonid).price : "Loading" ) | currency }}&nbsp;</span>
+                    <span>{{ (getAddonByID(product.badge_type_id, addonid['addon_id']) ? getAddonByID(product.badge_type_id, addonid['addon_id']).price : "Loading" ) | currency }}&nbsp;</span>
                 </v-card-actions>
             </v-card>
         </v-col>
@@ -537,9 +537,10 @@ export default {
             this.creatingAccount = false;
         },
         filterAddons(product) {
+            if (product.addons == undefined) return [];
             if (product.editBadgePriorAddons == undefined)
-                return product.addonsSelected;
-            return product.addonsSelected.filter(addon => !product.editBadgePriorAddons.includes(addon));
+                return product.addons;
+            return product.addons.filter(addon => !product.editBadgePriorAddons.includes(addon['addon_id']));
         },
         getAddonByID(badge_type_id, id) {
             if (undefined == this.addons[badge_type_id])

@@ -157,6 +157,15 @@ final class badgepromoapplicator
             $item['payment_promo_amount'] = $promo_price;
         }
 
+        //Do it for addons too, if specified
+        if (isset($item['addons'])) {
+            foreach ($item['addons'] as &$addon) {
+                //Haha sike we don't do promos (yet)
+                $addon['payment_promo_code'] = null;
+                $addon['payment_promo_price'] = $addon['payment_price'] ?? 0;
+            }
+        }
+
         return true;
     }
 
