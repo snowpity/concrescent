@@ -301,7 +301,7 @@ final class PaymentBuilder
                 $item['payment_status'] = 'Completed';
 
                 $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
-                if (!isset($item['existing'])) {
+                if (!isset($item['existing']) || $item['display_id'] == null) {
                     $this->badgeinfo->setNextDisplayIDSpecificBadge($item['id'], $item['context_code']);
                 }
             } else {

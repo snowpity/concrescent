@@ -9,7 +9,7 @@ use CM3_Lib\database\Join;
 
 use CM3_Lib\models\attendee\badge as a_badge;
 use CM3_Lib\models\attendee\badgetype as a_badge_type;
-use CM3_Lib\models\attendee\addonpurchase as a_addon;
+use CM3_Lib\models\attendee\addonpurchase as a_addonpurchase;
 use CM3_Lib\models\application\submissionapplicant as g_badge;
 use CM3_Lib\models\application\submission as g_badge_submission;
 use CM3_Lib\models\application\badgetype as g_badge_type;
@@ -51,6 +51,7 @@ class GetMyBadges
         private Responder $responder,
         private a_badge $a_badge,
         private a_badge_type $a_badge_type,
+        private a_addonpurchase $a_addonpurchase,
         private g_badge $g_badge,
         private g_badge_submission $g_badge_submission,
         private g_badge_type $g_badge_type,
@@ -103,6 +104,29 @@ class GetMyBadges
             ),
             $searchTerms
         );
+
+        //Add in any addons
+        $attendeeIds = array_column($a_badges, 'id');
+        $a_addons = $this->a_addonpurchase->Search(array(
+            'attendee_id',
+            'addon_id'
+        ), array(
+            new SearchTerm('attendee_id', $attendeeIds, 'IN'),
+            new SearchTerm('payment_status', 'Completed')
+        ));
+
+
+        //Loop the badges to add their addons, if any addons were returned for it
+        foreach ($a_badges as &$badge) {
+            $badge['addons'] = array();
+            foreach ($a_addons as $addon) {
+                if ($addon['attendee_id'] == $badge['id']) {
+                    $badge['addons'][] = array(
+                        'addon_id' => $addon['addon_id']
+                    );
+                }
+            }
+        }
 
         //And group application badges
         $g_badges = $this->g_badge->Search(

@@ -29,11 +29,11 @@
                     </v-btn>
                 </v-card-actions>
 
-                <v-card-actions v-for="addonid in badge.addons"
-                                :key="addonid">
+                <v-card-actions v-for="addon in badge.addons"
+                                :key="addon['addon_id']">
                     <v-icon>mdi-plus</v-icon>
                     <div class="text-truncate">
-                        {{getAddonByID(badge.badge_type_id, addonid) ? getAddonByID(badge.badge_type_id, addonid).name : "Loading..."}}
+                        {{getAddonByID(badge.badge_type_id, addon['addon_id']) ? getAddonByID(badge.badge_type_id, addon['addon_id']).name : "Loading..."}}
                     </div>
                 </v-card-actions>
             </v-card>
@@ -101,12 +101,13 @@
                 <v-card-title>Addons purchased:</v-card-title>
 
                 <v-card v-for="addon in (displayBadgeProduct ? displayBadgeData.addons : null)"
-                        v-bind:key="addon.id">
+                        v-bind:key="addon['id']">
                     <v-card-title>
-                        <h3 class="black--text">{{addon.name}}</h3>
+                        <h3 class="black--text">{{getAddonByID(displayBadgeData.badge_type_id, addon['addon_id']).name}}</h3>
                     </v-card-title>
                     <v-card-text>
-                        <div v-html="addon.description"></div>
+                        <badgePerksRender :description="getAddonByID(displayBadgeData.badge_type_id, addon['addon_id']).description"
+                                          :rewardlist="getAddonByID(displayBadgeData.badge_type_id, addon['addon_id']).rewards"></badgePerksRender>
                     </v-card-text>
                 </v-card>
             </v-card-text>
