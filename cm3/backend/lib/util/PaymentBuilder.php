@@ -164,16 +164,18 @@ final class PaymentBuilder
             }
             //TODO: Process applicants too
 
-
-            $this->stagedItems[] = array(
-                $bt['name'],
-                $bt['price'],
-                1,
-                $bt['description'],
-                $this->CurrentUserInfo->GetEventId() . ':' . $item['context_code'] . ':' . $item['badge_type_id'],
-                max(0, $bt['price'] - ($item['payment_promo_price'] ?? $item['payment_badge_price'])),
-                $item['payment_promo_code'] ?? null
-            );
+            //Only add this as a line item if we're a new badge or upgrading (hence needing payment)
+            if (!isset($item['existing']) || 0 < $item['payment_promo_amount']) {
+                $this->stagedItems[] = array(
+                    $bt['name'],
+                    $bt['price'],
+                    1,
+                    $bt['description'],
+                    $this->CurrentUserInfo->GetEventId() . ':' . $item['context_code'] . ':' . $item['badge_type_id'],
+                    max(0, $bt['price'] - ($item['payment_promo_price'] ?? $item['payment_badge_price'])),
+                    $item['payment_promo_code'] ?? null
+                );
+            }
             //Check if this item is payable
             if (!empty($bt['payment_deferred']) && $bt['payment_deferred']) {
                 $this->CanPay = false;
@@ -185,12 +187,12 @@ final class PaymentBuilder
             if (isset($item['addons'])) {
                 $existingAddons = array_column(
                     $this->badgeinfo->GetAttendeeAddons($item['id']),
-                    'addon_id',
-                    'payment_status'
+                    'payment_status',
+                    'addon_id'
                 );
                 $availableaddons = array_column($this->badgeinfo->GetAttendeeAddonsAvailable($item['badge_type_id']), null, 'id');
                 foreach ($item['addons'] as $addon) {
-                    if (isset($existingAddons[$addon['addon_id']]) && $existingAddons[$addon['addon_id']] == 'Complete') {
+                    if (isset($existingAddons[$addon['addon_id']]) && $existingAddons[$addon['addon_id']] == 'Completed') {
                         continue;
                     }
                     $addon['attendee_id'] = $item['id'];
@@ -301,7 +303,7 @@ final class PaymentBuilder
                 $item['payment_status'] = 'Completed';
 
                 $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
-                if (!isset($item['existing']) || $item['display_id'] == null) {
+                if (!isset($item['existing']) || (isset($item['existing']) && $item['existing']['display_id'] == null)) {
                     $this->badgeinfo->setNextDisplayIDSpecificBadge($item['id'], $item['context_code']);
                 }
             } else {
@@ -313,7 +315,7 @@ final class PaymentBuilder
                 foreach ($item['addons'] as &$addon) {
                     $addon['attendee_id'] = $item['id'];
                     $addon['payment_id'] = $this->cart['id'];
-                    $addon['payment_status'] = 'Complete';
+                    $addon['payment_status'] = 'Completed';
                     $this->badgeinfo->AddUpdateABadgeAddonUnchecked($addon);
                 }
             }

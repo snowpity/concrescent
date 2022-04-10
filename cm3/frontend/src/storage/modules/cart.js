@@ -101,8 +101,8 @@ const actions = {
         return new Promise((resolve, reject) => {
             if (rootState.mydata.token.length > 0) {
 
+                commit('setcartId', cartId);
                 shop.loadCart(rootState.mydata.token, cartId, (result) => {
-                    commit('setcartId', result.id);
                     commit('setCheckoutStatus', {
                         errors: result.errors,
                         state: result.state
@@ -187,7 +187,11 @@ const actions = {
         commit,
         rootState
     }) {
-        if (state.cartId != null && state.checkoutStatus.state != 'Completed') {
+        if (state.cartId != null &&
+            (state.checkoutStatus == null ||
+                (typeof state.checkoutStatus == 'object' && state.checkoutStatus.state != 'Completed')
+            )
+        ) {
             shop.deleteCart(
                 rootState.mydata.token,
                 state.cartId,

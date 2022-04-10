@@ -71,7 +71,7 @@ final class ListAllAttendeeAddons
                 'q',
                 array(
                   'addon_id',
-                  new SelectColumn('attendee_id', true, 'count(?)', 'quantity_sold')
+                  new SelectColumn('addon_id', true, 'count(?)', 'quantity_sold')
               ),
                 array(
                  new SearchTerm('payment_status', 'Completed'),

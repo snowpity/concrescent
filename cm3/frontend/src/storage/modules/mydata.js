@@ -186,7 +186,7 @@ const actions = {
                     include_all,
                     success: true
                 });
-                resolve();
+                resolve(carts);
             }, (error) => {
                 commit('setCarts', {
                     carts: null,
