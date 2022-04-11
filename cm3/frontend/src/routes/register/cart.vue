@@ -284,7 +284,7 @@
     <v-footer fixed
               cols="12">
         <v-btn color="red"
-               v-show="products.length"
+               v-show="cartIdSelected"
                @click="clearCartDialog = true">
             <v-icon>mdi-bomb</v-icon>
         </v-btn>
@@ -522,6 +522,12 @@ export default {
             this.clearCart();
             this.clearCartDialog = false;
             this.cartLocked = "";
+            this.$store.dispatch('mydata/fetchCarts', false).then((carts) => {
+                if (carts.length > 0)
+                    this.cartIdSelected = carts[carts.length - 1].id;
+                else
+                    this.cartIdSelected = 0;
+            })
         },
         checkout(products) {
             this.processingCheckoutDialog = true;

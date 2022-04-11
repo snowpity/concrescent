@@ -82,6 +82,8 @@ final class Search
         $sortDesc = array_map(function ($v) {
             return $v == 'true';
         }, explode(',', $qp['sortDesc']??''));
+        //Ensure the ID sort is descending
+        $sortDesc[count($sortDesc) - 1] = true;
 
         $order =array_combine(
             $sortBy,

@@ -7,6 +7,9 @@ use Respect\Validation\Validator as v;
 use CM3_Lib\models\banlist;
 use CM3_Lib\models\payment;
 
+use CM3_Lib\util\badgevalidator;
+use CM3_Lib\util\badgepromoapplicator;
+
 use CM3_Lib\database\TableValidator;
 use CM3_Lib\database\View;
 use CM3_Lib\database\Join;
@@ -33,12 +36,29 @@ final class PaymentBuilder
         private PaymentModuleFactory $PaymentModuleFactory,
         private banlist $banlist,
         private payment $payment,
+        private badgevalidator $badgevalidator,
+        private badgepromoapplicator $badgepromoapplicator,
         private FrontendUrlTranslator $FrontendUrlTranslator,
         private Mail $Mail
     ) {
     }
 
-    public function loadCart(int $cart_id, string $cart_uuid = null)
+    public function createCart($contact_id = null, $requested_by = '[self]')
+    {
+        $template = array(
+            'event_id' => $this->CurrentUserInfo->GetEventId(),
+            'contact_id' => $contact_id ?? $this->CurrentUserInfo->GetContactId(),
+            'requested_by' => $requested_by,
+            'items' => '[]',
+            'payment_status' => 'NotReady',
+            'payment_system' => 'Cash',
+            'payment_txn_amt' => -1,
+
+        );
+        $this->cart = array_merge($template, $this->payment->Create($template));
+    }
+
+    public function loadCart(int $cart_id, string $cart_uuid = null, $expectedEventId = null, $expectedContactId = null)
     {
         $cart = $this->payment->GetByIDorUUID($cart_id, $cart_uuid, array('id','uuid','event_id','contact_id','payment_status','payment_system','payment_txn_amt','items','payment_details'));
 
@@ -46,15 +66,25 @@ final class PaymentBuilder
             $this->cart = array();
             return false;
         }
+
+        //Check that the cart is in the right event, and right contact
+        if (
+            (!is_null($expectedEventId) && $cart['event_id'] != $expectedEventId)
+            ||(!is_null($expectedContactId) && $cart['contact_id'] != $expectedContactId)
+        ) {
+            $this->cart = array();
+            return false;
+        }
+
         $this->cart = $cart;
         //Extract and remove the UUID, since we never want to try saving it back
         $this->cart_uuid = $cart['uuid'];
         unset($this->cart['uuid']);
-        $this->cart_items = json_decode($cart['items'], true);
+        $this->cart_items = json_decode($cart['items'], true) ?? array();
         return true;
     }
 
-    private function saveCart()
+    public function saveCart()
     {
         $this->cart['items'] = json_encode($this->cart_items);
         if (isset($this->pp)) {
@@ -64,6 +94,14 @@ final class PaymentBuilder
 
         //Save the current status
         $this->payment->Update($this->cart);
+    }
+
+    public function canEdit()
+    {
+        return
+            $this->cart['payment_status'] == 'NotReady'
+            ||$this->cart['payment_status'] == 'NotStarted'
+            ||$this->cart['payment_status'] == 'Cancelled';
     }
 
     public function canCheckout()
@@ -79,10 +117,99 @@ final class PaymentBuilder
         }
         return true;
     }
+    public function getCartId()
+    {
+        return $this->cart['id'] ?? null;
+    }
+    public function getCartEventId()
+    {
+        return $this->cart['event_id'] ?? null;
+    }
+    public function getCartContactId()
+    {
+        return $this->cart['contact_id'] ?? null;
+    }
     public function getCartStatus()
     {
         return $this->cart['payment_status'] ?? null;
     }
+
+    public function setCartItems($items, $promocode = "", &$promoApplied = false)
+    {
+        $errors = array();
+        $this->cart_items = array();
+        foreach ($items as $key => $badge) {
+            $errors[$key] = $this->setCartItem($key, $badge, $promocode, $promoApplied);
+        }
+        //Do we have errors?
+        $this->cart['payment_status'] = count($errors) ? 'NotStarted' : 'NotReady';
+
+        //Did we try a promo code and fail?
+        if (!$promoApplied && !empty($data['promocode'])) {
+            $result['errors']['promo'] = 'Promo did not apply to any items in the cart';
+        }
+        $this->saveCart();
+        return $errors;
+    }
+
+    public function setCartItem($cartIx, $item, $promocode = "", &$promoApplied = false)
+    {
+        //Ensure this badge is owned by the user (if we're not editing) and is good on the surface
+        if (isset($item['id']) && $item['id'] > 0) {
+            $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code']);
+            //If this isn't ours, ensure certain fields aren't tampered with
+            if ($bi['contact_id'] != $this->cart['contact_id']) {
+                $allowed = array(
+                    'notify_email',
+                    'can_transfer',
+                    'contact_id'
+                );
+                array_walk($allowed, function ($col) use ($item, $bi) {
+                    if (isset($bi[$col])) {
+                        $item[$col] = $bi[$col];
+                    } else {
+                        unset($item[$col]);
+                    }
+                });
+                //And set the contact_id
+                $item['contact_id'] = $bi['contact_id'];
+            } else {
+                $item['contact_id'] = $this->cart['contact_id'];
+            }
+        } else {
+            $item['contact_id'] = $this->cart['contact_id'];
+        }
+
+        $errors = $this->badgevalidator->ValdateCartBadge($item);
+
+        //Try to apply promo code, or otherwise update the price
+        $promoApplied = $promoApplied | $this->badgepromoapplicator->TryApplyCode($item, $promocode);
+        //Ensure there is an index associated
+        $item['cartIx'] = isset($item['cartIx']) ? $item['cartIx'] : ($cartIx .'');
+        $this->cart_items[$cartIx] = $item;
+        return $errors;
+    }
+
+    public function getCartItemByIx($cartIx)
+    {
+        return $this->cart_items[$cartIx];
+    }
+
+    public function findCartItemIxById($context_code, $id)
+    {
+        foreach ($this->cart_items as $key => $item) {
+            if ($item['context_code'] == $context_code && $item['id'] == $id) {
+                return $key;
+            }
+        }
+        return false;
+    }
+
+    public function getCartItems()
+    {
+        return $this->cart_items;
+    }
+
     public function setPayProcessor(string $PayProcessor)
     {
         if ($this->cart['payment_system'] != $PayProcessor) {
@@ -118,6 +245,13 @@ final class PaymentBuilder
     public function isFreeride()
     {
         return $this->cart['payment_txn_amt'] == 0;
+    }
+
+    public function resetPayment()
+    {
+        $this->stagedItems = array();
+        $this->cart['payment_details'] = '';
+        $this->cart['payment_status'] = 'NotReady';
     }
 
     //Note we expect all items to have been validated

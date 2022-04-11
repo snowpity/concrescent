@@ -391,15 +391,59 @@ final class badgeinfo
              array(
             new SearchTerm('real_name', $find, Raw: 'MATCH(`real_name`, `fandom_name`, `notify_email`, `ice_name`, `ice_email_address`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
         );
+        $wherePartsSimpler = array(
+                new SearchTerm('real_name', '%' . $find . '%', 'LIKE', 'OR'),
+                new SearchTerm('fandom_name', '%' . $find . '%', 'LIKE', 'OR'),
+                new SearchTerm('notify_email', '%' . $find . '%', 'LIKE', 'OR'),
+                new SearchTerm('ice_name', '%' . $find . '%', 'LIKE', 'OR'),
+                new SearchTerm('ice_email_address', '%' . $find . '%', 'LIKE', 'OR'),
+        );
         // Invoke the Domain with inputs and retain the result
         $trA = 0;
         $trG = 0;
         $trS = 0;
         $a_data = $this->a_badge->Search($this->badgeView($this->a_badge_type, 'A'), $whereParts, $order, $limit, $offset, $trA);
+        //If we got nothing, switch to a simpler search
+        if (count($a_data) == 0) {
+            $a_data = $this->a_badge->Search($this->badgeView($this->a_badge_type, 'A'), $wherePartsSimpler, $order, $limit, $offset, $trA);
+        }
         $s_data = $this->s_badge->Search($this->badgeView($this->s_badge_type, 'S'), $whereParts, $order, $limit, $offset, $trG);
         $g_data = $this->g_badge->Search($this->groupBadgeView(), $whereParts, $order, $limit, $offset, $trS);
         $totalRows =  $trA + $trG + $trS;
-        return array_merge($a_data, $s_data, $g_data);
+
+
+        //Add in any addons
+        $attendeeIds = array_column($a_data, 'id');
+        if (count($attendeeIds) == 0) {
+            $attendeeIds[] = 0;
+        }
+        $a_addons = $this->a_addonpurchase->Search(array(
+            'attendee_id',
+            'addon_id'
+        ), array(
+            new SearchTerm('attendee_id', $attendeeIds, 'IN'),
+            new SearchTerm('payment_status', 'Completed')
+        ));
+
+        $result = array_merge($a_data, $s_data, $g_data);
+
+        //Loop the badges to add their addons, if any addons were returned for it
+        foreach ($result as &$badge) {
+            $badge['addons'] = array();
+            if ($badge['context_code'] == 'A') {
+                foreach ($a_addons as $addon) {
+                    if ($addon['attendee_id'] == $badge['id']) {
+                        $badge['addons'][] = array(
+                        'addon_id' => $addon['addon_id']
+                    );
+                    }
+                }
+            }
+        }
+
+
+
+        return $result;
     }
 
     public function getASpecificBadge($id, $badge, $badgetype, $contextCode, $addView)

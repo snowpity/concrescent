@@ -43,4 +43,15 @@ class CurrentUserInfo
         }
         return $result['email_address'];
     }
+    public function GetContactName(?int $contact_id = null): string
+    {
+        if ($contact_id == null) {
+            $contact_id = $this->contact_id;
+        }
+        $result = $this->contact->GetByID($contact_id, array('real_name'));
+        if ($result === false) {
+            return '';
+        }
+        return $result['real_name'];
+    }
 }

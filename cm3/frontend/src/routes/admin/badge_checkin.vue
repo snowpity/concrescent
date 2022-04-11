@@ -43,6 +43,9 @@
                     <template v-slot:top="">
                         <v-text-field v-model="searchText"
                                       label="Search"
+                                      clearable
+                                      append-outer-icon="mdi-refresh"
+                                      @click:append-outer="doSearch"
                                       class="mx-4"></v-text-field>
                     </template>
                     <template v-slot:[`item.id`]="{ item }">
@@ -472,7 +475,9 @@ export default {
                 'sortDesc',
                 'page',
                 'itemsPerPage'
-            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), {});;
+            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), {});
+            //We need empty string not null in searchText
+            if (this.searchText == null) this.searchText = "";
             admin.badgeSearch(this.authToken, this.searchText, pageOptions, (results, total) => {
                 this.tableResults = results;
                 this.totalResults = total;
@@ -495,7 +500,7 @@ export default {
                 fandom_name: this.edit_fandom_name,
                 name_on_badge: this.edit_name_on_badge,
                 date_of_birth: this.edit_date_of_birth,
-                badge_type_id: this.badges[this.edit_selectedBadge].id,
+                badge_type_id: this.edit_selectedBadge > -1 ? this.badges[this.edit_selectedBadge].id : this.selectedBadge.badge_type_id,
                 notes: this.edit_notes
             }, (result) => {
                 this.savingEditedBadge = false;
@@ -568,6 +573,7 @@ export default {
                 this.checkinStage = 1;
                 this.alreadyCheckedInDialog = false;
                 this.printing = false;
+                this.doSearch();
             }
         },
         editingBadge: function(isEditing) {
