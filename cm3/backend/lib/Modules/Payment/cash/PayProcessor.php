@@ -1,14 +1,16 @@
 <?php
 
+namespace CM3_Lib\Modules\Payment\cash;
+
 use CM3_Lib\util\CurrentUserInfo;
+
 class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
 {
-    public __construct(
-    private CurrentUserInfo $CurrentUserInfo,)
-    private $orderstate = array();
+    private $orderData = array();
     private bool $isDisabled = false;
     public function Init(array $config)
     {
+        $this->resetOrderData();
     }
 
     private function resetOrderData()
@@ -49,24 +51,27 @@ class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
     }
     public function GetDetails()
     {
-        return $this->orderstate;
+        return $this->orderData;
     }
-    public function AddItem(string $name, float $amount, int $count = 1, ?string $description, ?float $discount, ?string $discountReason)
+    public function AddItem(string $name, float $amount, int $count = 1, ?string $description = null, ?string $sku = null, ?float $discount = null, ?string $discountReason = null)
     {
-        $this->orderstate['items'][] = array(
+        $this->orderData['items'][] = array(
             'name' => $name,
             'amount' => $amount,
             'count' => $count,
             'description'=>$description,
             'discount'=>$discount,
-            'discountReason'=>$discountReason
+            'discountReason'=>$discountReason,
         );
-        $this['total'] += ($amount - $discount) * $count;
-        $this['discount'] += $discount * $count;
+        $this->orderData['total'] += ($amount - $discount) * $count;
+        $this->orderData['discount'] += $discount * $count;
     }
     public function ConfirmOrder(): bool
     {
         return true;
+    }
+    public function CancelOrder(): bool
+    {
     }
     public function RetrievePaymentRedirectURL(): string
     {
@@ -75,8 +80,6 @@ class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
     public function CompleteOrder($data): bool
     {
         //We assume that physical cash has been handled.
-        //Mark the payment for who triggered this action
-        $this->orderData['handler_id'] = $this->CurrentUserInfo->GetContactId();
         return true;
     }
     public function GetOrderStatus(): string

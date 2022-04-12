@@ -134,11 +134,12 @@ final class badgepromoapplicator
         );
 
         //Are we editing a badge?
-        if (isset($item['id'])) {
-            $existingBadge = $this->badge->GetByID($item['id'], array('uuid','payment_badge_price'));
-            if ($existingBadge !== false && $item['uuid'] == $existingBadge['uuid']) {
-                $badge_price = max(0, $badge_price- $existingBadge['payment_badge_price']);
-            }
+        if (isset($item['existing'])) {
+            // $existingBadge = $this->badge->GetByID($item['id'], array('uuid','payment_badge_price'));
+            // if ($existingBadge !== false && $item['uuid'] == $existingBadge['uuid']) {
+            //     $badge_price = max(0, $badge_price- $existingBadge['payment_badge_price']);
+            // }
+            $badge_price = max(0, $badge_price- (float)$item['existing']['payment_badge_price']);
         }
         if ($final_price < 0) {
             $final_price = 0;
@@ -155,6 +156,8 @@ final class badgepromoapplicator
             //For display purposes
             $item['payment_promo_type'] = $promo_code['is_percentage'] ? 1 : 0;
             $item['payment_promo_amount'] = $promo_price;
+        } else {
+            $item['payment_promo_price'] = $final_price;
         }
 
         //Do it for addons too, if specified

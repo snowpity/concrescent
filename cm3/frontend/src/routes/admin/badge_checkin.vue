@@ -132,7 +132,9 @@
             <v-stepper-content step="3">
                 <v-card class="mb-12"
                         color="grey lighten-1"
-                        height="200px">PayPal Here</v-card>
+                        height="200px">Payment required:
+                    <h2>{{edit_selectedBadgePayment.total | currency}}</h2>
+                </v-card>
 
                 <v-row>
                     <v-col>
@@ -347,10 +349,12 @@ export default {
         edit_date_of_birth: null,
         edit_bdayActivePicker: 'YEAR',
         edit_selectedBadge: null,
+        edit_selectedBadgePayment: {},
         edit_notes: "",
         edit_menuBDay: false,
         savingEditedBadge: false,
         paying: false,
+        loadpaying: false,
         printing: false,
         finishing: false,
 
@@ -511,10 +515,23 @@ export default {
             });
 
         },
+        RefreshPayment: function() {
+            if (this.selectedBadge.id == undefined) return;
+            this.loadpaying = true;
+            admin.badgeCheckinGetPayment(this.authToken, this.selectedBadge.context_code, this.selectedBadge.id, (result) => {
+                this.edit_selectedBadgePayment = result;
+                this.loadpaying = false;
+
+            }, (error) => {
+                this.loadpaying = false;
+            })
+        },
         ConfirmPayment: function() {
             if (this.selectedBadge.id == undefined) return;
             this.paying = true;
-            admin.badgeCheckinConfirmPayment(this.authToken, this.selectedBadge.context_code, this.selectedBadge.id, {}, (results) => {
+            admin.badgeCheckinConfirmPayment(this.authToken, this.selectedBadge.context_code, this.selectedBadge.id, {
+                payment_system: 'Cash'
+            }, (results) => {
                 this.checkinStage = 4;
                 this.paying = false;
 
@@ -593,6 +610,9 @@ export default {
                 //If they're paid, just go straight to Finish
                 if (this.selectedBadge.payment_status == "Completed") {
                     this.checkinStage = 4;
+                } else {
+                    //Fetch the current payment for this badge
+                    this.RefreshPayment();
                 }
             }
         },

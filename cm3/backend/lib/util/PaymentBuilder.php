@@ -56,6 +56,22 @@ final class PaymentBuilder
 
         );
         $this->cart = array_merge($template, $this->payment->Create($template));
+        $this->cart_items = array();
+        $cart_payment_txn_amt = 0;
+        $this->AllowPay = true;
+        $this->CanPay = true;
+        $this->pp = null;
+        $this->stagedItems = array();
+    }
+
+    public function loadCartFromBadge($context_code, $id)
+    {
+        $badge = $this->badgeinfo->GetSpecificBadge($id, $context_code, true);
+        if ($badge===false) {
+            return false;
+        }
+        //Fetch the associated payment
+        return $this->loadCart($badge['payment_id']);
     }
 
     public function loadCart(int $cart_id, string $cart_uuid = null, $expectedEventId = null, $expectedContactId = null)
@@ -133,6 +149,10 @@ final class PaymentBuilder
     {
         return $this->cart['payment_status'] ?? null;
     }
+    public function setRequestedBy(string $name)
+    {
+        $this->cart['requested_by'] = $name;
+    }
 
     public function setCartItems($items, $promocode = "", &$promoApplied = false)
     {
@@ -154,9 +174,16 @@ final class PaymentBuilder
 
     public function setCartItem($cartIx, $item, $promocode = "", &$promoApplied = false)
     {
+        if (!isset($item['context_code'])) {
+            $item['context_code']='A';
+        }
         //Ensure this badge is owned by the user (if we're not editing) and is good on the surface
         if (isset($item['id']) && $item['id'] > 0) {
             $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code']);
+            //Preserve the current badge state, but only if it hasn't been preserved already
+            if ($bi !== false && !isset($item['existing'])) {
+                $item['existing'] = $bi;
+            }
             //If this isn't ours, ensure certain fields aren't tampered with
             if ($bi['contact_id'] != $this->cart['contact_id']) {
                 $allowed = array(
@@ -210,11 +237,58 @@ final class PaymentBuilder
         return $this->cart_items;
     }
 
+    public function getCartErrors(bool $updateReadyStatus = false)
+    {
+        //Just run through and validate the items as they sit
+        $result = array();
+        foreach ($this->cart_items as $badge) {
+            $result[$badge['cartIx']] = $this->badgevalidator->ValdateCartBadge($badge);
+        }
+        if ($updateReadyStatus) {
+            $this->cart['payment_status'] = count($result) ? 'NotStarted' : 'NotReady';
+        }
+        return $result;
+    }
+
+    public function getCartTotal(bool $refresh = true)
+    {
+        if ($refresh) {
+            $cart_payment_txn_amt = 0;
+
+            foreach ($this->cart_items as $key => &$item) {
+                $this->badgepromoapplicator->TryApplyCode($item, $item['payment_promo_code'] ?? '');
+                $cart_payment_txn_amt += max(0, $item['payment_promo_price'] ?? $item['payment_badge_price']);
+                //Check for addons
+                if (isset($item['addons'])) {
+                    $existingAddons = array_column(
+                        $this->badgeinfo->GetAttendeeAddons($item['id']),
+                        'payment_status',
+                        'addon_id'
+                    );
+                    $availableaddons = array_column($this->badgeinfo->GetAttendeeAddonsAvailable($item['badge_type_id']), null, 'id');
+                    foreach ($item['addons'] as $addon) {
+                        if (isset($existingAddons[$addon['addon_id']]) && $existingAddons[$addon['addon_id']] == 'Completed') {
+                            continue;
+                        }
+
+                        //Prep Sanity check the cart's amount...
+                        $cart_payment_txn_amt += max(0, $addon['payment_promo_price'] ?? $addon['payment_price']);
+                    }
+                }
+            }
+            $this->cart['payment_txn_amt'] = $cart_payment_txn_amt;
+            $this->saveCart();
+        }
+
+        return $this->cart['payment_txn_amt'];
+    }
+
     public function setPayProcessor(string $PayProcessor)
     {
         if ($this->cart['payment_system'] != $PayProcessor) {
             $this->cart['payment_system'] = $PayProcessor;
             $this->cart['payment_details'] ="";
+            unset($this->pp);
             //Save the current status
             $this->payment->Update($this->cart);
         }
@@ -263,22 +337,16 @@ final class PaymentBuilder
 
         foreach ($this->cart_items as $key => &$item) {
             //Create/Update the badge
-            if (!isset($item['context_code'])) {
-                $item['context_code']='A';
-            }
             $bt = $this->badgeinfo->getBadgetType($item['context_code'], $item['badge_type_id']);
             $bi = $this->badgeinfo->getSpecificBadge($item['id'] ?? 0, $item['context_code']);
             $item['payment_id'] = $this->cart['id'];
-            if ($bi !== false) {
-                //Preserve the current badge state
-                $item['existing'] = $bi;
-                $item['payment_status'] = 'Incomplete';
+            $item['payment_status'] = 'Incomplete';
+            if (isset($item['existing'])) {
                 $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
             } else {
                 //Ensure the badge has an owner
                 $item['contact_id'] =$item['contact_id'] ?? $this->CurrentUserInfo->GetContactId();
                 //And that the payment status is Incomplete
-                $item['payment_status'] = 'Incomplete';
                 $newID = $this->badgeinfo->CreateSpecificBadgeUnchecked($item);
                 if ($newID !== false) {
                     $item['id'] = $newID['id'];
@@ -299,7 +367,7 @@ final class PaymentBuilder
             //TODO: Process applicants too
 
             //Only add this as a line item if we're a new badge or upgrading (hence needing payment)
-            if (!isset($item['existing']) || 0 < $item['payment_promo_amount']) {
+            if (!isset($item['existing']) || 0 < $item['payment_promo_price']) {
                 $this->stagedItems[] = array(
                     $bt['name'],
                     $bt['price'],

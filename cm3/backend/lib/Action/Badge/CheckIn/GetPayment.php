@@ -1,10 +1,12 @@
 <?php
 
-namespace CM3_Lib\Action\Account\Cart;
+namespace CM3_Lib\Action\Badge\CheckIn;
 
 use CM3_Lib\database\SearchTerm;
 
+use CM3_Lib\util\PaymentBuilder;
 use CM3_Lib\models\payment;
+use CM3_Lib\util\badgevalidator;
 use CM3_Lib\util\CurrentUserInfo;
 
 use Branca\Branca;
@@ -16,7 +18,9 @@ use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class ListCarts
+use Slim\Exception\HttpNotFoundException;
+
+class GetPayment
 {
     /**
      * The constructor.
@@ -26,7 +30,8 @@ class ListCarts
      */
     public function __construct(
         private Responder $responder,
-        private payment $payment,
+        private PaymentBuilder $PaymentBuilder,
+        private badgevalidator $badgevalidator,
         private CurrentUserInfo $CurrentUserInfo
     ) {
     }
@@ -43,30 +48,16 @@ class ListCarts
     {
         $data = (array)$request->getQueryParams();
 
-        //Fetch the authenticated user's info
-        $c_id = $this->CurrentUserInfo->GetContactId();
-        $e_id = $this->CurrentUserInfo->GetEventId();
-        $searchTerms = array(
-          new SearchTerm('event_id', $e_id),
-          new SearchTerm('contact_id', $c_id),
-        );
-
-        //Do we want the non-in-progress ones?
-        if (($data['include_all'] ?? "false") == "false") {
-            $searchTerms[] = new SearchTerm('payment_status', array('NotReady','NotStarted','Incomplete'), 'IN');
+        if (!$this->PaymentBuilder->loadCartFromBadge($params['context_code'], $params['badge_id'])) {
+            throw new HttpNotFoundException($request);
         }
 
-        //Simply get the user's active Payments
-        $result = $this->payment->Search(
-            array(
-                'id','uuid',
-                'requested_by',
-                'payment_system',
-                'payment_status',
-                'date_modified'
-            ),
-            $searchTerms
-        );
+        $result = array();
+        $result['items']= $this->PaymentBuilder->getCartItems();
+        $result['errors']= $this->PaymentBuilder->getCartErrors(false);
+        $result['state']= $this->PaymentBuilder->getCartStatus();
+        $result['total']= $this->PaymentBuilder->getCartTotal();
+
 
         // Build the HTTP response
         return $this->responder

@@ -79,23 +79,29 @@ final class Update
             //Our badge is incomplete or we're changing what type it is
             //First, load up the associated payment or create a new one
             $paymentLoaded = $this->PaymentBuilder->loadCart($current['payment_id']);
+
             //If we can't edit the cart, I guess we'll create a new one
             if ($paymentLoaded ===false || !$this->PaymentBuilder->canEdit()) {
                 $this->PaymentBuilder->createCart($current['contact_id'], $this->CurrentUserInfo->GetContactName());
             }
             //Check if we have an item already
             $cartIx = $this->PaymentBuilder->findCartItemIxById($current['context_code'], $current['id']);
+
             if ($cartIx === false) {
                 $cartIx =  (array_key_last($this->PaymentBuilder->getCartItems()) ?? -1)  +1;
-                $data['existing'] = $current;
+                //$data['existing'] = $current;
                 $this->PaymentBuilder->setCartItem($cartIx, $data, $current['payment_promo_code'] ?? '');
             } else {
                 //Slice in the submitted data into the existing item
                 $item = array_merge($this->PaymentBuilder->getCartItemByIx($cartIx), $data);
-                $this->PaymentBuilder->setCartItem($cartIx, $item, $current['payment_promo_code']);
+                $this->PaymentBuilder->setCartItem($cartIx, $item, $current['payment_promo_code'] ??'');
             }
+            $this->PaymentBuilder->prepPayment();
+            //Immediately reset it
             $this->PaymentBuilder->resetPayment();
             $this->PaymentBuilder->saveCart();
+
+            //Tell the badge it should point to the new payment too?
         }
 
         //Refresh the resulting badge

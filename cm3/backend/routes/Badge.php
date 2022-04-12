@@ -61,7 +61,9 @@ return function (App $app, $container) {
             ->add($checkinPerm);
             $app->post('/{context_code}/{badge_id}/Update', \CM3_Lib\Action\Badge\CheckIn\Update::class)
             ->add($checkinPerm);
-            $app->post('/{context_code}/{badge_id}/Pay', \CM3_Lib\Action\Badge\CheckIn\Pay::class)
+            $app->get('/{context_code}/{badge_id}/GetPayment', \CM3_Lib\Action\Badge\CheckIn\GetPayment::class)
+            ->add($checkinPerm);
+            $app->post('/{context_code}/{badge_id}/PostPayment', \CM3_Lib\Action\Badge\CheckIn\PostPayment::class)
             ->add($checkinPerm);
             $app->post('/{context_code}/{badge_id}/Finish', \CM3_Lib\Action\Badge\CheckIn\FinishCheckIn::class)
             ->add($checkinPerm);
