@@ -301,7 +301,6 @@ export default {
         ...mapGetters('products', {
             'events': 'events',
             'badgeContexts': 'badgeContexts',
-            'productselectedEventId': 'selectedEventId',
             'productselectedEvent': 'selectedEvent'
         }),
         productselectedEventId: {
@@ -309,8 +308,12 @@ export default {
                 return this.$store.getters['products/selectedEventId'];
             },
             set: function(event_id) {
+                console.log('Switching event to ' + event_id);
                 this.$store.dispatch("products/selectEventId", event_id);
                 //TODO: This should trigger a reload of everything!
+                if (this.isLoggedIn) {
+                    this.$store.dispatch("mydata/RefreshToken");
+                }
             }
         },
         adminMode: {
@@ -344,13 +347,15 @@ export default {
     created() {
         document.title = this.appTitle;
 
+        if (this.isLoggedIn) {
+            console.log('refreshing token')
+            this.$store.dispatch('mydata/RefreshToken');
+        }
         this.$store.dispatch('products/getEventInfo').then(() => {
+            console.log('got event info, loading contexts');
             //this.selectedEventId = this.productselectedEventId;
             this.$store.dispatch('products/getBadgeContexts');
         });
-        if (this.isLoggedIn) {
-            this.$store.dispatch('mydata/RefreshToken');
-        }
     }
 };
 </script>

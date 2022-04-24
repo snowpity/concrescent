@@ -107,6 +107,9 @@ class GetMyBadges
 
         //Add in any addons
         $attendeeIds = array_column($a_badges, 'id');
+        if (count($attendeeIds) < 1) {
+            $attendeeIds = array(0);
+        }
         $a_addons = $this->a_addonpurchase->Search(array(
             'attendee_id',
             'addon_id'

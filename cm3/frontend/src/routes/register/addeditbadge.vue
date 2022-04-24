@@ -65,6 +65,9 @@
                 </v-col>
             </v-row>
             <h3>Badge Type</h3>
+            <div v-if="badges.length == 0">
+                <h1>No badges currently available!</h1>
+            </div>
             <div class="d-none d-sm-block">
                 <v-slide-group v-model="selectedBadge"
                                class="pa-4"
@@ -171,21 +174,19 @@
                     </template>
                 </v-select>
             </div>
-            <v-expand-transition>
-                <v-sheet v-if="selectedBadge != null"
-                         color="grey lighten-4"
-                         tile>
-                    <v-card>
-                        <v-card-title class="title">Selected:
-                            {{ badges[selectedBadge] ? badges[selectedBadge].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
-                        </v-card-title>
-                        <v-card-text class="text--primary">
-                            <badgePerksRender :description="badges[selectedBadge] ? badges[selectedBadge].description : '' "
-                                              :rewardlist="rewardlist"></badgePerksRender>
-                        </v-card-text>
-                    </v-card>
-                </v-sheet>
-            </v-expand-transition>
+            <v-sheet v-if="selectedBadge != null"
+                     color="grey lighten-4"
+                     tile>
+                <v-card>
+                    <v-card-title class="title">Selected:
+                        {{ badges[selectedBadge] ? badges[selectedBadge].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
+                    </v-card-title>
+                    <v-card-text class="text--primary">
+                        <badgePerksRender :description="badges[selectedBadge] ? badges[selectedBadge].description : '' "
+                                          :rewardlist="rewardlist"></badgePerksRender>
+                    </v-card-text>
+                </v-card>
+            </v-sheet>
         </v-form>
 
         <v-btn color="primary"
@@ -262,15 +263,11 @@
     <v-stepper-content step="3">
         <v-form ref="fAdditionalInfo"
                 v-model="validAdditionalInfo">
-            <v-row v-for="question in badgeQuestions"
-                   v-bind:key="question.id">
-                <badgeQuestionRender v-bind:question="question"
-                                     v-model="form_responses[question['id'].toString()]"></badgeQuestionRender>
-            </v-row>
-            <div v-if="badgeQuestions.length == 0">
-                Nothing else needed at the moment!
-            </div>
+            <formQuestions v-model="form_responses"
+                           :questions="badgeQuestions"
+                           no-data-text="Nothing else needed at the moment!" />
         </v-form>
+
         <v-btn color="primary"
                :disabled="!validAdditionalInfo"
                @click="step = 4">Continue</v-btn>
@@ -320,7 +317,7 @@
 
         </v-expansion-panels>
         <div v-else>
-            <h3>No addons are currently available. Check back later when they become available!</h3>
+            <h3>No addons are currently available for the selected badge type. Check back later when they become available!</h3>
         </div>
         <v-btn color="primary"
                @click="addBadgeToCart">{{ isUpdatingItem ? "Update in " :  "Add to "}}
@@ -338,7 +335,7 @@ import {
     mapActions
 } from 'vuex';
 
-import badgeQuestionRender from '@/components/badgeQuestionRender.vue';
+import formQuestions from '@/components/formQuestions.vue';
 import badgePerksRender from '@/components/badgePerksRender.vue';
 
 export default {
@@ -558,7 +555,10 @@ export default {
         },
         $route( /* to, from */ ) {
             // react to route changes...
-            this.loadBadge();
+            this.refreshContext();
+        },
+        '$store.state.products.selectedEventId': function(event_id) {
+            this.refreshContext();
         },
     },
     methods: {
@@ -569,6 +569,13 @@ export default {
         saveBDay(date) {
             this.$refs.menuBDay.save(date);
             this.date_of_birth = this.date_of_birth;
+        },
+        refreshContext() {
+            this.$store.commit('products/setBadgeContextSelected', 'A');
+            //refresh the context data
+            this.$store.dispatch('products/getAllProducts').then(this.loadBadge());
+            this.$store.dispatch('products/getAllQuestions');
+            this.$store.dispatch('products/getAllAddons');
         },
         loadBadge() {
             let cartItem;
@@ -666,13 +673,11 @@ export default {
         },
     },
     components: {
-        badgeQuestionRender,
+        formQuestions,
         badgePerksRender,
     },
     created() {
-        this.$store.dispatch('products/getAllProducts').then(this.loadBadge());
-        this.$store.dispatch('products/getAllQuestions');
-        this.$store.dispatch('products/getAllAddons');
+        this.refreshContext();
     },
 };
 </script>

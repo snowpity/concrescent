@@ -85,7 +85,7 @@ class SendMagicLink
             ) {
                 $result = "Sent.";
             } else {
-                throw new \Exception($mail->GetLastMessage(true));
+                throw new \Exception('Failed to send message.', 0, new \Exception($this->Mail->getMailerErrorInfo()));
             }
         } else {
             $result = "Sent";

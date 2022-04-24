@@ -28,6 +28,8 @@ class Mail
         private MarkdownConverter $MarkdownConverter
     ) {
         $PHPMailer->CharSet = PHPMailer::CHARSET_UTF8;
+        //Default connection timeout to something quick
+        $PHPMailer->Timeout = 20;
     }
 
     public function getMailerErrorInfo()
@@ -38,8 +40,8 @@ class Mail
     public function SendTemplate(string $to, string|array|int $template, array $entity, ?string $cc = null)
     {
         //Start prepping the message
-        $template = $this->GetTemplate($template);
-        $this->PrepareMessage($template, $entity);
+        $loadedtemplate = $this->GetTemplate($template);
+        $this->PrepareMessage($loadedtemplate, $entity);
 
         //Set main recipient(s)
         $this->addAddress('Address', $to);
@@ -53,12 +55,17 @@ class Mail
         unset($entity['uuid_raw']);
         unset($entity['qr_data_uri']);
 
+        $meta = array(
+            'template' => $template
+        );
+
         //Send it
         if ($this->PHPMailer->send()) {
             //Log the success
             $this->log->Create(array(
-                'template_id' => $template['id'],
+                'template_id' => $loadedtemplate['id'],
                 'success'=>1,
+                'meta'=>json_encode($meta),
                 'data'=>json_encode($entity),
                 'result'=>'sent'
             ));
@@ -66,8 +73,9 @@ class Mail
         } else {
             //Log the failure
             $this->log->Create(array(
-                'template_id' => $template['id'],
+                'template_id' => $loadedtemplate['id'],
                 'success'=>0,
+                'meta'=>json_encode($meta),
                 'data'=>json_encode($entity),
                 'result'=>'Failed:'.$this->PHPMailer->ErrorInfo
             ));
@@ -271,7 +279,7 @@ class Mail
                 break;
             case 'Markdown':
                 //parse into HTML
-                $this->PHPMailer->msgHTML($this->MarkdownConverter->convert($body));
+                $this->PHPMailer->msgHTML((string)$this->MarkdownConverter->convert($body));
                 break;
             case 'Full HTML':
                 $this->PHPMailer->msgHTML($body);

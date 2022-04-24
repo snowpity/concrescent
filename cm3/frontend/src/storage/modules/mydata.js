@@ -70,10 +70,13 @@ const getters = {
         return state.contactInfo;
     },
     getLoggedInName: (state) => {
-        if (state.contactInfo != undefined)
-            return state.contactInfo.real_name || state.contactInfo.email_address;
-        else
-            return "Guest";
+        if (state.contactInfo != undefined) {
+            if (state.contactInfo.real_name.length > 0)
+                return state.contactInfo.real_name;
+            if (state.contactInfo.email_address.length > 0)
+                return state.contactInfo.email_address;
+        }
+        return "Guest";
     }
 }
 
@@ -96,10 +99,10 @@ const actions = {
     loginToken({
         dispatch,
         commit,
-        state
+        rootState
     }, token) {
         return new Promise((resolve) => {
-            shop.switchEvent(token, state.event_id, (data) => {
+            shop.switchEvent(token, rootState.products.selectedEventId, (data) => {
                     commit('setToken', data.token);
                     commit('setPermissions', data.permissions);
                     dispatch('products/selectEventId', data.event_id, {
@@ -109,7 +112,10 @@ const actions = {
                     dispatch('retrieveBadges');
                     resolve(true);
                 },
-                (error) => resolve(error || "Failed, maybe the link expired?")
+                (error) => {
+                    dispatch('logout');
+                    resolve(error || "Failed, maybe the link expired?")
+                }
             );
 
         })
@@ -223,16 +229,20 @@ const actions = {
     sendRetrieveBadgeEmail({
         commit
     }, email) {
-        commit('setBadgeRetrievalStatus', true)
-        shop.sentEmailRetrieveBadges(email, () => {
-                commit('setBadgeRetrievalStatus', false);
+        return new Promise((resolve, reject) => {
+            commit('setBadgeRetrievalStatus', true)
+            shop.sentEmailRetrieveBadges(email, (result) => {
+                    commit('setBadgeRetrievalStatus', false);
+                    resolve(result);
+                },
+                function(data) {
+                    //Error?
+                    commit('setBadgeRetrievalResult', "Error requesting badge retrieval email. " + data);
+                    //console.log(data);
+                    reject(data);
+                });
 
-            },
-            function(data) {
-                //Error?
-                commit('setBadgeRetrievalResult', "Error requesting badge retrieval email. " + data);
-                //console.log(data);
-            });
+        });
     },
     retrieveBadges({
         commit,

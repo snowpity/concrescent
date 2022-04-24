@@ -159,9 +159,14 @@ export default {
         SendMagicLink() {
             this.loading = true;
             this.sendRetrieveBadgeEmail(this.email).then(() => {
-                this.state = 2;
-                this.loading = false;
-            });
+                    this.state = 2;
+                    this.loading = false;
+                })
+                .catch((errorresult) => {
+                    this.state = 4;
+                    this.loginFailReason = errorresult.error.message;
+                    this.loading = false;
+                });
         },
         login() {
             this.loading = true;
