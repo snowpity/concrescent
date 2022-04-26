@@ -3,7 +3,7 @@
              fluid>
     <v-row>
         <p>
-            <i v-show="!ownedbadgecount">You have no badges. Click on the link in your confirmation email, or Add one.</i>
+            <i v-if="!ownedbadgecount">You have no badges. Click on the link in your confirmation email, or Add one.</i>
         </p>
     </v-row>
     <v-row>
@@ -47,12 +47,6 @@
                    absolute>Add a badge</v-btn>
         </v-col>
         <v-spacer></v-spacer>
-        <v-col>
-            <v-btn color="primary"
-                   :to="{name:'login'}"
-                   right
-                   absolute>Retrieve badges</v-btn>
-        </v-col>
     </v-row>
 
     <v-dialog v-model="displayBadgeModal"

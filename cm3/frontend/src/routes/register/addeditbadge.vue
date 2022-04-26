@@ -386,10 +386,7 @@ export default {
             if (!(badgeId in this.questions)) return {};
             // Filter out the ones that don't apply to this badge
             const result = this.questions[badgeId];
-            // Apply display logic
-            result.forEach((question) => {
 
-            });
             // Sort it out
             result.sort((a, b) => a.order - b.order);
             return result;
@@ -460,7 +457,6 @@ export default {
     methods: {
         ...mapActions('cart', [
             'addProductToCart',
-            'setLatestContactInfo',
         ]),
         saveBDay(date) {
             this.$refs.menuBDay.save(date);

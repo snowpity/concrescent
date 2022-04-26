@@ -109,6 +109,7 @@ const actions = {
                         root: true
                     });
                     dispatch('refreshContactInfo');
+                    commit('setOwnedBadges', []);
                     dispatch('retrieveBadges');
                     resolve(true);
                 },

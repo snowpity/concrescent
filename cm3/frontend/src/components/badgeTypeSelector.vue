@@ -1,7 +1,7 @@
 <template>
 <div>
     <div v-if="badges.length == 0">
-        <h1>{{no-data-text}}</h1>
+        <h1>{{noDataText}}</h1>
     </div>
     <div class="d-none d-sm-block">
         <v-slide-group v-model="selectedBadge"
@@ -109,7 +109,6 @@
             </template>
         </v-select>
     </div>
-    Prior: {{editBadgePriorBadgeId}}
 </div>
 </template>
 
