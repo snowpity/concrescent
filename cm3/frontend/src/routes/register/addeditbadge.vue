@@ -227,6 +227,7 @@
 <script>
 import {
     mapState,
+    mapGetters,
     mapActions
 } from 'vuex';
 
@@ -294,10 +295,11 @@ export default {
         };
     },
     computed: {
-        ...mapState({
-            products: (state) => state.products.all,
-            questions: (state) => state.products.questions,
-            addonsAvailable: (state) => state.products.addons,
+        ...mapGetters('products', {
+            currentContext: 'selectedbadgecontext',
+            products: 'contextBadges',
+            questions: 'contextQuestions',
+            addonsAvailable: 'contextAddons',
         }),
         rewardlist() {
             // return this.$options.filters.split_carriagereturn(this.badges[this.selectedBadge].rewards);
@@ -305,6 +307,7 @@ export default {
         },
         badges() {
             // Crude clone
+            if (this.products == undefined) return [];
             let badges = JSON.parse(JSON.stringify(this.products));
             // First, do we have a date_of_birth?
             const bday = new Date(this.date_of_birth);
@@ -463,11 +466,8 @@ export default {
             this.date_of_birth = this.date_of_birth;
         },
         refreshContext() {
-            this.$store.commit('products/setBadgeContextSelected', 'A');
             //refresh the context data
-            this.$store.dispatch('products/getAllProducts').then(this.loadBadge());
-            this.$store.dispatch('products/getAllQuestions');
-            this.$store.dispatch('products/getAllAddons');
+            this.$store.dispatch('products/selectContext', this.context_code).then(this.loadBadge());
         },
         loadBadge() {
             let cartItem;

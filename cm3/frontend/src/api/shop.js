@@ -11,7 +11,7 @@ export default {
                 error + "oops"
             })
     },
-    getProductContexts(event_id, cb) {
+    getBadgeContexts(event_id, cb) {
         axios.get(global.config.apiHostURL + "public/" + event_id + '/badges')
             .then(function(response) {
                 cb(response.data);
@@ -20,7 +20,7 @@ export default {
                 error + "oops"
             })
     },
-    getProducts(event_id, context, cb) {
+    getBadges(event_id, context, cb) {
         axios.get(global.config.apiHostURL + "public/" + event_id + '/badges/' + context)
             .then(function(response) {
                 cb(response.data);

@@ -244,8 +244,6 @@ export default {
             //A specific badge was clicked, load it up
             this.retrieveSpecificBadge(query);
         }
-        this.$store.dispatch('products/getAllProducts');
-        this.$store.dispatch('products/getAllAddons');
 
     }
 };

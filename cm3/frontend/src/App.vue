@@ -347,11 +347,11 @@ export default {
     created() {
         document.title = this.appTitle;
 
-        if (this.isLoggedIn) {
-            console.log('refreshing token')
-            this.$store.dispatch('mydata/RefreshToken');
-        }
         this.$store.dispatch('products/getEventInfo').then(() => {
+            if (this.isLoggedIn) {
+                console.log('refreshing token, event id ' + this.productselectedEventId)
+                this.$store.dispatch('mydata/RefreshToken');
+            }
             console.log('got event info, loading contexts');
             //this.selectedEventId = this.productselectedEventId;
             this.$store.dispatch('products/getBadgeContexts');
