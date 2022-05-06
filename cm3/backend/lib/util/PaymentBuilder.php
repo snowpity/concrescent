@@ -76,7 +76,12 @@ final class PaymentBuilder
 
     public function loadCart(int $cart_id, string $cart_uuid = null, $expectedEventId = null, $expectedContactId = null)
     {
-        $cart = $this->payment->GetByIDorUUID($cart_id, $cart_uuid, array('id','uuid','event_id','contact_id','payment_status','payment_system','payment_txn_amt','items','payment_details'));
+        $cart = $this->payment->GetByIDorUUID($cart_id, $cart_uuid, array(
+            'id', 'uuid', 'event_id','contact_id',
+            'payment_status','payment_system','payment_txn_amt',
+            'items','payment_details','requested_by' ,
+            'date_created' ,'date_modified' ,
+        ));
 
         if ($cart === false) {
             $this->cart = array();
@@ -97,6 +102,9 @@ final class PaymentBuilder
         $this->cart_uuid = $cart['uuid'];
         unset($this->cart['uuid']);
         $this->cart_items = json_decode($cart['items'], true) ?? array();
+
+        //Load cart meta
+        $this->refreshCartMeta();
         return true;
     }
 
@@ -133,6 +141,10 @@ final class PaymentBuilder
         }
         return true;
     }
+    public function getCanPay()
+    {
+        return $this->CanPay;
+    }
     public function getCartId()
     {
         return $this->cart['id'] ?? null;
@@ -148,6 +160,20 @@ final class PaymentBuilder
     public function getCartStatus()
     {
         return $this->cart['payment_status'] ?? null;
+    }
+    public function getCartExpandedState()
+    {
+        return array(
+            'errors' => $this->getCartErrors(),
+            'items' => $this->getCartItems(),
+            'state' => $this->getCartStatus(),
+            'id' => $this->getCartId(),
+            'canpay' => $this->getCanPay(),
+            'requested_by' => $this->cart['requested_by'],
+            'payment_system' => $this->cart['payment_system'],
+            'date_created' => $this->cart['date_created'],
+            'date_modified' => $this->cart['date_modified'],
+        );
     }
     public function setRequestedBy(string $name)
     {
@@ -168,6 +194,7 @@ final class PaymentBuilder
         if (!$promoApplied && !empty($data['promocode'])) {
             $result['errors']['promo'] = 'Promo did not apply to any items in the cart';
         }
+        $this->refreshCartMeta();
         $this->saveCart();
         return $errors;
     }
@@ -207,12 +234,16 @@ final class PaymentBuilder
             $item['contact_id'] = $this->cart['contact_id'];
         }
 
+        //If we're not an attendee, we'll need an Application Status field.
+        //This is always "InProgress
+        if ($item['context_code'] != 'A') {
+            $item['application_status'] = 'InProgress';
+        }
+
         $errors = $this->badgevalidator->ValdateCartBadge($item);
 
         //Try to apply promo code, or otherwise update the price
         $promoApplied = $promoApplied | $this->badgepromoapplicator->TryApplyCode($item, $promocode);
-        //Ensure there is an index associated
-        $item['cartIx'] = isset($item['cartIx']) ? $item['cartIx'] : ($cartIx .'');
         $this->cart_items[$cartIx] = $item;
         return $errors;
     }
@@ -241,8 +272,8 @@ final class PaymentBuilder
     {
         //Just run through and validate the items as they sit
         $result = array();
-        foreach ($this->cart_items as $badge) {
-            $result[$badge['cartIx']] = $this->badgevalidator->ValdateCartBadge($badge);
+        foreach ($this->cart_items as $key => $badge) {
+            $result[$key] = $this->badgevalidator->ValdateCartBadge($badge);
         }
         if ($updateReadyStatus) {
             $this->cart['payment_status'] = count($result) ? 'NotStarted' : 'NotReady';
@@ -283,6 +314,25 @@ final class PaymentBuilder
         return $this->cart['payment_txn_amt'];
     }
 
+    public function refreshCartMeta()
+    {
+        $this->canPay = true;
+
+        foreach ($this->cart_items as $key => &$item) {
+            //Fetch type info
+            $bt = $this->badgeinfo->getBadgetType($item['context_code'] ?? 'A', $item['badge_type_id']);
+
+            if ($this->banlist->is_banlisted($item)) {
+                $this->AllowPay = false;
+            }
+
+            //Check if this item is payable
+            if (!empty($bt['payment_deferred']) && $bt['payment_deferred']) {
+                $this->CanPay = false;
+            }
+        }
+    }
+
     public function setPayProcessor(string $PayProcessor)
     {
         if ($this->cart['payment_system'] != $PayProcessor) {
@@ -311,9 +361,9 @@ final class PaymentBuilder
         return $this->pp;
     }
 
-    public function SetAllowPay(bool $CanPay)
+    public function SetAllowPay(bool $AllowPay)
     {
-        $this->AllowPay = CanPay;
+        $this->AllowPay = $AllowPay;
     }
 
     public function isFreeride()
@@ -334,6 +384,7 @@ final class PaymentBuilder
         //First do some pre-checks
         $banlisted = false;
         $errors = array();
+        $this->refreshCartMeta();
 
         foreach ($this->cart_items as $key => &$item) {
             //Create/Update the badge
@@ -346,7 +397,11 @@ final class PaymentBuilder
             } else {
                 //Ensure the badge has an owner
                 $item['contact_id'] =$item['contact_id'] ?? $this->CurrentUserInfo->GetContactId();
-                //And that the payment status is Incomplete
+                //Ensure their application Status is "Submitted" if they're not allowed to pay yet
+
+                if ($item['context_code'] != 'A' && !empty($bt['payment_deferred']) && $bt['payment_deferred']) {
+                    $item['application_status'] = 'Submitted';
+                }
                 $newID = $this->badgeinfo->CreateSpecificBadgeUnchecked($item);
                 if ($newID !== false) {
                     $item['id'] = $newID['id'];
@@ -377,10 +432,6 @@ final class PaymentBuilder
                     max(0, $bt['price'] - ($item['payment_promo_price'] ?? $item['payment_badge_price'])),
                     $item['payment_promo_code'] ?? null
                 );
-            }
-            //Check if this item is payable
-            if (!empty($bt['payment_deferred']) && $bt['payment_deferred']) {
-                $this->CanPay = false;
             }
             //Prep Sanity check the cart's amount...
             $this->cart_payment_txn_amt += max(0, $item['payment_promo_price'] ?? $item['payment_badge_price']);

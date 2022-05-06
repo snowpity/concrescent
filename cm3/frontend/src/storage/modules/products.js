@@ -120,9 +120,9 @@ const actions = {
             if (state.badgecontextselected == undefined)
                 return reject('Context Code not found');
             //Fetch all the things!
-            await dispatch('getContextBadges');
-            await dispatch('getContextQuestions');
-            await dispatch('getContextAddons');
+            await dispatch('getContextBadges', state.badgecontextselected.context_code);
+            await dispatch('getContextQuestions', state.badgecontextselected.context_code);
+            await dispatch('getContextAddons', state.badgecontextselected.context_code);
 
         })
     },
@@ -130,20 +130,20 @@ const actions = {
         dispatch,
         commit,
         state
-    }) {
+    }, context_code) {
         return new Promise((resolve, reject) => {
             //Prerequisite: We need a context
-            if (state.badgecontextselected == undefined)
+            if (context_code == undefined)
                 return reject('Context not selected!');
             //Load only if necessary
-            if (state.gotBadges[state.badgecontextselected.context_code] != undefined)
+            if (state.gotBadges[context_code] != undefined)
                 return resolve();
             shop.getBadges(state.selectedEventId,
-                state.badgecontextselected.context_code,
+                context_code,
                 badges => {
                     commit('setContextBadges', {
                         badges: badges,
-                        context_code: state.badgecontextselected.context_code,
+                        context_code: context_code,
                         success: true
                     });
                     resolve();
@@ -151,7 +151,7 @@ const actions = {
                 error => {
                     commit('setContextBadges', {
                         badges: [],
-                        context_code: state.badgecontextselected.context_code,
+                        context_code: context_code,
                         success: false
                     });
                     resolve()
@@ -162,20 +162,20 @@ const actions = {
         dispatch,
         commit,
         state
-    }) {
+    }, context_code) {
         return new Promise((resolve, reject) => {
             //Prerequisite: We need a context
-            if (state.badgecontextselected == undefined)
+            if (context_code == undefined)
                 return reject('Context not selected!');
             //Load only if necessary
-            if (state.gotQuestions[state.badgecontextselected.context_code] != undefined)
+            if (state.gotQuestions[context_code] != undefined)
                 return resolve();
             shop.getQuestions(state.selectedEventId,
-                state.badgecontextselected.context_code,
-                badges => {
+                context_code,
+                questions => {
                     commit('setContextQuestions', {
                         questions: questions,
-                        context_code: state.badgecontextselected.context_code,
+                        context_code: context_code,
                         success: true
                     });
                     resolve();
@@ -183,7 +183,7 @@ const actions = {
                 error => {
                     commit('setContextQuestions', {
                         questions: [],
-                        context_code: state.badgecontextselected.context_code,
+                        context_code: context_code,
                         success: false
                     });
                     resolve()
@@ -194,20 +194,20 @@ const actions = {
         dispatch,
         commit,
         state
-    }) {
+    }, context_code) {
         return new Promise((resolve, reject) => {
             //Prerequisite: We need a context
-            if (state.badgecontextselected == undefined)
+            if (context_code == undefined)
                 return reject('Context not selected!');
             //Load only if necessary
-            if (state.gotAddons[state.badgecontextselected.context_code] != undefined)
+            if (state.gotAddons[context_code] != undefined)
                 return resolve();
             shop.getAddons(state.selectedEventId,
-                state.badgecontextselected.context_code,
-                badges => {
+                context_code,
+                addons => {
                     commit('setContextAddons', {
                         addons: addons,
-                        context_code: state.badgecontextselected.context_code,
+                        context_code: context_code,
                         success: true
                     });
                     resolve();
@@ -215,7 +215,7 @@ const actions = {
                 error => {
                     commit('setContextAddons', {
                         addons: [],
-                        context_code: state.badgecontextselected.context_code,
+                        context_code: context_code,
                         success: false
                     });
                     resolve()
@@ -258,19 +258,20 @@ const mutations = {
         Vue.set(state.badges, data.context_code, data.badges);
         Vue.set(state.gotBadges, data.context_code, data.success);
     },
-    setContextQuestions(state, questions) {
+    setContextQuestions(state, data) {
         Vue.set(state.questions, data.context_code, data.questions)
         Vue.set(state.gotQuestions, data.context_code, data.success);
     },
-    setContextAddons(state, addons) {
+    setContextAddons(state, data) {
         Vue.set(state.addons, data.context_code, data.addons)
         Vue.set(state.gotAddons, data.context_code, data.success);
     },
 
     decrementProductQuantity(state, {
-        id
+        id,
+        context_code
     }) {
-        const product = state.all.find(product => product.id === id)
+        const product = state.badges[context_code].find(product => product.id === id)
         if (product.quantity > 0) {
             product.quantity--
         }

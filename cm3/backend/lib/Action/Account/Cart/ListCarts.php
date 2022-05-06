@@ -53,7 +53,7 @@ class ListCarts
 
         //Do we want the non-in-progress ones?
         if (($data['include_all'] ?? "false") == "false") {
-            $searchTerms[] = new SearchTerm('payment_status', array('NotReady','NotStarted','Incomplete'), 'IN');
+            $searchTerms[] = new SearchTerm('payment_status', array('NotReady','AwaitingApproval','NotStarted','Incomplete'), 'IN');
         }
 
         //Simply get the user's active Payments

@@ -146,14 +146,10 @@ export default {
     computed: {
         ...mapState({
             ownedbadges: (state) => state.mydata.ownedbadges,
-            products: (state) => state.products.all,
+            badges: (state) => state.products.badges,
             questions: (state) => state.products.questions,
             addons: (state) => state.products.addons,
             importResult: (state) => state.mydata.BadgeRetrievalResult,
-        }),
-        ...mapGetters('cart', {
-            badges: 'cartProducts',
-            total: 'cartTotalPrice',
         }),
         ownedbadgecount() {
             return Object.keys(this.ownedbadges).length;
@@ -173,7 +169,11 @@ export default {
         displayBadgeProduct() {
             if (!this.displayBadgeModal) return null;
             let badgeId = this.displayBadgeData.badge_type_id;
-            let result = this.products.find((item) => {
+            if (this.badges[this.displayBadgeData.context_code] == undefined) {
+
+                return null;
+            }
+            let result = this.badges[this.displayBadgeData.context_code].find((item) => {
                 return item.id == badgeId
             });
             return result;
@@ -191,6 +191,11 @@ export default {
         ]),
         ...mapActions('cart', [
             'clearCart',
+        ]),
+        ...mapActions('products', [
+            'getContextBadges',
+            'getContextQuestions',
+            'getContextAddons',
         ]),
         removeBadge() {
 
@@ -223,6 +228,16 @@ export default {
             return this.addons[badge_type_id].find(addon => addon.id == id);
         }
     },
+    watch: {
+        displayBadge: function(newBadgeId) {
+            if (newBadgeId > -1) {
+                //Make sure we have context for it
+                this.getContextBadges(this.displayBadgeData.context_code);
+                this.getContextQuestions(this.displayBadgeData.context_code);
+                this.getContextAddons(this.displayBadgeData.context_code);
+            }
+        }
+    },
     created() {
         let {
             query
@@ -244,7 +259,6 @@ export default {
             //A specific badge was clicked, load it up
             this.retrieveSpecificBadge(query);
         }
-
     }
 };
 </script>

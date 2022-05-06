@@ -67,29 +67,25 @@ class SaveCart
             throw new HttpBadRequestException($request, 'Cart not in correct state to alter: ' .$this->PaymentBuilder->getCartStatus());
         }
 
-        //Validate items
-        $result = array(
-            'errors'=>array(),
-            'items'=>array(),
-            'state'=> $this->PaymentBuilder->getCartStatus()
-        );
 
+        //Validate items
         if (!isset($data['items'])) {
+            $result = array(
+                'errors'=>array(),
+                'items'=>array(),
+                'state'=> $this->PaymentBuilder->getCartStatus()
+            );
             $result['id'] = $this->PaymentBuilder->getCartId();
 
             // Build the HTTP response
             return $this->responder
                 ->withJson($response, $result);
         }
-        $items = array();
-        $errors = array();
-        $promoApplied = false;
         $promocode = $data['promocode'] ?? "";
 
         $result['errors'] =  $this->PaymentBuilder->setCartItems($data['items'], $promocode);
-        $result['items'] = $this->PaymentBuilder->getCartItems();
-        $result['state'] = $this->PaymentBuilder->getCartStatus();
-        $result['id']  = $this->PaymentBuilder->getCartId();
+
+        $result =  $this->PaymentBuilder->getCartExpandedState();
 
         // Build the HTTP response
         return $this->responder

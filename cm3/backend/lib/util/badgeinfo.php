@@ -480,7 +480,7 @@ final class badgeinfo
                     $result =  $this->a_badge_type->GetByID($badge_type_id, $this->badgeTypeColumns());
                     break;
                 case 'S':
-                    $result =  $this->s_badge_type->GetByID($badge_type_id, $this->badgeTypeColumns());
+                    $result =  $this->s_badge_type->GetByID($badge_type_id, $this->badgeTypeColumns(true));
                     break;
                 default:
                     $result =  $this->g_badge_type->GetByID($badge_type_id, $this->badgeTypeColumns(true));

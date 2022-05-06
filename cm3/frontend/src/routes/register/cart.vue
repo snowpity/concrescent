@@ -30,7 +30,7 @@
                              :content="badgeErrorCount[product.cartIx]"
                              :value="!!badgeErrorCount[product.cartIx]">
                         <v-btn icon
-                               :to="{name:'editbadge', params: {cartIx: product.cartIx}}">
+                               :to="{name:'editbadge', params: {cartIx: idx}}">
                             <v-icon>mdi-pencil</v-icon>
                         </v-btn>
                     </v-badge>
@@ -43,9 +43,9 @@
                                 :key="addonid['addon_id']">
                     <v-icon>mdi-plus</v-icon>
                     <div class="text-truncate">
-                        {{getAddonByID(product.badge_type_id, addonid['addon_id']) ? getAddonByID(product.badge_type_id, addonid['addon_id']).name : "Loading..."}}
+                        {{getAddonByID(product.context_code, product.badge_type_id, addonid['addon_id']) ? getAddonByID(product.context_code, product.badge_type_id, addonid['addon_id']).name : "Loading..."}}
                     </div>&nbsp;|&nbsp;
-                    <span>{{ (getAddonByID(product.badge_type_id, addonid['addon_id']) ? getAddonByID(product.badge_type_id, addonid['addon_id']).price : "Loading" ) | currency }}&nbsp;</span>
+                    <span>{{ (getAddonByID(product.context_code, product.badge_type_id, addonid['addon_id']) ? getAddonByID(product.context_code, product.badge_type_id, addonid['addon_id']).price : "Loading" ) | currency }}&nbsp;</span>
                 </v-card-actions>
             </v-card>
         </v-col>
@@ -55,6 +55,7 @@
             <v-btn color="primary"
                    :to="{name:'addbadge', params: {cartIx: -1}}"
                    left
+                   :disabled="disableModifyCart"
                    absolute>Add
                 {{products.length ? "another" : "a"}}
                 badge
@@ -65,6 +66,7 @@
             <v-btn right
                    absolute
                    v-show="products.length"
+                   :disabled="disableModifyCart"
                    color="green"
                    dark
                    @click="promocodeDialog = true">
@@ -193,6 +195,24 @@
             </v-card-text>
         </v-card>
     </v-dialog>
+    <v-dialog max-width="600"
+              v-model="AwaitingApprovalDialog">
+        <v-card>
+            <v-toolbar color="primary"
+                       dark>
+                <h1>Application Submitted!</h1>
+            </v-toolbar>
+            <v-card-text>
+                <v-card-text>Application has been received. Thanks!</v-card-text>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer />
+                <v-btn color="primary"
+                       @click="AwaitingApprovalDialog = false">Ok</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
     <v-dialog transition="dialog-top-transition"
               max-width="600"
               v-model="isCartLocked">
@@ -338,9 +358,15 @@
         <v-btn color="primary"
                class="float-right"
                v-if="isLoggedIn"
-               :disabled="canNotCheckout"
-               @click="checkout(products)">Checkout:
-            {{ total | currency }}
+               :disabled="canNotCheckout || disableModifyCart"
+               @click="checkout(products)">
+            <div v-if="canPay">
+                Checkout:
+                {{ total | currency }}
+            </div>
+            <div v-else>
+                Submit
+            </div>
         </v-btn>
         <v-btn v-else
                color="primary"
@@ -378,12 +404,14 @@ export default {
         promoAppliedDialog: -1,
         promoCodeErrors: [],
         processingCheckoutDialog: false,
+        AwaitingApprovalDialog: false,
         removeBadge: -1,
         clearCartDialog: false,
         badgeErrorCount: [],
         orderSteps: {
             'undefined': 'Processing order, please wait...',
             'ready': 'Directing to Merchant...',
+            'AwaitingApproval': 'Confirming submission',
             'refused': 'Paypal has refused the payment. That\'s all we know.',
             'confirm': 'Confirming payment...'
         },
@@ -407,7 +435,7 @@ export default {
             checkoutStatus: state => state.cart.checkoutStatus,
             addons: state => state.products.addons,
             activeCarts: state => state.mydata.activeCarts,
-            currentCartId: state => state.cart.cartId
+            currentCartId: state => state.cart.cartId,
         }),
         ...mapGetters('mydata', {
             'isLoggedIn': 'getIsLoggedIn',
@@ -416,6 +444,7 @@ export default {
             products: 'cartProducts',
             total: 'cartTotalPrice',
             needsave: 'isDirty',
+            canPayCart: 'canPay',
         }),
         removeBadgeModal: function() {
             return this.removeBadge > -1;
@@ -426,12 +455,28 @@ export default {
         itemsHaveErrors: function() {
             if (this.checkoutStatus == null)
                 return false;
-            if (typeof this.checkoutStatus.errors == "undefined")
+            if (typeof this.checkoutStatus.errors == "undefined" || typeof this.checkoutStatus.errors == "object")
                 return false;
             return this.checkoutStatus.errors.reduce((result, currentItem) => result | currentItem.length > 0, false);
         },
         canNotCheckout: function() {
             return this.itemsHaveErrors || this.products.length == 0;
+        },
+        disableModifyCart: function() {
+            if (this.checkoutStatus != null)
+                switch (this.checkoutStatus.state) {
+                    case 'AwaitingApproval':
+                    case 'Cancelled':
+                    case 'Rejected':
+                    case 'Completed':
+                    case 'Refunded':
+                    case 'RefundedInPart':
+                        return true;
+                }
+            return false;
+        },
+        canPay: function() {
+            return this.canPayCart;
         },
         isCreateError: {
             get() {
@@ -504,11 +549,11 @@ export default {
             this.saveCart(this.promocode);
         },
         promoRemove: function() {
-            this.removePromoFromProduct(this.products[this.promoAppliedDialog].cartIx);
+            this.removePromoFromProduct(this.promoAppliedDialog);
             this.promoAppliedDialog = -1;
         },
         confirmRemoveBadge: function() {
-            this.removeProductFromCart(this.products[this.removeBadge]);
+            this.removeProductFromCart(this.removeBadge);
             this.removeBadge = -1;
             this.saveCart();
         },
@@ -548,10 +593,10 @@ export default {
                 return product.addons;
             return product.addons.filter(addon => !product.editBadgePriorAddons.includes(addon['addon_id']));
         },
-        getAddonByID(badge_type_id, id) {
-            if (undefined == this.addons[badge_type_id])
+        getAddonByID(context_code, badge_type_id, id) {
+            if (undefined == this.addons[context_code][badge_type_id])
                 return undefined;
-            return this.addons[badge_type_id].find(addon => addon.id == id);
+            return this.addons[context_code][badge_type_id].find(addon => addon.id == id);
         }
     },
     watch: {
@@ -561,7 +606,7 @@ export default {
             if (newstatus)
                 switch (newstatus.state) {
                     case 'Incomplete':
-                        //Direct to the checkout.php
+                        //Direct to the checkout URL
                         var _this = this;
                         setTimeout(function() {
                             _this.processingCheckoutDialog = false;
@@ -569,6 +614,13 @@ export default {
                         //TODO: This is a hack!
                         if (newstatus.paymentURL != undefined)
                             window.location.href = newstatus.paymentURL;
+                        break;
+                    case 'AwaitingApproval':
+                        var _this = this;
+                        setTimeout(function() {
+                            _this.processingCheckoutDialog = false;
+                            _this.AwaitingApprovalDialog = true;
+                        }, 1500);
                         break;
                     case 'Completed':
                         //Clear the cart and send them to retrieve their badges
@@ -617,8 +669,6 @@ export default {
                 query: {}
             })
         }
-        this.$store.dispatch('products/getAllProducts')
-        this.$store.dispatch('products/getAllAddons')
         this.$store.dispatch('mydata/fetchCarts', false).then(() => {
             this.cartIdSelected = this.currentCartId;
         })

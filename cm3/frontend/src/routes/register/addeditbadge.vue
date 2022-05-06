@@ -451,10 +451,10 @@ export default {
         },
         $route( /* to, from */ ) {
             // react to route changes...
-            this.refreshContext();
+            this.loadBadge();
         },
         '$store.state.products.selectedEventId': function(event_id) {
-            this.refreshContext();
+            this.loadBadge();
         },
     },
     methods: {
@@ -465,11 +465,7 @@ export default {
             this.$refs.menuBDay.save(date);
             this.date_of_birth = this.date_of_birth;
         },
-        refreshContext() {
-            //refresh the context data
-            this.$store.dispatch('products/selectContext', this.context_code).then(this.loadBadge());
-        },
-        loadBadge() {
+        async loadBadge() {
             let cartItem;
             this.cartIx = parseInt(this.$route.params.cartIx);
             const idString = this.$route.params.editIx;
@@ -477,42 +473,60 @@ export default {
             let badge_type_id = -1;
             if (this.cartIx > -1) {
                 // Load up the badge from the cart
+                console.log('cart item ' + this.cartIx)
                 cartItem = this.$store.getters['cart/getProductInCart'](this.cartIx);
                 this.reachedStep = 4;
             } else if (idString != undefined) {
                 // Load up the badge from the owned badges
+                console.log('owned badge  ' + idString)
                 cartItem = this.$store.getters['mydata/getBadgeAsCart'](idString);
                 this.editBadgePriorBadgeId = cartItem.badge_type_id;
                 this.reachedStep = 4;
-            } else if (this.$route.params.cartIx == undefined) {
+            } else if (this.cartIx == undefined) {
                 // It's a new badge or they're back here from a refresh/navigation
+                console.log('refreshed')
                 cartItem = this.$store.getters['cart/getCurrentlyEditingItem'];
 
                 // Should only be needed if we didn't have a selectedBadge?
                 // this.selectedBadge = this.badges.findIndex(badge => badge.id == cartItem.badge_type_id);
             }
+            //Pre-fill the context code
+            if (this.$route.params.context_code != undefined)
+                this.context_code = this.$route.params.context_code;
+            if (this.$route.query.context_code != undefined)
+                this.context_code = this.$route.query.context_code
+            if (cartItem != undefined && cartItem.context_code != undefined)
+                this.context_code = cartItem.context_code
+            if (this.context_code == undefined)
+                this.context_code = "A";
 
             //If nothing loaded,  early exit
-            if (cartItem == undefined) return;
+            console.log('current cart data', cartItem)
+            if (cartItem != undefined) {
+                // Pull out the BadgeId and selected addons
+                badge_type_id = cartItem.badge_type_id || 0;
+                let addons = cartItem.addons || [];
+                // delete cartItem.badge_type_id;
+                Object.assign(this, cartItem);
+                // Special props
+                const _this = this;
 
-            // Pull out the BadgeId and selected addons
-            badge_type_id = cartItem.badge_type_id || 0;
-            let addons = cartItem.addons || [];
-            // delete cartItem.badge_type_id;
-            Object.assign(this, cartItem);
-            // Special props
-            const _this = this;
+                this.checkBadge();
+                setTimeout(() => {
+                    const newIndex = _this.badges.findIndex((badge) => badge.id == badge_type_id);
+                    if (newIndex > -1) {
+                        _this.selectedBadge = newIndex;
+                    }
+                    //Also select any selected addons
+                    _this.addonsSelected = addons.map(addon => addon['addon_id']);
 
-            this.checkBadge();
-            setTimeout(() => {
-                const newIndex = _this.badges.findIndex((badge) => badge.id == badge_type_id);
-                if (newIndex > -1) {
-                    _this.selectedBadge = newIndex;
-                }
-                //Also select any selected addons
-                _this.addonsSelected = addons.map(addon => addon['addon_id']);
+                }, 200);
+            }
 
-            }, 200);
+            //refresh the current context data
+            console.log('Selecting context ' + this.context_code);
+            await this.$store.dispatch('products/selectContext', this.context_code);
+
         },
         resetBadge() {
             Object.assign(this.$data, this.$options.data.apply(this));
@@ -564,7 +578,7 @@ export default {
         badgePerksRender,
     },
     created() {
-        this.refreshContext();
+        this.loadBadge();
     },
 };
 </script>

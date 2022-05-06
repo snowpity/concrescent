@@ -8,6 +8,7 @@ const state = {
     items: [],
     dirty: false,
     checkoutStatus: null,
+    canPay: true,
 };
 
 function calcPromoPrice(basePrice, promoData) {
@@ -27,10 +28,15 @@ const getters = {
     isDirty: (state, getters, rootState) => {
         return rootState.mydata.token.length > 0 && state.dirty;
     },
+    canPay: (state, getters, rootState) => {
+        console.log(state.canPay);
+        return rootState.mydata.token.length > 0 && state.canPay;
+    },
     cartProducts: (state, getters, rootState) => state.items.map((badge) => {
-        const product = rootState.products.all.find((product) => product.id == badge.badge_type_id);
+        const badgeContext = rootState.products.badges[badge.context_code];
+        const product = (badgeContext ?? []).find((product) => product.id == badge.badge_type_id);
         // if product not found, and we don't have any, assume loading
-        if (product == undefined && rootState.products.all.length == 0) {
+        if (product == undefined && rootState.products.gotBadges[badge.context_code] == undefined) {
             return {
                 title: 'Loading...',
                 price: 'Loading...',
@@ -48,7 +54,7 @@ const getters = {
 
         // If we're editing, adjust some things
         if (badge.id > -1) {
-            const oldproduct = rootState.products.all.find((product) => product.id == badge.editBadgePriorBadgeId);
+            const oldproduct = badgeContext.find((product) => product.id == badge.editBadgePriorBadgeId);
             if (oldproduct != undefined)
                 result.price = Math.max(0, result.price - oldproduct.price);
         }
@@ -86,7 +92,7 @@ const getters = {
             return total + parseFloat(product.price) + addonTotal;
         }, 0);
     },
-    getProductInCart: (state) => (cartIx) => state.items.find((item) => item.cartIx === cartIx && item.cartIx != null),
+    getProductInCart: (state) => (cartIx) => state.items[cartIx],
     getCurrentlyEditingItem: (state) => state.currentlyEditingItem,
     getContactInfo: (state) => state.latestContactInfo,
 };
@@ -95,6 +101,7 @@ const getters = {
 const actions = {
     loadCart({
         commit,
+        dispatch,
         state,
         rootState
     }, cartId) {
@@ -102,13 +109,35 @@ const actions = {
             if (rootState.mydata.token.length > 0) {
 
                 commit('setcartId', cartId);
-                shop.loadCart(rootState.mydata.token, cartId, (result) => {
+                shop.loadCart(rootState.mydata.token, cartId, async (result) => {
                     commit('setCheckoutStatus', {
                         errors: result.errors,
                         state: result.state
                     });
                     commit('setCartItems', result);
                     commit('clearDirty');
+                    commit('setCanPay', result.canpay);
+                    //Now make sure our contexts for any added badges are loaded
+                    var contexts = result.items.map(({
+                        context_code
+                    }) => context_code)
+                    contexts = contexts.filter(function(value, index, self) {
+                        return self.indexOf(value) === index;
+                    })
+                    contexts.forEach(async (context_code, ) => {
+
+                        await dispatch('products/getContextBadges', context_code, {
+                            root: true
+                        });
+                        await dispatch('products/getContextQuestions', context_code, {
+                            root: true
+                        });
+                        await dispatch('products/getContextAddons', context_code, {
+                            root: true
+                        });
+
+                    });
+
                     resolve();
                 }, (er) => {
                     reject(er);
@@ -222,7 +251,13 @@ const actions = {
         rootState,
     }, badge) {
         commit('setCheckoutStatus', null);
-        const product = rootState.products.all.find((product) => product.id === badge.badge_type_id);
+
+        const badgeContext = rootState.products.badges[badge.context_code];
+        const product = (badgeContext ?? []).find((product) => product.id == badge.badge_type_id);
+        // if product not found, and we don't have any, assume loading
+        if (product == undefined && rootState.products.gotBadges[badge.context_code] == undefined) {
+            console.log('Attempted to add a badge without having loaded the badge info?')
+        }
         const cartItem = state.items.find((item) => item.cartIx === badge.cartIx && item.cartIx != null);
         if (!cartItem) {
             badge.cartIx = Math.max.apply(this, state.items.map((l) => l.cartIx)) + 1;
@@ -235,6 +270,7 @@ const actions = {
                 // remove 1 item from stock
                 commit('products/decrementProductQuantity', {
                     id: product.id,
+                    context_code: badge.context_code
                 }, {
                     root: true,
                 });
@@ -247,8 +283,8 @@ const actions = {
     removeProductFromCart({
         state,
         commit,
-    }, product) {
-        const cartItem = state.items.find((item) => item.cartIx === product.cartIx && item.cartIx != null);
+    }, cartIx) {
+        const cartItem = state.items[cartIx];
         if (cartItem) {
             commit('removeProductFromCart', cartItem);
         }
@@ -257,7 +293,7 @@ const actions = {
         state,
         commit,
     }, cartIx) {
-        const cartItem = state.items.find((item) => item.cartIx === cartIx && cartIx != null);
+        const cartItem = state.items[cartIx];
         if (cartItem) {
             commit('removePromoFromProduct', cartItem);
         }
@@ -309,6 +345,9 @@ const mutations = {
     }) {
         if (Array.isArray(items))
             state.items = items;
+    },
+    setCanPay(state, canPay) {
+        state.canPay = canPay;
     },
 
     setCheckoutStatus(state, status) {

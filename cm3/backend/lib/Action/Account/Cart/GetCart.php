@@ -4,8 +4,7 @@ namespace CM3_Lib\Action\Account\Cart;
 
 use CM3_Lib\database\SearchTerm;
 
-use CM3_Lib\models\payment;
-use CM3_Lib\util\badgevalidator;
+use CM3_Lib\util\PaymentBuilder;
 use CM3_Lib\util\CurrentUserInfo;
 
 use Branca\Branca;
@@ -29,8 +28,7 @@ class GetCart
      */
     public function __construct(
         private Responder $responder,
-        private payment $payment,
-        private badgevalidator $badgevalidator,
+        private PaymentBuilder $PaymentBuilder,
         private CurrentUserInfo $CurrentUserInfo
     ) {
     }
@@ -47,49 +45,23 @@ class GetCart
     {
         $data = (array)$request->getQueryParams();
 
-        //Fetch the authenticated user's info
-        $c_id = $this->CurrentUserInfo->GetContactId();
-        $e_id = $this->CurrentUserInfo->GetEventId();
-        $searchTerms = array(
-          new SearchTerm('event_id', $e_id),
-          new SearchTerm('contact_id', $c_id),
-          new SearchTerm('id', $params['id']),
+        //Check if we have specified a cart
+        $cart_id = $data['id'] ?? $params['id'] ?? 0;
+        $cart_uuid = $data['uuid'] ?? '';
+
+        $cart_loaded = $this->PaymentBuilder->loadCart(
+            $cart_id,
+            $cart_uuid,
+            $this->CurrentUserInfo->GetEventId(),
+            $this->CurrentUserInfo->GetContactId()
         );
 
-        //Simply get the user's active Payments
-        $result = $this->payment->Search(
-            array(
-                'id','uuid',
-                'requested_by',
-                'payment_system',
-                'items',
-                'payment_status',
-                'date_created',
-                'date_modified',
-            ),
-            $searchTerms
-        );
-
-        if ($result === false || (count($result)==0)) {
-            throw new HttpNotFoundException($request);
+        if (!$cart_loaded) {
+            throw new HttpNotFoundException($request, $cart_id);
         }
-
-        //We should have only one
-        $result = $result[0];
-
-        //Decode the items
-        $result['items'] = json_decode($result['items'], true);
-
-        //Sift through and determine current errors
-        $result['errors'] = array();
-        foreach ($result['items'] as $badge) {
-            $result['errors'][$badge['cartIx']] = $this->badgevalidator->ValdateCartBadge($badge);
-        }
-
-        $result['state'] = $result['payment_status'];
 
         // Build the HTTP response
         return $this->responder
-            ->withJson($response, $result);
+            ->withJson($response, $this->PaymentBuilder->getCartExpandedState());
     }
 }

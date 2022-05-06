@@ -121,6 +121,8 @@ class CheckoutCart
         }
         // Build the HTTP response
         return $this->responder
-            ->withJson($response, $result);
+            ->withJson($response, array(
+                'state' => $this->PaymentBuilder->getCartStatus()
+            ));
     }
 }
