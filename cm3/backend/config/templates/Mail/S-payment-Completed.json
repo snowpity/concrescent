@@ -1,0 +1,9 @@
+{
+  "name": "attendee-retrieve",
+  "reply_to": "registration@example.com",
+  "from": "registration@example.com",
+  "cc": "registration@example.com",
+  "subject": "Your Staff registration for [[event.display_name]]",
+  "format": "Markdown",
+  "body": "Greetings,\n\nThank you for registering for **[[event.display_name]]**. Your [[badge_type_name]] staff registration for **[[display_name]]** has been completed.\n\nYour badge will be available for pickup at the event. Please bring a photo ID and a displayable copy of this email message with you.\n\n![QR Code for [[badge_id_display]]]([[qr_data_uri]])\n\nYou can review your order at any time at the following link:\n\n[My Badges]([[retrieve_url]])\n\nThanks again,\n[[event-name]] Registration"
+}

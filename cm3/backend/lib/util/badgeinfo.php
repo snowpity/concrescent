@@ -127,7 +127,7 @@ final class badgeinfo
         if ($result === false || !$full) {
             return $result;
         }
-        return $this->addComputedColumns($result);
+        return $this->addComputedColumns($result, true);
     }
 
     public function UpdateSpecificBadgeUnchecked($id, $context_code, $data, $allowedColumns = null)
@@ -384,31 +384,48 @@ final class badgeinfo
         return $this->addComputedColumns($result);
     }
 
-    public function SearchBadges($find, $order, $limit, $offset, &$totalRows)
+    public function SearchBadgesText(string $searchText, $order, $limit, $offset, &$totalRows)
     {
         $whereParts =
-            empty($find) ? null :
-             array(
+        empty($find) ? null :
+        array(
             new SearchTerm('real_name', $find, Raw: 'MATCH(`real_name`, `fandom_name`, `notify_email`, `ice_name`, `ice_email_address`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
         );
         $wherePartsSimpler = array(
-                new SearchTerm('real_name', '%' . $find . '%', 'LIKE', 'OR'),
-                new SearchTerm('fandom_name', '%' . $find . '%', 'LIKE', 'OR'),
-                new SearchTerm('notify_email', '%' . $find . '%', 'LIKE', 'OR'),
-                new SearchTerm('ice_name', '%' . $find . '%', 'LIKE', 'OR'),
-                new SearchTerm('ice_email_address', '%' . $find . '%', 'LIKE', 'OR'),
+            new SearchTerm('real_name', '%' . $find . '%', 'LIKE', 'OR'),
+            new SearchTerm('fandom_name', '%' . $find . '%', 'LIKE', 'OR'),
+            new SearchTerm('notify_email', '%' . $find . '%', 'LIKE', 'OR'),
+            new SearchTerm('ice_name', '%' . $find . '%', 'LIKE', 'OR'),
+            new SearchTerm('ice_email_address', '%' . $find . '%', 'LIKE', 'OR'),
         );
+        $result =  $this->SearchBadges($whereParts, $order, $limit, $offset, $totalRows);
+        //If we got nothing, switch to a simpler search
+        if (count($results) == 0) {
+            $result =  $this->SearchBadges($wherePartsSimpler, $order, $limit, $offset, $totalRows);
+        }
+        return $result;
+    }
+
+    public function SearchBadges($terms, ?array $order = null, int $limit = -1, int $offset = 0, &$totalRows = null, $full = false)
+    {
         // Invoke the Domain with inputs and retain the result
         $trA = 0;
         $trG = 0;
         $trS = 0;
-        $a_data = $this->a_badge->Search($this->badgeView($this->a_badge_type, 'A'), $whereParts, $order, $limit, $offset, $trA);
-        //If we got nothing, switch to a simpler search
-        if (count($a_data) == 0) {
-            $a_data = $this->a_badge->Search($this->badgeView($this->a_badge_type, 'A'), $wherePartsSimpler, $order, $limit, $offset, $trA);
+        $a_bv = $this->badgeView($this->a_badge_type, 'A');
+        $s_bv = $this->badgeView($this->a_badge_type, 'S');
+        $g_bv = $this->groupBadgeView();
+        if ($full) {
+            $this->MergeView($a_bv, $this->badgeViewFullAddAttendee());
+            $this->MergeView($s_bv, $this->badgeViewFullAddStaff());
+            $this->MergeView($g_bv, $this->badgeViewFullAddGroup());
         }
-        $s_data = $this->s_badge->Search($this->badgeView($this->s_badge_type, 'S'), $whereParts, $order, $limit, $offset, $trG);
-        $g_data = $this->g_badge->Search($this->groupBadgeView(), $whereParts, $order, $limit, $offset, $trS);
+        $a_terms = $this->AdjustSearchTerms($terms, $a_bv);
+        $s_terms = $this->AdjustSearchTerms($terms, $s_bv);
+        $g_terms = $this->AdjustSearchTerms($terms, $g_bv);
+        $a_data = $this->a_badge->Search($a_bv, $a_terms, $order, $limit, $offset, $trA);
+        $s_data = $this->s_badge->Search($s_bv, $s_terms, $order, $limit, $offset, $trG);
+        $g_data = $this->g_badge->Search($g_bv, $g_terms, $order, $limit, $offset, $trS);
         $totalRows =  $trA + $trG + $trS;
 
 
@@ -439,6 +456,9 @@ final class badgeinfo
                     }
                 }
             }
+
+            //While we're here, add the computed columns too
+            $badge = $this->addComputedColumns($badge, false);
         }
 
 
@@ -446,16 +466,46 @@ final class badgeinfo
         return $result;
     }
 
+    private function AdjustSearchTerms($terms, $badgeView)
+    {
+        $result = array();
+        foreach ($terms as $sterm) {
+            //Search the view
+            $term = clone $sterm;
+            foreach ($badgeView->Columns as $selCol) {
+                if ($selCol instanceof SelectColumn) {
+                    //Does this match a column with an alias?
+                    if (($selCol->ColumnName == $term->ColumnName || $selCol->Alias == $term->ColumnName)
+                    && $selCol->JoinedTableAlias != null) {
+                        $term->JoinedTableAlias = $selCol->JoinedTableAlias;
+                        break;
+                    }
+                }
+            }
+            $result[] = $term;
+        }
+        return $result;
+    }
+
+    private function MergeView(View &$view, ?View $addView)
+    {
+        if (is_null($addView)) {
+            return;
+        }
+        if (!is_null($addView->Columns)) {
+            $view->Columns = array_merge($view->Columns, $addView->Columns);
+        }
+        if (!is_null($addView->Joins)) {
+            $view->Joins = array_merge($view->Joins, $addView->Joins);
+        }
+    }
+
     public function getASpecificBadge($id, $badge, $badgetype, $contextCode, $addView)
     {
-        $view = $this->badgeView($badgetype, $contextCode);
+        $view = $contextCode == 'A' ? $this->badgeView($badgetype, $contextCode)
+        : $this->staffBadgeView($badgetype, $contextCode);
         if ($addView instanceof View) {
-            if (!is_null($addView->Columns)) {
-                $view->Columns = array_merge($view->Columns, $addView->Columns);
-            }
-            if (!is_null($addView->Joins)) {
-                $view->Joins = array_merge($view->Joins, $addView->Joins);
-            }
+            $this->MergeView($view, $addView);
         }
         return $badge->GetByIDorUUID($id, null, $view);
     }
@@ -463,12 +513,7 @@ final class badgeinfo
     {
         $view = $this->groupBadgeView();
         if ($addView instanceof View) {
-            if (!is_null($addView->Columns)) {
-                $view->Columns = array_merge($view->Columns, $addView->Columns);
-            }
-            if (!is_null($addView->Joins)) {
-                $view->Joins = array_merge($view->Joins, $addView->Joins);
-            }
+            $this->MergeView($view, $addView);
         }
         return $this->g_badge->GetByIDorUUID($id, null, $view);
     }
@@ -491,14 +536,10 @@ final class badgeinfo
 
     public function searchASpecificBadge($uuid, $badge, $badgetype, $contextCode, $addView)
     {
-        $view = $this->badgeView($badgetype, $contextCode);
+        $view = $contextCode == 'A' ? $this->badgeView($badgetype, $contextCode)
+        : $this->staffBadgeView($badgetype, $contextCode);
         if ($addView instanceof View) {
-            if (!is_null($addView->Columns)) {
-                $view->Columns = array_merge($view->Columns, $addView->Columns);
-            }
-            if (!is_null($addView->Joins)) {
-                $view->Joins = array_merge($view->Joins, $addView->Joins);
-            }
+            $this->MergeView($view, $addView);
         }
         return $badge->GetByIDorUUID(null, $uuid, $view);
     }
@@ -506,12 +547,7 @@ final class badgeinfo
     {
         $view = $this->groupBadgeView();
         if ($addView instanceof View) {
-            if (!is_null($addView->Columns)) {
-                $view->Columns = array_merge($view->Columns, $addView->Columns);
-            }
-            if (!is_null($addView->Joins)) {
-                $view->Joins = array_merge($view->Joins, $addView->Joins);
-            }
+            $this->MergeView($view, $addView);
         }
         return $this->g_badge->GetByIDorUUID(null, $uuid, $view);
     }
@@ -524,6 +560,36 @@ final class badgeinfo
                 array(
                new SelectColumn('context_code', EncapsulationFunction: "'".$contextCode."'", Alias:'context_code'),
                new SelectColumn('application_status', EncapsulationFunction: "''", Alias:'application_status'),
+               'badge_type_id',
+               'payment_status',
+               'payment_promo_price',
+               'payment_badge_price',
+               new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ'),
+               new SelectColumn('payable_onsite', Alias:'badge_type_payable_onsite', JoinedTableAlias:'typ'),
+             )
+            ),
+            array(
+
+               new Join(
+                   $badgetype,
+                   array(
+                     'id' => 'badge_type_id',
+                     new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
+                   ),
+                   alias:'typ'
+               )
+             )
+        );
+    }
+
+    public function staffBadgeView($badgetype, $contextCode)
+    {
+        return new View(
+            array_merge(
+                $this->selectColumns,
+                array(
+               new SelectColumn('context_code', EncapsulationFunction: "'".$contextCode."'", Alias:'context_code'),
+               'application_status',
                'badge_type_id',
                'payment_status',
                'payment_promo_price',
@@ -576,7 +642,7 @@ final class badgeinfo
                 $this->selectColumns,
                 array(
                    new SelectColumn('context_code', JoinedTableAlias:'grp'),
-                   new SelectColumn('application_status', EncapsulationFunction: "''", Alias:'application_status'),
+                   new SelectColumn('application_status', JoinedTableAlias:'bs'),
                    new SelectColumn('badge_type_id', JoinedTableAlias:'bs'),
                    new SelectColumn('payment_status', JoinedTableAlias:'bs'),
                    new SelectColumn('payment_id', JoinedTableAlias:'bs'),
@@ -638,7 +704,7 @@ final class badgeinfo
         );
     }
 
-    public function addComputedColumns($result)
+    public function addComputedColumns($result, $includeImageData = false)
     {
         $result['display_name'] = $result['real_name'];
         //Add some computed helper columns
@@ -664,25 +730,30 @@ final class badgeinfo
         }
         $result['badge_id_display'] = $result['context_code'] . $result['display_id'];
         $result['qr_data'] = 'CM*' . $result['context_code'] . $result['display_id'] . '*' . $result['uuid'];
-        $bc = new barcode_generator();
-
-        $image = $bc->render_image('qr', $result['qr_data'], array(
-            'w'=>150,
-            'h'=>150
-        ));
-        //Open a stream to buffer the output
-        $stream = fopen("php://memory", "w+");
-        //write it out with max compression
-        imagepng($image, $stream, 9);
-        //Release resource for the image since we're done with it
-        imagedestroy($image);
-        //Set the cursor to the beginning
-        rewind($stream);
-        //Stuff it into a string
-        $png = stream_get_contents($stream);
-        $result['qr_data_uri'] = 'data:image/png;base64,' . base64_encode($png);
         //Add in the retrieve url
         $result['retrieve_url'] = $this->FrontendUrlTranslator->GetBadgeLoad($result);
+        //Add in the cart url
+        $result['cart_url'] = $this->FrontendUrlTranslator->GetCartLoad($result);
+
+        if ($includeImageData) {
+            $bc = new barcode_generator();
+
+            $image = $bc->render_image('qr', $result['qr_data'], array(
+                'w'=>150,
+                'h'=>150
+            ));
+            //Open a stream to buffer the output
+            $stream = fopen("php://memory", "w+");
+            //write it out with max compression
+            imagepng($image, $stream, 9);
+            //Release resource for the image since we're done with it
+            imagedestroy($image);
+            //Set the cursor to the beginning
+            rewind($stream);
+            //Stuff it into a string
+            $png = stream_get_contents($stream);
+            $result['qr_data_uri'] = 'data:image/png;base64,' . base64_encode($png);
+        }
         return $result;
     }
 }

@@ -29,6 +29,10 @@ class FrontendUrlTranslator
     {
         return $this->routedURL('myBadges?context_code='. $badge['context_code'] . '&id=' . $badge['id'] . '&uuid=' . $badge['uuid']);
     }
+    public function GetCartLoad(array $badge)
+    {
+        return $this->routedURL('cart?id='. $badge['payment_id']);
+    }
     public function GetLoginConfirm(string $authString)
     {
         return $this->routedURL('login?token=' . $authString);

@@ -221,18 +221,21 @@ const actions = {
                 (typeof state.checkoutStatus == 'object' && state.checkoutStatus.state != 'Completed')
             )
         ) {
-            shop.deleteCart(
-                rootState.mydata.token,
-                state.cartId,
-                (data) => {
-
-                    commit('setCheckoutStatus', null);
-                    commit('setCartItems', {
-                        items: [],
-                    });
-                    commit('setcartId', null);
-                }
-            );
+            return new Promise((resolve, reject) => {
+                shop.deleteCart(
+                    rootState.mydata.token,
+                    state.cartId,
+                    (data) => {
+                        commit('setCheckoutStatus', null);
+                        commit('setCartItems', {
+                            items: [],
+                        });
+                        commit('setcartId', null);
+                        resolve();
+                    },
+                    (err) => reject
+                );
+            });
         } else {
             //We don't know about any cart, just clear it
 

@@ -53,7 +53,8 @@ final class PaymentBuilder
             'payment_status' => 'NotReady',
             'payment_system' => 'Cash',
             'payment_txn_amt' => -1,
-
+            'date_created' => null ,
+            'date_modified' => null,
         );
         $this->cart = array_merge($template, $this->payment->Create($template));
         $this->cart_items = array();
@@ -182,6 +183,9 @@ final class PaymentBuilder
 
     public function setCartItems($items, $promocode = "", &$promoApplied = false)
     {
+        if (!$this->canEdit()) {
+            throw new \Exception('Cart state does not permit editing');
+        }
         $errors = array();
         $this->cart_items = array();
         foreach ($items as $key => $badge) {
@@ -207,6 +211,7 @@ final class PaymentBuilder
         //Ensure this badge is owned by the user (if we're not editing) and is good on the surface
         if (isset($item['id']) && $item['id'] > 0) {
             $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code']);
+            //TODO: Determine if this badge is already in an active cart and abort
             //Preserve the current badge state, but only if it hasn't been preserved already
             if ($bi !== false && !isset($item['existing'])) {
                 $item['existing'] = $bi;
@@ -320,7 +325,7 @@ final class PaymentBuilder
 
         foreach ($this->cart_items as $key => &$item) {
             //Fetch type info
-            $bt = $this->badgeinfo->getBadgetType($item['context_code'] ?? 'A', $item['badge_type_id']);
+            $bt = $this->badgeinfo->getBadgetType($item['context_code'] ?? 'A', $item['badge_type_id'] ?? 0);
 
             if ($this->banlist->is_banlisted($item)) {
                 $this->AllowPay = false;
@@ -328,8 +333,28 @@ final class PaymentBuilder
 
             //Check if this item is payable
             if (!empty($bt['payment_deferred']) && $bt['payment_deferred']) {
-                $this->CanPay = false;
+                $bi = $this->badgeinfo->getSpecificBadge($item['id'] ?? 0, $item['context_code']);
+
+                if ($bi != null) {
+                    //Check if it's currently in an approved state
+                    switch ($bi['application_status']) {
+                        case 'Onboarding':
+                        case 'Active':
+                        case 'PendingAcceptance':
+                        case 'Accepted':
+                        case 'Onboatding':
+                            break;
+                        default:
+                            $this->CanPay = false;
+                    }
+                } else {
+                    $this->CanPay = false;
+                }
             }
+        }
+        if ($this->cart['payment_status'] == 'AwaitingApproval' && $this->CanPay) {
+            //They must now meet the criteria to pay, switch them to NotStarted
+            $this->cart['payment_status'] = 'NotStarted';
         }
     }
 
@@ -398,13 +423,14 @@ final class PaymentBuilder
                 //Ensure the badge has an owner
                 $item['contact_id'] =$item['contact_id'] ?? $this->CurrentUserInfo->GetContactId();
                 //Ensure their application Status is "Submitted" if they're not allowed to pay yet
-
-                if ($item['context_code'] != 'A' && !empty($bt['payment_deferred']) && $bt['payment_deferred']) {
-                    $item['application_status'] = 'Submitted';
-                }
-                $newID = $this->badgeinfo->CreateSpecificBadgeUnchecked($item);
-                if ($newID !== false) {
-                    $item['id'] = $newID['id'];
+                if ($bi == null) {
+                    if ($item['context_code'] != 'A' && !empty($bt['payment_deferred']) && $bt['payment_deferred']) {
+                        $item['application_status'] = 'Submitted';
+                    }
+                    $newID = $this->badgeinfo->CreateSpecificBadgeUnchecked($item);
+                    if ($newID !== false) {
+                        $item['id'] = $newID['id'];
+                    }
                 }
             }
             //Save the form responses

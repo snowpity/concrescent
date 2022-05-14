@@ -30,11 +30,13 @@
                              :content="badgeErrorCount[product.cartIx]"
                              :value="!!badgeErrorCount[product.cartIx]">
                         <v-btn icon
+                               :disabled="disableModifyCart"
                                :to="{name:'editbadge', params: {cartIx: idx}}">
                             <v-icon>mdi-pencil</v-icon>
                         </v-btn>
                     </v-badge>
                     <v-btn icon
+                           :disabled="disableModifyCart"
                            @click.stop="removeBadge = idx">
                         <v-icon>mdi-delete</v-icon>
                     </v-btn>
@@ -557,21 +559,23 @@ export default {
             this.removeBadge = -1;
             this.saveCart();
         },
-        createNew: function() {
+        createNew: async function() {
             this.$store.commit('cart/setcartId', null);
-            this.clearCart();
+            await this.clearCart();
             this.cartIdSelected = null;
             document.activeElement.blur();
         },
         confirmClearCart: function() {
-            this.clearCart();
-            this.clearCartDialog = false;
-            this.cartLocked = "";
-            this.$store.dispatch('mydata/fetchCarts', false).then((carts) => {
-                if (carts.length > 0)
-                    this.cartIdSelected = carts[carts.length - 1].id;
-                else
-                    this.cartIdSelected = 0;
+            this.clearCart().then(() => {
+
+                this.clearCartDialog = false;
+                this.cartLocked = "";
+                this.$store.dispatch('mydata/fetchCarts', false).then((carts) => {
+                    if (carts.length > 0)
+                        this.cartIdSelected = carts[carts.length - 1].id;
+                    else
+                        this.cartIdSelected = 0;
+                })
             })
         },
         checkout(products) {
@@ -618,8 +622,10 @@ export default {
                     case 'AwaitingApproval':
                         var _this = this;
                         setTimeout(function() {
-                            _this.processingCheckoutDialog = false;
-                            _this.AwaitingApprovalDialog = true;
+                            if (_this.processingCheckoutDialog) {
+                                _this.processingCheckoutDialog = false;
+                                _this.AwaitingApprovalDialog = true;
+                            }
                         }, 1500);
                         break;
                     case 'Completed':

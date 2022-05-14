@@ -24,8 +24,9 @@ return array(
       //If not installed in the web root, specify it here.
       //No trailing slash!
       'base_path' => '/concrescent/cm3/backend',
-      //For the purposes of generating links back to ConCrescent, where is the front-end hosted?
-      'frontend_host' => 'https://tsaukpaetra.com/concrescent/cm3/frontend/dist',
+      //For the purposes of generating links back to ConCrescent Frontend, where is the front-end hosted?
+      //Include trailing slash!
+      'frontend_host' => 'https://tsaukpaetra.com/concrescent/cm3/frontend/dist/',
       //If the frontend is in Hash Mode
       'frontend_isHashMode' => true,
       //Should responses be GZipped?
@@ -70,7 +71,7 @@ return array(
         'defaultFrom' => 'yoursmtpuser@example.com'
     ),
     'payments' => array(
-        'cash' => array(
+        'Cash' => array(
             //set to false if we don't even want the option to pay with cash
             //Note that if enabled, attendees will be unable to complete their order online
             //This means that they might not get get a limited-number badge
@@ -80,14 +81,15 @@ return array(
             'allowed'      => true,
             'SalesTax'     => 0.085,
         ),
+        'PayPal' => array(
             'ClientID'     => 'YourPayPalClientID',
             'ClientSecret' => 'YouPayPalClientSecret',
-        'PayPal' => array(
             'CurrencyType' => 'USD',
             'SalesTax'     => 0.085,
             'sandbox'     => true,
             //Note that redirect URL will be of the form:
             //{frontend_host}#/CompletePayment
+            //{frontend_host}#/cart?checkout=confirm&cart_uuid=1234567
         )
     )
 );

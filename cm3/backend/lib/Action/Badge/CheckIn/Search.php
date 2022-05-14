@@ -97,7 +97,7 @@ final class Search
             $offset = 0;
         }
         $totalRows = 0;
-        $data = $this->badgeinfo->SearchBadges($find, $order, $limit, $offset, $totalRows);
+        $data = $this->badgeinfo->SearchBadgesText($find, $order, $limit, $offset, $totalRows);
 
         $response = $response->withHeader('X-Total-Rows', (string)$totalRows);
 

@@ -54,6 +54,7 @@ class badge extends \CM3_Lib\database\Table
                     'Submitted',  //Newly submitted
                     'Cancelled',  //Applicant self-cancelled
                     'Rejected',   //Staff rejected
+                    'PendingAcceptance', //Accepted, waiting for them to confirm
                     'Waitlisted', //Waitlisted for consideration
                     'Onboarding', //Accepted, onboarding in progress
                     'Active',     //Accepted, active staff
