@@ -645,7 +645,8 @@ export default {
                         this.promocodeDialog = false;
                         this.processingCheckoutDialog = false;
                 }
-
+            //Always refresh the cart list
+            this.$store.dispatch('mydata/fetchCarts', false)
         },
         'cartIdSelected': function(newId) {
             console.log('load cart ' + newId);

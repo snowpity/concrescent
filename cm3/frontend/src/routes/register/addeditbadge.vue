@@ -64,7 +64,16 @@
                            class="float-right">Reset Form</v-btn>
                 </v-col>
             </v-row>
-            <h3>Badge Type</h3>
+            <v-select :items="badgeContexts"
+                      :flat="true"
+                      v-model="context_code"
+                      item-text="name"
+                      item-value="context_code"
+                      no-data-text="Loading...">
+                <template v-slot:prepend>
+                    <h3>Badge Type</h3>
+                </template>
+            </v-select>
             <badgeTypeSelector v-model="selectedBadge"
                                :badges="badges"
                                no-data-text="No badges currently available!"
@@ -296,6 +305,7 @@ export default {
     },
     computed: {
         ...mapGetters('products', {
+            badgeContexts: 'badgeContexts',
             currentContext: 'selectedbadgecontext',
             products: 'contextBadges',
             questions: 'contextQuestions',
@@ -454,6 +464,9 @@ export default {
             this.loadBadge();
         },
         '$store.state.products.selectedEventId': function(event_id) {
+            this.loadBadge();
+        },
+        context_code(newCode) {
             this.loadBadge();
         },
     },

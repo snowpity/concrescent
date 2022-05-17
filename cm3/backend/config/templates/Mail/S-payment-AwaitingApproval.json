@@ -1,0 +1,9 @@
+{
+  "name": "attendee-retrieve",
+  "reply_to": "registration@example.com",
+  "from": "registration@example.com",
+  "cc": "registration@example.com",
+  "subject": "Your Staff registration for [[event.display_name]]",
+  "format": "Markdown",
+  "body": "Greetings,\n\nThank you for applying for **[[event.display_name]]**. Your [[badge_type_name]] staff registration for **[[display_name]]** has been received.\n\nWe will be contacting you soon regarding your application.\n\nThanks,\n[[event-name]] Registration"
+}

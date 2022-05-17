@@ -423,7 +423,7 @@ final class PaymentBuilder
                 //Ensure the badge has an owner
                 $item['contact_id'] =$item['contact_id'] ?? $this->CurrentUserInfo->GetContactId();
                 //Ensure their application Status is "Submitted" if they're not allowed to pay yet
-                if ($bi == null) {
+                if ($bi === false) {
                     if ($item['context_code'] != 'A' && !empty($bt['payment_deferred']) && $bt['payment_deferred']) {
                         $item['application_status'] = 'Submitted';
                     }
@@ -431,6 +431,8 @@ final class PaymentBuilder
                     if ($newID !== false) {
                         $item['id'] = $newID['id'];
                     }
+                } else {
+                    die(print_r($bi, true));
                 }
             }
             //Save the form responses
@@ -640,7 +642,13 @@ final class PaymentBuilder
             //Get the current info, not what's in the order
             $badge = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code'], true);
             $template = $this->cart['mail_template'] ?? ($item['context_code'] . '-payment-' .$this->cart['payment_status']);
-            $this->Mail->SendTemplate($to, $template, $badge, $badge['notify_email']);
+            try {
+                //Attempt to send mail
+                return $this->Mail->SendTemplate($to, $template, $badge, $badge['notify_email']);
+            } catch (\Exception $e) {
+                //Oops, couldn't send. Oh well?
+                return false;
+            }
         }
     }
 }

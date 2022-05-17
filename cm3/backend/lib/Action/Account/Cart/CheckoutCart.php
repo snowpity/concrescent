@@ -119,6 +119,11 @@ class CheckoutCart
                 ));
             }
         }
+
+        //If it can't be paid, send them the status email too
+        if (!$this->PaymentBuilder->getCanPay() && !$this->PaymentBuilder->canEdit()) {
+            $this->PaymentBuilder->SendStatusEmail();
+        }
         // Build the HTTP response
         return $this->responder
             ->withJson($response, array(

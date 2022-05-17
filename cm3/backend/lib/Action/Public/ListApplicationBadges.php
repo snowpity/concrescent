@@ -95,6 +95,7 @@ final class ListApplicationBadges
 
         $whereParts = array(
                   new SearchTerm('event_id', $params['event_id'], JoinedTableAlias: 'grp'),
+                  new SearchTerm('context_code', $params['context_code'], JoinedTableAlias: 'grp'),
                   new SearchTerm('active', 1)
                 );
 
