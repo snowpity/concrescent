@@ -31,7 +31,11 @@ class FrontendUrlTranslator
     }
     public function GetCartLoad(array $badge)
     {
-        return $this->routedURL('cart?id='. $badge['payment_id']);
+        if (isset($badge['payment_id'])) {
+            return $this->routedURL('cart?id='. $badge['payment_id']);
+        }
+        //Dafuq we have a badge that has no payment_id?
+        return '';
     }
     public function GetLoginConfirm(string $authString)
     {

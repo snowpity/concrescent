@@ -318,6 +318,7 @@
 <script>
 import {
     mapState,
+    mapGetters,
     mapActions
 } from 'vuex';
 import admin from '../../api/admin';
@@ -419,10 +420,12 @@ export default {
             return this.$store.getters['mydata/getAuthToken'];
         },
 
-        ...mapState({
-            products: (state) => state.products.all,
-            questions: (state) => state.products.questions,
-            addons: (state) => state.products.addons,
+        ...mapGetters('products', {
+            badgeContexts: 'badgeContexts',
+            currentContext: 'selectedbadgecontext',
+            products: 'contextBadges',
+            questions: 'contextQuestions',
+            addonsAvailable: 'contextAddons',
         }),
         isProbablyDowngrading() {
             if (!this.editingBadge) {
@@ -437,6 +440,7 @@ export default {
         },
         badges() {
             // Crude clone
+            if (this.products == undefined) return [];
             let badges = JSON.parse(JSON.stringify(this.products));
             // First, do we have a date_of_birth?
             const bday = new Date(this.edit_date_of_birth);
@@ -488,8 +492,9 @@ export default {
                 this.loading = false;
             })
         },
-        loadSelectedBadge: function() {
+        loadSelectedBadge: async function() {
             if (this.selectedBadge.id == undefined) return;
+            await this.$store.dispatch('products/selectContext', this.selectedBadge.context_code);
             admin.badgeFetch(this.authToken, this.selectedBadge.context_code, this.selectedBadge.id, (results) => {
                 this.selectedBadge = results;
             })
@@ -624,7 +629,6 @@ export default {
     created() {
         this.checkPermission();
         //this.doSearch();
-        this.$store.dispatch('products/getAllProducts');
     }
 };
 </script>

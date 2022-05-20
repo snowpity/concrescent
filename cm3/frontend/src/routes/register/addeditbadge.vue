@@ -71,7 +71,7 @@
                       item-value="context_code"
                       no-data-text="Loading...">
                 <template v-slot:prepend>
-                    <h3>Badge Type</h3>
+                    <h3 class="flex-sm-grow-1 flex-sm-shrink-0 mr-4">Badge Type:</h3>
                 </template>
             </v-select>
             <badgeTypeSelector v-model="selectedBadge"
@@ -221,7 +221,7 @@
 
         </v-expansion-panels>
         <div v-else>
-            <h3>No addons are currently available for the selected badge type. Check back later when they become available!</h3>
+            <h3>No addons are currently available for the selected badge type. Check back later if they become available!</h3>
         </div>
         <v-btn color="primary"
                @click="addBadgeToCart">{{ isUpdatingItem ? "Update in " :  "Add to "}}

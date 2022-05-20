@@ -387,20 +387,20 @@ final class badgeinfo
     public function SearchBadgesText(string $searchText, $order, $limit, $offset, &$totalRows)
     {
         $whereParts =
-        empty($find) ? null :
+        empty($searchText) ? null :
         array(
-            new SearchTerm('real_name', $find, Raw: 'MATCH(`real_name`, `fandom_name`, `notify_email`, `ice_name`, `ice_email_address`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
+            new SearchTerm('real_name', $searchText, Raw: 'MATCH(`real_name`, `fandom_name`, `notify_email`, `ice_name`, `ice_email_address`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
         );
         $wherePartsSimpler = array(
-            new SearchTerm('real_name', '%' . $find . '%', 'LIKE', 'OR'),
-            new SearchTerm('fandom_name', '%' . $find . '%', 'LIKE', 'OR'),
-            new SearchTerm('notify_email', '%' . $find . '%', 'LIKE', 'OR'),
-            new SearchTerm('ice_name', '%' . $find . '%', 'LIKE', 'OR'),
-            new SearchTerm('ice_email_address', '%' . $find . '%', 'LIKE', 'OR'),
+            new SearchTerm('real_name', '%' . $searchText . '%', 'LIKE', 'OR'),
+            new SearchTerm('fandom_name', '%' . $searchText . '%', 'LIKE', 'OR'),
+            new SearchTerm('notify_email', '%' . $searchText . '%', 'LIKE', 'OR'),
+            new SearchTerm('ice_name', '%' . $searchText . '%', 'LIKE', 'OR'),
+            new SearchTerm('ice_email_address', '%' . $searchText . '%', 'LIKE', 'OR'),
         );
         $result =  $this->SearchBadges($whereParts, $order, $limit, $offset, $totalRows);
         //If we got nothing, switch to a simpler search
-        if (count($results) == 0) {
+        if (count($result) == 0) {
             $result =  $this->SearchBadges($wherePartsSimpler, $order, $limit, $offset, $totalRows);
         }
         return $result;
@@ -468,6 +468,9 @@ final class badgeinfo
 
     private function AdjustSearchTerms($terms, $badgeView)
     {
+        if (is_null($terms) || is_null($badgeView)) {
+            return $terms;
+        }
         $result = array();
         foreach ($terms as $sterm) {
             //Search the view
