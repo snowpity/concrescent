@@ -324,8 +324,8 @@ export default {
             if (this.date_of_birth && bday) {
                 badges = badges.filter((badge) => {
                     if (!(
-                            (badge['min-birthdate'] != null && bday < new Date(badge['min-birthdate'])) ||
-                            (badge['max-birthdate'] != null && bday > new Date(badge['max-birthdate']))
+                            (badge['min_birthdate'] != null && bday < new Date(badge['min_birthdate'])) ||
+                            (badge['max_birthdate'] != null && bday > new Date(badge['max_birthdate']))
                         )) {
                         return badge;
                     }

@@ -7,6 +7,7 @@ use CM3_Lib\database\SearchTerm;
 use CM3_Lib\database\View;
 use CM3_Lib\database\Join;
 
+use CM3_Lib\models\eventinfo;
 use CM3_Lib\models\staff\badgetype;
 use CM3_Lib\models\staff\badge;
 
@@ -26,8 +27,12 @@ final class ListStaffBadges
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private badgetype $badgetype, private badge $badge)
-    {
+    public function __construct(
+        private Responder $responder,
+        private eventinfo $eventinfo,
+        private badgetype $badgetype,
+        private badge $badge
+    ) {
     }
 
     /**
@@ -52,6 +57,8 @@ final class ListStaffBadges
               'end_date',
               'min_age',
               'max_age',
+              new SelectColumn('date_start', EncapsulationFunction: 'date_sub(?, INTERVAL `min_age` YEAR)', Alias: 'max_birthdate', JoinedTableAlias: 'event'),
+              new SelectColumn('date_start', EncapsulationFunction: 'date_sub(?, INTERVAL `max_age` YEAR)', Alias: 'min_birthdate', JoinedTableAlias: 'event'),
               'dates_available',
               new SelectColumn('quantity_sold', EncapsulationFunction: 'ifnull(?,0)', Alias: 'quantity_sold', JoinedTableAlias: 'q'),
           ),
@@ -70,7 +77,22 @@ final class ListStaffBadges
                 array(
                  new SearchTerm('application_status', 'Active'),
                )
-            )
+            ),
+               new Join(
+                   $this->eventinfo,
+                   array(
+                       'id' => 'event_id',
+                   ),
+                   'INNER',
+                   'event',
+                   array(
+                       new SelectColumn('id'),
+                       new SelectColumn('date_start')
+                   ),
+                   array(
+                       new SearchTerm('id', $params['event_id'])
+                   )
+               )
           )
         );
 

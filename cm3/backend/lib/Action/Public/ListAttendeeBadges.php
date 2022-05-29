@@ -7,6 +7,7 @@ use CM3_Lib\database\SearchTerm;
 use CM3_Lib\database\View;
 use CM3_Lib\database\Join;
 
+use CM3_Lib\models\eventinfo;
 use CM3_Lib\models\attendee\badgetype;
 use CM3_Lib\models\attendee\badge;
 
@@ -28,8 +29,13 @@ final class ListAttendeeBadges
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private badgetype $badgetype, private badge $badge, private CurrentUserInfo $CurrentUserInfo)
-    {
+    public function __construct(
+        private Responder $responder,
+        private eventinfo $eventinfo,
+        private badgetype $badgetype,
+        private badge $badge,
+        private CurrentUserInfo $CurrentUserInfo
+    ) {
     }
 
     /**
@@ -56,6 +62,8 @@ final class ListAttendeeBadges
               'end_date',
               'min_age',
               'max_age',
+              new SelectColumn('date_start', EncapsulationFunction: 'date_sub(?, INTERVAL `min_age` YEAR)', Alias: 'max_birthdate', JoinedTableAlias: 'event'),
+              new SelectColumn('date_start', EncapsulationFunction: 'date_sub(?, INTERVAL `max_age` YEAR)', Alias: 'min_birthdate', JoinedTableAlias: 'event'),
               'dates_available',
               new SelectColumn('quantity_sold', EncapsulationFunction: 'ifnull(?,0)', Alias: 'quantity_sold', JoinedTableAlias: 'q'),
               new SelectColumn('quantity_sold', EncapsulationFunction: 'quantity - ?', Alias: 'quantity_remaining', JoinedTableAlias: 'q')
@@ -75,7 +83,22 @@ final class ListAttendeeBadges
                 array(
                  new SearchTerm('payment_status', 'Completed'),
                )
-            )
+            ),
+           new Join(
+               $this->eventinfo,
+               array(
+                   'id' => 'event_id',
+               ),
+               'INNER',
+               'event',
+               array(
+                   new SelectColumn('id'),
+                   new SelectColumn('date_start')
+               ),
+               array(
+                   new SearchTerm('id', $params['event_id'])
+               )
+           )
           )
         );
 

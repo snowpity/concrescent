@@ -30,8 +30,6 @@ export default {
         },
         value(newValue) {
             //Splat the input into the form
-            console.log("Got new data for form:")
-            console.log(newValue)
             this.interrimFormData = newValue;
         }
     },
