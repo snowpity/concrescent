@@ -94,9 +94,22 @@
                 </div>
             </v-list>
         </v-menu>
+
+        <template v-slot:extension
+                  v-if="hasSubTabs">
+            <v-tabs v-model="subTabIx"
+                    align-with-title>
+                <v-tabs-slider color="yellow"></v-tabs-slider>
+
+                <v-tab v-for="item in subTabs"
+                       :key="item">
+                    {{ item }}
+                </v-tab>
+            </v-tabs>
+        </template>
     </v-app-bar>
     <v-main>
-        <router-view />
+        <router-view :subTabIx="subTabIx" />
     </v-main>
 </v-app>
 </template>
@@ -109,11 +122,18 @@ import {
 } from 'vuex'
 export default {
     data: () => ({
-        "drawer": false
+        "drawer": false,
+        subTabIx: 0
     }),
     computed: {
         appTitle: function() {
             return this.AppName + (this.$route.name == null ? "" : " - " + (this.$route.meta.title || this.$route.name));
+        },
+        subTabs: function() {
+            return this.$route.meta.subTabs || [];
+        },
+        hasSubTabs: function() {
+            return this.subTabs.length > 0;
         },
         drawerItems: function() {
             var items = [{
@@ -342,6 +362,9 @@ export default {
         },
         'appTitle': function(newTitle) {
             document.title = this.appTitle;
+        },
+        'subTabIx': function(newSubTab) {
+            console.log('Switching subtab to ' + newSubTab);
         }
     },
     created() {

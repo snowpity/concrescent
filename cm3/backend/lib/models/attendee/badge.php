@@ -81,7 +81,7 @@ class badge extends \CM3_Lib\database\Table
             'ice_email_address'=>false
         ), 'fulltext'));
         $this->PrimaryKeys = array('id'=>false);
-        $this->DefaultSearchColumns = array('id','display_id','first_name','last_name','notify_email');
+        $this->DefaultSearchColumns = array('id','display_id','real_name','notify_email');
         $this->Views = array(
             'default' => new cm_View(
                 array(

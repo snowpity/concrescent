@@ -47,7 +47,8 @@ final class Search
     {
         //TODO: Also, provide some sane defaults
         $qp = $request->getQueryParams();
-        $find = $qp['find'];
+        $find = $qp['find'] ?? '';
+        $context = $qp['context'] ?? null;
 
 
         //First, determine if this is an exact match code, for example from QR code
@@ -72,32 +73,9 @@ final class Search
 
         //Not a scanned badge. Let's search then...
         //Interpret order parameters
-        $sortBy = explode(',', $qp['sortBy'] ??'');
-        //Add the ID
-        if (empty($sortBy[0])) {
-            $sortBy[0] = 'id';
-        } else {
-            $sortBy[] = 'id';
-        }
-        $sortDesc = array_map(function ($v) {
-            return $v == 'true';
-        }, explode(',', $qp['sortDesc']??''));
-        //Ensure the ID sort is descending
-        $sortDesc[count($sortDesc) - 1] = true;
-
-        $order =array_combine(
-            $sortBy,
-            $sortDesc
-        );
-
-        $page      = ($qp['page']?? 0 > 0) ? $qp['page'] : 1;
-        $limit     = $qp['itemsPerPage']?? -1; // Number of posts on one page
-        $offset      = ($page - 1) * $limit;
-        if ($offset < 0) {
-            $offset = 0;
-        }
+        $pg = $this->badgeinfo->parseQueryParamsPagination($qp);
         $totalRows = 0;
-        $data = $this->badgeinfo->SearchBadgesText($find, $order, $limit, $offset, $totalRows);
+        $data = $this->badgeinfo->SearchBadgesText($context, $find, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
 
         $response = $response->withHeader('X-Total-Rows', (string)$totalRows);
 

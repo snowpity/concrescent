@@ -19,6 +19,8 @@ abstract class Table
     //Availalbe name => View
     public array $Views;
 
+    public bool $debugThrowBeforeSelect = false;
+
     //Sets up table definitions above
     abstract protected function setupTableDefinitions(): void;
 
@@ -624,7 +626,10 @@ abstract class Table
 
         $sqlText = $selectParts . $sqlBody . $sqlOrdering;
 
-        //die($sqlText);
+        if ($this->debugThrowBeforeSelect) {
+            $errors[] = 'Throwing intentionally due to debugThrowBeforeSelect';
+            $this->checkAndThrowError("Error while attempting to generate select query for $this->TableName.", $errors, $sqlText);
+        }
         $this->checkAndThrowError("Error while attempting to generate select query for $this->TableName.", $errors, $sqlText);
 
         //Now execute the statement...

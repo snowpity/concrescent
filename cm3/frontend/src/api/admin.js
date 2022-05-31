@@ -2,7 +2,41 @@ const axios = require('axios').default;
 
 export default {
 
-    badgeSearch(token, searchText, pageOptions, cb, errorCb) {
+    genericGet(token, path, params, cb, errorCb) {
+        var qparams = new URLSearchParams({
+            ...params
+        }).toString();
+        axios.get(global.config.apiHostURL + path + qparams, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then(function(response) {
+                cb(response.data);
+            })
+            .catch(function(error) {
+                if (typeof errorCb != "undefined")
+                    errorCb(response.response.data);
+            })
+    },
+    genericGetList(token, path, params, cb, errorCb) {
+        var qparams = new URLSearchParams({
+            ...params
+        }).toString();
+        axios.get(global.config.apiHostURL + path + '?' + qparams, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then(function(response) {
+                cb(response.data, parseInt(response.headers['x-total-rows']));
+            })
+            .catch(function(error) {
+                if (typeof errorCb != "undefined")
+                    errorCb(response.response.data);
+            })
+    },
+    badgeCheckinSearch(token, searchText, pageOptions, cb, errorCb) {
         var params = new URLSearchParams({
             "find": searchText,
             ...pageOptions
@@ -20,7 +54,7 @@ export default {
                     errorCb(response.response.data);
             })
     },
-    badgeFetch(token, context, id, cb, errorCb) {
+    badgeCheckinFetch(token, context, id, cb, errorCb) {
         axios.get(global.config.apiHostURL + "Badge/CheckIn/" + context + "/" + id, {
                 headers: {
                     Authorization: `Bearer ${token}`

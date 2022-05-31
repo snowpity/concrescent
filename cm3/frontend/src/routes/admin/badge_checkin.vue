@@ -486,7 +486,7 @@ export default {
             ].reduce((a, e) => (a[e] = this.tableOptions[e], a), {});
             //We need empty string not null in searchText
             if (this.searchText == null) this.searchText = "";
-            admin.badgeSearch(this.authToken, this.searchText, pageOptions, (results, total) => {
+            admin.badgeCheckinSearch(this.authToken, this.searchText, pageOptions, (results, total) => {
                 this.tableResults = results;
                 this.totalResults = total;
                 this.loading = false;
@@ -495,7 +495,7 @@ export default {
         loadSelectedBadge: async function() {
             if (this.selectedBadge.id == undefined) return;
             await this.$store.dispatch('products/selectContext', this.selectedBadge.context_code);
-            admin.badgeFetch(this.authToken, this.selectedBadge.context_code, this.selectedBadge.id, (results) => {
+            admin.badgeCheckinFetch(this.authToken, this.selectedBadge.context_code, this.selectedBadge.id, (results) => {
                 this.selectedBadge = results;
             })
         },

@@ -76,7 +76,7 @@ class GetMyBadges
 
         );
 
-        $result = $this->badgeinfo->SearchBadges($searchTerms, full: true);
+        $result = $this->badgeinfo->SearchBadges(null, $searchTerms, full: true);
 
         // Build the HTTP response
         return $this->responder

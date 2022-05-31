@@ -384,7 +384,7 @@ final class badgeinfo
         return $this->addComputedColumns($result);
     }
 
-    public function SearchBadgesText(string $searchText, $order, $limit, $offset, &$totalRows)
+    public function SearchBadgesText($context, string $searchText, $order, $limit, $offset, &$totalRows)
     {
         $whereParts =
         empty($searchText) ? null :
@@ -392,21 +392,26 @@ final class badgeinfo
             new SearchTerm('real_name', $searchText, Raw: 'MATCH(`real_name`, `fandom_name`, `notify_email`, `ice_name`, `ice_email_address`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
         );
         $wherePartsSimpler = array(
-            new SearchTerm('real_name', '%' . $searchText . '%', 'LIKE', 'OR'),
-            new SearchTerm('fandom_name', '%' . $searchText . '%', 'LIKE', 'OR'),
-            new SearchTerm('notify_email', '%' . $searchText . '%', 'LIKE', 'OR'),
-            new SearchTerm('ice_name', '%' . $searchText . '%', 'LIKE', 'OR'),
-            new SearchTerm('ice_email_address', '%' . $searchText . '%', 'LIKE', 'OR'),
-        );
-        $result =  $this->SearchBadges($whereParts, $order, $limit, $offset, $totalRows);
+            new SearchTerm(
+                '',
+                '',
+                subSearch: array(
+                    new SearchTerm('real_name', '%' . $searchText . '%', 'LIKE', 'OR'),
+                    new SearchTerm('fandom_name', '%' . $searchText . '%', 'LIKE', 'OR'),
+                    new SearchTerm('notify_email', '%' . $searchText . '%', 'LIKE', 'OR'),
+                    new SearchTerm('ice_name', '%' . $searchText . '%', 'LIKE', 'OR'),
+                    new SearchTerm('ice_email_address', '%' . $searchText . '%', 'LIKE', 'OR'),
+                )
+            ));
+        $result = $this->SearchBadges($context, $whereParts, $order, $limit, $offset, $totalRows);
         //If we got nothing, switch to a simpler search
         if (count($result) == 0) {
-            $result =  $this->SearchBadges($wherePartsSimpler, $order, $limit, $offset, $totalRows);
+            $result =  $this->SearchBadges($context, $wherePartsSimpler, $order, $limit, $offset, $totalRows);
         }
         return $result;
     }
 
-    public function SearchBadges($terms, ?array $order = null, int $limit = -1, int $offset = 0, &$totalRows = null, $full = false)
+    public function SearchBadges($context, $terms, ?array $order = null, int $limit = -1, int $offset = 0, &$totalRows = null, $full = false)
     {
         // Invoke the Domain with inputs and retain the result
         $trA = 0;
@@ -423,8 +428,12 @@ final class badgeinfo
         $a_terms = $this->AdjustSearchTerms($terms, $a_bv);
         $s_terms = $this->AdjustSearchTerms($terms, $s_bv);
         $g_terms = $this->AdjustSearchTerms($terms, $g_bv);
-        $a_data = $this->a_badge->Search($a_bv, $a_terms, $order, $limit, $offset, $trA);
-        $s_data = $this->s_badge->Search($s_bv, $s_terms, $order, $limit, $offset, $trG);
+        //Add to the group search if context specified
+        $g_terms[] = new SearchTerm('context_code', $context, is_null($context) ? 'IS' : '=', JoinedTableAlias:'grp');
+
+        $a_data = (($context ?? 'A') == 'A') ? $this->a_badge->Search($a_bv, $a_terms, $order, $limit, $offset, $trA) : array();
+        $s_data = (($context ?? 'S') == 'S') ? $this->s_badge->Search($s_bv, $s_terms, $order, $limit, $offset, $trG) : array();
+        //$this->g_badge->debugThrowBeforeSelect = true;
         $g_data = $this->g_badge->Search($g_bv, $g_terms, $order, $limit, $offset, $trS);
         $totalRows =  $trA + $trG + $trS;
 
@@ -758,5 +767,52 @@ final class badgeinfo
             $result['qr_data_uri'] = 'data:image/png;base64,' . base64_encode($png);
         }
         return $result;
+    }
+
+    //Utility
+    public function parseQueryParamsPagination(array $qp)
+    {
+        //Interpret order parameters
+        $sortBy = explode(',', $qp['sortBy'] ??'');
+        $idAdded = false;
+        //Add the ID
+        if (empty($sortBy[0])) {
+            $idAdded = true;
+            $sortBy[0] = 'id';
+        } else {
+            //$idAdded = true;
+            $sortBy[] = 'id';
+        }
+        $sortDesc = array_map(function ($v) {
+            return $v == 'true' ? 1 : 0;
+        }, explode(',', $qp['sortDesc']??''));
+        //Ensure the ID sort is descending
+        if ($idAdded) {
+            $sortDesc[count($sortDesc) - 1] = true;
+        } else {
+            //If we actually had the ID specified, un-add the ID column we forced
+            if (array_count_values($sortBy)['id'] > 1) {
+                array_pop($sortBy);
+                array_pop($sortDesc);
+            }
+        }
+
+        $order =array_combine(
+            $sortBy,
+            $sortDesc
+        );
+        //die(print_r($order, true));
+
+        $page      = ($qp['page']?? 0 > 0) ? $qp['page'] : 1;
+        $limit     = $qp['itemsPerPage']?? -1; // Number of posts on one page
+        $offset      = ($page - 1) * $limit;
+        if ($offset < 0) {
+            $offset = 0;
+        }
+        return array(
+            'order'=>$order,
+            'limit'=>$limit,
+            'offset'=>$offset,
+        );
     }
 }
