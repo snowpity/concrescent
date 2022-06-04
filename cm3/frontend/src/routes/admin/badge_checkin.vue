@@ -31,51 +31,9 @@
 
         <v-stepper-items>
             <v-stepper-content step="1">
-                <v-data-table :options.sync="tableOptions"
-                              :server-items-length="totalResults"
-                              :loading="loading"
-                              :headers="headers"
-                              multi-sort
-                              :items="tableResults"
-                              item-key="uuid"
-                              class="elevation-1 fill-height"
-                              :search="searchText">
-                    <template v-slot:top="">
-                        <v-text-field v-model="searchText"
-                                      label="Search"
-                                      clearable
-                                      append-outer-icon="mdi-refresh"
-                                      @click:append-outer="doSearch"
-                                      class="mx-4"></v-text-field>
-                    </template>
-                    <template v-slot:[`item.id`]="{ item }">
-                        {{item.context_code}}{{item.display_id}}
-                    </template>
-                    <template v-slot:[`item.uuid`]="{ item }">
-                        <v-btn @click="selectedBadge = item">Select</v-btn>
-                    </template>
-                    <template v-slot:[`item.time_printed`]="{ item }">
-                        <v-tooltip left>
-                            <template v-slot:activator="{ on, attrs }">
-                                <v-icon v-bind="attrs"
-                                        v-on="on"
-                                        v-show="item.time_printed != null">mdi-printer-check</v-icon>
-                            </template>
-                            <span>{{item.time_printed}}</span>
-                        </v-tooltip>
-                    </template>
-                    <template v-slot:[`item.time_checked_in`]="{ item }">
-                        <v-tooltip left>
-                            <template v-slot:activator="{ on, attrs }">
-                                <v-icon v-bind="attrs"
-                                        v-on="on"
-                                        v-show="item.time_checked_in != null">mdi-account-check</v-icon>
-                            </template>
-                            <span>{{item.time_checked_in}}</span>
-                        </v-tooltip>
-
-                    </template>
-                </v-data-table>
+                <badgeSearchList apiPath="Badge/CheckIn"
+                                 :actions="[{name:'select',text:'Select'}]"
+                                 @select="selectBadge" />
             </v-stepper-content>
 
             <v-stepper-content step="2">
@@ -327,19 +285,16 @@ import {
 } from '@/plugins/debounce';
 import badgeSampleRender from '@/components/badgeSampleRender.vue';
 import badgeFullRender from '@/components/badgeFullRender.vue';
+import badgeSearchList from '@/components/badgeSearchList.vue';
 
 export default {
     components: {
         badgeSampleRender,
-        badgeFullRender
+        badgeFullRender,
+        badgeSearchList
     },
     data: () => ({
         checkinStage: 1,
-        searchText: "",
-        loading: false,
-        tableOptions: {},
-        tableResults: [],
-        totalResults: 0,
         selectedBadge: {},
         alreadyCheckedInDialog: false,
         editingBadge: false,
@@ -477,20 +432,10 @@ export default {
             console.log('Hey! Listen!');
         },
         doSearch: function() {
-            this.loading = true;
-            const pageOptions = [
-                'sortBy',
-                'sortDesc',
-                'page',
-                'itemsPerPage'
-            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), {});
-            //We need empty string not null in searchText
-            if (this.searchText == null) this.searchText = "";
-            admin.badgeCheckinSearch(this.authToken, this.searchText, pageOptions, (results, total) => {
-                this.tableResults = results;
-                this.totalResults = total;
-                this.loading = false;
-            })
+            console.log("Need to refresh the badge list table");
+        },
+        selectBadge: function(item) {
+            this.selectedBadge = item;
         },
         loadSelectedBadge: async function() {
             if (this.selectedBadge.id == undefined) return;
@@ -575,15 +520,6 @@ export default {
     watch: {
         $route() {
             this.$nextTick(this.checkPermission);
-        },
-        searchText: debounce(function(newSearch) {
-            this.doSearch();
-        }, 500),
-        tableOptions: {
-            handler() {
-                this.doSearch()
-            },
-            deep: true,
         },
         selectedBadge: function(sb) {
             if (this.checkinStage < 2 && sb.id != undefined) {

@@ -42,7 +42,9 @@
 
     </template>
     <template v-slot:[`item.uuid`]="{ item }">
-        <v-btn @click="selectedBadge = item">Review</v-btn>
+        <v-btn v-for="action in actions"
+               :key="action.name"
+               @click="doEmit(action.name, item)">{{action.text}}</v-btn>
     </template>
 </v-data-table>
 </template>
@@ -54,7 +56,7 @@ import {
 } from '@/plugins/debounce';
 export default {
     components: {},
-    props: ['listPath', 'context', 'actions', 'listAddHeaders', 'listRemoveHeaders'],
+    props: ['apiPath', 'context', 'actions', 'AddHeaders', 'RemoveHeaders'],
     data: () => ({
 
         searchText: "",
@@ -107,8 +109,8 @@ export default {
         },
         headers() {
             var result = this.defHeaders || [];
-            var rmv = this.listRemoveHeaders || [];
-            var inc = this.listAddHeaders || [];
+            var rmv = this.RemoveHeaders || [];
+            var inc = this.AddHeaders || [];
             var that = this;
             result = result.filter(item => !rmv.includes(item.value)).concat(inc);
             //Ensure the "Actions" header is last
@@ -128,7 +130,7 @@ export default {
                 'page',
                 'itemsPerPage'
             ].reduce((a, e) => (a[e] = this.tableOptions[e], a), {});;
-            admin.genericGetList(this.authToken, 'Attendee/Badge', {
+            admin.genericGetList(this.authToken, this.apiPath, {
                 "find": this.searchText,
                 ...pageOptions
             }, (results, total) => {
@@ -136,6 +138,9 @@ export default {
                 this.totalResults = total;
                 this.loading = false;
             })
+        },
+        doEmit: function(eventName, item) {
+            this.$emit(eventName, item);
         }
     },
     watch: {

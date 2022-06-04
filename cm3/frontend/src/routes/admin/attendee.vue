@@ -8,10 +8,12 @@
             <v-tabs-items :value="subTabIx"
                           touchless>
                 <v-tab-item key="0">
-                    <badgeSearchList listPath="Attendee/Badge"
+                    <badgeSearchList apiPath="Attendee/Badge"
                                      context="A"
-                                     :listAddHeaders="listAddHeaders"
-                                     :listRemoveHeaders="listRemoveHeaders" />
+                                     :AddHeaders="listAddHeaders"
+                                     :RemoveHeaders="listRemoveHeaders"
+                                     :actions="listActions"
+                                     @edit="editBadge" />
                 </v-tab-item>
                 <v-tab-item key="1">
                     Badge Types here
@@ -41,7 +43,8 @@ export default {
     ],
     data: () => ({
         listRemoveHeaders: [
-            'application_status'
+            'application_status',
+            'time_checked_in'
         ],
         listAddHeaders: [{
             text: 'Secondary Email',
@@ -52,12 +55,27 @@ export default {
     computed: {
         authToken: function() {
             return this.$store.getters['mydata/getAuthToken'];
+        },
+        listActions: function() {
+            var result = [];
+            result.push({
+                name: "edit",
+                text: "Edit"
+            });
+            result.push({
+                name: "print",
+                text: "Print"
+            });
+            return result;
         }
     },
     methods: {
         checkPermission: () => {
             console.log('Hey! Listen!');
         },
+        editBadge: function(selectedBadge) {
+            console.log(selectedBadge);
+        }
     },
     watch: {
         $route() {

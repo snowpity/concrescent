@@ -33,7 +33,7 @@ class badgetype extends \CM3_Lib\database\Table
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
-        $this->DefaultSearchColumns = array('id','name','price','quantity','dates_available');
+        $this->DefaultSearchColumns = array('id','active','display_order','name','price','quantity','dates_available');
     }
 
     public function verifyBadgeTypeBelongsToEvent(int $id, int $event_id)
