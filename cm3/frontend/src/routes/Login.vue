@@ -148,6 +148,9 @@ export default {
     computed: {
         isAdmin: function() {
             return this.$store.getters['mydata/hasPerms'];
+        },
+        event_id: function() {
+            return this.$store.getters['products/selectedEventId'];
         }
     },
     methods: {
@@ -172,7 +175,8 @@ export default {
             this.loading = true;
             this.loginPassword({
                 username: this.username,
-                password: this.password
+                password: this.password,
+                event_id: this.event_id
             }).then((success) => {
                 if (success === true) {
                     this.state = 3;
