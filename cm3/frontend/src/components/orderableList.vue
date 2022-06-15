@@ -17,34 +17,17 @@
                       @click:append-outer="doSearch"
                       class="mx-4"></v-text-field>
     </template>
-    <template v-slot:[`item.id`]="{ item }">
-        {{item.context_code}}{{item.display_id}}
-    </template>
-    <template v-slot:[`item.time_printed`]="{ item }">
-        <v-tooltip left>
-            <template v-slot:activator="{ on, attrs }">
-                <v-icon v-bind="attrs"
-                        v-on="on"
-                        v-show="item.time_printed != null">mdi-printer-check</v-icon>
-            </template>
-            <span>{{item.time_printed}}</span>
-        </v-tooltip>
-    </template>
-    <template v-slot:[`item.time_checked_in`]="{ item }">
-        <v-tooltip left>
-            <template v-slot:activator="{ on, attrs }">
-                <v-icon v-bind="attrs"
-                        v-on="on"
-                        v-show="item.time_checked_in != null">mdi-account-check</v-icon>
-            </template>
-            <span>{{item.time_checked_in}}</span>
-        </v-tooltip>
-
-    </template>
     <template v-slot:[`item.uuid`]="{ item }">
         <v-btn v-for="action in actions"
                :key="action.name"
                @click="doEmit(action.name, item)">{{action.text}}</v-btn>
+    </template>
+    <template v-slot:[`footer.prepend`]>
+        <v-btn v-for="action in footerActions"
+               :key="action.name"
+               :color="action.color"
+               @click="doEmit(action.name)"
+               class="ma-2">{{action.text}}</v-btn>
     </template>
 </v-data-table>
 </template>
@@ -56,7 +39,7 @@ import {
 } from '@/plugins/debounce';
 export default {
     components: {},
-    props: ['apiPath', 'context_code', 'actions', 'AddHeaders', 'RemoveHeaders'],
+    props: ['apiPath', 'apiMoveCommand', 'orderColumnName', 'actions', 'AddHeaders', 'RemoveHeaders', 'footerActions'],
     data: () => ({
 
         searchText: "",
@@ -70,32 +53,12 @@ export default {
                 value: 'id',
             },
             {
-                text: 'Real Name',
-                value: 'real_name',
+                text: 'Name',
+                value: 'name',
             },
             {
-                text: 'Fandom Name',
-                value: 'fandom_name',
-            },
-            {
-                text: 'Badge Type',
-                value: 'badge_type_name',
-            },
-            {
-                text: 'Application Status',
-                value: 'application_status',
-            },
-            {
-                text: 'Payment Status',
-                value: 'payment_status',
-            },
-            {
-                text: 'Printed',
-                value: 'time_printed',
-            },
-            {
-                text: 'Checked-In',
-                value: 'time_checked_in',
+                text: 'Order',
+                value: 'display_order',
             },
             {
                 text: 'Actions',

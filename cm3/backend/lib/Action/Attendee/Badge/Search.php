@@ -43,7 +43,7 @@ final class Search
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
 
-        $pg = $this->badgeinfo->parseQueryParamsPagination($qp);
+        $pg = $this->badgeinfo->parseQueryParamsPagination($qp, defaultSortDesc:true);
         $totalRows = 0;
         // Invoke the Domain with inputs and retain the result
         $data = $this->badgeinfo->SearchBadgesText('A', $find, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);

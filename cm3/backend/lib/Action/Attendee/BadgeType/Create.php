@@ -38,6 +38,8 @@ final class Create
 
         //Ensure we're making a badge type with the associated event
         $data['event_id'] = $request->getAttribute('event_id');
+        //Make sure we don't have an ID
+        unset($data['id']);
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->badgetype->Create($data);

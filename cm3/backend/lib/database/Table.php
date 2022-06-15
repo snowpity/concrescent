@@ -86,7 +86,7 @@ abstract class Table
         $paramWhereData = array();
         $paramWhereNames = array();
         foreach ($this->ColumnDefs as $columnName => $columnDef) {
-            if (isset($entrydata[$columnName])) {
+            if (array_key_exists($columnName, $entrydata)) {
                 //It was provided. Is it good?
                 if (gettype($entrydata[$columnName]) == 'array') {
                     //We don't support arrays as parameters
@@ -119,6 +119,10 @@ abstract class Table
                     $failCheck = true;
                 }
             }
+        }
+        if (count($paramNames) < 1) {
+            $failCheck = true;
+            $errors[] = 'No columns specified to modify?';
         }
 
         //Did we fail?

@@ -20,7 +20,7 @@
     "vue-markdown-renderer": "^0.2.7",
     "vue-qrcode-component": "^2.1.1",
     "vue-router": "^3.0.0",
-    "vuetify": "^2.6.4",
+    "vuetify": "^2.6.6",
     "vuetify-google-autocomplete": "^2",
     "vuex": "^3.0.0",
     "webpack": "^5.70.0",

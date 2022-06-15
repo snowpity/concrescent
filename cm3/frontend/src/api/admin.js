@@ -19,6 +19,35 @@ export default {
                     errorCb(response.response.data);
             })
     },
+
+    genericPost(token, path, data, cb, errorCb) {
+        axios.post(global.config.apiHostURL + path, data, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then(function(response) {
+                cb(response.data);
+            })
+            .catch(function(error) {
+                if (typeof errorCb != "undefined")
+                    errorCb(response.response.data);
+            })
+    },
+    genericPut(token, path, data, cb, errorCb) {
+        axios.put(global.config.apiHostURL + path, data, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then(function(response) {
+                cb(response.data);
+            })
+            .catch(function(error) {
+                if (typeof errorCb != "undefined")
+                    errorCb(response.response.data);
+            })
+    },
     genericGetList(token, path, params, cb, errorCb) {
         var qparams = new URLSearchParams({
             ...params

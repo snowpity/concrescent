@@ -770,7 +770,7 @@ final class badgeinfo
     }
 
     //Utility
-    public function parseQueryParamsPagination(array $qp)
+    public function parseQueryParamsPagination(array $qp, $defaultSortColumn = 'id', $defaultSortDesc = false)
     {
         //Interpret order parameters
         $sortBy = explode(',', $qp['sortBy'] ??'');
@@ -778,20 +778,20 @@ final class badgeinfo
         //Add the ID
         if (empty($sortBy[0])) {
             $idAdded = true;
-            $sortBy[0] = 'id';
+            $sortBy[0] = $defaultSortColumn;
         } else {
             //$idAdded = true;
-            $sortBy[] = 'id';
+            $sortBy[] = $defaultSortColumn;
         }
         $sortDesc = array_map(function ($v) {
             return $v == 'true' ? 1 : 0;
         }, explode(',', $qp['sortDesc']??''));
         //Ensure the ID sort is descending
         if ($idAdded) {
-            $sortDesc[count($sortDesc) - 1] = true;
+            $sortDesc[count($sortDesc) - 1] = $defaultSortDesc;
         } else {
             //If we actually had the ID specified, un-add the ID column we forced
-            if (array_count_values($sortBy)['id'] > 1) {
+            if (array_count_values($sortBy)[$defaultSortColumn] > 1) {
                 array_pop($sortBy);
                 array_pop($sortDesc);
             }

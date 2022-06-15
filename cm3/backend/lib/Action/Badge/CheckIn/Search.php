@@ -73,7 +73,7 @@ final class Search
 
         //Not a scanned badge. Let's search then...
         //Interpret order parameters
-        $pg = $this->badgeinfo->parseQueryParamsPagination($qp);
+        $pg = $this->badgeinfo->parseQueryParamsPagination($qp, defaultSortDesc:true);
         $totalRows = 0;
         $data = $this->badgeinfo->SearchBadgesText($context, $find, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
 
