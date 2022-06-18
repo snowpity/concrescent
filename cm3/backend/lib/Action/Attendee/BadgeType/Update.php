@@ -43,6 +43,7 @@ final class Update
         //Ensure consistency with the enpoint being posted to
         $data['id'] = $params['id'];
         unset($data['event_id']);
+        unset($data['dates_available']);
 
 
         // Invoke the Domain with inputs and retain the result

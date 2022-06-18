@@ -33,6 +33,7 @@
             <v-stepper-content step="1">
                 <badgeSearchList apiPath="Badge/CheckIn"
                                  :actions="[{name:'select',text:'Select'}]"
+                                 :isEditingItem="checkinStage > 1"
                                  @select="selectBadge" />
             </v-stepper-content>
 
@@ -431,9 +432,6 @@ export default {
         checkPermission: () => {
             console.log('Hey! Listen!');
         },
-        doSearch: function() {
-            console.log("Need to refresh the badge list table");
-        },
         selectBadge: function(item) {
             this.selectedBadge = item;
         },
@@ -499,7 +497,6 @@ export default {
             admin.badgeCheckinFinish(this.authToken, this.selectedBadge.context_code, this.selectedBadge.id, (results) => {
                 this.selectedBadge = {};
                 this.finishing = false;
-                this.doSearch();
             }, (error) => {
                 this.finishing = false;
             })
@@ -531,7 +528,6 @@ export default {
                 this.checkinStage = 1;
                 this.alreadyCheckedInDialog = false;
                 this.printing = false;
-                this.doSearch();
             }
         },
         editingBadge: function(isEditing) {
@@ -564,7 +560,6 @@ export default {
     },
     created() {
         this.checkPermission();
-        //this.doSearch();
     }
 };
 </script>

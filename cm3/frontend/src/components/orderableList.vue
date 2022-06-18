@@ -28,6 +28,7 @@
                :color="action.color"
                @click="doEmit(action.name)"
                class="ma-2">{{action.text}}</v-btn>
+        {{isSorting}}
     </template>
 </v-data-table>
 </template>
@@ -39,7 +40,7 @@ import {
 } from '@/plugins/debounce';
 export default {
     components: {},
-    props: ['apiPath', 'apiMoveCommand', 'orderColumnName', 'actions', 'AddHeaders', 'RemoveHeaders', 'footerActions'],
+    props: ['apiPath', 'apiMoveCommand', 'orderColumnName', 'actions', 'AddHeaders', 'RemoveHeaders', 'footerActions', 'isEditingItem'],
     data: () => ({
 
         searchText: "",
@@ -55,10 +56,6 @@ export default {
             {
                 text: 'Name',
                 value: 'name',
-            },
-            {
-                text: 'Order',
-                value: 'display_order',
             },
             {
                 text: 'Actions',
@@ -81,7 +78,10 @@ export default {
             if (actionsIx > -1)
                 result.push(result.splice(actionsIx, 1)[0]);
             return result;
-        }
+        },
+        isSorting() {
+            return this.tableOptions.sortBy.length > 0;
+        },
     },
     methods: {
 
@@ -112,6 +112,10 @@ export default {
         searchText: debounce(function(newSearch) {
             this.doSearch();
         }, 500),
+        isEditingItem: debounce(function(newEditing) {
+            if (!newEditing)
+                this.doSearch();
+        }, 200),
         tableOptions: {
             handler() {
                 this.doSearch()

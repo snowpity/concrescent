@@ -56,7 +56,7 @@ import {
 } from '@/plugins/debounce';
 export default {
     components: {},
-    props: ['apiPath', 'context_code', 'actions', 'AddHeaders', 'RemoveHeaders'],
+    props: ['apiPath', 'context_code', 'actions', 'AddHeaders', 'RemoveHeaders', 'isEditingItem'],
     data: () => ({
 
         searchText: "",
@@ -149,6 +149,10 @@ export default {
         searchText: debounce(function(newSearch) {
             this.doSearch();
         }, 500),
+        isEditingItem: debounce(function(newEditing) {
+            if (!newEditing)
+                this.doSearch();
+        }, 200),
         tableOptions: {
             handler() {
                 this.doSearch()
