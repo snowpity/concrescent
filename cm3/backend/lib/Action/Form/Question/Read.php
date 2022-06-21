@@ -46,6 +46,9 @@ final class Read
             throw new HttpBadRequestException($request, 'Form Question does not belong to the current event!');
         }
 
+        $result['values'] = array_map(function ($value) {
+            return trim($value);
+        }, explode("\n", $result['values']));
 
         // Build the HTTP response
         return $this->responder

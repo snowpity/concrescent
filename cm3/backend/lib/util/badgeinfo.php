@@ -529,6 +529,51 @@ final class badgeinfo
         }
         return $this->g_badge->GetByIDorUUID($id, null, $view);
     }
+    public function checkBadgeTypeBelongsToEvent($context_code, $badge_type_id)
+    {
+        $result = false;
+        switch ($context_code) {
+                    case 'A':
+                        $found = $this->a_badge_type->Search(
+                            array('id'),
+                            array(
+                            new SearchTerm('id', $badge_type_id),
+                            new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
+                        )
+                        );
+                        $result = count($found) > 0;
+                        break;
+                    case 'S':
+                        $found = $this->s_badge_type->Search(
+                            array('id'),
+                            array(
+                            new SearchTerm('id', $badge_type_id),
+                            new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
+                        )
+                        );
+                        $result = count($found) > 0;
+                        break;
+                    default:
+                        $result =  $this->g_badge_type->Search(new View(
+                            array('id'),
+                            array(
+                                  new Join(
+                                      $this->g_group,
+                                      array(
+                                        'group_id' => 'group_id',
+                                        new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId()),
+                                        new SearchTerm('context_code', $context_code)
+                                      ),
+                                      alias:'grp'
+                                  )
+                                 )
+                        ), array(
+                                 new SearchTerm('id', $badge_type_id),
+                             ));
+                             $result = count($found) > 0;
+                }
+        return $result;
+    }
     public function getBadgetType($context_code, $badge_type_id)
     {
         $result = false;

@@ -18,6 +18,15 @@
                       class="mx-4"></v-text-field>
     </template>
     <template v-slot:[`item.uuid`]="{ item }">
+        <i v-if="!isSorting">
+            <v-btn class="ml-2">
+                <v-icon>mdi-arrow-up</v-icon>
+            </v-btn>
+            <v-btn class="mr-2">
+                <v-icon>mdi-arrow-down</v-icon>
+            </v-btn>
+        </i>
+
         <v-btn v-for="action in actions"
                :key="action.name"
                @click="doEmit(action.name, item)">{{action.text}}</v-btn>

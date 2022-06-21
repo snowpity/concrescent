@@ -3,7 +3,7 @@
 namespace CM3_Lib\Action\Form\Question\Map;
 
 use CM3_Lib\database\SearchTerm;
-use CM3_Lib\models\forms\question;
+use CM3_Lib\util\badgeinfo;
 use CM3_Lib\models\forms\questionmap;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
@@ -23,7 +23,7 @@ final class Search
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private question $question, private questionmap $questionmap)
+    public function __construct(private Responder $responder, private badgeinfo $badgeinfo, private questionmap $questionmap)
     {
     }
 
@@ -39,27 +39,18 @@ final class Search
     {
         $event_id = $request->getAttribute('event_id');
 
-        //Confirm the given question_id belongs to the given event_id
-        if (!$this->question->verifyQuestionBelongsToEvent($params['question_id'], $event_id)) {
-            throw new HttpBadRequestException($request, 'Invalid question_id specified');
+        //Confirm the given badge_type_id belongs to the given event_id
+        if (!$this->badgeinfo->checkBadgeTypeBelongsToEvent($params['context_code'], $params['badge_type_id'])) {
+            throw new HttpBadRequestException($request, 'Invalid context_code/badge_type_id specified');
         }
 
         $whereParts = array(
-            new SearchTerm('question_id', $params['question_id'])
+            new SearchTerm('context_code', $params['context_code']),
+            new SearchTerm('badge_type_id', $params['badge_type_id'])
           //new SearchTerm('active', 1)
         );
-
-        $order = array('context_code' => false,'badge_type_id'=>false);
-
-        $page      = ($request->getQueryParams()['page']?? 0 > 0) ? $request->getQueryParams()['page'] : 1;
-        $limit     = $request->getQueryParams()['itemsPerPage']?? -1; // Number of posts on one page
-        $offset      = ($page - 1) * $limit;
-        if ($offset < 0) {
-            $offset = 0;
-        }
-
         // Invoke the Domain with inputs and retain the result
-        $data = $this->questionmap->Search(array('context_code','badge_type_id'), $whereParts, $order, $limit, $offset);
+        $data = $this->questionmap->Search(array('question_id','required'), $whereParts);
 
         // Build the HTTP response
         return $this->responder

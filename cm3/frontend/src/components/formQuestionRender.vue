@@ -22,15 +22,26 @@
         <p v-if="question.text != ''">{{question.text}}</p>
     </template>
     <template v-if="question.type == 'q'">
+        <p v-if="question.title != ''">
+            <strong>{{question.title}}</strong>
+        </p>
         <blockquote class="blockquote">
-            <p v-if="question.title != ''">
-                <strong>{{question.title}}</strong>
-            </p>
             <p v-if="question.text != ''">{{question.text}}</p>
         </blockquote>
     </template>
     <template v-if="question.type == 'hr'">
-        <v-divider></v-divider>
+        <v-row v-if="question.title != ''">
+            <v-col>
+                <v-divider role="presentation"></v-divider>
+            </v-col>
+            <div class="text-center">
+                <strong>{{question.title}}</strong>
+            </div>
+            <v-col>
+                <v-divider role="presentation"></v-divider>
+            </v-col>
+        </v-row>
+        <v-divider v-else></v-divider>
     </template>
     <template v-if="question.type == 'text'">
         <v-text-field :label="question.title"
@@ -52,6 +63,33 @@
                       :readonly="readonly"
                       v-model="userResponse"
                       :rules="question.isRequired ? RulesURLRequired : RulesURL "></v-text-field>
+    </template>
+    <template v-if="question.type == 'urllist'">
+        <p v-if="question.title != ''">
+            <strong>{{question.title}}</strong>
+        </p>
+        <p v-if="question.text != ''">{{question.text}}</p>
+        <v-list outlined>
+
+            <v-list-item v-for="(item,i) in multiSelectResponse"
+                         :key="i">
+                <v-list-item-content>
+                    <v-text-field v-model="multiSelectResponse[i]"
+                                  append-outer-icon="mdi-close"
+                                  :rules="question.isRequired ? RulesURLRequired : RulesURL "
+                                  @click:append-outer="removeValue(i)"
+                                  @keyup="listValueChanged" />
+                </v-list-item-content>
+            </v-list-item>
+            <v-subheader>
+                <v-spacer />
+                <v-btn @click="addValue"
+                       small>
+                    <v-icon>mdi-plus</v-icon>
+                </v-btn>
+            </v-subheader>
+        </v-list>
+
     </template>
     <template v-if="question.type == 'email'">
         <v-text-field :label="question.title"
@@ -130,13 +168,29 @@ export default {
             (v) => /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/.test(v) || 'URL must be valid',
         ],
     }),
+    methods: {
+        addValue() {
+            var t = this.multiSelectResponse;
+            t.push("");
+            this.multiSelectResponse = t;
+        },
+        removeValue(ix) {
+
+            var t = this.multiSelectResponse;
+            t.splice(ix, 1);
+            this.multiSelectResponse = t;
+        },
+        listValueChanged() {
+            this.multiSelectResponse = this.multiSelectResponse;
+        }
+    },
     computed: {
         listItems() {
             return this.question.values; // .split("\n")
         },
         userResponse: {
             get() {
-                return this.value;
+                return this.value || '';
             },
             set(userResponse) {
                 this.$emit('input', userResponse);
@@ -144,9 +198,16 @@ export default {
         },
         multiSelectResponse: {
             get() {
-                return (this.userResponse || '').split('\n').filter(Boolean) || [];
+                return (this.userResponse || '').split('\n') || [];
+                // if (this.question.type == 'urllist')
+                //     result.push("");
+                console.log("getting response ", result)
+                return result;
             },
             set(multiSelectResponse) {
+                console.log("setting response", multiSelectResponse)
+                if (multiSelectResponse.length > 0 && multiSelectResponse[0] == '')
+                    multiSelectResponse.splice(0, 1);
                 this.userResponse = multiSelectResponse ? multiSelectResponse.join('\n') : '';
             },
         },

@@ -45,6 +45,10 @@ final class Update
             throw new HttpBadRequestException($request, 'Form Question does not belong to the current event!');
         }
 
+        //combine the values back to a string
+        if (is_array($data['values'])) {
+            $data['values'] = implode("\n", $data['values']);
+        }
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->question->Update($data);

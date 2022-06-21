@@ -14,7 +14,7 @@ return function (App $app, $container) {
     //TODO: These permissions aren't right...
     $accessPerm = $container->get(PermCheckEventPerm::class)->withAllowedPerm(PermEvent::Attendee_Manage());
     $app->group(
-        '/Form/Question',
+        '/Form/Question/{context_code}',
         function (RouteCollectorProxy $app) use ($accessPerm) {
             $app->get('', \CM3_Lib\Action\Form\Question\Search::class);
             $app->post('', \CM3_Lib\Action\Form\Question\Create::class)
@@ -27,12 +27,12 @@ return function (App $app, $container) {
         }
     );
     $app->group(
-        '/Form/Question/{question_id}/Map',
+        '/Form/Question/{context_code}/{badge_type_id}/Map',
         function (RouteCollectorProxy $app) use ($accessPerm) {
             $app->get('', \CM3_Lib\Action\Form\Question\Map\Search::class);
-            $app->post('/{context_code}/{badge_type_id}', \CM3_Lib\Action\Form\Question\Map\Create::class)
+            $app->post('/{question_id}', \CM3_Lib\Action\Form\Question\Map\Create::class)
             ->add($accessPerm);
-            $app->delete('/{context_code}/{badge_type_id}', \CM3_Lib\Action\Form\Question\Map\Delete::class)
+            $app->delete('/{question_id}', \CM3_Lib\Action\Form\Question\Map\Delete::class)
             ->add($accessPerm);
         }
     );

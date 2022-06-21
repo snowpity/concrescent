@@ -20,7 +20,7 @@ class question extends \CM3_Lib\database\Table
             'type'			=> new cm_Column(
                 'ENUM',
                 array(
-                    'h1','h2','h3','p','q','he',
+                    'h1','h2','h3','p','q','hr',
                     'text','textarea','url','urllist','email',
                     'radio','checkbox','select','file'
                 ),
