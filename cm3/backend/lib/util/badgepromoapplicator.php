@@ -52,7 +52,7 @@ final class badgepromoapplicator
         //Did we find that code?
         if ($foundCode !== false && count($foundCode) >0) {
             $foundCode = $foundCode[0];
-            $applicableIDs[$code] = explode(',', $foundCode['valid_badge_type_ids']);
+            $this->applicableIDs[$code] = explode(',', $foundCode['valid_badge_type_ids']);
             //Count up how many times this code has been used
             if (!empty($foundCode['quantity'])) {
                 $usedCounts = $this->badge->Search(
@@ -81,7 +81,7 @@ final class badgepromoapplicator
             return true;
         } else {
             $this->loadedPromoCode[$code] = false;
-            $applicableIDs[$code] = false;
+            $this->applicableIDs[$code] = array();
             return false;
         }
     }
@@ -110,7 +110,7 @@ final class badgepromoapplicator
             }
 
             //Does this badge apply?
-            if (!in_array($item['badge_type_id'], $this->applicableIDs) && count($this->applicableIDs)>0) {
+            if (!(!is_null($this->applicableIDs[$code]) && in_array($item['badge_type_id'], $this->applicableIDs[$code])) && count($this->applicableIDs)>0) {
                 $this->resetCode($item);
                 return false;
             }

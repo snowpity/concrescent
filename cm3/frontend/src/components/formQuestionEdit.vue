@@ -166,7 +166,6 @@ export default {
             this.result.values.push("");
         },
         removeValue(ix) {
-            console.log('removing', ix)
             this.result.values.splice(ix, 1);
         }
     },
@@ -175,8 +174,6 @@ export default {
             this.$emit('input', newData);
         },
         value(newValue) {
-
-            console.log("edit question updated", newValue);
             //Splat the input into the form
             this.result.type = newValue.type;
             this.result.title = newValue.title;

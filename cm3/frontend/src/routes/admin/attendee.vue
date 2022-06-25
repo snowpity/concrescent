@@ -2,7 +2,7 @@
 <v-container fluid
              fill-height>
 
-    <v-row class="fill-height">
+    <v-row align="self-start">
         <v-col>
 
             <v-tabs-items :value="subTabIx"
@@ -95,6 +95,9 @@ export default {
         }, {
             text: 'Price',
             value: 'price'
+        }, {
+            text: 'Active',
+            value: 'active'
         }],
         btSelected: {},
         btDialog: false,

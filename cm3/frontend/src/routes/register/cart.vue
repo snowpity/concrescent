@@ -77,6 +77,7 @@
         </v-col>
     </v-row>
     <v-dialog v-model="promoAppliedDialogModal"
+              @click:outside="closepromo"
               width="500">
         <v-card>
             <v-card-title class="headline grey lighten-2"
@@ -585,6 +586,10 @@ export default {
             setTimeout(function() {
                 _this.checkoutCart();
             }, 1000);
+        },
+        closepromo: function() {
+            this.promoAppliedDialog = -1;
+            this.promocodeDialog = false;
         },
         closeerror: function() {
             this.createError = "";

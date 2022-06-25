@@ -53,10 +53,12 @@ final class PaymentBuilder
             'payment_status' => 'NotReady',
             'payment_system' => 'Cash',
             'payment_txn_amt' => -1,
-            'date_created' => null ,
-            'date_modified' => null,
         );
-        $this->cart = array_merge($template, $this->payment->Create($template));
+        $createdcart = $this->payment->Create($template);
+        $this->cart = array_merge($template, $createdcart, $this->payment->GetByID($createdcart['id'], array(
+            'uuid','payment_details',
+            'date_created' ,'date_modified' ,
+        )));
         $this->cart_items = array();
         $cart_payment_txn_amt = 0;
         $this->AllowPay = true;

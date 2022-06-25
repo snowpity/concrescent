@@ -101,7 +101,7 @@
                                           :preview="newQuestionPreview" />
                         <v-toolbar dense>
                             <v-btn icon
-                                   @click="prepCancelNew()">
+                                   @click="cancelNewQuestion()">
                                 <v-icon>mdi-cancel</v-icon>
                             </v-btn>
                             <v-spacer />
@@ -124,8 +124,17 @@
         </v-col>
 
     </v-row>
-    <v-dialog v-model="loading">
-        <v-progress-linear indeterminate />
+    <v-dialog v-model="loading"
+              width="200"
+              height="200"
+              close-delay="1200"
+              content-class="elevation-0"
+              persistent>
+        <v-card-text class="text-center overflow-hidden">
+            <v-progress-circular :size="150"
+                                 class="mb-0"
+                                 indeterminate />
+        </v-card-text>
     </v-dialog>
     <v-dialog v-model="askCancelQuestionEdit"
               max-width="390">
@@ -305,6 +314,10 @@ export default {
             };
             this.newQuestionShow = true;
         },
+        cancelNewQuestion: function() {
+            this.newQuestion = {};
+            this.newQuestionShow = false;
+        },
         saveNewQuestion: function() {
 
             this.newQuestionSaving = true;
@@ -317,6 +330,8 @@ export default {
                     };
                     this.questions.push(this.newQuestion);
                     this.newQuestionSaving = false;
+                    //reset
+                    this.cancelNewQuestion();
                     //If we're viewing a badge, immediately toggle the active state
                     if (this.selectedBadgeType > 0) {
                         this.toggleQuestionActive(results.id);
