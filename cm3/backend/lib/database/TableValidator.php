@@ -109,4 +109,18 @@ class TableValidator
     {
         return $this->lastValidationErrors;
     }
+    public function Assert(&$data)
+    {
+        //Trim all the stringy values
+        array_walk($data, function (&$value, $columnName) {
+            if (isset($this->sourceTable->ColumnDefs[$columnName])
+        && $this->sourceTable->ColumnDefs[$columnName]->GetBindParamCode() != 'b'
+        && is_string($value)) {
+                $value = trim($value);
+            }
+        });
+
+        //Just call the assert function, we've promised to handle it elsewhere...
+        $this->rules->assert($data);
+    }
 }

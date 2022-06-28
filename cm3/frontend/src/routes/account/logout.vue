@@ -8,7 +8,7 @@
         <v-card-actions>
             <v-spacer />
             <v-btn color="green darken-1"
-                   to="/">OK</v-btn>
+                   :to="returnTo">OK</v-btn>
         </v-card-actions>
     </v-card>
 </v-layout>
@@ -27,6 +27,17 @@ export default {
     },
     data() {
         return {};
+    },
+    computed: {
+        returnTo: function() {
+            const currentRoute = this.$router.currentRoute;
+            if (currentRoute.query != undefined && currentRoute.query.returnTo != undefined)
+                return currentRoute.query.returnTo;
+            if (currentRoute.params != undefined && currentRoute.params.returnTo != undefined)
+                return currentRoute.params.returnTo;
+
+            return '/';
+        }
     },
     methods: {
         routeLoaded() {

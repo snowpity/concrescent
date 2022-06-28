@@ -97,12 +97,8 @@
                         <v-card-text>Login Success!</v-card-text>
                         <v-card-actions>
                             <v-spacer></v-spacer>
-                            <v-btn v-if="isAdmin"
-                                   color="green darken-1"
-                                   to="/">OK</v-btn>
-                            <v-btn v-else
-                                   color="green darken-1"
-                                   to="/myBadges">My Badges</v-btn>
+                            <v-btn color="green darken-1"
+                                   :to="returnTo">OK</v-btn>
                         </v-card-actions>
                     </v-card>
                 </v-tab-item>
@@ -151,6 +147,15 @@ export default {
         },
         event_id: function() {
             return this.$store.getters['products/selectedEventId'];
+        },
+        returnTo: function() {
+            const currentRoute = this.$router.currentRoute;
+            if (currentRoute.query != undefined && currentRoute.query.returnTo != undefined)
+                return currentRoute.query.returnTo;
+            if (currentRoute.params != undefined && currentRoute.params.returnTo != undefined)
+                return currentRoute.params.returnTo;
+
+            return this.isAdmin ? '/' : '/myBadges';
         }
     },
     methods: {

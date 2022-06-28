@@ -52,7 +52,7 @@ final class badgepromoapplicator
         //Did we find that code?
         if ($foundCode !== false && count($foundCode) >0) {
             $foundCode = $foundCode[0];
-            $this->applicableIDs[$code] = explode(',', $foundCode['valid_badge_type_ids']);
+            $this->applicableIDs[$code] =array_diff(explode(',', $foundCode['valid_badge_type_ids']), array(""));
             //Count up how many times this code has been used
             if (!empty($foundCode['quantity'])) {
                 $usedCounts = $this->badge->Search(
@@ -110,8 +110,15 @@ final class badgepromoapplicator
             }
 
             //Does this badge apply?
-            if (!(!is_null($this->applicableIDs[$code]) && in_array($item['badge_type_id'], $this->applicableIDs[$code])) && count($this->applicableIDs)>0) {
-                $this->resetCode($item);
+            if (
+                !in_array($item['badge_type_id'], $this->applicableIDs[$code])
+                && count($this->applicableIDs[$code])>0) {
+                if (isset($item['payment_promo_code']) && $code != $item['payment_promo_code']) {
+                    //Re-apply the one they theoretically have already
+                    $this->TryApplyCode($item, $item['payment_promo_code']);
+                } else {
+                    $this->resetCode($item);
+                }
                 return false;
             }
 

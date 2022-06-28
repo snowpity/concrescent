@@ -17,7 +17,7 @@
                 <v-card-actions>
                     <div class="text-truncate">{{product.name}}</div>
                     &nbsp;|&nbsp;
-                    <v-badge :value="product.payment_promo_code"
+                    <v-badge :value="product.payment_promo_code != undefined && product.payment_promo_code.length > 0"
                              color="cyan lighten-3">
                         <template v-slot:badge>
                             <v-icon @click.stop="promoAppliedDialog = idx">mdi-sale</v-icon>
@@ -98,6 +98,7 @@
             <v-card-actions>
                 <v-btn color="red"
                        text
+                       :disabled="disableModifyCart"
                        @click="promoRemove">
                     Remove
                 </v-btn>
@@ -361,7 +362,7 @@
         <v-btn color="primary"
                class="float-right"
                v-if="isLoggedIn"
-               :disabled="canNotCheckout || disableModifyCart"
+               :disabled="canNotCheckout"
                @click="checkout(products)">
             <div v-if="canPay">
                 Checkout:
@@ -463,6 +464,16 @@ export default {
             return this.checkoutStatus.errors.reduce((result, currentItem) => result | currentItem.length > 0, false);
         },
         canNotCheckout: function() {
+            if (this.checkoutStatus != null)
+                switch (this.checkoutStatus.state) {
+                    case 'AwaitingApproval':
+                    case 'Cancelled':
+                    case 'Rejected':
+                    case 'Completed':
+                    case 'Refunded':
+                    case 'RefundedInPart':
+                        return true;
+                }
             return this.itemsHaveErrors || this.products.length == 0;
         },
         disableModifyCart: function() {
@@ -470,6 +481,7 @@ export default {
                 switch (this.checkoutStatus.state) {
                     case 'AwaitingApproval':
                     case 'Cancelled':
+                    case 'Incomplete':
                     case 'Rejected':
                     case 'Completed':
                     case 'Refunded':
@@ -553,6 +565,7 @@ export default {
         },
         promoRemove: function() {
             this.removePromoFromProduct(this.promoAppliedDialog);
+            this.saveCart();
             this.promoAppliedDialog = -1;
         },
         confirmRemoveBadge: function() {

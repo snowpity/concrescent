@@ -118,6 +118,7 @@ final class PaymentBuilder
             $this->cart['payment_details'] = '';
             $this->pp->SaveOrder($this->cart['payment_details']);
         }
+        unset($this->cart['uuid']);
 
         //Save the current status
         $this->payment->Update($this->cart);

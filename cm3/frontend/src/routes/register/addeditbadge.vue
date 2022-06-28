@@ -100,90 +100,9 @@
 
     <v-stepper-step :editable="reachedStep >= 2"
                     :complete="step > 2"
-                    step="2">Additional Contact Information</v-stepper-step>
+                    step="2">Choose your Add-ons <small v-if="addonsSelected.length">{{addonsSelected.length}} Selected</small></v-stepper-step>
+
     <v-stepper-content step="2">
-        <h3>Notify email</h3>
-        <v-row>
-            <v-col cols="12"
-                   sm="6"
-                   md="6">
-                <v-text-field label="Alternate Email address to send confirmation to"
-                              v-model="notify_email"
-                              :rules="RulesEmail"></v-text-field>
-            </v-col>
-            <v-col cols="12"
-                   sm="6"
-                   md="6">
-                <v-checkbox dense
-                            hide-details
-                            v-model="can_transfer">
-                    <template v-slot:label>
-                        <small>Allow badge transfer to the owner of this email.</small>
-                    </template>
-                </v-checkbox>
-            </v-col>
-        </v-row>
-
-        <h3>In case of Emergency</h3>
-        <v-row>
-
-            <v-col cols="12"
-                   sm="6"
-                   md="3">
-                <v-text-field label="Emergency Contact Name"
-                              v-model="ice_name"></v-text-field>
-            </v-col>
-            <v-col cols="12"
-                   sm="6"
-                   md="3">
-                <v-text-field label="Relationship"
-                              v-model="ice_relationship"></v-text-field>
-            </v-col>
-            <v-col cols="12"
-                   sm="6"
-                   md="3">
-                <v-text-field label="Email address"
-                              v-model="ice_email_address"
-                              :rules="RulesEmail"></v-text-field>
-            </v-col>
-            <v-col cols="12"
-                   sm="6"
-                   md="3">
-                <v-text-field label="Phone Number"
-                              v-model="ice_phone_number"
-                              :rules="RulesPhone"></v-text-field>
-            </v-col>
-        </v-row>
-        <v-btn color="primary"
-               @click="step = 3">Continue</v-btn>
-        <v-btn text
-               @click="step = 1">Back</v-btn>
-    </v-stepper-content>
-
-    <v-stepper-step :editable="reachedStep >= 3"
-                    :complete="step > 3"
-                    step="3">Additional Information</v-stepper-step>
-
-    <v-stepper-content step="3">
-        <v-form ref="fAdditionalInfo"
-                v-model="validAdditionalInfo">
-            <formQuestions v-model="form_responses"
-                           :questions="badgeQuestions"
-                           no-data-text="Nothing else needed at the moment!" />
-        </v-form>
-
-        <v-btn color="primary"
-               :disabled="!validAdditionalInfo"
-               @click="step = 4">Continue</v-btn>
-        <v-btn text
-               @click="step = 2">Back</v-btn>
-    </v-stepper-content>
-
-    <v-stepper-step :editable="reachedStep >= 4"
-                    :complete="step > 4"
-                    step="4">Choose your Add-ons <small v-if="addonsSelected.length">{{addonsSelected.length}} Selected</small></v-stepper-step>
-
-    <v-stepper-content step="4">
         <v-expansion-panels v-model="addonDisplayState"
                             multiple
                             v-if="badgeAddons.length">
@@ -223,12 +142,155 @@
         <div v-else>
             <h3>No addons are currently available for the selected badge type. Check back later if they become available!</h3>
         </div>
+
         <v-btn color="primary"
-               @click="addBadgeToCart">{{ isUpdatingItem ? "Update in " :  "Add to "}}
+               @click="step = 3">Continue</v-btn>
+        <v-btn text
+               @click="step = 1">Back</v-btn>
+    </v-stepper-content>
+
+    <v-stepper-step :editable="reachedStep >= 3"
+                    :complete="step > 3"
+                    step="3">Contact Information</v-stepper-step>
+    <v-stepper-content step="3">
+
+        <v-form ref="fContactInfo"
+                v-model="validContactInfo">
+            <h3>Badge Owner</h3>
+            <v-row>
+                <v-col v-if="!isLoggedIn">
+                    <router-link to="/login?returnTo=/addbadge">Log in</router-link> or create profile:
+                    <profileForm v-model="newAccountData" />
+                </v-col>
+                <v-col v-else>
+                    <v-list-item>
+                        <b>Logged in as:</b>&nbsp;&nbsp; {{LoggedInName}} &nbsp;&nbsp;
+                        <router-link to="/account/logout?returnTo=/addbadge"> Not you?</router-link>
+                    </v-list-item>
+                </v-col>
+
+
+                <v-dialog transition="dialog-top-transition"
+                          max-width="600"
+                          v-model="isCreateError">
+                    <v-card>
+                        <v-toolbar color="error"
+                                   dark>
+                            <h1>Profile creation error</h1>
+                        </v-toolbar>
+                        <v-card-text>
+                            <div class="text-h5 pa-4">{{createError}}</div>
+                        </v-card-text>
+                        <v-card-actions>
+                            <v-btn color="green"
+                                   :disabled="sendingmagicemail"
+                                   :loading="sendingmagicemail"
+                                   @click="SendMagicLink">Send magic link?</v-btn>
+                            <v-spacer />
+                            <v-btn color="primary"
+                                   @click="createError = ''">Try again</v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
+                <v-dialog max-width="600"
+                          v-model="sentmagicmail">
+                    <v-card>
+                        <v-toolbar color="primary"
+                                   dark>
+                            <h1>Magic link sent</h1>
+                        </v-toolbar>
+                        <v-card-text>
+                            <v-card-text>If you have purchased any badges with the contact email <b>{{newAccountData.email_address}}</b>, you should receive an email shortly to log in.</v-card-text>
+                        </v-card-text>
+                        <v-card-actions>
+                            <v-spacer />
+                            <v-btn color="primary"
+                                   @click="closeerror">Ok</v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
+            </v-row>
+            <h3>Notify email</h3>
+            <v-row>
+                <v-col cols="12"
+                       sm="6"
+                       md="6">
+                    <v-text-field label="Additional Email address to send confirmation to"
+                                  v-model="notify_email"
+                                  :rules="RulesEmail"></v-text-field>
+                </v-col>
+                <v-col cols="12"
+                       sm="6"
+                       md="6">
+                    <v-checkbox dense
+                                hide-details
+                                v-model="can_transfer">
+                        <template v-slot:label>
+                            <small>Allow badge transfer to the owner of this email.</small>
+                        </template>
+                    </v-checkbox>
+                </v-col>
+            </v-row>
+
+            <h3>In case of Emergency</h3>
+            <v-row>
+
+                <v-col cols="12"
+                       sm="6"
+                       md="3">
+                    <v-text-field label="Emergency Contact Name"
+                                  v-model="ice_name"></v-text-field>
+                </v-col>
+                <v-col cols="12"
+                       sm="6"
+                       md="3">
+                    <v-text-field label="Relationship"
+                                  v-model="ice_relationship"></v-text-field>
+                </v-col>
+                <v-col cols="12"
+                       sm="6"
+                       md="3">
+                    <v-text-field label="Email address"
+                                  v-model="ice_email_address"
+                                  :rules="RulesEmail"></v-text-field>
+                </v-col>
+                <v-col cols="12"
+                       sm="6"
+                       md="3">
+                    <v-text-field label="Phone Number"
+                                  v-model="ice_phone_number"
+                                  :rules="RulesPhone"></v-text-field>
+                </v-col>
+            </v-row>
+        </v-form>
+        <v-btn color="primary"
+               :disabled="!validContactInfo"
+               :loading="creatingAccount"
+               @click="checkCreateAccount">Continue</v-btn>
+        <v-btn text
+               @click="step = 2">Back</v-btn>
+    </v-stepper-content>
+
+    <v-stepper-step :editable="reachedStep >= 4"
+                    :complete="step > 4"
+                    step="4">Additional Information</v-stepper-step>
+
+    <v-stepper-content step="4">
+        <v-form ref="fAdditionalInfo"
+                v-model="validAdditionalInfo">
+            <formQuestions v-model="form_responses"
+                           :questions="badgeQuestions"
+                           no-data-text="Nothing else needed at the moment!" />
+        </v-form>
+
+        <v-btn color="primary"
+               :disabled="!validAdditionalInfo"
+               @click="addBadgeToCart">{{ isUpdatingItem ? "Update badge in " :  "Add badge to "}}
             Cart</v-btn>
         <v-btn text
                @click="step = 3">Back</v-btn>
     </v-stepper-content>
+
 
 </v-stepper>
 </template>
@@ -243,6 +305,7 @@ import {
 import formQuestions from '@/components/formQuestions.vue';
 import badgeTypeSelector from '@/components/badgeTypeSelector.vue';
 import badgePerksRender from '@/components/badgePerksRender.vue';
+import profileForm from '@/components/profileForm.vue';
 
 export default {
     data() {
@@ -267,6 +330,12 @@ export default {
             badge_type_id: -1,
             menuBDay: false,
 
+            validContactInfo: false,
+            newAccountData: {},
+            creatingAccount: false,
+            createError: "",
+            sendingmagicemail: false,
+            sentmagicmail: false,
             notify_email: '',
             can_transfer: false,
             ice_name: '',
@@ -304,6 +373,10 @@ export default {
         };
     },
     computed: {
+        ...mapGetters('mydata', {
+            'isLoggedIn': 'getIsLoggedIn',
+            'LoggedInName': 'getLoggedInName',
+        }),
         ...mapGetters('products', {
             badgeContexts: 'badgeContexts',
             currentContext: 'selectedbadgecontext',
@@ -433,6 +506,14 @@ export default {
             result.sort((a, b) => a.order - b.order);
             return result;
         },
+        isCreateError: {
+            get() {
+                return this.createError.length > 0;
+            },
+            set(newval) {
+                this.createError = newval ? "???" : "";
+            }
+        },
     },
     watch: {
         step(newStep) {
@@ -471,12 +552,43 @@ export default {
         },
     },
     methods: {
+        ...mapActions('mydata', {
+            'submitCreateAccount': 'createAccount',
+            'sendRetrieveBadgeEmail': 'sendRetrieveBadgeEmail',
+        }),
         ...mapActions('cart', [
             'addProductToCart',
         ]),
         saveBDay(date) {
             this.$refs.menuBDay.save(date);
             this.date_of_birth = this.date_of_birth;
+        },
+        checkCreateAccount: function() {
+            if (this.isLoggedIn) {
+                this.step = 4;
+                return;
+            }
+            this.creatingAccount = true;
+            this.submitCreateAccount(this.newAccountData).then((token) => {
+                this.creatingAccount = false;
+                //They should be logged in now, so move on to the next step
+                this.step = 4;
+            }).catch((error) => {
+                this.createError = error.error.message;
+                this.creatingAccount = false;
+            })
+        },
+        SendMagicLink() {
+            this.sendingmagicemail = true;
+            this.sendRetrieveBadgeEmail(this.newAccountData.email_address).then(() => {
+                this.sentmagicmail = true;
+                this.sendingmagicemail = false;
+            });
+        },
+        closeerror: function() {
+            this.createError = "";
+            this.sentmagicmail = false;
+            this.creatingAccount = false;
         },
         async loadBadge() {
             let cartItem;
@@ -495,13 +607,15 @@ export default {
                 cartItem = this.$store.getters['mydata/getBadgeAsCart'](idString);
                 this.editBadgePriorBadgeId = cartItem.badge_type_id;
                 this.reachedStep = 4;
-            } else if (this.cartIx == undefined) {
+            } else if (isNaN(this.cartIx)) {
                 // It's a new badge or they're back here from a refresh/navigation
                 console.log('refreshed')
                 cartItem = this.$store.getters['cart/getCurrentlyEditingItem'];
 
                 // Should only be needed if we didn't have a selectedBadge?
                 // this.selectedBadge = this.badges.findIndex(badge => badge.id == cartItem.badge_type_id);
+            } else {
+                console.log('Something happen?', this.cartIx)
             }
             //Pre-fill the context code
             if (this.$route.params.context_code != undefined)
@@ -589,6 +703,7 @@ export default {
         badgeTypeSelector,
         formQuestions,
         badgePerksRender,
+        profileForm,
     },
     created() {
         this.loadBadge();

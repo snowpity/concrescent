@@ -280,11 +280,13 @@ export default {
                     return this.isLoggedIn;
                 }
             }, {
-                route: "/purchaseHistory",
+                route: "/account/history",
                 icon: "mdi-shopping-search",
                 label: "Purchase History",
                 show: () => {
-                    return this.isLoggedIn;
+                    return false;
+                    //Not ready yet
+                    //return this.isLoggedIn;
                 }
             }, {
                 route: "/settings",

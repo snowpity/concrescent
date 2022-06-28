@@ -38,7 +38,15 @@ class CreateAccount
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
-        $data['event_id'] = $data['event_id'] ?? null;
+
+        //Validate that the contact information is somewhat sane
+        $v = new TableValidator($this->contact);
+        $v->addColumnValidator('event_id', v::Digit(), true);
+        $v->addColumnValidator('email_address', v::Email(), true);
+        if (!$v->Validate($data)) {
+            throw new HttpBadRequestException($request, 'Profile information error.');
+            //throw new HttpBadRequestException($request, implode($v->GetErrors()));
+        }
 
         //Check if there's an account already
         $existing = $this->contact->Search(null, array(new SearchTerm('email_address', $data['email_address'])), limit:1);
@@ -46,11 +54,7 @@ class CreateAccount
             throw new HttpBadRequestException($request, 'Contact already exists with that email.');
         }
 
-        $v = new TableValidator($this->contact);
-        $v->addColumnValidator('email_address', v::Email(), true);
-        if (!$v->Validate($data)) {
-            throw new HttpBadRequestException($request, $v->GetErrors());
-        }
+        $data['event_id'] = $data['event_id'] ?? null;
 
         $result = $this->contact->Create($data);
 
