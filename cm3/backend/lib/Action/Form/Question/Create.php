@@ -55,6 +55,8 @@ final class Create
         ), limit:1);
         if (count($orderList) > 0) {
             $data['order'] = $orderList[0]['order'];
+        } else {
+            $data['order'] = 1;
         }
 
         //TODO: Validate group context validity

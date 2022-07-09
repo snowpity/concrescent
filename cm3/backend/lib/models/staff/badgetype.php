@@ -19,8 +19,8 @@ class badgetype extends \CM3_Lib\database\Table
             'price'           => new cm_Column('DECIMAL', '7,2', false, defaultValue: 0),
             'payable_onsite'  => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
             'payment_deferred'=> new cm_Column('BOOLEAN', null, false, defaultValue: 'true'), //Whether they need to be accepted in order to pay
-            'start_date'      => new cm_Column('DATE', null, false),
-            'end_date'        => new cm_Column('DATE', null, false),
+            'start_date'      => new cm_Column('DATE', null, true),
+            'end_date'        => new cm_Column('DATE', null, true),
             'min_age'         => new cm_Column('INT', null, true),
             'max_age'         => new cm_Column('INT', null, true),
             'date_created'    => new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP'),

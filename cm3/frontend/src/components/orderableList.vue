@@ -37,7 +37,6 @@
                :color="action.color"
                @click="doEmit(action.name)"
                class="ma-2">{{action.text}}</v-btn>
-        {{isSorting}}
     </template>
 </v-data-table>
 </template>
