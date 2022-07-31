@@ -6,92 +6,35 @@
                     step="1">Badge Information <small>{{compiledBadge | badgeDisplayName}} &mdash; {{ badges[selectedBadge] ? badges[selectedBadge].name: "Nothing yet!" | subname }}</small></v-stepper-step>
     <v-stepper-content step="1">
 
-        <v-form ref="fGenInfo"
-                v-model="validGenInfo">
-            <v-row>
-                <v-col cols="12"
-                       md="6">
-                    <v-text-field v-model="real_name"
-                                  :counter="500"
-                                  :rules="RulesName"
-                                  label="Real Name"
-                                  required></v-text-field>
-                </v-col>
-
-                <v-col cols="12"
-                       md="6">
-                    <v-text-field v-model="fandom_name"
-                                  :counter="255"
-                                  :rules="RulesNameFandom"
-                                  label="Fandom Name (Optional)"></v-text-field>
-                </v-col>
-                <v-col cols="12"
-                       md="6">
-                    <v-select v-if="fandom_name"
-                              v-model="name_on_badge"
-                              :rules="RulesNameDisplay"
-                              :items="name_on_badgeType"
-                              label="Display on badge"></v-select>
-                </v-col>
-            </v-row>
-            <v-row>
-                <v-col cols="12"
-                       md="6">
-                    <v-menu ref="menuBDay"
-                            v-model="menuBDay"
-                            :close-on-content-click="false"
-                            transition="scale-transition"
-                            offset-y
-                            min-width="290px">
-                        <template v-slot:activator="{ on }">
-                            <v-text-field v-model="date_of_birth"
-                                          type="date"
-                                          label="Date of Birth"
-                                          v-on="on"
-                                          :rules="RulesRequired"></v-text-field>
-                        </template>
-                        <v-date-picker ref="pickerBDay"
-                                       v-model="date_of_birth"
-                                       :max="new Date().toISOString().substr(0, 10)"
-                                       min="1920-01-01"
-                                       @change="saveBDay"
-                                       :active-picker.sync="bdayActivePicker"></v-date-picker>
-                    </v-menu>
-                </v-col>
-                <v-col cols="12"
-                       md="6">
-                    <v-btn @click="resetBadge"
-                           class="float-right">Reset Form</v-btn>
-                </v-col>
-            </v-row>
-            <v-select :items="badgeContexts"
-                      :flat="true"
-                      v-model="context_code"
-                      item-text="name"
-                      item-value="context_code"
-                      no-data-text="Loading...">
-                <template v-slot:prepend>
-                    <h3 class="flex-sm-grow-1 flex-sm-shrink-0 mr-4">Badge Type:</h3>
-                </template>
-            </v-select>
-            <badgeTypeSelector v-model="selectedBadge"
-                               :badges="badges"
-                               no-data-text="No badges currently available!"
-                               :editBadgePriorBadgeId="editBadgePriorBadgeId" />
-            <v-sheet v-if="selectedBadge != null"
-                     color="grey lighten-4"
-                     tile>
-                <v-card>
-                    <v-card-title class="title">Selected:
-                        {{ badges[selectedBadge] ? badges[selectedBadge].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
-                    </v-card-title>
-                    <v-card-text class="text--primary">
-                        <badgePerksRender :description="badges[selectedBadge] ? badges[selectedBadge].description : '' "
-                                          :rewardlist="rewardlist"></badgePerksRender>
-                    </v-card-text>
-                </v-card>
-            </v-sheet>
-        </v-form>
+        <badgeGenInfo v-model="badgeGenInfoData"
+                      @valid="setValidGenInfo" />
+        <v-select :items="badgeContexts"
+                  :flat="true"
+                  v-model="context_code"
+                  item-text="name"
+                  item-value="context_code"
+                  no-data-text="Loading...">
+            <template v-slot:prepend>
+                <h3 class="flex-sm-grow-1 flex-sm-shrink-0 mr-4">Badge Type:</h3>
+            </template>
+        </v-select>
+        <badgeTypeSelector v-model="selectedBadge"
+                           :badges="badges"
+                           no-data-text="No badges currently available!"
+                           :editBadgePriorBadgeId="editBadgePriorBadgeId" />
+        <v-sheet v-if="selectedBadge != null"
+                 color="grey lighten-4"
+                 tile>
+            <v-card>
+                <v-card-title class="title">Selected:
+                    {{ badges[selectedBadge] ? badges[selectedBadge].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
+                </v-card-title>
+                <v-card-text class="text--primary">
+                    <badgePerksRender :description="badges[selectedBadge] ? badges[selectedBadge].description : '' "
+                                      :rewardlist="rewardlist"></badgePerksRender>
+                </v-card-text>
+            </v-card>
+        </v-sheet>
 
         <v-btn color="primary"
                :disabled="!validGenInfo"
@@ -106,6 +49,7 @@
         <v-expansion-panels v-model="addonDisplayState"
                             multiple
                             v-if="badgeAddons.length">
+            <h3>Optional addons currently available for the selected badge:</h3>
             <v-expansion-panel v-for="addon in badgeAddons"
                                v-bind:key="addon.id">
                 <v-expansion-panel-header>
@@ -283,14 +227,26 @@
                            no-data-text="Nothing else needed at the moment!" />
         </v-form>
 
-        <v-btn color="primary"
-               :disabled="!validAdditionalInfo"
-               @click="addBadgeToCart">{{ isUpdatingItem ? "Update badge in " :  "Add badge to "}}
-            Cart</v-btn>
         <v-btn text
                @click="step = 3">Back</v-btn>
     </v-stepper-content>
 
+    <v-footer fixed
+              cols="12">
+        <v-btn color="red"
+               @click="resetBadge">
+            <v-icon>mdi-bomb</v-icon>
+        </v-btn>
+        <v-spacer></v-spacer>
+
+        <v-spacer></v-spacer>
+
+        <v-btn color="primary"
+               :disabled="!badgeOk"
+               @click="addBadgeToCart">{{ isUpdatingItem ? "Update badge in " :  "Add badge to "}}
+            Cart</v-btn>
+
+    </v-footer>
 
 </v-stepper>
 </template>
@@ -302,6 +258,7 @@ import {
     mapActions
 } from 'vuex';
 
+import badgeGenInfo from '@/components/badgeGenInfo.vue';
 import formQuestions from '@/components/formQuestions.vue';
 import badgeTypeSelector from '@/components/badgeTypeSelector.vue';
 import badgePerksRender from '@/components/badgePerksRender.vue';
@@ -319,12 +276,12 @@ export default {
             editBadgePriorAddons: [],
 
             validGenInfo: false,
-            real_name: '',
-            fandom_name: '',
-            name_on_badge: 'Real Name Only',
-            name_on_badgeType: ['Fandom Name Large, Real Name Small', 'Real Name Large, Fandom Name Small', 'Real Name Only', 'Fandom Name Only'],
-            date_of_birth: null,
-            bdayActivePicker: 'YEAR',
+            badgeGenInfoData: {
+                real_name: '',
+                fandom_name: '',
+                name_on_badge: 'Real Name Only',
+                date_of_birth: "",
+            },
             selectedBadge: null,
             context_code: 'A',
             badge_type_id: -1,
@@ -393,8 +350,8 @@ export default {
             if (this.products == undefined) return [];
             let badges = JSON.parse(JSON.stringify(this.products));
             // First, do we have a date_of_birth?
-            const bday = new Date(this.date_of_birth);
-            if (this.date_of_birth && bday) {
+            const bday = new Date(this.badgeGenInfoData.date_of_birth);
+            if (this.badgeGenInfoData.date_of_birth && bday) {
                 badges = badges.filter((badge) => {
                     if (!(
                             (badge['min_birthdate'] != null && bday < new Date(badge['min_birthdate'])) ||
@@ -431,10 +388,7 @@ export default {
                 editBadgePriorBadgeId: this.editBadgePriorBadgeId,
                 editBadgePriorAddons: this.editBadgePriorAddons,
 
-                real_name: this.real_name,
-                fandom_name: this.fandom_name,
-                name_on_badge: this.name_on_badge,
-                date_of_birth: this.date_of_birth,
+                ...this.badgeGenInfoData,
                 context_code: this.context_code,
                 badge_type_id: this.badge_type_id,
 
@@ -451,6 +405,12 @@ export default {
                 }),
 
             };
+        },
+        badgeOk() {
+            return this.validGenInfo &&
+                this.validContactInfo &&
+                this.validAdditionalInfo &&
+                this.reachedStep >= 4
         },
         isUpdatingItem() {
             return (this.cartIx != null && this.cartIx > -1) || (this.id != null && this.id > -1);
@@ -520,11 +480,7 @@ export default {
             this.reachedStep = Math.max(this.reachedStep, newStep);
             this.autoSaveBadge();
         },
-        menuBDay(val) {
-            // Whenever opening the picker, always reset it back to start with the Year
-            val && setTimeout(() => (this.bdayActivePicker = 'YEAR'));
-        },
-        date_of_birth() {
+        'badgeGenInfoData.date_of_birth': function() {
             this.checkBadge();
         },
         selectedBadge(val) {
@@ -634,6 +590,14 @@ export default {
                 badge_type_id = cartItem.badge_type_id || 0;
                 let addons = cartItem.addons || [];
                 // delete cartItem.badge_type_id;
+                //Import the general badge info
+                cartItem.badgeGenInfoData = {
+                    real_name: cartItem.real_name || "",
+                    fandom_name: cartItem.fandom_name || "",
+                    name_on_badge: cartItem.name_on_badge || "",
+                    date_of_birth: cartItem.date_of_birth || "",
+                };
+                console.log('new data', cartItem);
                 Object.assign(this, cartItem);
                 // Special props
                 const _this = this;
@@ -698,8 +662,12 @@ export default {
         badgeAddonPriorSelected(addonid) {
             return this.editBadgePriorAddons.indexOf(addonid) != -1;
         },
+        setValidGenInfo(isValid) {
+            this.validGenInfo = isValid;
+        }
     },
     components: {
+        badgeGenInfo,
         badgeTypeSelector,
         formQuestions,
         badgePerksRender,

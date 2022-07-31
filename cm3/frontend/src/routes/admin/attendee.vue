@@ -1,56 +1,97 @@
 <template>
-<v-container fluid
+<v-tabs-items :value="subTabIx"
+              touchless>
+    <v-tab-item key="0">
+        <badgeSearchList apiPath="Attendee/Badge"
+                         context="A"
+                         :AddHeaders="listAddHeaders"
+                         :RemoveHeaders="listRemoveHeaders"
+                         :isEditingItem="bEdit || bPrint"
+                         :actions="listActions"
+                         @edit="editBadge" />
+
+        <v-dialog v-model="bEdit"
+                  fullscreen
+                  hide-overlay
+                  persistent>
+            <v-card tile>
+
+                <v-toolbar dark
+                           flat
+                           color="primary">
+                    <v-btn icon
+                           dark
+                           @click="bEdit = false">
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                    <v-toolbar-title>Edit Badge</v-toolbar-title>
+                    <v-spacer></v-spacer>
+                    <v-toolbar-items>
+                        <v-btn dark
+                               text
+                               @click="bEdit = false">
+                            Save
+                        </v-btn>
+                    </v-toolbar-items>
+                </v-toolbar>
+
+                <editBadgeAdmin v-model="bSelected" />
+            </v-card>
+        </v-dialog>
+    </v-tab-item>
+    <v-tab-item key="1">
+        <orderableList apiPath="Attendee/BadgeType"
+                       :AddHeaders="btAddHeaders"
+                       :actions="btActions"
+                       :footerActions="btFooterActions"
+                       :isEditingItem="btDialog"
+                       @edit="editBadgeType"
+                       @create="createBadgeType" />
+
+        <v-dialog v-model="btDialog"
+                  persistent>
+
+            <v-card>
+                <v-card-title class="headline">Edit Badge Type</v-card-title>
+                <v-card-text>
+
+                    <badgeTypeForm v-model="btSelected" />
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="default"
+                           @click="btDialog = false">Cancel</v-btn>
+                    <v-btn color="primary"
+                           @click="saveBadgeType">Save</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+    </v-tab-item>
+    <v-tab-item key="2">
+        <formQuestionEditList context_code="A" />
+    </v-tab-item>
+
+    <v-dialog v-model="loading"
+              width="200"
+              height="200"
+              close-delay="1200"
+              content-class="elevation-0"
+              persistent>
+        <v-card-text class="text-center overflow-hidden">
+            <v-progress-circular :size="150"
+                                 class="mb-0"
+                                 indeterminate />
+        </v-card-text>
+    </v-dialog>
+</v-tabs-items>
+<!-- <v-container fluid
              fill-height>
 
-    <v-row align="self-start">
-        <v-col>
-
-            <v-tabs-items :value="subTabIx"
-                          touchless>
-                <v-tab-item key="0">
-                    <badgeSearchList apiPath="Attendee/Badge"
-                                     context="A"
-                                     :AddHeaders="listAddHeaders"
-                                     :RemoveHeaders="listRemoveHeaders"
-                                     :isEditingItem="bEdit || bPrint"
-                                     :actions="listActions"
-                                     @edit="editBadge" />
-                </v-tab-item>
-                <v-tab-item key="1">
-                    <orderableList apiPath="Attendee/BadgeType"
-                                   :AddHeaders="btAddHeaders"
-                                   :actions="btActions"
-                                   :footerActions="btFooterActions"
-                                   :isEditingItem="btDialog"
-                                   @edit="editBadgeType"
-                                   @create="createBadgeType" />
-
-                    <v-dialog v-model="btDialog"
-                              persistent>
-
-                        <v-card>
-                            <v-card-title class="headline">Edit Badge Type</v-card-title>
-                            <v-card-text>
-
-                                <badgeTypeForm v-model="btSelected" />
-                            </v-card-text>
-                            <v-card-actions>
-                                <v-spacer></v-spacer>
-                                <v-btn color="default"
-                                       @click="btDialog = false">Cancel</v-btn>
-                                <v-btn color="primary"
-                                       @click="saveBadgeType">Save</v-btn>
-                            </v-card-actions>
-                        </v-card>
-                    </v-dialog>
-                </v-tab-item>
-                <v-tab-item key="2">
-                    <formQuestionEditList context_code="A" />
-                </v-tab-item>
-            </v-tabs-items>
+    <v-row>
+        <v-col align-self="start">
         </v-col>
     </v-row>
-</v-container>
+</v-container> -->
 </template>
 <script>
 import {
@@ -64,13 +105,15 @@ import badgeSearchList from '@/components/badgeSearchList.vue';
 import orderableList from '@/components/orderableList.vue';
 import badgeTypeForm from '@/components/badgeTypeForm.vue';
 import formQuestionEditList from '@/components/formQuestionEditList.vue';
+import editBadgeAdmin from '@/components/editBadgeAdmin.vue';
 
 export default {
     components: {
         badgeSearchList,
         orderableList,
         badgeTypeForm,
-        formQuestionEditList
+        formQuestionEditList,
+        editBadgeAdmin
     },
     props: [
         'subTabIx'
@@ -84,6 +127,7 @@ export default {
             text: 'Secondary Email',
             value: 'notify_email'
         }],
+        bSelected: {},
         bEdit: false,
         bPrint: false,
         btAddHeaders: [{
@@ -101,7 +145,7 @@ export default {
         }],
         btSelected: {},
         btDialog: false,
-        btLoading: false,
+        loading: false,
 
     }),
     computed: {
@@ -110,6 +154,7 @@ export default {
         },
         listActions: function() {
             var result = [];
+            //TODO: Detect permissions
             result.push({
                 name: "edit",
                 text: "Edit"
@@ -145,22 +190,31 @@ export default {
         },
         editBadge: function(selectedBadge) {
             console.log(selectedBadge);
-            this.btSelected = selectedBadge;
+            let that = this;
+            that.loading = false;
+            admin.genericGet(this.authToken, 'Attendee/Badge/' + selectedBadge.id, null, function(editBadge) {
+                console.log('loaded badge', editBadge)
+                that.bSelected = editBadge;
+                that.loading = false;
+                that.bEdit = true;
+            }, function() {
+                that.loading = false;
+            })
         },
         createBadgeType: function() {
             this.btDialog = true;
             this.btSelected = {};
         },
         editBadgeType: function(selectedBadgeType) {
-            this.btLoading = true;
+            this.loading = true;
             this.btDialog = true;
             var that = this;
             admin.genericGet(this.authToken, 'Attendee/BadgeType/' + selectedBadgeType.id, null, function(editBt) {
 
                 that.btSelected = editBt;
-                that.btLoading = false;
+                that.loading = false;
             }, function() {
-                that.btLoading = false;
+                that.loading = false;
             })
         },
         saveBadgeType: function() {
@@ -172,10 +226,10 @@ export default {
             admin.genericPost(this.authToken, url, this.btSelected, function(editBt) {
 
                 that.btSelected = editBt;
-                that.btLoading = false;
+                that.loading = false;
                 that.btDialog = false;
             }, function() {
-                that.btLoading = false;
+                that.loading = false;
             })
         }
     },

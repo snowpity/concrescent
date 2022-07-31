@@ -124,6 +124,7 @@ const actions = {
             await dispatch('getContextQuestions', state.badgecontextselected.context_code);
             await dispatch('getContextAddons', state.badgecontextselected.context_code);
 
+            resolve()
         })
     },
     getContextBadges({
