@@ -16,7 +16,7 @@ export default {
             })
             .catch(function(error) {
                 if (typeof errorCb != "undefined")
-                    errorCb(response.response.data);
+                    errorCb(error.response.data);
             })
     },
 
@@ -36,6 +36,20 @@ export default {
     },
     genericPut(token, path, data, cb, errorCb) {
         axios.put(global.config.apiHostURL + path, data, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then(function(response) {
+                cb(response.data);
+            })
+            .catch(function(error) {
+                if (typeof errorCb != "undefined")
+                    errorCb(response.response.data);
+            })
+    },
+    genericDelete(token, path, cb, errorCb) {
+        axios.delete(global.config.apiHostURL + path, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

@@ -49,7 +49,10 @@ final class badgevalidator
                 $v = new TableValidator($this->a_badge);
                 //Add the badge-type validations
                 if (!empty($item['badge_type_id'])) {
-                    $this->AddBadgeValidations($v, $this->a_badge_type->GetByID($item['badge_type_id'], $this->getBadgeTypeView()), $item);
+                    $badgeType = $this->a_badge_type->GetByID($item['badge_type_id'], $this->getBadgeTypeView());
+                    if ($badgeType !== false) {
+                        $this->AddBadgeValidations($v, $badgeType, $item);
+                    }
                 }
 
 

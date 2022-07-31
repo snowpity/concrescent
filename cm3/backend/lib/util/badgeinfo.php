@@ -116,6 +116,21 @@ final class badgeinfo
         switch ($context_code) {
             case 'A':
                 $result =  $this->getASpecificBadge($id, $this->a_badge, $this->a_badge_type, 'A', $full ? $this->badgeViewFullAddAttendee() : null);
+
+                $result['addons'] = [];
+                $a_addons = $this->a_addonpurchase->Search(array(
+                    'addon_id',
+                    'payment_status'
+                ), array(
+                    new SearchTerm('attendee_id', $id)
+                ));
+                foreach ($a_addons as $addon) {
+                    $result['addons'][] = array(
+                        'addon_id' => $addon['addon_id'],
+                        'addon_payment_status' => $addon['payment_status']
+                    );
+                }
+
                 break;
             case 'S':
                 $result =  $this->getASpecificBadge($id, $this->s_badge, $this->s_badge_type, 'S', $full ? $this->badgeViewFullAddStaff() : null);
@@ -127,6 +142,8 @@ final class badgeinfo
         if ($result === false || !$full) {
             return $result;
         }
+        //Add in form responses
+        $result['form_responses'] = $this->GetSpecificBadgeResponses($id, $context_code);
         return $this->addComputedColumns($result, true);
     }
 
@@ -470,7 +487,35 @@ final class badgeinfo
             $badge = $this->addComputedColumns($badge, false);
         }
 
+        //Fetch associated form responses if full == true
+        if ($full) {
+            //Generate searchTerms for each of the found badges
+            $f_searchTerms = [];
+            foreach ($result as &$badge) {
+                $f_searchTerms[] = new SearchTerm(
+                    '',
+                    '',
+                    TermType: 'OR',
+                    subSearch: [
+                            new SearchTerm('context_code', $badge['context_code']),
+                            new SearchTerm('context_id', $badge['id']),
+                    ]
+                );
+            }
+            $f_responsedata = $this->f_response->Search(
+                array('context_id','context_code','question_id','response'),
+                $f_searchTerms
+            );
 
+            foreach ($result as &$badge) {
+                $f_filteredbadgedata = array_filter($f_responsedata, function ($f_response) use ($badge) {
+                    return $f_response['context_id'] == $badge['id']
+                    &&  $f_response['context_code'] == $badge['context_code'] ;
+                });
+                //Zip together the responses
+                $badge['form_responses'] = array_combine(array_column($f_filteredbadgedata, 'question_id'), array_column($f_filteredbadgedata, 'response'));
+            }
+        }
 
         return $result;
     }
