@@ -1,9 +1,9 @@
 <?php
 
-namespace CM3_Lib\Action\Staff;
+namespace CM3_Lib\Action\Staff\Badge;
 
 use CM3_Lib\database\SearchTerm;
-use CM3_Lib\models\staff;
+use CM3_Lib\models\staff\badge;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -20,7 +20,7 @@ final class Export
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private staff $staff)
+    public function __construct(private Responder $responder, private badge $badge)
     {
     }
 

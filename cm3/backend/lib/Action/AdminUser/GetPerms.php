@@ -1,9 +1,13 @@
 <?php
 
-namespace CM3_Lib\Action\Staff;
+namespace CM3_Lib\Action\AdminUser;
 
-use CM3_Lib\models\staff;
+use CM3_Lib\database\SearchTerm;
+use CM3_Lib\models\admin\user;
 use CM3_Lib\Responder\Responder;
+use CM3_Lib\util\PermEvent;
+use CM3_Lib\util\PermGroup;
+use CM3_Lib\util\EventPermissions;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -11,7 +15,7 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * Action.
  */
-final class Update
+final class GetPerms
 {
     /**
      * The constructor.
@@ -19,8 +23,9 @@ final class Update
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private staff $staff)
-    {
+    public function __construct(
+        private Responder $responder,
+    ) {
     }
 
     /**
@@ -35,10 +40,13 @@ final class Update
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
-        $data['id'] = $params['id'];
+        //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->staff->Update($data);
+        $data = [
+            'EventPerms'=> (new PermEvent(0))->keys(),
+            'GroupPerms'=> (new PermGroup(0))->keys()
+        ];
 
         // Build the HTTP response
         return $this->responder

@@ -289,7 +289,7 @@ export default {
                     //return this.isLoggedIn;
                 }
             }, {
-                route: "/settings",
+                route: "/account/settings",
                 icon: "mdi-cog",
                 label: "Preferences",
                 show: () => {

@@ -1,8 +1,9 @@
 <?php
 
-namespace CM3_Lib\Action\Staff;
+namespace CM3_Lib\Action\Staff\Badge;
 
-use CM3_Lib\models\staff;
+use CM3_Lib\database\SearchTerm;
+use CM3_Lib\util\badgeinfo;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -11,7 +12,7 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * Action.
  */
-final class Update
+final class Search
 {
     /**
      * The constructor.
@@ -19,8 +20,10 @@ final class Update
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private staff $staff)
-    {
+    public function __construct(
+        private Responder $responder,
+        private badgeinfo $badgeinfo
+    ) {
     }
 
     /**
@@ -31,14 +34,22 @@ final class Update
      *
      * @return ResponseInterface The response
      */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $id): ResponseInterface
+    public function __invoke(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
-        $data['id'] = $id['id'];
+        $qp = $request->getQueryParams();
+        $find = $qp['find'] ?? '';
+        //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
+
+        $pg = $this->badgeinfo->parseQueryParamsPagination($qp, defaultSortDesc:true);
+        $totalRows = 0;
         // Invoke the Domain with inputs and retain the result
-        $data = $this->staff->Delete($data);
+        $data = $this->badgeinfo->SearchBadgesText('S', $find, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
+
+
+        $response = $response->withHeader('X-Total-Rows', (string)$totalRows);
 
         // Build the HTTP response
         return $this->responder

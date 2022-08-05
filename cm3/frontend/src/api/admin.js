@@ -1,7 +1,16 @@
 const axios = require('axios').default;
 
 export default {
-
+    contextToPrefix(context_code) {
+        switch (context_code) {
+            case 'A':
+                return 'Attendee';
+            case 'S':
+                return 'Staff';
+            default:
+                return 'Group/' + context_code;
+        }
+    },
     genericGet(token, path, params, cb, errorCb) {
         var qparams = new URLSearchParams({
             ...params

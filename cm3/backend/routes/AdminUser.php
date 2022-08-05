@@ -12,6 +12,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 return function (App $app, $container) {
     $accessPerm = $container->get(PermCheckEventPerm::class);
+    $app->get('/AdminUser/GetPerms', \CM3_Lib\Action\AdminUser\GetPerms::class);
     $app->group(
         '/AdminUser',
         function (RouteCollectorProxy $app) {

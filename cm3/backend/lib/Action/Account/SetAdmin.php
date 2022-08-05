@@ -39,7 +39,7 @@ class SetAdmin
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         $indata = (array)$request->getParsedBody();
-        $data = array('contat_id'=>$request->getAttribute('contact_id'));
+        $data = array('contact_id'=>$request->getAttribute('contact_id'));
         //Filter in the allowed fields
         foreach (array(
                  'username',
@@ -62,22 +62,8 @@ class SetAdmin
             throw new HttpBadRequestException('Something went wrong.');
         }
 
-        //Fetcj the authenticated user's info
-        $result = $this->contact->GetByIDorUUID($data['id'], null, array(
-          'id',
-          'date_created',
-          'date_modified',
-          'allow_marketing',
-          'email_address',
-          'real_name',
-          'phone_number',
-          'address_1',
-          'address_2',
-          'city',
-          'state',
-          'zip_code',
-          'country'
-        ));
+        //TODO: Do the real thing here...
+        $result = "ok";
         // Build the HTTP response
         return $this->responder
             ->withJson($response, $result);

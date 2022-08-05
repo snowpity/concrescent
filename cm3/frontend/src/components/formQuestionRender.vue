@@ -201,11 +201,9 @@ export default {
                 return (this.userResponse || '').split('\n') || [];
                 // if (this.question.type == 'urllist')
                 //     result.push("");
-                console.log("getting response ", result)
                 return result;
             },
             set(multiSelectResponse) {
-                console.log("setting response", multiSelectResponse)
                 if (multiSelectResponse.length > 0 && multiSelectResponse[0] == '')
                     multiSelectResponse.splice(0, 1);
                 this.userResponse = multiSelectResponse ? multiSelectResponse.join('\n') : '';

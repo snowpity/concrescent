@@ -46,7 +46,15 @@ final class Read
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->user->GetByID($params['id'], "*");
+        $data = $this->user->GetByID($params['id'], [
+            'contact_id',
+            'username',
+            'active',
+            'adminOnly',
+            'preferences',
+            'permissions'
+        ]);
+
 
         //Translate permissions
         $eperms = $this->TokenGenerator->decodePermissionsString($data['permissions']);

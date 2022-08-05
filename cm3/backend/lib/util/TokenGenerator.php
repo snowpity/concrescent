@@ -35,9 +35,10 @@ class TokenGenerator
 
     public function forUser($contact_id, $event_id)
     {
-
+        $username = '';
+        $preferences = '';
         //Decode and load their Permissions
-        $eperms = $this->loadPermissions($contact_id);
+        $eperms = $this->loadPermissionsAndPreferences($contact_id, $username, $preferences);
 
         //TODO: Switch around event_id selection in case they're an EventAdmin or GlobalAdmin
         $event_id = $this->checkEventID($event_id);
@@ -80,6 +81,8 @@ class TokenGenerator
         $result['token'] = $this->Branca->encode($tokenPayload);
 
         if ($perms != null) {
+            $result['username'] = $username;
+            $result['preferences'] = $preferences;
             $result['permissions'] = $perms->getPermEnumeration();
         }
 
@@ -92,6 +95,19 @@ class TokenGenerator
         $founduser = $this->user->GetByIDorUUID($contact_id, null, array('permissions'));
 
         if ($founduser !== false) {
+            return $this->decodePermissionsString($founduser['permissions']);
+        } else {
+            return new UserPermissions();
+        }
+    }
+    public function loadPermissionsAndPreferences($contact_id, string &$username, string &$preferences): UserPermissions
+    {
+        //Fetch their permissions (if they have any)
+        $founduser = $this->user->GetByIDorUUID($contact_id, null, array('permissions','username','preferences'));
+
+        if ($founduser !== false) {
+            $username = $founduser['username'];
+            $preferences = $founduser['preferences'];
             return $this->decodePermissionsString($founduser['permissions']);
         } else {
             return new UserPermissions();

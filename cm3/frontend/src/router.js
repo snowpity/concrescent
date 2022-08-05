@@ -100,6 +100,14 @@ export default [{
         component: () => import( /* webpackChunkName: "Cart" */ './routes/account/profile.vue'),
     },
     {
+        path: '/account/settings',
+        name: 'settings',
+        meta: {
+            title: 'My Admin Settings',
+        },
+        component: () => import( /* webpackChunkName: "admion-settings" */ './routes/account/settings.vue'),
+    },
+    {
         path: '/account/logout',
         name: 'logout',
         meta: {

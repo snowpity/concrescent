@@ -1,9 +1,8 @@
 <?php
 
-namespace CM3_Lib\Action\Staff;
+namespace CM3_Lib\Action\Staff\BadgeType;
 
-use CM3_Lib\database\SearchTerm;
-use CM3_Lib\models\staff;
+use CM3_Lib\models\staff\badgetype;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -12,7 +11,7 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * Action.
  */
-final class Read
+final class Update
 {
     /**
      * The constructor.
@@ -20,7 +19,7 @@ final class Read
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private staff $staff)
+    public function __construct(private Responder $responder, private badgetype $badgetype)
     {
     }
 
@@ -35,15 +34,16 @@ final class Read
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         // Extract the form data from the request body
-        $data = (array)$request->getParsedBody();
-        //TODO: Actually do something with submitted data. Also, provide some sane defaults
-
-        $whereParts = array(
-          new SearchTerm('id', $params['id'])
+        $data =array(
+            'id' => $params['id']
         );
 
+        if (!$this->badgetype->verifyBadgeTypeBelongsToEvent($params['id'], $request->getAttribute('event_id'))) {
+            throw new HttpBadRequestException($request, 'Badge does not belong to current event');
+        }
+
         // Invoke the Domain with inputs and retain the result
-        $data = $this->staff->Search("*", $whereParts);
+        $data = $this->badgetype->Delete($data);
 
         // Build the HTTP response
         return $this->responder

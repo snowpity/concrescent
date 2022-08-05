@@ -1,9 +1,9 @@
 <?php
 
-namespace CM3_Lib\Action\Attendee\Badge;
+namespace CM3_Lib\Action\Staff\Badge;
 
 use CM3_Lib\database\SearchTerm;
-use CM3_Lib\models\attendee\badge;
+use CM3_Lib\models\staff\badge;
 use CM3_Lib\util\badgeinfo;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
@@ -45,7 +45,7 @@ final class Read
         $data = (array)$request->getParsedBody();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
-        $result = $this->badgeinfo->GetSpecificBadge($params['id'], 'A', full:true);
+        $result = $this->badgeinfo->GetSpecificBadge($params['id'], 'S', full:true);
 
         // // Invoke the Domain with inputs and retain the result
         // $result = $this->badge->GetByID($params['id'], '*');
@@ -54,7 +54,7 @@ final class Read
         if ($result === false) {
             throw new HttpNotFoundException($request);
         }
-        if (!$this->badgeinfo->checkBadgeTypeBelongsToEvent('A', $result['badge_type_id'])) {
+        if (!$this->badgeinfo->checkBadgeTypeBelongsToEvent('S', $result['badge_type_id'])) {
             throw new HttpNotFoundException($request);
         }
 

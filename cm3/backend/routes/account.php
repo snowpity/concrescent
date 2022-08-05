@@ -16,6 +16,8 @@ return function (App $app) {
             $app->get('', \CM3_Lib\Action\Account\GetAccount::class);
             //Save account details
             $app->post('', \CM3_Lib\Action\Account\SetAccount::class);
+            //Save admin settings
+            $app->post('/settings', \CM3_Lib\Action\Account\SetAdmin::class);
             //Refresh the token
             $app->get('/refreshtoken', \CM3_Lib\Action\Account\RefreshToken::class);
             //Switch which event we're talking about

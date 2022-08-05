@@ -229,7 +229,7 @@ export default {
             admin.genericGetList(this.authToken, 'Form/Question/' + this.context_code, null, (results, total) => {
                 this.questions = results;
 
-                admin.genericGetList(this.authToken, 'Attendee/BadgeType', null, (results, total) => {
+                admin.genericGetList(this.authToken, admin.contextToPrefix(this.context_code) + '/BadgeType', null, (results, total) => {
                     results.unshift({
                         "id": 0,
                         "active": 0,

@@ -1,9 +1,10 @@
 <?php
 
-namespace CM3_Lib\Action\Staff;
+namespace CM3_Lib\Action\Staff\Badge;
 
-use CM3_Lib\database\SearchTerm;
-use CM3_Lib\models\staff;
+use CM3_Lib\models\staff\badge;
+use CM3_Lib\models\staff\badgetype;
+use CM3_Lib\models\contact;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -12,7 +13,7 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * Action.
  */
-final class Search
+final class Create
 {
     /**
      * The constructor.
@@ -20,8 +21,12 @@ final class Search
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private staff $staff)
-    {
+    public function __construct(
+        private Responder $responder,
+        private badge $badge,
+        private badgetype $badgetype,
+        private contact $contact
+    ) {
     }
 
     /**
@@ -36,23 +41,19 @@ final class Search
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
-        //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
-        $whereParts = array(
-          //new SearchTerm('active', 1)
-        );
+        //Confirm the given badge_type_id belongs to the given group_id
+        if (!$this->badgetype->verifyBadgeTypeBelongsToEvent($data['badge_type_id'], $request->getAttribute('event_id'))) {
+            throw new HttpBadRequestException($request, 'Invalid badge_type_id specified');
+        }
 
-        $order = array('id' => false);
-
-        $page      = ($request->getQueryParams()['page']?? 0 > 0) ? $request->getQueryParams()['page'] : 1;
-        $limit     = $request->getQueryParams()['itemsPerPage']?? -1; // Number of posts on one page
-        $offset      = ($page - 1) * $limit;
-        if ($offset < 0) {
-            $offset = 0;
+        //Confirm the selected contact exists
+        if (!$this->contact->Exists($data['contact_id'])) {
+            throw new HttpBadRequestException($request, 'Invalid contact_id specified');
         }
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->staff->Search(array(), $whereParts, $order, $limit, $offset);
+        $data = $this->staff->Create($data);
 
         // Build the HTTP response
         return $this->responder

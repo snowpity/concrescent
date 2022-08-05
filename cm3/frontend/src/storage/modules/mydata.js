@@ -3,7 +3,9 @@ import shop from '../../api/shop'
 // initial state
 const state = {
     token: "",
+    username: "",
     permissions: null,
+    preferences: {},
     adminMode: false,
     ownedbadges: [],
     BadgeRetrievalStatus: false,
@@ -46,11 +48,20 @@ const getters = {
     getAuthToken: (state) => {
         return state.token;
     },
+    getUsername: (state) => {
+        return state.username;
+    },
     getIsLoggedIn: (state) => {
         return state.token != "" && state.contactInfo != undefined && state.contactInfo.id != undefined;
     },
     getAdminMode: (state) => {
         return state.token != "" && state.adminMode;
+    },
+    getPreferences: (state) => {
+        return state.preferences;
+    },
+    getPerms: (state) => {
+        return state.permissions;
     },
     hasPerms: (state) => {
         return state.permissions != null;
@@ -105,6 +116,8 @@ const actions = {
             shop.switchEvent(token, rootState.products.selectedEventId, (data) => {
                     commit('setToken', data.token);
                     commit('setPermissions', data.permissions);
+                    commit('setUsername', data.username);
+                    commit('setPreferences', data.preferences);
                     dispatch('products/selectEventId', data.event_id, {
                         root: true
                     });
@@ -136,6 +149,8 @@ const actions = {
             shop.loginAccount(credentials, (data) => {
                 commit('setToken', data.token);
                 commit('setPermissions', data.permissions);
+                commit('setUsername', data.username);
+                commit('setPreferences', data.preferences);
                 commit('setAdminMode', data.permissions != undefined)
                 dispatch('products/selectEventId', data.event_id, {
                     root: true
@@ -152,6 +167,8 @@ const actions = {
     }) {
         commit('setToken', "");
         commit('setPermissions', null);
+        commit('setUsername', "");
+        commit('setPreferences', {});
         commit('setContactInfo', {
             "allow_marketing": 0,
             "email_address": "",
@@ -211,6 +228,20 @@ const actions = {
         return new Promise((resolve) => {
             shop.setContactInfo(state.token, newData, (data) => {
                 commit('setContactInfo', data);
+                resolve(true);
+            })
+        }, (error) => {
+            resolve(error.error.message);
+        });
+    },
+    updateSettings({
+        commit,
+        state
+    }, newData) {
+        return new Promise((resolve) => {
+            shop.setAccountSettings(state.token, newData, (data) => {
+                commit('setUsername', newData.username);
+                commit('setPreferences', newData.preferences);
                 resolve(true);
             })
         }, (error) => {
@@ -336,6 +367,12 @@ const mutations = {
     },
     setPermissions(state, newPermissions) {
         state.permissions = newPermissions;
+    },
+    setPreferences(state, newpreferences) {
+        state.preferences = newpreferences;
+    },
+    setUsername(state, newusername) {
+        state.username = newusername;
     },
     setAdminMode(state, newAdminMode) {
         state.adminMode = newAdminMode;

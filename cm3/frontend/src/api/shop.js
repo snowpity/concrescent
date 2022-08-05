@@ -126,6 +126,20 @@ export default {
                     errorCb(response.response.data);
             });
     },
+    setAccountSettings(token, settings, cb, errorCb) {
+        axios.post(global.config.apiHostURL + "account/settings", settings, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then(function(response) {
+                cb(response.data);
+            })
+            .catch(function(response) {
+                if (typeof errorCb != "undefined")
+                    errorCb(response.response.data);
+            });
+    },
 
     loadCart(token, cartId, cb, errorCb) {
         axios.get(global.config.apiHostURL + "account/cart/" + cartId, {

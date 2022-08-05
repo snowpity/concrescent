@@ -435,7 +435,7 @@ final class badgeinfo
         $trG = 0;
         $trS = 0;
         $a_bv = $this->badgeView($this->a_badge_type, 'A');
-        $s_bv = $this->badgeView($this->s_badge_type, 'S');
+        $s_bv = $this->staffBadgeView($this->s_badge_type, 'S');
         $g_bv = $this->groupBadgeView();
         if ($full) {
             $this->MergeView($a_bv, $this->badgeViewFullAddAttendee());

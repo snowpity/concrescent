@@ -16,6 +16,7 @@ class badgetype extends \CM3_Lib\database\Table
             'display_order'   => new cm_Column('INT', null, false),
             'name'            => new cm_Column('VARCHAR', '255', false),
             'description'     => new cm_Column('TEXT', null, true),
+            'rewards'         => new cm_Column('TEXT', null, true),
             'price'           => new cm_Column('DECIMAL', '7,2', false, defaultValue: 0),
             'payable_onsite'  => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
             'payment_deferred'=> new cm_Column('BOOLEAN', null, false, defaultValue: 'true'), //Whether they need to be accepted in order to pay
@@ -31,7 +32,7 @@ class badgetype extends \CM3_Lib\database\Table
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
-        $this->DefaultSearchColumns = array('id','name','price','quantity','dates_available');
+        $this->DefaultSearchColumns = array('id','active','display_order','name','price','dates_available');
     }
 
     public function verifyBadgeTypeBelongsToEvent(int $id, int $event_id)
