@@ -1,27 +1,31 @@
 <template>
 <v-card>
-    <v-tabs grow
-            background-color="indigo"
-            v-model="step"
-            show-arrows
-            center-active
-            dark>
-        <v-tab>
-            Badge Information
-        </v-tab>
-        <v-tab>
-            Addons
-        </v-tab>
-        <v-tab>
-            Contact Information
-        </v-tab>
-        <v-tab>
-            Additional Information
-        </v-tab>
-        <v-tab>
-            Transactions
-        </v-tab>
-    </v-tabs>
+    <v-app-bar style="position: fixed; z-index:2">
+
+        <v-tabs grow
+                background-color="indigo"
+                v-model="step"
+                show-arrows
+                center-active
+                dark>
+            <v-tab>
+                Badge Information
+            </v-tab>
+            <v-tab>
+                Addons
+            </v-tab>
+            <v-tab>
+                Contact Information
+            </v-tab>
+            <v-tab>
+                Additional Information
+            </v-tab>
+            <v-tab>
+                Transactions
+            </v-tab>
+        </v-tabs>
+    </v-app-bar>
+    <v-toolbar />
     <v-tabs-items v-model="step">
         <v-container>
             <v-tab-item key="1">
@@ -32,45 +36,26 @@
                                    :badges="badges"
                                    no-data-text="No badges currently available!"
                                    :editBadgePriorBadgeId="model.editBadgePriorBadgeId" />
-                <v-sheet v-if="model.selectedBadge != null"
-                         color="grey lighten-4"
-                         tile>
-                    <v-card>
-                        <v-card-title class="title">Selected:
+
+                <v-expansion-panels>
+                    <v-expansion-panel v-if="model.selectedBadge != null">
+                        <v-expansion-panel-header>
+                            Selected Badge info:
                             {{ badges[model.selectedBadge] ? badges[model.selectedBadge].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
-                        </v-card-title>
-                        <v-card-text class="text--primary">
+                        </v-expansion-panel-header>
+                        <v-expansion-panel-content>
                             <badgePerksRender :description="badges[model.selectedBadge] ? badges[model.selectedBadge].description : '' "
                                               :rewardlist="rewardlist"></badgePerksRender>
-                        </v-card-text>
-                    </v-card>
-                </v-sheet>
+                        </v-expansion-panel-content>
+                    </v-expansion-panel>
+                </v-expansion-panels>
 
-                <h3>Purchase Info</h3>
                 <v-row>
                     <v-col cols="12"
                            sm="6"
                            md="6">
                         <v-text-field label="Display ID"
                                       v-model="model.display_id"></v-text-field>
-                    </v-col>
-                    <v-col cols="12"
-                           sm="6"
-                           md="6">
-                        <v-text-field label="Payment ID"
-                                      v-model="model.payment_id"></v-text-field>
-                    </v-col>
-                    <v-col cols="12"
-                           sm="6"
-                           md="6">
-                        <v-text-field label="Payment ID"
-                                      v-model="model.payment_status"></v-text-field>
-                    </v-col>
-                    <v-col cols="12"
-                           sm="6"
-                           md="6">
-                        <v-text-field label="Payment Price"
-                                      v-model="model.payment_promo_price"></v-text-field>
                     </v-col>
                     <v-col cols="12"
                            sm="6"
@@ -83,6 +68,11 @@
                            md="6">
                         <v-text-field label="application_status"
                                       v-model="model.application_status"></v-text-field>
+                    </v-col>
+                    <v-col cols="12">
+                        <v-textarea label="Notes"
+                                    v-model="model.notes">
+                        </v-textarea>
                     </v-col>
 
 
@@ -217,6 +207,41 @@
 
         </v-container>
     </v-tabs-items>
+
+    <v-dialog v-model="reviewDialog"
+              scrollable>
+        <template v-slot:activator="{ on, attrs }">
+
+            <v-btn :color="applicationStatusColor[model.application_status]"
+                   fixed
+                   bottom
+                   right
+                   v-if="model.application_status"
+                   fab
+                   v-bind="attrs"
+                   v-on="on">
+                <v-icon>
+                    mdi-check-decagram-outline
+                </v-icon>
+            </v-btn>
+        </template>
+        <v-card>
+            <v-card-title>Application Review</v-card-title>
+            <v-divider></v-divider>
+            <v-card-text style="height: 300px;">
+                Review form
+            </v-card-text>
+            <v-divider></v-divider>
+            <v-card-actions>
+
+                <v-spacer />
+                <v-btn color="primary"
+                       @click="reviewDialog = false">
+                    Ok
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 </v-card>
 </template>
 
@@ -239,7 +264,7 @@ export default {
     data() {
         return {
             step: 0,
-            reachedStep: 1,
+            reviewDialog: false,
             validGenInfo: false,
             validContactInfo: false,
             validAdditionalInfo: false,
@@ -263,6 +288,7 @@ export default {
 
                 form_responses: {},
                 addonsSelected: [],
+                application_status: ''
             },
 
             RulesRequired: [
@@ -288,6 +314,18 @@ export default {
             ],
 
             addonDisplayState: [],
+
+            applicationStatusColor: {
+                'InProgress': 'indigo', //Draft
+                'Submitted': 'purple accent-2', //Newly submitted
+                'Cancelled': 'red', //Applicant self-cancelled
+                'Rejected': 'red', //Staff rejected
+                'PendingAcceptance': 'yellow', //Accepted, waiting for them to confirm
+                'Waitlisted': 'gray', //Waitlisted for consideration
+                'Onboarding': 'blue', //Accepted, onboarding in progress
+                'Active': 'green', //Accepted, active staff
+                'Terminated': 'black', //No longer welcome
+            },
         };
     },
     computed: {

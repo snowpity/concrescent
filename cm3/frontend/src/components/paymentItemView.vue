@@ -15,6 +15,12 @@
                           v-model="payment_status">
             </v-text-field>
         </v-col>
+        <v-col cols="12"
+               sm="6"
+               md="3">
+            <v-text-field label="Payment Price"
+                          v-model="payment_promo_price"></v-text-field>
+        </v-col>
     </v-row>
 </v-container>
 </template>
@@ -31,6 +37,7 @@ export default {
 
             payment_id: this.value.payment_id,
             payment_status: this.value.payment_status,
+            payment_promo_price: this.value.payment_promo_price,
 
 
         };

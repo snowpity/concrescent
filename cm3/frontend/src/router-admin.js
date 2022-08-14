@@ -50,7 +50,7 @@ const result = [{
                 'Badges',
                 'Types',
                 'Questions',
-                'Promos',
+                'Departments',
                 'Notifications'
             ]
         },

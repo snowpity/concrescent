@@ -8,6 +8,9 @@ Download dependencies
  - mysqli
  - sodium
  - zlib
+ - bcmath
+
+apt install php8.1-fpm php8.1-mysql php8.1-mbstring php8.1-bcmath php8.1-gd
 
 Refresh the autoloader classes:
 php composer.phar  dump-autoload

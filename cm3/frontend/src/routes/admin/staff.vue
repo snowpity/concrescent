@@ -12,30 +12,51 @@
 
         <v-dialog v-model="bEdit"
                   fullscreen
+                  scrollable
                   hide-overlay
                   persistent>
-            <v-card tile>
-
-                <v-toolbar dark
-                           flat
-                           color="primary">
-                    <v-btn icon
-                           dark
-                           @click="bEdit = false">
-                        <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                    <v-toolbar-title>Edit Badge</v-toolbar-title>
-                    <v-spacer></v-spacer>
-                    <v-toolbar-items>
-                        <v-btn dark
-                               text
+            <v-card>
+                <v-card-title class="pa-0">
+                    <v-toolbar dark
+                               flat
+                               color="primary">
+                        <v-btn icon
+                               dark
                                @click="bEdit = false">
-                            Save
+                            <v-icon>mdi-close</v-icon>
                         </v-btn>
-                    </v-toolbar-items>
-                </v-toolbar>
-
-                <editBadgeAdmin v-model="bSelected" />
+                        <v-toolbar-title>Edit Badge</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-toolbar-items>
+                            <v-menu offset-y
+                                    open-on-hover>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn color="primary"
+                                           dark
+                                           v-bind="attrs"
+                                           v-on="on">
+                                        <v-icon>mdi-content-save</v-icon>
+                                    </v-btn>
+                                </template>
+                                <v-list>
+                                    <v-list-item>
+                                        <v-list-item-title>
+                                            Save and send status email
+                                        </v-list-item-title>
+                                    </v-list-item>
+                                    <v-list-item @click="bEdit = false">
+                                        <v-list-item-title>
+                                            Save directly
+                                        </v-list-item-title>
+                                    </v-list-item>
+                                </v-list>
+                            </v-menu>
+                        </v-toolbar-items>
+                    </v-toolbar>
+                </v-card-title>
+                <v-card-text class="pa-0">
+                    <editBadgeAdmin v-model="bSelected" />
+                </v-card-text>
             </v-card>
         </v-dialog>
     </v-tab-item>
@@ -69,6 +90,15 @@
     </v-tab-item>
     <v-tab-item key="2">
         <formQuestionEditList context_code="S" />
+    </v-tab-item>
+    <v-tab-item key="3">
+        <treeList apiPath="Staff/Department"
+                  :AddHeaders="dAddHeaders"
+                  :actions="btActions"
+                  :footerActions="btFooterActions"
+                  :isEditingItem="dDialog"
+                  @edit="editBadgeType"
+                  @create="createBadgeType" />
     </v-tab-item>
 
     <v-dialog v-model="loading"
@@ -105,6 +135,7 @@ import badgeSearchList from '@/components/badgeSearchList.vue';
 import orderableList from '@/components/orderableList.vue';
 import badgeTypeForm from '@/components/badgeTypeForm.vue';
 import formQuestionEditList from '@/components/formQuestionEditList.vue';
+import treeList from '@/components/treeList.vue';
 import editBadgeAdmin from '@/components/editBadgeAdmin.vue';
 
 export default {
@@ -113,6 +144,7 @@ export default {
         orderableList,
         badgeTypeForm,
         formQuestionEditList,
+        treeList,
         editBadgeAdmin
     },
     props: [
@@ -141,8 +173,19 @@ export default {
         }],
         btSelected: {},
         btDialog: false,
-        loading: false,
 
+        dAddHeaders: [{
+            text: 'Name',
+            value: 'name'
+        }, {
+            text: 'Email',
+            value: 'email_primary'
+        }, {
+            text: 'Active',
+            value: 'active'
+        }],
+        dDialog: false,
+        loading: false,
     }),
     computed: {
         authToken: function() {

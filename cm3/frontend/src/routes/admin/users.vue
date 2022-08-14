@@ -8,7 +8,8 @@
                     :isEditingItem="uEdit"
                     :actions="listActions"
                     :footerActions="listFooterActions"
-                    @edit="editUser" />
+                    @edit="editUser"
+                    @create="createUser" />
 
         <v-dialog v-model="uEdit"
                   hide-overlay
@@ -35,6 +36,37 @@
                     </v-toolbar-items>
                 </v-toolbar>
 
+                <editAdminUser v-model="uSelected" />
+            </v-card>
+        </v-dialog>
+
+        <v-dialog v-model="uCreate"
+                  hide-overlay
+                  fullscreen
+                  persistent>
+            <v-card tile>
+
+                <v-toolbar dark
+                           flat
+                           color="primary">
+                    <v-btn icon
+                           dark
+                           @click="uCreate = false">
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                    <v-toolbar-title>Create User</v-toolbar-title>
+                    <v-spacer></v-spacer>
+                    <v-toolbar-items>
+                        <v-btn dark
+                               text
+                               @click="uCreate = false">
+                            Save
+                        </v-btn>
+                    </v-toolbar-items>
+                </v-toolbar>
+                <simpleDropdown apiPath="Contact"
+                                valueDisplay="real_name"
+                                valueSubDisplay="email_address" />
                 <editAdminUser v-model="uSelected" />
             </v-card>
         </v-dialog>
@@ -70,11 +102,13 @@ import {
     debounce
 } from '@/plugins/debounce';
 import simpleList from '@/components/simpleList.vue';
+import simpleDropdown from '@/components/simpleDropdown.vue';
 import editAdminUser from '@/components/editAdminUser.vue';
 
 export default {
     components: {
         simpleList,
+        simpleDropdown,
         editAdminUser
     },
     props: [
@@ -96,7 +130,7 @@ export default {
         }],
         uSelected: {},
         uEdit: false,
-        bPrint: false,
+        uCreate: false,
         loading: false,
 
     }),
@@ -140,9 +174,9 @@ export default {
                 that.loading = false;
             })
         },
-        createBadgeType: function() {
-            this.btDialog = true;
-            this.btSelected = {};
+        createUser: function() {
+            this.uCreate = true;
+            this.uSelected = {};
         },
         editBadgeType: function(selectedBadgeType) {
             this.loading = true;

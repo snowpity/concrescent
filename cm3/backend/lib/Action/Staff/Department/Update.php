@@ -1,9 +1,8 @@
 <?php
 
-namespace CM3_Lib\Action\Contact;
+namespace CM3_Lib\Action\Staff\Department;
 
-use CM3_Lib\database\SearchTerm;
-use CM3_Lib\models\contact;
+use CM3_Lib\models\staff\department;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -12,7 +11,7 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * Action.
  */
-final class Read
+final class Update
 {
     /**
      * The constructor.
@@ -20,7 +19,7 @@ final class Read
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private contact $contact)
+    public function __construct(private Responder $responder, private department $department)
     {
     }
 
@@ -36,28 +35,28 @@ final class Read
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
-        //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
-        $whereParts = array(
-          new SearchTerm('id', $params['id'])
-        );
+        if (!$this->department->verifyDepartmentBelongsToEvent($params['id'], $request->getAttribute('event_id'))) {
+            throw new HttpBadRequestException($request, 'Badge does not belong to current event');
+        }
+
+        //Ensure consistency with the enpoint being posted to
+        $data['id'] = $params['id'];
+        unset($data['event_id']);
+        unset($data['date_created']);
+        unset($data['date_modified']);
+        unset($data['dates_available']);
+
+        if (empty($data['start_date'])) {
+            unset($data['start_date']);
+        }
+        if (empty($data['end_date'])) {
+            unset($data['end_date']);
+        }
+
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->contact->Search(['id',
-            'uuid',
-            'date_created',
-            'date_modified',
-            'allow_marketing',
-            'email_address',
-            'real_name',
-            'phone_number',
-            'address_1',
-            'address_2',
-            'city',
-            'state',
-            'zip_code',
-            'country',
-            'notes'], $whereParts);
+        $data = $this->department->Update($data);
 
         // Build the HTTP response
         return $this->responder
