@@ -97,8 +97,26 @@
                   :actions="btActions"
                   :footerActions="btFooterActions"
                   :isEditingItem="dDialog"
-                  @edit="editBadgeType"
-                  @create="createBadgeType" />
+                  @edit="editDepartment"
+                  @create="createDepartment" />
+        <v-dialog v-model="dDialog"
+                  persistent>
+
+            <v-card>
+                <v-card-title class="headline">Edit Department</v-card-title>
+                <v-card-text>
+
+                    <editDepartment v-model="dSelected" />
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="default"
+                           @click="dDialog = false">Cancel</v-btn>
+                    <v-btn color="primary"
+                           @click="saveDepartment">Save</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-tab-item>
 
     <v-dialog v-model="loading"
@@ -137,6 +155,7 @@ import badgeTypeForm from '@/components/badgeTypeForm.vue';
 import formQuestionEditList from '@/components/formQuestionEditList.vue';
 import treeList from '@/components/treeList.vue';
 import editBadgeAdmin from '@/components/editBadgeAdmin.vue';
+import editDepartment from '@/components/editDepartment.vue';
 
 export default {
     components: {
@@ -145,7 +164,8 @@ export default {
         badgeTypeForm,
         formQuestionEditList,
         treeList,
-        editBadgeAdmin
+        editBadgeAdmin,
+        editDepartment
     },
     props: [
         'subTabIx'
@@ -185,6 +205,8 @@ export default {
             value: 'active'
         }],
         dDialog: false,
+        dSelected: {},
+
         loading: false,
     }),
     computed: {
@@ -270,7 +292,38 @@ export default {
             }, function() {
                 that.loading = false;
             })
-        }
+        },
+        createDepartment: function() {
+            this.dDialog = true;
+            this.dSelected = {};
+        },
+        editDepartment: function(selectedDepartment) {
+            this.loading = true;
+            this.dDialog = true;
+            var that = this;
+            admin.genericGet(this.authToken, 'Staff/Department/' + selectedDepartment.id, null, function(editBt) {
+
+                that.dSelected = editBt;
+                that.loading = false;
+            }, function() {
+                that.loading = false;
+            })
+        },
+        saveDepartment: function() {
+            var url = 'Staff/Department';
+            if (this.dSelected.id != undefined)
+                url = url + '/' + this.dSelected.id;
+            console.log("Saving badge type", this.dSelected)
+            var that = this;
+            admin.genericPost(this.authToken, url, this.dSelected, function(editBt) {
+
+                that.dSelected = editBt;
+                that.loading = false;
+                that.dDialog = false;
+            }, function() {
+                that.loading = false;
+            })
+        },
     },
     watch: {
         $route() {
