@@ -44,12 +44,12 @@ final class Search
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
         $whereParts = array(
-          new SearchTerm('event_id', $request->getAttribute('event_id'))
+          new SearchTerm('department_id', $params['department_id'])
         );
 
 
 
-        $pg = $this->badgeinfo->parseQueryParamsPagination($qp, 'display_order');
+        $pg = $this->badgeinfo->parseQueryParamsPagination($qp, 'id');
         $totalRows = 0;
         // Invoke the Domain with inputs and retain the result
         $data = $this->position->Search(array(), $whereParts, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);

@@ -6,11 +6,11 @@
                   append-outer-icon="mdi-refresh"
                   @click:append-outer="doSearch"
                   class="mx-4"></v-text-field>
-    <v-treeview :items="treeItems"
+    <v-treeview :active.sync="selected_id"
+                :items="treeItems"
                 :search="searchText"
                 activatable
-                :item-key="valueKey"
-                open-on-click>
+                :item-key="valueKey">
         <template v-slot:top="">
         </template>
         <template v-slot:append="{ item }">
@@ -70,10 +70,11 @@ export default {
     data: () => ({
 
         searchText: "",
+        selected_id: [],
         loading: false,
         tableOptions: {
             "page": 1,
-            "itemsPerPage": 10,
+            "itemsPerPage": -1,
             "sortBy": [],
             "sortDesc": [false],
             "groupBy": [],
@@ -136,15 +137,8 @@ export default {
 
         doSearch: function() {
             this.loading = true;
-            const pageOptions = [
-                'sortBy',
-                'sortDesc',
-                'page',
-                'itemsPerPage'
-            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), {});;
             admin.genericGetList(this.authToken, this.apiPath, {
-                "find": this.searchText,
-                ...pageOptions
+                "find": this.searchText
             }, (results, total) => {
                 this.tableResults = results;
                 this.totalResults = total;
@@ -169,6 +163,9 @@ export default {
                 this.doSearch()
             },
             deep: true,
+        },
+        selected_id: function(newId) {
+            this.$emit('input', newId[0]);
         }
     },
     created() {

@@ -228,8 +228,20 @@
         <v-card>
             <v-card-title>Application Review</v-card-title>
             <v-divider></v-divider>
-            <v-card-text style="height: 300px;">
-                Review form
+            <v-card-text>
+                <v-row>
+                    <v-col>
+                        <v-select label="Application Status"
+                                  v-model="model.application_status"
+                                  :items="applicationStatusList"
+                                  item-text="text"
+                                  item-value="value"
+                                  persistent-horizontal />
+                    </v-col>
+                </v-row>
+                <v-row v-if="model.context_code=='S'">
+                    <editBadgeApplicationStaffPosition />
+                </v-row>
             </v-card-text>
             <v-divider></v-divider>
             <v-card-actions>
@@ -258,6 +270,7 @@ import badgeTypeSelector from '@/components/badgeTypeSelector.vue';
 import badgePerksRender from '@/components/badgePerksRender.vue';
 import profileForm from '@/components/profileForm.vue';
 import paymentItemView from '@/components/paymentItemView.vue';
+import editBadgeApplicationStaffPosition from '@/components/editBadgeApplicationStaffPosition.vue';
 
 export default {
     props: ['value'],
@@ -326,6 +339,53 @@ export default {
                 'Active': 'green', //Accepted, active staff
                 'Terminated': 'black', //No longer welcome
             },
+
+            applicationStatusList: [{
+                    value: 'InProgress',
+                    color: 'indigo',
+                    text: 'Draft'
+                },
+                {
+                    value: 'Submitted',
+                    color: 'purple accent-2',
+                    text: 'Newly submitted'
+                },
+                {
+                    value: 'Cancelled',
+                    color: 'red',
+                    text: 'Applicant self-cancelled'
+                },
+                {
+                    value: 'Rejected',
+                    color: 'red',
+                    text: 'Staff rejected'
+                },
+                {
+                    value: 'PendingAcceptance',
+                    color: 'yellow',
+                    text: 'Accepted, waiting for them to confirm'
+                },
+                {
+                    value: 'Waitlisted',
+                    color: 'gray',
+                    text: 'Waitlisted for consideration'
+                },
+                {
+                    value: 'Onboarding',
+                    color: 'blue',
+                    text: 'Accepted, onboarding in progress'
+                },
+                {
+                    value: 'Active',
+                    color: 'green',
+                    text: 'Accepted, active staff'
+                },
+                {
+                    value: 'Terminated',
+                    color: 'black',
+                    text: 'No longer welcome here'
+                },
+            ],
         };
     },
     computed: {
@@ -569,6 +629,7 @@ export default {
         badgePerksRender,
         profileForm,
         paymentItemView,
+        editBadgeApplicationStaffPosition
     },
     created() {
         this.loadBadge(this.value);

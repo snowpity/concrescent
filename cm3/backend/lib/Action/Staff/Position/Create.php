@@ -37,19 +37,13 @@ final class Create
         $data = (array)$request->getParsedBody();
 
         //Ensure we're making a badge type with the associated event
-        $data['event_id'] = $request->getAttribute('event_id');
+        $data['department_id'] = $params['department_id'];
+
         //Make sure we don't have an ID, date_created, date_modified
         unset($data['id']);
         unset($data['date_created']);
         unset($data['date_modified']);
-        unset($data['dates_available']);
 
-        if (empty($data['start_date'])) {
-            unset($data['start_date']);
-        }
-        if (empty($data['end_date'])) {
-            unset($data['end_date']);
-        }
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->position->Create($data);

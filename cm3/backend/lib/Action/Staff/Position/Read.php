@@ -47,8 +47,8 @@ final class Read
             throw new HttpNotFoundException($request);
         }
 
-        if (!$result['event_id'] == $request->getAttribute('event_id')) {
-            throw new HttpBadRequestException($request, 'Badge does not belong to current event');
+        if (!$result['department_id'] == $request->getAttribute('department_id')) {
+            throw new HttpBadRequestException($request, 'Position does not belong to the selected department');
         }
 
         // Build the HTTP response

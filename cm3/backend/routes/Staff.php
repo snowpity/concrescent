@@ -64,19 +64,19 @@ return function (App $app, $container) {
             ->add($atManage);
             $app->delete('/{id}', \CM3_Lib\Action\Staff\Department\Delete::class)
             ->add($atManage);
-        },
-        '/Position' => function (RouteCollectorProxy $app) use ($staffPerm) {
-            $atManage = $staffPerm->withAllowedPerm(PermEvent::Staff_Manage());
-            $app->get('', \CM3_Lib\Action\Staff\Position\Search::class)
-            ->add($staffPerm);
-            $app->post('', \CM3_Lib\Action\Staff\Position\Create::class)
-            ->add($atManage);
-            $app->get('/{id}', \CM3_Lib\Action\Staff\Position\Read::class)
-            ->add($staffPerm);
-            $app->post('/{id}', \CM3_Lib\Action\Staff\Position\Update::class)
-            ->add($atManage);
-            $app->delete('/{id}', \CM3_Lib\Action\Staff\Position\Delete::class)
-            ->add($atManage);
+            $app->group('/{department_id}/Position', function (RouteCollectorProxy $app) use ($staffPerm) {
+                $atManage = $staffPerm->withAllowedPerm(PermEvent::Staff_Manage());
+                $app->get('', \CM3_Lib\Action\Staff\Position\Search::class)
+                ->add($staffPerm);
+                $app->post('', \CM3_Lib\Action\Staff\Position\Create::class)
+                ->add($atManage);
+                $app->get('/{id}', \CM3_Lib\Action\Staff\Position\Read::class)
+                ->add($staffPerm);
+                $app->post('/{id}', \CM3_Lib\Action\Staff\Position\Update::class)
+                ->add($atManage);
+                $app->delete('/{id}', \CM3_Lib\Action\Staff\Position\Delete::class)
+                ->add($atManage);
+            });
         },
     );
 
