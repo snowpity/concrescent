@@ -5,7 +5,8 @@
                sm="6"
                md="3">
             <treeList apiPath="Staff/Department"
-                      v-model="department_id_selected" />
+                      v-model="department_id_selected"
+                      @data="cacheDepartment" />
         </v-col>
         <v-col cols="12"
                sm="6"
@@ -18,6 +19,7 @@
                       item-text="name"
                       append-outer-icon="mdi-arrow-right"
                       @click:append-outer="addPosition" />
+            Description: {{positionSelected.description}}
         </v-col>
         <v-col cols="12"
                sm="6"
@@ -56,6 +58,7 @@ export default {
     data() {
         return {
             department_id_selected: null,
+            department_selected: {},
             available_positions_loading: false,
             available_positions: [],
             position_id_selected: undefined,
@@ -74,10 +77,30 @@ export default {
         result() {
             return {
 
-            }
+                assigned_positions: this.assigned_positions.map(function(item) {
+                    return {
+                        position_id: item.position_id,
+                        onboard_completed: item.onboard_completed,
+                        onboard_meta: item.onboard_meta
+                    }
+                })
+            };
+        },
+        positionSelected() {
+            return this.available_positions.find(item => item.id == this.position_id_selected) || {
+                id: undefined,
+                active: false,
+                is_exec: false,
+                name: 'Loading...',
+                description: '',
+                desired_count: 0
+            };
         }
     },
     methods: {
+        cacheDepartment: function(depData) {
+            this.department_selected = depData;
+        },
         refresh_positions: async function() {
             this.available_positions_loading = true;
             admin.genericGetList(this.authToken, 'Staff/Department/' + this.department_id_selected + '/Position', {
@@ -89,9 +112,13 @@ export default {
         },
         addPosition: function() {
             if (!this.assigned_positions.some(item => item.position_id == this.position_id_selected)) {
+
                 this.assigned_positions.push({
                     position_id: this.position_id_selected,
-                    position_text: this.position_id_selected
+                    position_text: this.department_selected.name + ": " + this.positionSelected.name,
+                    onboard_completed: false,
+                    onboard_meta: "",
+                    is_exec: this.positionSelected.is_exec
 
                 })
             }
@@ -99,10 +126,10 @@ export default {
     },
     watch: {
         result(newData) {
-            //this.$emit('input', newData);
+            this.$emit('input', newData);
         },
         value: {
-
+            //TODO: Retrieve position meta and add to the assigned_positions array
         },
         department_id_selected(department_id) {
             this.refresh_positions();
