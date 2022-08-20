@@ -4,7 +4,6 @@ cm3/backend/.php-cs-fixer.cache
 concrescent.php
 msmtprc
 docker-compose.yaml
-docker-compose.cm2.yaml
 
 # Data directories
 mysql-data
