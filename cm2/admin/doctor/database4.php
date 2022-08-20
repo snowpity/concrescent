@@ -10,9 +10,9 @@ $charsets = $db->characterset();
 
 if (
 	$charset == 'utf8'
-	&& $charsets['character_set_client'] == 'utf8'
-	&& $charsets['character_set_connection'] == 'utf8'
-	&& $charsets['character_set_results'] == 'utf8'
+	&& str_starts_with($charsets['character_set_client'], 'utf8')
+	&& str_starts_with($charsets['character_set_connection'], 'utf8')
+	&& str_starts_with($charsets['character_set_results'], 'utf8')
 ) {
 	echo 'OK MySQL is using UTF-8.';
 } else {
