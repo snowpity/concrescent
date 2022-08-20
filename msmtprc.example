@@ -1,0 +1,20 @@
+# Set default values for all following accounts.
+defaults
+auth           on
+tls            on
+tls_trust_file /etc/ssl/certs/ca-certificates.crt
+syslog         on
+
+# Mail Account
+# For configuration settings, see
+# https://wiki.archlinux.org/title/msmtp#Basic_setup
+account        defaultaccount
+host           smtp.example.com
+port           587
+from           from@example.com
+user           username
+password       password
+
+# Set a default account
+account default : defaultaccount
+aliases        /etc/aliases
