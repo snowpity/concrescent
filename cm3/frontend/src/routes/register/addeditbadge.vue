@@ -548,6 +548,11 @@ export default {
         },
         async loadBadge() {
             let cartItem;
+            if (this.$route.query.override) {
+                const override = this.$route.query.override;
+                console.log('setting override code', override);
+                await this.$store.dispatch('products/setOverrideCode', override);
+            }
             this.cartIx = parseInt(this.$route.params.cartIx);
             const idString = this.$route.params.editIx;
             console.log('load a badge')

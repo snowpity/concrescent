@@ -105,7 +105,7 @@ export default [{
         meta: {
             title: 'My Admin Settings',
         },
-        component: () => import( /* webpackChunkName: "admion-settings" */ './routes/account/settings.vue'),
+        component: () => import( /* webpackChunkName: "admin-settings" */ './routes/account/settings.vue'),
     },
     {
         path: '/account/logout',

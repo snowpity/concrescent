@@ -20,8 +20,10 @@ export default {
                 error + "oops"
             })
     },
-    getBadges(event_id, context, cb) {
-        axios.get(global.config.apiHostURL + "public/" + event_id + '/badges/' + context)
+    getBadges(event_id, context, override_code, cb) {
+        const override = (override_code ?? '').replace(/[^a-z0-9]/gi, '').toUpperCase();
+        var query = override != '' ? '?override=' + override : '';
+        axios.get(global.config.apiHostURL + "public/" + event_id + '/badges/' + context + query)
             .then(function(response) {
                 cb(response.data);
             })

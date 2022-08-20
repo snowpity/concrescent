@@ -430,12 +430,17 @@ final class PaymentBuilder
                     if ($item['context_code'] != 'A' && !empty($bt['payment_deferred']) && $bt['payment_deferred']) {
                         $item['application_status'] = 'Submitted';
                     }
+
                     $newID = $this->badgeinfo->CreateSpecificBadgeUnchecked($item);
                     if ($newID !== false) {
                         $item['id'] = $newID['id'];
                     }
                 } else {
-                    die(print_r($bi, true));
+                    //TODO: Badge exists? Should we do something special?
+                    // Maybe update it with whatever the cart said it should become?
+                    //Certainly keep any approval status so when we complete it will remain
+                    $item['application_status'] = $bi['application_status'];
+                    //$this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
                 }
             }
             //Save the form responses

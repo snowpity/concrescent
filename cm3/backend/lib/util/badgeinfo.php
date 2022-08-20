@@ -116,19 +116,20 @@ final class badgeinfo
         switch ($context_code) {
             case 'A':
                 $result =  $this->getASpecificBadge($id, $this->a_badge, $this->a_badge_type, 'A', $full ? $this->badgeViewFullAddAttendee() : null);
-
-                $result['addons'] = [];
-                $a_addons = $this->a_addonpurchase->Search(array(
+                if ($result !== false) {
+                    $result['addons'] = [];
+                    $a_addons = $this->a_addonpurchase->Search(array(
                     'addon_id',
                     'payment_status'
                 ), array(
                     new SearchTerm('attendee_id', $id)
                 ));
-                foreach ($a_addons as $addon) {
-                    $result['addons'][] = array(
+                    foreach ($a_addons as $addon) {
+                        $result['addons'][] = array(
                         'addon_id' => $addon['addon_id'],
                         'addon_payment_status' => $addon['payment_status']
                     );
+                    }
                 }
 
                 break;

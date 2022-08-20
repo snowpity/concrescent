@@ -6,6 +6,7 @@ const state = {
     eventinfo: [],
     selectedEventId: null,
     selectedEvent: null,
+    override_code: '',
     badgecontexts: [],
     badgecontextselectedix: 0,
     badgecontextselected: null,
@@ -71,6 +72,14 @@ const actions = {
             resolve();
         })
     },
+    setOverrideCode({
+        commit
+    }, override) {
+        return new Promise((resolve) => {
+            commit('setOverrideCode', override);
+            resolve();
+        })
+    },
     getEventInfo({
         commit,
         state
@@ -123,7 +132,6 @@ const actions = {
             await dispatch('getContextBadges', state.badgecontextselected.context_code);
             await dispatch('getContextQuestions', state.badgecontextselected.context_code);
             await dispatch('getContextAddons', state.badgecontextselected.context_code);
-
             resolve()
         })
     },
@@ -140,7 +148,7 @@ const actions = {
             if (state.gotBadges[context_code] != undefined)
                 return resolve();
             shop.getBadges(state.selectedEventId,
-                context_code,
+                context_code, state.override_code,
                 badges => {
                     commit('setContextBadges', {
                         badges: badges,
@@ -248,6 +256,14 @@ const mutations = {
     setBadgeContexts(state, contexts) {
         state.badgecontexts = contexts;
         state.gotBadgeContexts = true;;
+        state.gotBadges = {};
+        state.gotQuestions = {};
+        state.gotAddons = {};
+    },
+    setOverrideCode(state, override) {
+        state.override_code = override;
+        //Reset everything too
+        state.gotBadgeContexts = false;
         state.gotBadges = {};
         state.gotQuestions = {};
         state.gotAddons = {};

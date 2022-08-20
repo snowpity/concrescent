@@ -47,6 +47,8 @@ final class ListApplicationBadges
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
+        $qp = $request->getQueryParams();
+        $override = $qp['override'] ?? null;
         $viewData = new View(
             array(
                   'id',
@@ -119,7 +121,10 @@ final class ListApplicationBadges
         $whereParts = array(
                   new SearchTerm('event_id', $params['event_id'], JoinedTableAlias: 'grp'),
                   new SearchTerm('context_code', $params['context_code'], JoinedTableAlias: 'grp'),
-                  new SearchTerm('active', 1)
+                  new SearchTerm('', '', subSearch:array(
+                      new SearchTerm('active', 1),
+                      new SearchTerm('active_override_code', $override, TermType:'OR'),
+                  ))
                 );
 
         $order = array('display_order' => false);
