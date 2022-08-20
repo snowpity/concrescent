@@ -19,7 +19,7 @@ echo '<article>';
 				echo '</p>';
 				echo '<p>';
 					echo '<b>PHP Magic Quotes:</b> ';
-					echo get_magic_quotes_gpc() ? 'ON' : 'OFF';
+					echo 'OFF';
 				echo '</p>';
 				echo '<p>';
 					echo '<b>PHP Date &amp; Time:</b> ';
