@@ -23,6 +23,9 @@ use CM3_Lib\models\forms\response as f_response;
 use CM3_Lib\util\CurrentUserInfo;
 use CM3_Lib\util\barcode;
 use CM3_Lib\util\FrontendUrlTranslator;
+use CM3_Lib\models\staff\department as s_department;
+use CM3_Lib\models\staff\position as s_position;
+use CM3_Lib\models\staff\assignedposition as s_assignedposition;
 
 /**
  * Action.
@@ -44,7 +47,10 @@ final class badgeinfo
         private f_question $f_question,
         private f_response $f_response,
         private CurrentUserInfo $CurrentUserInfo,
-        private FrontendUrlTranslator $FrontendUrlTranslator
+        private FrontendUrlTranslator $FrontendUrlTranslator,
+        private s_assignedposition $s_assignedposition,
+        private s_department $s_department,
+        private s_position $s_position,
     ) {
     }
 
@@ -145,6 +151,8 @@ final class badgeinfo
         }
         //Add in form responses
         $result['form_responses'] = $this->GetSpecificBadgeResponses($id, $context_code);
+        //Add in supplementary
+        $this->addSupplementaryBadgeData($result);
         return $this->addComputedColumns($result, true);
     }
 
@@ -805,6 +813,45 @@ final class badgeinfo
             ),
             array()
         );
+    }
+    public function addSupplementaryBadgeData(&$result)
+    {
+        switch ($result['context_code']) {
+                    case 'A':
+                        //$result =  $this->a_badge->Create($data);
+                        break;
+                    case 'S':
+                        $result['assigned_positions'] = $this->s_assignedposition->Search(
+                            new View(
+                                array(
+                                    'position_id','onboard_completed','onboard_meta','date_created','date_modified',
+                                    new SelectColumn('is_exec', JoinedTableAlias:'p'),
+                                    new SelectColumn('name', Alias:'position_text', JoinedTableAlias:'p'),
+                                    new SelectColumn('department_id', JoinedTableAlias:'p'),
+                                    new SelectColumn('name', Alias:'department_text', JoinedTableAlias:'d'),
+                                ),
+                                array(
+                                    new Join(
+                                        $this->s_position,
+                                        array('id'=>'position_id'),
+                                        alias:'p'
+                                    ),
+                                    new Join(
+                                        $this->s_department,
+                                        array('id'=>new SearchTerm('department_id', null, JoinedTableAlias:'p')),
+                                        alias:'d'
+                                    ),
+                                )
+                            ),
+                            array(
+                                new SearchTerm('staff_id', $result['id'])
+                            )
+                        );
+                        //$result =  $this->s_badge->Create($data);
+                        break;
+                    default:
+                        $result =  $this->g_badge->Create($data);
+                }
     }
 
     public function addComputedColumns($result, $includeImageData = false)

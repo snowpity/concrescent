@@ -23,15 +23,17 @@
         </v-col>
         <v-col cols="12"
                sm="6"
-               md="3">
+               md="6">
             List of assigned positions
             <v-expansion-panels>
                 <v-expansion-panel v-for="(item,i) in assigned_positions"
                                    :key="i">
                     <v-expansion-panel-header>
-                        {{item.position_text}}
-                        <v-spacer />
-                        <v-icon>mdi-account-alert-outline</v-icon>
+                        {{item.department_text}}: {{item.position_text}}
+                        <div class="text-right">
+                            <v-icon v-if="item.is_exec">mdi-crown</v-icon>
+                            <v-icon>mdi-account-alert-outline</v-icon>
+                        </div>
                     </v-expansion-panel-header>
                     <v-expansion-panel-content>
                         {{item.position_id}}
@@ -57,12 +59,13 @@ export default {
     props: ['value'],
     data() {
         return {
+            skipEmitOnce: false,
             department_id_selected: null,
             department_selected: {},
             available_positions_loading: false,
             available_positions: [],
             position_id_selected: undefined,
-            assigned_positions: []
+            assigned_positions: this.value,
         };
     },
     computed: {
@@ -75,16 +78,15 @@ export default {
             'isLoggedIn': 'getIsLoggedIn',
         }),
         result() {
-            return {
-
-                assigned_positions: this.assigned_positions.map(function(item) {
-                    return {
-                        position_id: item.position_id,
-                        onboard_completed: item.onboard_completed,
-                        onboard_meta: item.onboard_meta
-                    }
-                })
-            };
+            if (this.assigned_positions == undefined) return [];
+            return this.assigned_positions;
+            // .map(function(item) {
+            //     return {
+            //         position_id: item.position_id,
+            //         onboard_completed: item.onboard_completed,
+            //         onboard_meta: item.onboard_meta
+            //     }
+            // });
         },
         positionSelected() {
             return this.available_positions.find(item => item.id == this.position_id_selected) || {
@@ -114,8 +116,10 @@ export default {
             if (!this.assigned_positions.some(item => item.position_id == this.position_id_selected)) {
 
                 this.assigned_positions.push({
+                    department_id: this.department_id_selected,
+                    department_text: this.department_selected.name,
                     position_id: this.position_id_selected,
-                    position_text: this.department_selected.name + ": " + this.positionSelected.name,
+                    position_text: this.positionSelected.name,
                     onboard_completed: false,
                     onboard_meta: "",
                     is_exec: this.positionSelected.is_exec
@@ -126,10 +130,17 @@ export default {
     },
     watch: {
         result(newData) {
+            if (this.skipEmitOnce == true) {
+                this.skipEmitOnce = false;
+                return;
+            }
             this.$emit('input', newData);
         },
-        value: {
-            //TODO: Retrieve position meta and add to the assigned_positions array
+        value(newValue) {
+            //TODO: Retrieve position meta and add to the assigned_positions array if it doesn't exist
+            console.log('got new value', newValue);
+            this.skipEmitOnce = true;
+            this.assigned_positions = newValue;
         },
         department_id_selected(department_id) {
             this.refresh_positions();

@@ -27,11 +27,11 @@
                         </v-btn>
                         <v-toolbar-title>Edit Badge</v-toolbar-title>
                         <v-spacer></v-spacer>
-                        <v-toolbar-items>
+                        <v-toolbar-items v-if="bModified">
                             <v-menu offset-y
                                     open-on-hover>
                                 <template v-slot:activator="{ on, attrs }">
-                                    <v-btn color="primary"
+                                    <v-btn color="green"
                                            dark
                                            v-bind="attrs"
                                            v-on="on">
@@ -180,6 +180,7 @@ export default {
         }],
         bSelected: {},
         bEdit: false,
+        bModified: false,
         bPrint: false,
         btAddHeaders: [{
             text: 'Dates Available',
@@ -250,14 +251,19 @@ export default {
             console.log('Hey! Listen!');
         },
         editBadge: function(selectedBadge) {
-            console.log(selectedBadge);
+            console.log('edit badge selected from grid', selectedBadge);
             let that = this;
+            this.bSelected = {};
             that.loading = false;
             admin.genericGet(this.authToken, 'Staff/Badge/' + selectedBadge.id, null, function(editBadge) {
                 console.log('loaded badge', editBadge)
                 that.bSelected = editBadge;
                 that.loading = false;
                 that.bEdit = true;
+                that.$nextTick(() => {
+                    that.bModified = false;
+                })
+
             }, function() {
                 that.loading = false;
             })
@@ -328,6 +334,10 @@ export default {
     watch: {
         $route() {
             this.$nextTick(this.checkPermission);
+        },
+        bSelected(newBadgeData) {
+            console.log('Modified badge')
+            this.bModified = true;
         },
     },
     created() {

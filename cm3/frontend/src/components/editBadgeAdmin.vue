@@ -32,19 +32,19 @@
 
                 <badgeGenInfo v-model="model.badgeGenInfoData"
                               @valid="setValidGenInfo" />
-                <badgeTypeSelector v-model="model.selectedBadge"
+                <badgeTypeSelector v-model="selectedbadge"
                                    :badges="badges"
                                    no-data-text="No badges currently available!"
                                    :editBadgePriorBadgeId="model.editBadgePriorBadgeId" />
 
                 <v-expansion-panels>
-                    <v-expansion-panel v-if="model.selectedBadge != null">
+                    <v-expansion-panel v-if="selectedbadge != null">
                         <v-expansion-panel-header>
                             Selected Badge info:
-                            {{ badges[model.selectedBadge] ? badges[model.selectedBadge].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
+                            {{ badges[selectedbadge] ? badges[selectedbadge].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
                         </v-expansion-panel-header>
                         <v-expansion-panel-content>
-                            <badgePerksRender :description="badges[model.selectedBadge] ? badges[model.selectedBadge].description : '' "
+                            <badgePerksRender :description="badges[selectedbadge] ? badges[selectedbadge].description : '' "
                                               :rewardlist="rewardlist"></badgePerksRender>
                         </v-expansion-panel-content>
                     </v-expansion-panel>
@@ -53,21 +53,21 @@
                 <v-row>
                     <v-col cols="12"
                            sm="6"
-                           md="6">
+                           md="4">
                         <v-text-field label="Display ID"
                                       v-model="model.display_id"></v-text-field>
                     </v-col>
                     <v-col cols="12"
                            sm="6"
-                           md="6">
-                        <v-text-field label="time_checked_in"
-                                      v-model="model.time_checked_in"></v-text-field>
+                           md="4">
+                        <v-text-field label="time_printed"
+                                      v-model="model.time_printed"></v-text-field>
                     </v-col>
                     <v-col cols="12"
                            sm="6"
-                           md="6">
-                        <v-text-field label="application_status"
-                                      v-model="model.application_status"></v-text-field>
+                           md="4">
+                        <v-text-field label="time_checked_in"
+                                      v-model="model.time_checked_in"></v-text-field>
                     </v-col>
                     <v-col cols="12">
                         <v-textarea label="Notes"
@@ -240,7 +240,7 @@
                     </v-col>
                 </v-row>
                 <v-row v-if="model.context_code=='S'">
-                    <editBadgeApplicationStaffPosition />
+                    <editBadgeApplicationStaffPosition v-model="model.assigned_positions" />
                 </v-row>
             </v-card-text>
             <v-divider></v-divider>
@@ -277,6 +277,7 @@ export default {
     data() {
         return {
             step: 0,
+            skipEmitOnce: false,
             reviewDialog: false,
             validGenInfo: false,
             validContactInfo: false,
@@ -288,7 +289,6 @@ export default {
                 editBadgePriorBadgeId: -1,
                 editBadgePriorAddons: [],
 
-                selectedBadge: null,
                 context_code: 'A',
                 badge_type_id: -1,
 
@@ -301,8 +301,12 @@ export default {
 
                 form_responses: {},
                 addonsSelected: [],
-                application_status: ''
+                application_status: '',
+
+                assigned_positions: undefined,
             },
+            selectedbadge: null,
+            modelString: '',
 
             RulesRequired: [
                 (v) => !!v || 'Required',
@@ -402,7 +406,7 @@ export default {
         }),
         rewardlist() {
             // return this.$options.filters.split_carriagereturn(this.badges[this.selectedBadge].rewards);
-            return this.badges[this.model.selectedBadge] ? this.badges[this.model.selectedBadge].rewards : '';
+            return this.badges[this.selectedbadge] ? this.badges[this.selectedbadge].rewards : '';
         },
         badges() {
             // Crude clone
@@ -461,6 +465,9 @@ export default {
                     }
                 }),
 
+                //supplementary data
+                assigned_positions: this.model.assigned_possitions,
+
             };
         },
         context_code() {
@@ -480,14 +487,14 @@ export default {
             }
 
             const oldBadge = this.badges.find((badge) => badge.id == this.model.editBadgePriorBadgeId);
-            const selectedBadge = this.badges[this.model.selectedBadge];
+            const selectedBadge = this.badges[this.selectedbadge];
             return typeof oldBadge !== 'undefined' &&
                 typeof selectedBadge !== 'undefined' &&
                 parseFloat(oldBadge.originalprice) > parseFloat(selectedBadge.originalprice);
         },
         badgeQuestions() {
             // Todo: Filter by badge context
-            const badgeId = typeof this.badges[this.model.selectedBadge] === 'undefined' ? '' : this.badges[this.model.selectedBadge].id.toString();
+            const badgeId = typeof this.badges[this.selectedbadge] === 'undefined' ? '' : this.badges[this.selectedbadge].id.toString();
             if (!(badgeId in this.questions)) return {};
             // Filter out the ones that don't apply to this badge
             const result = this.questions[badgeId];
@@ -498,7 +505,7 @@ export default {
         },
         badgeAddons() {
             // Todo: Filter by badge context
-            const badgeId = typeof this.badges[this.model.selectedBadge] === 'undefined' ? '' : this.badges[this.model.selectedBadge].id.toString();
+            const badgeId = typeof this.badges[this.selectedbadge] === 'undefined' ? '' : this.badges[this.selectedbadge].id.toString();
             // Do we have questions at all for this badge?
             if (!(badgeId in this.addonsAvailable)) return {};
             // Filter out the ones that don't apply to this badge
@@ -539,16 +546,35 @@ export default {
             this.checkBadge();
         },
         selectedBadge(val) {
-            this.model.badge_type_id = typeof this.badges[val] === 'undefined' ? this.model.badge_type_id : this.badges[val].id;
+            //Check if we can
+            var newId = typeof this.badges[val] === 'undefined' ? this.model.badge_type_id : this.badges[val].id;
+            if (newId != null) {
+                this.model.badge_type_id = newId;
+            }
+
         },
         value(newValue) {
             this.loadBadge(newValue);
+            this.skipEmitOnce = true;
         },
-        compiledBadge(newBadgeData) {
-            //this.$emit('input', newBadgeData);
-        },
-        'context_code': function(newCode) {
-            this.$store.dispatch('products/selectContext', this.model.context_code);
+        model: {
+
+            handler(newBadgeData, oldBadgeData) {
+                var same = JSON.stringify(newBadgeData) == this.modelString;
+                console.log('ad badge mod', {
+                    new: JSON.stringify(newBadgeData),
+                    old: this.modelString,
+                    same: same
+                })
+                this.modelString = JSON.stringify(newBadgeData);
+                if (this.skipEmitOnce == true || same) {
+                    this.skipEmitOnce = false;
+                    return;
+                }
+                console.log('and we want parent to know')
+                this.$emit('input', newBadgeData);
+            },
+            deep: true
         },
     },
     methods: {
@@ -557,6 +583,9 @@ export default {
             this.date_of_birth = this.date_of_birth;
         },
         async loadBadge(badgeData) {
+            //Are we already loading/emitting?
+            if (this.skipEmitOnce == true) return;
+            this.skipEmitOnce = true;
             let cartItem = badgeData;
             console.log('load a badge')
             let badge_type_id = -1;
@@ -579,6 +608,7 @@ export default {
                 // Special props
 
                 await this.$store.dispatch('products/selectContext', this.model.context_code);
+                this.skipEmitOnce = true;
 
                 this.checkBadge();
                 this.model.addonsSelected = addons.map(addon => addon['addon_id']);
@@ -586,7 +616,7 @@ export default {
                 //     console.log('yah')
                 //     const newIndex = _this.badges.findIndex((badge) => badge.id == badge_type_id);
                 //     if (newIndex > -1) {
-                //         _this.model.selectedBadge = newIndex;
+                //         _this.selectedbadge = newIndex;
                 //     }
                 //     //Also select any selected addons
                 //     _this.model.addonsSelected = addons.map(addon => addon['addon_id']);
@@ -602,7 +632,7 @@ export default {
                 const bid = this.model.badge_type_id;
                 let badge = this.badges.findIndex((badge) => badge.id == bid);
                 if (badge == -1) badge = 0;
-                this.model.selectedBadge = badge;
+                this.selectedbadge = badge;
             }
 
             // Ensure only applicable badge addons are selected!
