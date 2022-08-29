@@ -112,7 +112,9 @@ final class badgeinfo
             default:
                 $result =  $this->g_badge->Create($data);
         }
-
+        //Also set supplementary data
+        $data['id'] = $result['id'];
+        $this->updateSupplementaryBadgeData($data);
         return $result;
     }
 
@@ -177,6 +179,8 @@ final class badgeinfo
             default:
                 $result =  $this->g_badge->Update($data);
         }
+        //Also update supplementary data if provided
+        $this->updateSupplementaryBadgeData($data);
         return $result;
     }
 
@@ -817,41 +821,97 @@ final class badgeinfo
     public function addSupplementaryBadgeData(&$result)
     {
         switch ($result['context_code']) {
-                    case 'A':
-                        //$result =  $this->a_badge->Create($data);
-                        break;
-                    case 'S':
-                        $result['assigned_positions'] = $this->s_assignedposition->Search(
-                            new View(
-                                array(
-                                    'position_id','onboard_completed','onboard_meta','date_created','date_modified',
-                                    new SelectColumn('is_exec', JoinedTableAlias:'p'),
-                                    new SelectColumn('name', Alias:'position_text', JoinedTableAlias:'p'),
-                                    new SelectColumn('department_id', JoinedTableAlias:'p'),
-                                    new SelectColumn('name', Alias:'department_text', JoinedTableAlias:'d'),
-                                ),
-                                array(
-                                    new Join(
-                                        $this->s_position,
-                                        array('id'=>'position_id'),
-                                        alias:'p'
-                                    ),
-                                    new Join(
-                                        $this->s_department,
-                                        array('id'=>new SearchTerm('department_id', null, JoinedTableAlias:'p')),
-                                        alias:'d'
-                                    ),
-                                )
+            case 'A':
+                //$result =  $this->a_badge->Create($data);
+                break;
+            case 'S':
+                $result['assigned_positions'] = $this->s_assignedposition->Search(
+                    new View(
+                        array(
+                            'position_id','onboard_completed','onboard_meta','date_created','date_modified',
+                            new SelectColumn('is_exec', JoinedTableAlias:'p'),
+                            new SelectColumn('name', Alias:'position_text', JoinedTableAlias:'p'),
+                            new SelectColumn('department_id', JoinedTableAlias:'p'),
+                            new SelectColumn('name', Alias:'department_text', JoinedTableAlias:'d'),
+                        ),
+                        array(
+                            new Join(
+                                $this->s_position,
+                                array('id'=>'position_id'),
+                                alias:'p'
                             ),
-                            array(
-                                new SearchTerm('staff_id', $result['id'])
-                            )
-                        );
-                        //$result =  $this->s_badge->Create($data);
-                        break;
-                    default:
-                        $result =  $this->g_badge->Create($data);
+                            new Join(
+                                $this->s_department,
+                                array('id'=>new SearchTerm('department_id', null, JoinedTableAlias:'p')),
+                                alias:'d'
+                            ),
+                        )
+                    ),
+                    array(
+                        new SearchTerm('staff_id', $result['id'])
+                    )
+                );
+                //$result =  $this->s_badge->Create($data);
+                break;
+            default:
+                $result =  $this->g_badge->Create($data);
+        }
+    }
+    public function updateSupplementaryBadgeData(&$result)
+    {
+        switch ($result['context_code']) {
+            case 'A':
+                //$result =  $this->a_badge->Create($data);
+                break;
+            case 'S':
+            if (isset($result['assigned_positions'])) {
+                $setPositions = $result['assigned_positions'];
+                $currentPositions = $this->s_assignedposition->Search(
+                    new View(
+                        array(
+                            'position_id','onboard_completed','onboard_meta','date_created','date_modified',
+                            new SelectColumn('is_exec', JoinedTableAlias:'p'),
+                            new SelectColumn('name', Alias:'position_text', JoinedTableAlias:'p'),
+                            new SelectColumn('department_id', JoinedTableAlias:'p'),
+                            new SelectColumn('name', Alias:'department_text', JoinedTableAlias:'d'),
+                        ),
+                        array(
+                            new Join(
+                                $this->s_position,
+                                array('id'=>'position_id'),
+                                alias:'p'
+                            ),
+                            new Join(
+                                $this->s_department,
+                                array('id'=>new SearchTerm('department_id', null, JoinedTableAlias:'p')),
+                                alias:'d'
+                            ),
+                        )
+                    ),
+                    array(
+                        new SearchTerm('staff_id', $result['id'])
+                    )
+                );
+                //Process adds
+                foreach (array_diff($setPositions, $currentPositions) as $newPosition) {
+                    $this->s_assignedposition->Create($newPosition);
+                    //Remove it from the set
+                    unset($setPositions[array_search($newPosition, $setPositions)]);
                 }
+                //Process removes
+                foreach (array_diff($currentPositions, $setPositions) as $deletedPosition) {
+                    $this->s_assignedposition->Delete($deletedPosition);
+                }
+                //Process modifications
+                foreach ($setPositions as $modifiedPosition) {
+                    $this->s_assignedposition->Update($deletedPosition);
+                }
+            }
+
+                break;
+            default:
+                //$result =  $this->g_badge->Create($data);
+        }
     }
 
     public function addComputedColumns($result, $includeImageData = false)
@@ -952,5 +1012,10 @@ final class badgeinfo
             'limit'=>$limit,
             'offset'=>$offset,
         );
+    }
+    public function compareID($left, $right, $idName = 'id')
+    {
+        //Spaceship!
+        return $left[$idName] <=> $right[$idName];
     }
 }

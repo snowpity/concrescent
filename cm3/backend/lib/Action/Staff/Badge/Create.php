@@ -5,6 +5,7 @@ namespace CM3_Lib\Action\Staff\Badge;
 use CM3_Lib\models\staff\badge;
 use CM3_Lib\models\staff\badgetype;
 use CM3_Lib\models\contact;
+use CM3_Lib\util\badgetypeinfo;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -25,7 +26,8 @@ final class Create
         private Responder $responder,
         private badge $badge,
         private badgetype $badgetype,
-        private contact $contact
+        private contact $contact,
+        private badgeinfo $badgeinfo
     ) {
     }
 
@@ -53,7 +55,7 @@ final class Create
         }
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->staff->Create($data);
+        $data = $this->badgeinfo->CreateSpecificBadgeUnchecked($data);
 
         // Build the HTTP response
         return $this->responder

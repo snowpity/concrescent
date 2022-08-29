@@ -4,6 +4,7 @@ namespace CM3_Lib\Action\Staff\Badge;
 
 use CM3_Lib\models\staff;
 use CM3_Lib\Responder\Responder;
+use CM3_Lib\util\badgeinfo;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -21,10 +22,8 @@ final class Update
      */
     public function __construct(
         private Responder $responder,
-        private badge $badge,
-        private badgetype $badgetype
-    )
-    {
+        private badgeinfo $badgeinfo
+    ) {
     }
 
     /**
@@ -40,18 +39,8 @@ final class Update
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
 
-        $current = $this->badge->GetByID($params['id'], array('badge_type_id'));
-        if ($current === false) {
-            throw new HttpNotFoundException($request);
-        }
-
-        if (!$this->badgetype->verifyBadgeTypeBelongsToEvent($current['badge_type_id'], $request->getAttribute('event_id'))) {
-            throw new HttpBadRequestException($request, 'Badge does not belong to current event');
-        }
-
-
         // Invoke the Domain with inputs and retain the result
-        $data = $this->staff->Update($data);
+        $data = $this->badgeinfo->UpdateSpecificBadgeUnchecked($params['id'], 'S', $data);
 
         // Build the HTTP response
         return $this->responder
