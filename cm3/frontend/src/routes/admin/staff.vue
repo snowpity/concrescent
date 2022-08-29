@@ -27,11 +27,11 @@
                         </v-btn>
                         <v-toolbar-title>Edit Badge</v-toolbar-title>
                         <v-spacer></v-spacer>
-                        <v-toolbar-items v-if="bModified">
+                        <v-toolbar-items>
                             <v-menu offset-y
                                     open-on-hover>
                                 <template v-slot:activator="{ on, attrs }">
-                                    <v-btn color="green"
+                                    <v-btn :color="bModified ? 'green' : 'default'"
                                            dark
                                            v-bind="attrs"
                                            v-on="on">
@@ -44,9 +44,9 @@
                                             Save and send status email
                                         </v-list-item-title>
                                     </v-list-item>
-                                    <v-list-item @click="bEdit = false">
+                                    <v-list-item @click="saveBadge(false)">
                                         <v-list-item-title>
-                                            Save directly
+                                            Save only
                                         </v-list-item-title>
                                     </v-list-item>
                                 </v-list>
@@ -209,6 +209,7 @@ export default {
         dSelected: {},
 
         loading: false,
+        createError: '',
     }),
     computed: {
         authToken: function() {
@@ -244,7 +245,15 @@ export default {
                 icon: 'plus'
             });
             return result;
-        }
+        },
+        isCreateError: {
+            get() {
+                return this.createError.length > 0;
+            },
+            set(newval) {
+                this.createError = newval ? "???" : "";
+            }
+        },
     },
     methods: {
         checkPermission: () => {
@@ -254,12 +263,29 @@ export default {
             console.log('edit badge selected from grid', selectedBadge);
             let that = this;
             this.bSelected = {};
-            that.loading = false;
+            that.loading = true;
             admin.genericGet(this.authToken, 'Staff/Badge/' + selectedBadge.id, null, function(editBadge) {
                 console.log('loaded badge', editBadge)
                 that.bSelected = editBadge;
                 that.loading = false;
                 that.bEdit = true;
+                that.$nextTick(() => {
+                    that.bModified = false;
+                })
+
+            }, function() {
+                that.loading = false;
+            })
+        },
+        saveBadge: function(sendStatus) {
+            console.log('saving badge', this.bSelected);
+            let that = this;
+            that.loading = true;
+            admin.genericPost(this.authToken, 'Staff/Badge/' + this.bSelected.id, this.bSelected, function(editBadge) {
+                console.log('saved badge', editBadge)
+                that.bSelected = {};
+                that.loading = false;
+                that.bEdit = false;
                 that.$nextTick(() => {
                     that.bModified = false;
                 })
@@ -336,7 +362,7 @@ export default {
             this.$nextTick(this.checkPermission);
         },
         bSelected(newBadgeData) {
-            console.log('Modified badge')
+            console.log('Child Modified badge')
             this.bModified = true;
         },
     },

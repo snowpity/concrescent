@@ -89,7 +89,7 @@
                             <v-checkbox hide-details
                                         multiple
                                         :value="addon['id']"
-                                        v-model="model.addonsSelected"
+                                        v-model="addonsSelected"
                                         :disabled="badgeAddonPriorSelected(addon['id']) || addon.quantity_remaining == 0">
                                 <template slot="label">
                                     <h3 class="black--text">{{addon.name}}</h3>
@@ -300,11 +300,11 @@ export default {
                 ice_phone_number: '',
 
                 form_responses: {},
-                addonsSelected: [],
                 application_status: '',
 
                 assigned_positions: undefined,
             },
+            addonsSelected: [],
             selectedbadge: null,
             modelString: '',
 
@@ -449,7 +449,7 @@ export default {
                 editBadgePriorBadgeId: this.model.editBadgePriorBadgeId,
                 editBadgePriorAddons: this.model.editBadgePriorAddons,
 
-                ...this.badgeGenInfoData,
+                ...this.model.badgeGenInfoData,
                 context_code: this.model.context_code,
                 badge_type_id: this.model.badge_type_id,
 
@@ -459,7 +459,7 @@ export default {
                 ice_email_address: this.model.ice_email_address,
                 ice_phone_number: this.model.ice_phone_number,
                 form_responses: this.model.form_responses,
-                addons: this.model.addonsSelected.map(id => {
+                addons: this.addonsSelected.map(id => {
                     return {
                         'addon_id': id
                     }
@@ -532,14 +532,6 @@ export default {
             result.sort((a, b) => a.order - b.order);
             return result;
         },
-        isCreateError: {
-            get() {
-                return this.createError.length > 0;
-            },
-            set(newval) {
-                this.createError = newval ? "???" : "";
-            }
-        },
     },
     watch: {
         'badgeGenInfoData.date_of_birth': function() {
@@ -554,27 +546,35 @@ export default {
 
         },
         value(newValue) {
+            console.log('Loading value because we were told it changed')
             this.loadBadge(newValue);
             this.skipEmitOnce = true;
         },
-        model: {
+        compiledBadge: {
 
             handler(newBadgeData, oldBadgeData) {
+                this.skipEmitOnce = true;
+                this.$emit('input', JSON.parse(JSON.stringify(this.compiledBadge)));
+                return;
                 var same = JSON.stringify(newBadgeData) == this.modelString;
                 console.log('ad badge mod', {
                     new: JSON.stringify(newBadgeData),
                     old: this.modelString,
                     same: same
                 })
-                this.modelString = JSON.stringify(newBadgeData);
                 if (this.skipEmitOnce == true || same) {
                     this.skipEmitOnce = false;
-                    return;
+                    console.log('skipping pre-skip, catching next update')
+
+                } else {
+
+                    this.modelString = JSON.stringify(newBadgeData);
+                    console.log('and we want parent to know')
+                    this.skipEmitOnce = true;
+                    this.$emit('input', JSON.parse(JSON.stringify(this.compiledBadge)));
                 }
-                console.log('and we want parent to know')
-                this.$emit('input', newBadgeData);
             },
-            deep: true
+            //deep: true
         },
     },
     methods: {
@@ -584,9 +584,13 @@ export default {
         },
         async loadBadge(badgeData) {
             //Are we already loading/emitting?
-            if (this.skipEmitOnce == true) return;
-            this.skipEmitOnce = true;
-            let cartItem = badgeData;
+            if (this.skipEmitOnce == true) {
+                console.log('but not actually loading here because skipEmitOnce')
+                this.skipEmitOnce = false;
+                return;
+            }
+
+            let cartItem = JSON.parse(JSON.stringify(badgeData));
             console.log('load a badge')
             let badge_type_id = -1;
 
@@ -611,7 +615,7 @@ export default {
                 this.skipEmitOnce = true;
 
                 this.checkBadge();
-                this.model.addonsSelected = addons.map(addon => addon['addon_id']);
+                this.addonsSelected = addons.map(addon => addon['addon_id']);
                 // setTimeout(async () => {
                 //     console.log('yah')
                 //     const newIndex = _this.badges.findIndex((badge) => badge.id == badge_type_id);
@@ -640,8 +644,8 @@ export default {
                 badgeAddons
             } = this;
             if (badgeAddons.length > 0) {
-                if (typeof this.model.addonsSelected.filter === 'function') {
-                    this.model.addonsSelected = this.model.addonsSelected.filter((aid) => undefined != badgeAddons[aid]);
+                if (typeof this.addonsSelected.filter === 'function') {
+                    this.addonsSelected = this.addonsSelected.filter((aid) => undefined != badgeAddons[aid]);
                 }
             }
         },
