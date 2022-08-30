@@ -84,7 +84,7 @@ export default {
                 (v) => (v == '' || (v && v.length <= 255)) || 'Name must be less than 255 characters',
             ],
             RulesNameDisplay: [
-                (v) => ((this.model.fandom_name.length < 1) || (this.model.fandom_name.length > 0 && v != '')) || 'Please select a display type',
+                (v) => (((this.model.fandom_name || '').length < 1) || (this.model.fandom_name.length > 0 && v != '')) || 'Please select a display type',
             ],
         };
     },

@@ -445,13 +445,17 @@ export default {
             // Special because of how the select dropdown works
             return {
                 id: this.model.id,
-                uuid: this.model.uuid,
+                contact_id: this.model.contact_id,
+                display_id: this.model.display_id,
                 editBadgePriorBadgeId: this.model.editBadgePriorBadgeId,
                 editBadgePriorAddons: this.model.editBadgePriorAddons,
 
                 ...this.model.badgeGenInfoData,
                 context_code: this.model.context_code,
                 badge_type_id: this.model.badge_type_id,
+                application_status: this.model.application_status,
+                time_checked_in: this.model.time_checked_in,
+                time_printed: this.model.time_printed,
 
                 notify_email: this.model.notify_email,
                 ice_name: this.model.ice_name,
@@ -465,8 +469,9 @@ export default {
                     }
                 }),
 
+                notes: this.model.notes,
                 //supplementary data
-                assigned_positions: this.model.assigned_possitions,
+                assigned_positions: this.model.assigned_positions,
 
             };
         },
@@ -497,7 +502,7 @@ export default {
             const badgeId = typeof this.badges[this.selectedbadge] === 'undefined' ? '' : this.badges[this.selectedbadge].id.toString();
             if (!(badgeId in this.questions)) return {};
             // Filter out the ones that don't apply to this badge
-            const result = this.questions[badgeId];
+            var result = this.questions[badgeId];
 
             // Sort it out
             result.sort((a, b) => a.order - b.order);
@@ -546,52 +551,59 @@ export default {
 
         },
         value(newValue) {
-            console.log('Loading value because we were told it changed')
-            this.loadBadge(newValue);
-            this.skipEmitOnce = true;
+            //Check if we have a certain minimum things needed
+            if (newValue.context_code != undefined) {
+
+                this.loadBadge(newValue);
+            }
         },
-        compiledBadge: {
+        model: {
 
             handler(newBadgeData, oldBadgeData) {
-                this.skipEmitOnce = true;
-                this.$emit('input', JSON.parse(JSON.stringify(this.compiledBadge)));
-                return;
-                var same = JSON.stringify(newBadgeData) == this.modelString;
-                console.log('ad badge mod', {
-                    new: JSON.stringify(newBadgeData),
-                    old: this.modelString,
-                    same: same
-                })
-                if (this.skipEmitOnce == true || same) {
+                //this.skipEmitOnce = true;
+                // console.log('Emitting')
+                // this.$emit('input', JSON.parse(JSON.stringify(this.compiledBadge));
+                // return;
+                var same = JSON.stringify(this.compiledBadge) == this.modelString;
+                // console.log('ad badge mod', {
+                //     new: JSON.stringify(this.compiledBadge),
+                //     old: this.modelString,
+                //     same: same
+                // })
+                if (same) {
                     this.skipEmitOnce = false;
-                    console.log('skipping pre-skip, catching next update')
+                    //console.log('skipping pre-skip, catching next update')
 
                 } else {
 
-                    this.modelString = JSON.stringify(newBadgeData);
-                    console.log('and we want parent to know')
+                    this.modelString = JSON.stringify(this.compiledBadge);
+                    //console.log('and we want parent to know')
                     this.skipEmitOnce = true;
-                    this.$emit('input', JSON.parse(JSON.stringify(this.compiledBadge)));
+                    this.$emit('input', JSON.parse(this.modelString));
                 }
             },
-            //deep: true
+            deep: true
         },
     },
     methods: {
+
         saveBDay(date) {
             this.$refs.menuBDay.save(date);
             this.date_of_birth = this.date_of_birth;
         },
         async loadBadge(badgeData) {
+            var same = JSON.stringify(badgeData) == this.modelString;
+            if (same) return;
             //Are we already loading/emitting?
-            if (this.skipEmitOnce == true) {
-                console.log('but not actually loading here because skipEmitOnce')
-                this.skipEmitOnce = false;
-                return;
-            }
+            // if (this.skipEmitOnce == true) {
+            //     console.log('but not actually loading here because skipEmitOnce')
+            //     this.skipEmitOnce = false;
+            //     return;
+            // }
 
             let cartItem = JSON.parse(JSON.stringify(badgeData));
             console.log('load a badge')
+            this.skipEmitOnce = true;
             let badge_type_id = -1;
 
             //If nothing loaded,  early exit
@@ -607,8 +619,9 @@ export default {
                     name_on_badge: cartItem.name_on_badge,
                     date_of_birth: cartItem.date_of_birth,
                 };
-                Object.assign(this.model, cartItem);
+                //Object.assign(this.model, cartItem);
                 //this.model = cartItem;
+                this.$set(this, 'model', cartItem);
                 // Special props
 
                 await this.$store.dispatch('products/selectContext', this.model.context_code);

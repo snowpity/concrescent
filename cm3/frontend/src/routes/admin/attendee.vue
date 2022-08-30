@@ -12,30 +12,34 @@
 
         <v-dialog v-model="bEdit"
                   fullscreen
+                  scrollable
                   hide-overlay
                   persistent>
             <v-card tile>
-
-                <v-toolbar dark
-                           flat
-                           color="primary">
-                    <v-btn icon
-                           dark
-                           @click="bEdit = false">
-                        <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                    <v-toolbar-title>Edit Badge</v-toolbar-title>
-                    <v-spacer></v-spacer>
-                    <v-toolbar-items>
-                        <v-btn dark
-                               text
+                <v-card-title class="pa-0">
+                    <v-toolbar dark
+                               flat
+                               color="primary">
+                        <v-btn icon
+                               dark
                                @click="bEdit = false">
-                            Save
+                            <v-icon>mdi-close</v-icon>
                         </v-btn>
-                    </v-toolbar-items>
-                </v-toolbar>
+                        <v-toolbar-title>Edit Badge</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-toolbar-items>
+                            <v-btn dark
+                                   text
+                                   @click="bEdit = false">
+                                Save
+                            </v-btn>
+                        </v-toolbar-items>
+                    </v-toolbar>
 
-                <editBadgeAdmin v-model="bSelected" />
+                </v-card-title>
+                <v-card-text class="pa-0">
+                    <editBadgeAdmin v-model="bSelected" />
+                </v-card-text>
             </v-card>
         </v-dialog>
     </v-tab-item>

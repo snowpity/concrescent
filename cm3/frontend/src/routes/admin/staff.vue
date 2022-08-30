@@ -262,10 +262,8 @@ export default {
         editBadge: function(selectedBadge) {
             console.log('edit badge selected from grid', selectedBadge);
             let that = this;
-            this.bSelected = {};
             that.loading = true;
             admin.genericGet(this.authToken, 'Staff/Badge/' + selectedBadge.id, null, function(editBadge) {
-                console.log('loaded badge', editBadge)
                 that.bSelected = editBadge;
                 that.loading = false;
                 that.bEdit = true;
@@ -282,7 +280,6 @@ export default {
             let that = this;
             that.loading = true;
             admin.genericPost(this.authToken, 'Staff/Badge/' + this.bSelected.id, this.bSelected, function(editBadge) {
-                console.log('saved badge', editBadge)
                 that.bSelected = {};
                 that.loading = false;
                 that.bEdit = false;
@@ -362,7 +359,6 @@ export default {
             this.$nextTick(this.checkPermission);
         },
         bSelected(newBadgeData) {
-            console.log('Child Modified badge')
             this.bModified = true;
         },
     },
