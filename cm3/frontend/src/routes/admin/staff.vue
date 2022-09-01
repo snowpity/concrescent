@@ -13,8 +13,7 @@
         <v-dialog v-model="bEdit"
                   fullscreen
                   scrollable
-                  hide-overlay
-                  persistent>
+                  hide-overlay>
             <v-card>
                 <v-card-title class="pa-0">
                     <v-toolbar dark
@@ -31,7 +30,7 @@
                             <v-menu offset-y
                                     open-on-hover>
                                 <template v-slot:activator="{ on, attrs }">
-                                    <v-btn :color="bModified ? 'green' : 'default'"
+                                    <v-btn :color="bModified ? 'green' : 'primary'"
                                            dark
                                            v-bind="attrs"
                                            v-on="on">
@@ -39,7 +38,7 @@
                                     </v-btn>
                                 </template>
                                 <v-list>
-                                    <v-list-item>
+                                    <v-list-item @click="saveBadge(true)">
                                         <v-list-item-title>
                                             Save and send status email
                                         </v-list-item-title>
@@ -279,7 +278,7 @@ export default {
             console.log('saving badge', this.bSelected);
             let that = this;
             that.loading = true;
-            admin.genericPost(this.authToken, 'Staff/Badge/' + this.bSelected.id, this.bSelected, function(editBadge) {
+            admin.genericPost(this.authToken, 'Staff/Badge/' + this.bSelected.id + "?sendupdate=" + (sendStatus ? "true" : "false"), this.bSelected, function(editBadge) {
                 that.bSelected = {};
                 that.loading = false;
                 that.bEdit = false;

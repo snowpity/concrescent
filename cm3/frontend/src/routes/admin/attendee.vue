@@ -13,8 +13,7 @@
         <v-dialog v-model="bEdit"
                   fullscreen
                   scrollable
-                  hide-overlay
-                  persistent>
+                  hide-overlay>
             <v-card tile>
                 <v-card-title class="pa-0">
                     <v-toolbar dark

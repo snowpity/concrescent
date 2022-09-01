@@ -4,7 +4,9 @@ namespace CM3_Lib\Action\Staff\Badge;
 
 use CM3_Lib\models\staff;
 use CM3_Lib\Responder\Responder;
+use CM3_Lib\Modules\Notification\Mail;
 use CM3_Lib\util\badgeinfo;
+use CM3_Lib\util\CurrentUserInfo;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -22,7 +24,9 @@ final class Update
      */
     public function __construct(
         private Responder $responder,
-        private badgeinfo $badgeinfo
+        private badgeinfo $badgeinfo,
+        private CurrentUserInfo $CurrentUserInfo,
+        private Mail $Mail
     ) {
     }
 
@@ -41,6 +45,19 @@ final class Update
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->badgeinfo->UpdateSpecificBadgeUnchecked($params['id'], 'S', $data);
+
+        //TODO: Use the notification framework for this...
+        $badge = $this->badgeinfo->getSpecificBadge($data['id'], 'S', true);
+        $to = $this->CurrentUserInfo->GetContactEmail($badge['contact_id']);
+        $template = 'S' . '-application-' .$badge['application_status'];
+        try {
+            //Attempt to send mail
+            $data['sentUpdate'] =  $this->Mail->SendTemplate($to, $template, $badge, $badge['notify_email']);
+        } catch (\Exception $e) {
+            //Oops, couldn't send. Oh well?
+            $data['sentUpdate'] = false;
+        }
+
 
         // Build the HTTP response
         return $this->responder
