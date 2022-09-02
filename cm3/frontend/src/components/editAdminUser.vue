@@ -120,7 +120,7 @@ export default {
         }),
         result() {
             return {
-                contact_id: this.model.contact_id || null,
+                contact_id: this.model.contact_id || undefined,
                 username: this.model.username || "",
                 password: undefinedIfEmptyOrZero(this.model.password),
                 active: this.model.active ? 1 : 0,

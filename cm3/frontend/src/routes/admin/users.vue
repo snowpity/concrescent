@@ -30,7 +30,7 @@
                     <v-toolbar-items>
                         <v-btn dark
                                text
-                               @click="uEdit = false">
+                               @click="saveUser">
                             Save
                         </v-btn>
                     </v-toolbar-items>
@@ -59,14 +59,15 @@
                     <v-toolbar-items>
                         <v-btn dark
                                text
-                               @click="uCreate = false">
+                               @click="saveUser">
                             Save
                         </v-btn>
                     </v-toolbar-items>
                 </v-toolbar>
                 <simpleDropdown apiPath="Contact"
                                 valueDisplay="real_name"
-                                valueSubDisplay="email_address" />
+                                valueSubDisplay="email_address"
+                                v-model="uNew_contact_id" />
                 <editAdminUser v-model="uSelected" />
             </v-card>
         </v-dialog>
@@ -131,6 +132,7 @@ export default {
         uSelected: {},
         uEdit: false,
         uCreate: false,
+        uNew_contact_id: null,
         loading: false,
 
     }),
@@ -190,17 +192,22 @@ export default {
                 that.loading = false;
             })
         },
-        saveBadgeType: function() {
-            var url = 'Staff/BadgeType';
-            if (this.btSelected.id != undefined)
-                url = url + '/' + this.btSelected.id;
-            console.log("Saving badge type", this.btSelected)
+        saveUser: function() {
+            var url = 'AdminUser';
+            var data = {
+                ...this.uSelected,
+                contact_id: this.uCreate ? this.uNew_contact_id : this.uSelected.contact_id,
+            };
+            if (this.uEdit)
+                url = url + '/' + data.contact_id;
+            console.log("Saving user", this.uSelected)
+            this.loading = true;
             var that = this;
-            admin.genericPost(this.authToken, url, this.btSelected, function(editBt) {
+            admin.genericPost(this.authToken, url, data, function(editBt) {
 
-                that.btSelected = editBt;
                 that.loading = false;
-                that.btDialog = false;
+                that.uCreate = false;
+                that.uEdit = false;
             }, function() {
                 that.loading = false;
             })
