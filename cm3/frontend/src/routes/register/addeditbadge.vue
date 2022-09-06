@@ -579,14 +579,24 @@ export default {
                 console.log('Something happen?', this.cartIx)
             }
             //Pre-fill the context code
-            if (this.$route.params.context_code != undefined)
-                this.context_code = this.$route.params.context_code;
-            if (this.$route.query.context_code != undefined)
-                this.context_code = this.$route.query.context_code
-            if (cartItem != undefined && cartItem.context_code != undefined)
-                this.context_code = cartItem.context_code
-            if (this.context_code == undefined)
+            var context_code = 'A';
+            if (cartItem != undefined && cartItem.context_code != undefined) {
+                console.log('set context from cart item', cartItem.context_code);
+                context_code = cartItem.context_code
+            }
+
+            if (this.$route.params.context_code != undefined) {
+                console.log('set context from route params', this.$route.params.context_code);
+                context_code = this.$route.params.context_code;
+            }
+            if (this.$route.query.context_code != undefined) {
+                console.log('set context from URI query', this.$route.query.context_code);
+                context_code = this.$route.query.context_code
+            }
+            if (context_code == undefined) {
+                console.log('set context from default');
                 this.context_code = "A";
+            }
 
             //If nothing loaded,  early exit
             console.log('current cart data', cartItem)
@@ -618,6 +628,8 @@ export default {
 
                 }, 200);
             }
+
+            this.context_code = context_code;
 
             //refresh the current context data
             console.log('Selecting context ' + this.context_code);

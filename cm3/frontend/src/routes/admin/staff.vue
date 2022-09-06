@@ -99,6 +99,7 @@
                   @edit="editDepartment"
                   @create="createDepartment" />
         <v-dialog v-model="dDialog"
+                  scrollable
                   persistent>
 
             <v-card>
@@ -327,11 +328,11 @@ export default {
         },
         editDepartment: function(selectedDepartment) {
             this.loading = true;
-            this.dDialog = true;
             var that = this;
             admin.genericGet(this.authToken, 'Staff/Department/' + selectedDepartment.id, null, function(editBt) {
 
                 that.dSelected = editBt;
+                that.dDialog = true;
                 that.loading = false;
             }, function() {
                 that.loading = false;
@@ -345,7 +346,7 @@ export default {
             var that = this;
             admin.genericPost(this.authToken, url, this.dSelected, function(editBt) {
 
-                that.dSelected = editBt;
+                //that.dSelected = editBt;
                 that.loading = false;
                 that.dDialog = false;
             }, function() {

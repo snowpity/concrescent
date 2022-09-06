@@ -414,6 +414,8 @@ final class PaymentBuilder
         $errors = array();
         $this->refreshCartMeta();
 
+        //TODO: craete the checked versions and use them instead of blind faith
+
         foreach ($this->cart_items as $key => &$item) {
             //Create/Update the badge
             $bt = $this->badgeinfo->getBadgetType($item['context_code'], $item['badge_type_id']);
@@ -429,6 +431,11 @@ final class PaymentBuilder
                 if ($bi === false) {
                     if ($item['context_code'] != 'A' && !empty($bt['payment_deferred']) && $bt['payment_deferred']) {
                         $item['application_status'] = 'Submitted';
+                    }
+
+                    //TODO: Temp hack to ensure there is a valid name_on_badgeOptions
+                    if ($item['name_on_badge'] && empty($item['name_on_badge'])) {
+                        $item['name_on_badge'] = 'Real Name Only';
                     }
 
                     $newID = $this->badgeinfo->CreateSpecificBadgeUnchecked($item);

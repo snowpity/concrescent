@@ -3,7 +3,12 @@
 namespace CM3_Lib\Action\Staff\Department;
 
 use CM3_Lib\database\SearchTerm;
+use CM3_Lib\database\View;
+use CM3_Lib\database\Join;
+use CM3_Lib\database\SelectColumn;
 use CM3_Lib\models\staff\department;
+use CM3_Lib\models\staff\position;
+use CM3_Lib\models\staff\assignedposition;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -20,8 +25,12 @@ final class Read
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private department $department)
-    {
+    public function __construct(
+        private Responder $responder,
+        private department $department,
+        private position $position,
+        private assignedposition $assignedposition
+    ) {
     }
 
     /**
@@ -48,8 +57,29 @@ final class Read
         }
 
         if (!$result['event_id'] == $request->getAttribute('event_id')) {
-            throw new HttpBadRequestException($request, 'Badge does not belong to current event');
+            throw new HttpBadRequestException($request, 'Department does not belong to current event');
         }
+
+        //Fetch positions for this department
+        $positions = $this->position->Search(
+            new View(
+                [
+                'id','active','is_exec','name','description','desired_count',
+                new SelectColumn('assigned', false, 'IFNULL(?,0)', 'assigned_count', JoinedTableAlias:'ap'),
+                'notes'
+            ],
+                [
+                new Join($this->assignedposition, ['position_id'=>'id'], 'LEFT', 'ap', [
+                    new SelectColumn('position_id', true),
+                    new SelectColumn('position_id', false, 'count(?)', 'assigned')
+                ])
+            ]
+            ),
+            array(
+            new SearchTerm('department_id', $result['id'])
+        )
+        );
+        $result['positions'] = $positions;
 
         // Build the HTTP response
         return $this->responder

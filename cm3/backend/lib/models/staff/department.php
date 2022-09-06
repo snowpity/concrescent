@@ -29,4 +29,16 @@ class department extends \CM3_Lib\database\Table
         $this->PrimaryKeys = array('id'=>false);
         $this->DefaultSearchColumns = array('id','parent_id','name','email_primary');
     }
+
+    public function verifyDepartmentBelongsToEvent(int $id, int $event_id)
+    {
+        $bt = $this->GetByID($id, array('event_id'));
+        if ($bt === false) {
+            return false;
+        }
+        if ($bt['event_id'] != $event_id) {
+            return false;
+        }
+        return true;
+    }
 }

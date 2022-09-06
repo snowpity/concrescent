@@ -426,7 +426,7 @@ abstract class Table
                                 $value->EncapsulationFunction != null ? $value->EncapsulationFunction : '?'
                             );
                             if (!is_null($value->Alias)) {
-                                $sqlBody .= ' as ' . $value->Alias;
+                                $sqlBody .= ' as `' . $value->Alias . '`';
                                 $joinSubQueryExposed[] = $value->Alias;
                             } else {
                                 $joinSubQueryExposed[] = $value->ColumnName;

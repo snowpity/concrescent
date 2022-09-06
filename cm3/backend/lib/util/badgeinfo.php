@@ -896,8 +896,6 @@ final class badgeinfo
                 foreach (array_udiff($setPositions, $currentPositions, array($this,'comparePositionID')) as $newPosition) {
                     $newPosition['staff_id'] = $result['id'];
                     $this->s_assignedposition->Create($newPosition);
-                    //Remove it from the set
-                    unset($setPositions[array_search($newPosition, $setPositions)]);
                 }
                 //Process removes
                 foreach (array_udiff($currentPositions, $setPositions, array($this,'comparePositionID')) as $deletedPosition) {
@@ -905,7 +903,7 @@ final class badgeinfo
                     $this->s_assignedposition->Delete($deletedPosition);
                 }
                 //Process modifications
-                foreach ($setPositions as $modifiedPosition) {
+                foreach (array_uintersect($setPositions, $currentPositions, array($this,'comparePositionID')) as $modifiedPosition) {
                     $modifiedPosition['staff_id'] = $result['id'];
                     $this->s_assignedposition->Update($modifiedPosition);
                 }
@@ -1018,8 +1016,17 @@ final class badgeinfo
     }
     public function compareID($left, $right, $idName = 'id')
     {
-        //Spaceship!
-        return $left[$idName] <=> $right[$idName];
+        //Handle not defineds
+        if (!isset($left[$idName])) {
+            return 1;
+        } else {
+            if (!isset($right[$idName])) {
+                return -1;
+            } else {
+                //Spaceship!
+                return $left[$idName] <=> $right[$idName];
+            }
+        }
     }
     public function comparePositionID($left, $right)
     {

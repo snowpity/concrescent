@@ -3,6 +3,8 @@
 namespace CM3_Lib\Action\Staff\Department;
 
 use CM3_Lib\models\staff\department;
+use CM3_Lib\models\staff\position;
+use CM3_Lib\util\CurrentUserInfo;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -19,8 +21,12 @@ final class Create
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private department $department)
-    {
+    public function __construct(
+        private Responder $responder,
+        private CurrentUserInfo $CurrentUserInfo,
+        private department $department,
+        private position $position
+    ) {
     }
 
     /**
@@ -37,22 +43,25 @@ final class Create
         $data = (array)$request->getParsedBody();
 
         //Ensure we're making a badge type with the associated event
-        $data['event_id'] = $request->getAttribute('event_id');
+        $data['event_id'] = $this->CurrentUserInfo->GetEventId();
+
         //Make sure we don't have an ID, date_created, date_modified
         unset($data['id']);
         unset($data['date_created']);
         unset($data['date_modified']);
-        unset($data['dates_available']);
 
-        if (empty($data['start_date'])) {
-            unset($data['start_date']);
-        }
-        if (empty($data['end_date'])) {
-            unset($data['end_date']);
-        }
+        $setPositions = $data['positions'];
+
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->department->Create($data);
+        //Process adds
+        foreach ($setPositions as $newPosition) {
+            //ensure the key isn't specified
+            unset($newPosition['id']);
+            $newPosition['department_id'] = $data['id'];
+            $this->position->Create($newPosition);
+        }
 
         // Build the HTTP response
         return $this->responder

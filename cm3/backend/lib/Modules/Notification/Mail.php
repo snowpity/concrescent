@@ -322,7 +322,7 @@ class Mail
     /**
     * Gets the value from input based on path.
     * Handles objects, arrays and scalars. Nesting can be mixed.
-    * E.g.: $input->a->b->c = 'val' or $input['a']['b']['c'] = 'val' will
+    * E.g.: $input.a.b.c = 'val' or $input['a']['b']['c'] = 'val' will
     * return "val" with path "a[b][c]".
     * @param mixed $input
     * @param string $path
