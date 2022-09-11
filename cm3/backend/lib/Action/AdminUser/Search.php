@@ -39,7 +39,7 @@ final class Search
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
         $whereParts = array(
-          new SearchTerm('username', '%' . $request->getQueryParams()['find'] .'%', 'LIKE'),
+          new SearchTerm('username', '%' . ($request->getQueryParams()['find']??'') .'%', 'LIKE'),
         );
 
         $order = array('contact_id' => false);

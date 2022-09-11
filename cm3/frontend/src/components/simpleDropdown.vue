@@ -3,9 +3,9 @@
                 :items="searchResults"
                 :loading="loading"
                 :search-input.sync="searchText"
+                :filter="noFilter"
                 hide-details
                 hide-selected
-                cache-items
                 :item-value="valueKey"
                 :label="label"
                 solo>
@@ -140,6 +140,9 @@ export default {
                 this.searchResults = results;
                 this.loading = false;
             })
+        },
+        noFilter: function() {
+            return true;
         },
         doEmit: function(eventName, item) {
             this.$emit(eventName, item);

@@ -11,10 +11,7 @@
                     @edit="editUser"
                     @create="createUser" />
 
-        <v-dialog v-model="uEdit"
-                  hide-overlay
-                  fullscreen
-                  persistent>
+        <v-dialog v-model="uEdit">
             <v-card tile>
 
                 <v-toolbar dark
@@ -40,10 +37,7 @@
             </v-card>
         </v-dialog>
 
-        <v-dialog v-model="uCreate"
-                  hide-overlay
-                  fullscreen
-                  persistent>
+        <v-dialog v-model="uCreate">
             <v-card tile>
 
                 <v-toolbar dark
@@ -67,6 +61,7 @@
                 <simpleDropdown apiPath="Contact"
                                 valueDisplay="real_name"
                                 valueSubDisplay="email_address"
+                                label="Search contacts"
                                 v-model="uNew_contact_id" />
                 <editAdminUser v-model="uSelected" />
             </v-card>
@@ -178,7 +173,9 @@ export default {
         },
         createUser: function() {
             this.uCreate = true;
-            this.uSelected = {};
+            this.uSelected = {
+                active: true
+            };
         },
         editBadgeType: function(selectedBadgeType) {
             this.loading = true;

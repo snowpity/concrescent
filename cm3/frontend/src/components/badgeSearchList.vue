@@ -129,12 +129,10 @@ export default {
                 'sortDesc',
                 'page',
                 'itemsPerPage'
-            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), {});;
-            admin.genericGetList(this.authToken, this.apiPath, {
-                "find": this.searchText,
-                "context_code": this.context_code,
-                ...pageOptions
-            }, (results, total) => {
+            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), {});
+            if (this.searchText) pageOptions['find'] = this.searchText;
+            if (this.context_code) pageOptions['context_code'] = this.context_code;
+            admin.genericGetList(this.authToken, this.apiPath, pageOptions, (results, total) => {
                 this.tableResults = results;
                 this.totalResults = total;
                 this.loading = false;
