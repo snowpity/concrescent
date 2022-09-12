@@ -208,7 +208,7 @@
             </v-row>
         </v-form>
         <v-btn color="primary"
-               :disabled="!(validContactInfo && isLoggedIn)"
+               :disabled="!(validContactInfo || isLoggedIn)"
                :loading="creatingAccount"
                @click="checkCreateAccount">Continue</v-btn>
         <v-btn text

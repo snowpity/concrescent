@@ -1,0 +1,9 @@
+{
+  "name": "application-PendingAcceptance",
+  "reply_to": "registration@example.com",
+  "from": "registration@example.com",
+  "cc": "registration@example.com",
+  "subject": "Your Staff registration for [[event.display_name]]",
+  "format": "Markdown",
+  "body": "Greetings,\n\nYour application to **[[event.display_name]]**. Your [[badge_type_name]] staff registration for **[[display_name]]** has been accepted.\n\nPosition: [[assigned_positions.0.department_text]]: [[assigned_positions.0.position_text]]. \n\nPlease proceed to confirm your acceptance by [clicking this link]([[cart_url]]) to finish your registration.\n\nThanks,\n[[event-name]] Registration"
+}

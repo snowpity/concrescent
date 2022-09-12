@@ -9,8 +9,7 @@
             <v-card :to="card.route">
                 <v-icon class="ma-8"
                         size=200>{{card.icon}}</v-icon>
-                <v-card-title class="fill-height align-end"
-                              v-text="card.label"></v-card-title>
+                <v-card-title class="fill-height align-end">{{card.label}}</v-card-title>
 
                 <v-card-actions v-show="card.actiontext != undefined">
                     <v-spacer></v-spacer>

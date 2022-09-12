@@ -64,7 +64,7 @@
                               no-action>
                     <template v-slot:activator>
                         <v-list-item-content>
-                            <v-list-item-title v-text="item.name"></v-list-item-title>
+                            <v-list-item-title>{{item.name}}</v-list-item-title>
                             Staffing level {{item.assigned_count}}/{{item.desired_count}}
                         </v-list-item-content>
                     </template>
