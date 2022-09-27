@@ -17,6 +17,9 @@ use CM3_Lib\models\attendee\addonpurchase as a_addonpurchase;
 use CM3_Lib\models\application\submission as g_badge_submission;
 use CM3_Lib\models\application\submissionapplicant as g_badge;
 use CM3_Lib\models\application\group as g_group;
+use CM3_Lib\models\application\addon as g_addon;
+use CM3_Lib\models\application\addonmap as g_addonmap;
+use CM3_Lib\models\application\addonpurchase as g_addonpurchase;
 use CM3_Lib\models\staff\badge as s_badge;
 use CM3_Lib\models\forms\question as f_question;
 use CM3_Lib\models\forms\response as f_response;
@@ -44,6 +47,9 @@ final class badgeinfo
         private s_badge $s_badge,
         private g_group $g_group,
         private g_badge_submission $g_badge_submission,
+        private g_addon $g_addon,
+        private g_addonmap $g_addonmap,
+        private g_addonpurchase $g_addonpurchase,
         private f_question $f_question,
         private f_response $f_response,
         private CurrentUserInfo $CurrentUserInfo,
@@ -146,6 +152,21 @@ final class badgeinfo
                 break;
             default:
                 $result =  $this->getASpecificGroupBadge($id, $full ? $this->badgeViewFullAddGroup() : null);
+                if ($result !== false) {
+                    $result['addons'] = [];
+                    $g_addons = $this->g_addonpurchase->Search(array(
+                    'addon_id',
+                    'payment_status'
+                ), array(
+                    new SearchTerm('attendee_id', $id)
+                ));
+                    foreach ($g_addons as $addon) {
+                        $result['addons'][] = array(
+                        'addon_id' => $addon['addon_id'],
+                        'addon_payment_status' => $addon['payment_status']
+                    );
+                    }
+                }
         }
 
         if ($result === false || !$full) {
@@ -366,6 +387,35 @@ final class badgeinfo
             )
         );
     }
+    public function GetApplicationAddonsAvailable($badge_type_id)
+    {
+        return $this->g_addon->Search(
+            new View(
+                array(
+                'id',
+                'active',
+                'name',
+                'description',
+                'price',
+                'payable_onsite',
+            ),
+                array(
+
+               new Join(
+                   $this->g_addonmap,
+                   array(
+                     'addon_id' => 'id',
+                     new SearchTerm('badge_type_id', $badge_type_id)
+                   ),
+                   alias:'map'
+               )
+            )
+            ),
+            array(
+                $this->CurrentUserInfo->EventIdSearchTerm()
+            )
+        );
+    }
     public function GetAttendeeAddons($attendee_id)
     {
         return $this->a_addonpurchase->Search(
@@ -376,6 +426,19 @@ final class badgeinfo
             ),
             array(
                 new SearchTerm('attendee_id', $attendee_id)
+            )
+        );
+    }
+    public function GetApplicationAddons($attendee_id)
+    {
+        return $this->g_addonpurchase->Search(
+            array(
+                'addon_id',
+                'payment_id',
+                'payment_status'
+            ),
+            array(
+                new SearchTerm('application_id', $attendee_id)
             )
         );
     }
@@ -391,6 +454,21 @@ final class badgeinfo
             return $this->a_addonpurchase->Update($data);
         } else {
             return $this->a_addonpurchase->Create($data);
+        }
+    }
+
+    public function AddUpdateGBadgeAddonUnchecked(&$data)
+    {
+        $current = $this->g_addonpurchase->Exists(
+            array(
+                'application_id'=> $data['application_id'] ?? 0,
+                'addon_id'=> $data['addon_id'] ?? 0,
+            )
+        );
+        if ($current > 0) {
+            return $this->g_addonpurchase->Update($data);
+        } else {
+            return $this->g_addonpurchase->Create($data);
         }
     }
 
@@ -480,6 +558,17 @@ final class badgeinfo
             new SearchTerm('attendee_id', $attendeeIds, 'IN'),
             new SearchTerm('payment_status', 'Completed')
         ));
+        $applicantIds = array_column($g_data, 'id');
+        if (count($applicantIds) == 0) {
+            $applicantIds[] = 0;
+        }
+        $g_addons = $this->g_addonpurchase->Search(array(
+            'attendee_id',
+            'addon_id'
+        ), array(
+            new SearchTerm('application_id', $applicantIds, 'IN'),
+            new SearchTerm('payment_status', 'Completed')
+        ));
 
         $result = array_merge($a_data, $s_data, $g_data);
 
@@ -489,6 +578,14 @@ final class badgeinfo
             if ($badge['context_code'] == 'A') {
                 foreach ($a_addons as $addon) {
                     if ($addon['attendee_id'] == $badge['id']) {
+                        $badge['addons'][] = array(
+                        'addon_id' => $addon['addon_id']
+                    );
+                    }
+                }
+            } elseif ($badge['context_code'] != 'S') {
+                foreach ($g_addons as $addon) {
+                    if ($addon['application_id'] == $badge['id']) {
                         $badge['addons'][] = array(
                         'addon_id' => $addon['addon_id']
                     );

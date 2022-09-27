@@ -149,7 +149,7 @@ class submission extends \CM3_Lib\database\Table
 
         if (isset($application['applicants']) && $application['applicants'] && $atdb) {
             $name_map = $atdb->get_badge_type_name_map();
-            $fdb = new cm_forms_db($this->cm_db, 'attendee');
+            $fdb = new cm_forms_db($this->cm_db, 'application');
 
             $total_price = 0;
             foreach ($applications as $a) {
@@ -170,15 +170,15 @@ class submission extends \CM3_Lib\database\Table
             }
 
             foreach ($application['applicants'] as $applicant) {
-                if (isset($applicant['attendee-id']) && $applicant['attendee-id']) {
-                    $attendee = $atdb->get_attendee($applicant['attendee-id'], false, $name_map, $fdb);
-                    if ($attendee && $attendee['payment-status'] == 'Completed') {
-                        $discount = min($attendee['payment-txn-amt'], $max_discount, $total_price);
+                if (isset($applicant['application-id']) && $applicant['application-id']) {
+                    $application = $atdb->get_application($applicant['application-id'], false, $name_map, $fdb);
+                    if ($application && $application['payment-status'] == 'Completed') {
+                        $discount = min($application['payment-txn-amt'], $max_discount, $total_price);
                         if ($discount > 0) {
                             $discounts[] = array(
                                 'application-id' => $application['id'],
-                                'name' => 'Attendee Preregistration Discount',
-                                'details' => $attendee['display-name'],
+                                'name' => 'Application Preregistration Discount',
+                                'details' => $application['display-name'],
                                 'price' => -$discount,
                                 'price-string' => '-' . price_string($discount)
                             );

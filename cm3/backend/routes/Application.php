@@ -76,6 +76,54 @@ return function (App $app, $container) {
             $app->delete('/{id}', \CM3_Lib\Action\Application\Assignment\Delete::class)
             ->add($gpAsign);
         },
+        '/Addon' => function (RouteCollectorProxy $app) use ($groupPerm) {
+            $gtmanage =$groupPerm->withAllowedPerm(PermGroup::Badge_Manage());
+            $app->get('', \CM3_Lib\Action\Application\Addon\Search::class)
+            ->add($groupPerm);
+            $app->post('', \CM3_Lib\Action\Application\Addon\Create::class)
+            ->add($gtmanage);
+            $app->get('/{id}', \CM3_Lib\Action\Application\Addon\Read::class)
+            ->add($groupPerm);
+            $app->post('/{id}', \CM3_Lib\Action\Application\Addon\Update::class)
+            ->add($gtmanage);
+            $app->delete('/{id}', \CM3_Lib\Action\Application\Addon\Delete::class)
+            ->add($gtmanage);
+            $app->get('/{addon_id}/Badge', \CM3_Lib\Action\Application\AddonMap\Search::class)
+            ->add($groupPerm);
+            $app->post('/{addon_id}/Badge/{badge_type_id}', \CM3_Lib\Action\Application\AddonMap\Create::class)
+            ->add($gtmanage);
+            $app->delete('/{addon_id}/Badge/{badge_type_id}', \CM3_Lib\Action\Application\AddonMap\Delete::class)
+            ->add($gtmanage);
+        },
+        '/Submission/{application_id}/AddonPurchase' =>
+        function (RouteCollectorProxy $app) use ($groupPerm) {
+            $app->get('', \CM3_Lib\Action\Application\AddonPurchase\Search::class)
+            ->add($groupPerm->withAllowedPerms(array(
+                PermGroup::Submission_View()
+            )));
+            $app->post('/export', \CM3_Lib\Action\Application\AddonPurchase\Export::class)
+            ->add($groupPerm->withAllowedPerms(array(
+                PermGroup::Submission_Export()
+            )));
+            $app->post('', \CM3_Lib\Action\Application\AddonPurchase\Create::class)
+            ->add($groupPerm->withAllowedPerms(array(
+                PermGroup()
+            )));
+            $app->get('/{id}', \CM3_Lib\Action\Application\AddonPurchase\Read::class)
+            ->add($groupPerm->withAllowedPerms(array(
+                PermGroup::Submission_View(),
+                PermGroup()
+            )));
+            $app->post('/{id}', \CM3_Lib\Action\Application\AddonPurchase\Update::class)
+            ->add($groupPerm->withAllowedPerms(array(
+                PermGroup::Submission_View(),
+                PermGroup()
+            )));
+            $app->delete('/{id}', \CM3_Lib\Action\Application\AddonPurchase\Delete::class)
+            ->add($groupPerm->withAllowedPerms(array(
+                PermGroup::Submission_Refund()
+            )));
+        },
     );
 
     $app->group(

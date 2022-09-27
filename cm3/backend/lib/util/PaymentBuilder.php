@@ -597,6 +597,9 @@ final class PaymentBuilder
             $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code']);
             if ($bi !== false) {
                 $item['payment_status'] = 'Completed';
+                if ($bi['application_status'] == 'AwaitingApproval') {
+                    $bi['application_status'] = 'Onboarding';
+                }
 
                 $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
                 if (!isset($item['existing']) || (isset($item['existing']) && $item['existing']['display_id'] == null)) {
@@ -609,10 +612,21 @@ final class PaymentBuilder
             //Check for addons
             if (isset($item['addons'])) {
                 foreach ($item['addons'] as &$addon) {
-                    $addon['attendee_id'] = $item['id'];
                     $addon['payment_id'] = $this->cart['id'];
                     $addon['payment_status'] = 'Completed';
-                    $this->badgeinfo->AddUpdateABadgeAddonUnchecked($addon);
+                    switch ($item['context_code']) {
+                        case 'A':
+                            $addon['attendee_id'] = $item['id'];
+                            $this->badgeinfo->AddUpdateABadgeAddonUnchecked($addon);
+                            break;
+                        case 'S':
+                        //not supported (yet)
+                        break;
+                        default:
+                            $addon['application_id'] = $item['id'];
+                            $this->badgeinfo->AddUpdateGBadgeAddonUnchecked($addon);
+                            break;
+                    }
                 }
             }
         }
@@ -638,10 +652,21 @@ final class PaymentBuilder
             //Check for addons
             if (isset($item['addons'])) {
                 foreach ($item['addons'] as &$addon) {
-                    $addon['attendee_id'] = $item['id'];
                     $addon['payment_id'] = $this->cart['id'];
                     $addon['payment_status'] = 'Cancelled';
-                    $this->badgeinfo->AddUpdateABadgeAddonUncheckedon($addon);
+                    switch ($item['context_code']) {
+                        case 'A':
+                            $addon['attendee_id'] = $item['id'];
+                            $this->badgeinfo->AddUpdateABadgeAddonUnchecked($addon);
+                            break;
+                        case 'S':
+                        //not supported (yet)
+                        break;
+                        default:
+                            $addon['application_id'] = $item['id'];
+                            $this->badgeinfo->AddUpdateGBadgeAddonUnchecked($addon);
+                            break;
+                    }
                 }
             }
         }
