@@ -563,7 +563,7 @@ final class badgeinfo
             $applicantIds[] = 0;
         }
         $g_addons = $this->g_addonpurchase->Search(array(
-            'attendee_id',
+            'application_id',
             'addon_id'
         ), array(
             new SearchTerm('application_id', $applicantIds, 'IN'),

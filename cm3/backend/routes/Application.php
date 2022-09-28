@@ -107,17 +107,17 @@ return function (App $app, $container) {
             )));
             $app->post('', \CM3_Lib\Action\Application\AddonPurchase\Create::class)
             ->add($groupPerm->withAllowedPerms(array(
-                PermGroup()
+                PermGroup::Submission_Edit()
             )));
             $app->get('/{id}', \CM3_Lib\Action\Application\AddonPurchase\Read::class)
             ->add($groupPerm->withAllowedPerms(array(
                 PermGroup::Submission_View(),
-                PermGroup()
+                PermGroup::Submission_Edit()
             )));
             $app->post('/{id}', \CM3_Lib\Action\Application\AddonPurchase\Update::class)
             ->add($groupPerm->withAllowedPerms(array(
                 PermGroup::Submission_View(),
-                PermGroup()
+                PermGroup::Submission_Edit()
             )));
             $app->delete('/{id}', \CM3_Lib\Action\Application\AddonPurchase\Delete::class)
             ->add($groupPerm->withAllowedPerms(array(
