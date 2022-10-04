@@ -2,8 +2,9 @@
 
 namespace CM3_Lib\Action\Application\Submission;
 
-use CM3_Lib\models\application\submission;
+use CM3_Lib\models\application\group;
 use CM3_Lib\models\application\badgetype;
+use CM3_Lib\util\badgeinfo;
 
 use CM3_Lib\database\SearchTerm;
 use CM3_Lib\database\View;
@@ -27,8 +28,12 @@ final class Read
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private submission $submission, private badgetype $badgetype)
-    {
+    public function __construct(
+        private Responder $responder,
+        private group $group,
+        private badgetype $badgetype,
+        private badgeinfo $badgeinfo
+    ) {
     }
 
     /**
@@ -43,21 +48,26 @@ final class Read
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
+        //Fetch the context code of the group specified
+        $group = $this->group->GetByID($params['group_id'], []);
+
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
+        $result = $this->badgeinfo->GetSpecificBadge($params['id'], $group['context_code'], full:true);
 
-        // Invoke the Domain with inputs and retain the result
-        $data = $this->submission->GetByID($params['id'], new View(
-            array(),
-            array(new Join($this->badgetype, array('id'=>'badge_type_id', new SearchTerm('group_id', $params['group_id']))))
-        ));
-
-        if ($data === false) {
+        // // Invoke the Domain with inputs and retain the result
+        // $result = $this->badge->GetByID($params['id'], '*');
+        //
+        //Confirm badge belongs to a badgetype in this event
+        if ($result === false) {
+            throw new HttpNotFoundException($request);
+        }
+        if (!$this->badgeinfo->checkBadgeTypeBelongsToEvent($group['context_code'], $result['badge_type_id'])) {
             throw new HttpNotFoundException($request);
         }
 
         // Build the HTTP response
         return $this->responder
-            ->withJson($response, $data);
+            ->withJson($response, $result);
     }
 }

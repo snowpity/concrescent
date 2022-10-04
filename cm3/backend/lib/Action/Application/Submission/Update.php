@@ -38,12 +38,20 @@ final class Update
         $data = (array)$request->getParsedBody();
         $data['id'] = $params['id'];
 
-        //Confirm the given badge_type_id belongs to the given group_id
-        if (!$this->badgetype->verifyBadgeTypeBelongsToGroup($data['badge_type_id'], $params['group_id'])) {
-            throw new HttpBadRequestException($request, 'Invalid badge_type_id specified');
-        }
         // Invoke the Domain with inputs and retain the result
-        $data = $this->submission->Update($data);
+        $data = $this->badgeinfo->UpdateSpecificBadgeUnchecked($params['id'], $params['context_code'], $data);
+
+        //TODO: Use the notification framework for this...
+        $badge = $this->badgeinfo->getSpecificBadge($data['id'], $params['context_code'], true);
+        $to = $this->CurrentUserInfo->GetContactEmail($badge['contact_id']);
+        $template = $params['context_code'] . '-application-' .$badge['application_status'];
+        try {
+            //Attempt to send mail
+            $data['sentUpdate'] =  $this->Mail->SendTemplate($to, $template, $badge, $badge['notify_email']);
+        } catch (\Exception $e) {
+            //Oops, couldn't send. Oh well?
+            $data['sentUpdate'] = false;
+        }
 
         // Build the HTTP response
         return $this->responder

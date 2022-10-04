@@ -33,14 +33,21 @@ const result = [{
         },
         component: () => import( /* webpackChunkName: "admin_attendee" */ './routes/admin/attendee.vue'),
     },
-    // {
-    //   path: '/Group/:context_code',
-    //   name: 'Attendee',
-    //   meta: {
-    //     title: 'Group',
-    //   },
-    //   component: () => import(/* webpackChunkName: "login" */ './routes/admin/group.vue'),
-    // },
+    {
+        path: 'Application/:context_code',
+        name: 'Application',
+        meta: {
+            title: 'Group Applications',
+            subTabs: [
+                'Badges',
+                'Types',
+                'Questions',
+                'Departments',
+                'Notifications'
+            ]
+        },
+        component: () => import( /* webpackChunkName: "admin_group" */ './routes/admin/applications.vue'),
+    },
     {
         path: 'Staff',
         name: 'Staff',

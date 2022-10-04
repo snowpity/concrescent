@@ -74,8 +74,8 @@ const getters = {
         if (state.permissions == null || state.permissions == undefined) return false;
         //Check if they're a GlobalAdmin
         if (getters.hasEventPerm("GlobalAdmin")) return true;
-        if (state.permissions.GrouPerms[groupId] == undefined) return false;
-        return state.permissions.GrouPerms[groupId].findIndex((perm) => perm == permName) > -1;
+        if (state.permissions.GroupPerms[groupId] == undefined) return false;
+        return state.permissions.GroupPerms[groupId].findIndex((perm) => perm == permName) > -1;
     },
     getContactInfo: (state) => {
         return state.contactInfo;

@@ -42,7 +42,8 @@ final class ListBadgeContexts
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         $whereParts = array(
-                  new SearchTerm('event_id', $params['event_id'])
+                  new SearchTerm('event_id', $params['event_id']),
+                  new SearchTerm('active', 1)
                 );
 
         $order = array('display_order' => false);
@@ -53,7 +54,9 @@ final class ListBadgeContexts
             'id',
            'context_code',
            'name',
-           'menu_icon'
+           'menu_icon',
+           'application_name1',
+           'application_name2',
          ), $whereParts, $order);
 
         //Append the hard-coded contexts

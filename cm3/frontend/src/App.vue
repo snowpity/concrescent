@@ -193,7 +193,7 @@ export default {
                 this.badgeContexts.forEach((group, i) => {
                     if (group.id > 0) {
                         items.push({
-                            route: "/Admin/Group/" + group.context_code,
+                            route: "/Admin/Application/" + group.context_code,
                             icon: "mdi-" + (group.menu_icon != null ? group.menu_icon : "newspaper"),
                             label: group.name,
                             show: () => {

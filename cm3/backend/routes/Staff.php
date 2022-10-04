@@ -11,7 +11,9 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 return function (App $app, $container) {
-    $staffPerm = $container->get(PermCheckEventPerm::class);
+    $staffPerm = $container->get(PermCheckEventPerm::class)
+    ->withAllowedPerm(PermEvent::Staff_Manage());
+    $staffView = $staffPerm->withAllowedPerm(PermEvent::Staff_View());
 
     $r = array(
         '/Badge' =>
@@ -39,43 +41,40 @@ return function (App $app, $container) {
                 PermEvent::Staff_Edit()
             )));
         },
-        '/BadgeType' => function (RouteCollectorProxy $app) use ($staffPerm) {
-            $atManage = $staffPerm->withAllowedPerm(PermEvent::Staff_Manage());
+        '/BadgeType' => function (RouteCollectorProxy $app) use ($staffPerm, $staffView) {
             $app->get('', \CM3_Lib\Action\Staff\BadgeType\Search::class)
-            ->add($staffPerm);
+            ->add($staffView);
             $app->post('', \CM3_Lib\Action\Staff\BadgeType\Create::class)
-            ->add($atManage);
+            ->add($staffPerm);
             $app->get('/{id}', \CM3_Lib\Action\Staff\BadgeType\Read::class)
-            ->add($staffPerm);
+            ->add($staffView);
             $app->post('/{id}', \CM3_Lib\Action\Staff\BadgeType\Update::class)
-            ->add($atManage);
+            ->add($staffPerm);
             $app->delete('/{id}', \CM3_Lib\Action\Staff\BadgeType\Delete::class)
-            ->add($atManage);
+            ->add($staffPerm);
         },
-        '/Department' => function (RouteCollectorProxy $app) use ($staffPerm) {
-            $atManage = $staffPerm->withAllowedPerm(PermEvent::Staff_Manage());
+        '/Department' => function (RouteCollectorProxy $app) use ($staffPerm, $staffView) {
             $app->get('', \CM3_Lib\Action\Staff\Department\Search::class)
-            ->add($staffPerm);
+            ->add($staffView);
             $app->post('', \CM3_Lib\Action\Staff\Department\Create::class)
-            ->add($atManage);
-            $app->get('/{id}', \CM3_Lib\Action\Staff\Department\Read::class)
             ->add($staffPerm);
+            $app->get('/{id}', \CM3_Lib\Action\Staff\Department\Read::class)
+            ->add($staffView);
             $app->post('/{id}', \CM3_Lib\Action\Staff\Department\Update::class)
-            ->add($atManage);
+            ->add($staffPerm);
             $app->delete('/{id}', \CM3_Lib\Action\Staff\Department\Delete::class)
-            ->add($atManage);
-            $app->group('/{department_id}/Position', function (RouteCollectorProxy $app) use ($staffPerm) {
-                $atManage = $staffPerm->withAllowedPerm(PermEvent::Staff_Manage());
+            ->add($staffPerm);
+            $app->group('/{department_id}/Position', function (RouteCollectorProxy $app) use ($staffPerm, $staffView) {
                 $app->get('', \CM3_Lib\Action\Staff\Position\Search::class)
-                ->add($staffPerm);
+                ->add($staffView);
                 $app->post('', \CM3_Lib\Action\Staff\Position\Create::class)
-                ->add($atManage);
-                $app->get('/{id}', \CM3_Lib\Action\Staff\Position\Read::class)
                 ->add($staffPerm);
+                $app->get('/{id}', \CM3_Lib\Action\Staff\Position\Read::class)
+                ->add($staffView);
                 $app->post('/{id}', \CM3_Lib\Action\Staff\Position\Update::class)
-                ->add($atManage);
+                ->add($staffPerm);
                 $app->delete('/{id}', \CM3_Lib\Action\Staff\Position\Delete::class)
-                ->add($atManage);
+                ->add($staffPerm);
             });
         },
     );

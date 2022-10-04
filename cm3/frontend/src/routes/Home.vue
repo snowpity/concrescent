@@ -39,45 +39,7 @@ export default {
     computed: {
         cards: function() {
             var items = [];
-            if (!this.adminMode) {
-                items.push({
-                    route: '/addbadge',
-                    icon: 'mdi-cart-plus',
-                    label: 'Register',
-                    actiontext: 'Add Badge',
-                    flex: 12,
-                }, {
-                    route: "/myBadges",
-                    icon: "mdi-badge-account-horizontal",
-                    label: "My badges",
-                    actiontext: 'Access your badges',
-                    show: () => {
-                        return this.ownedBadgeCount > 0;
-                    },
-                    badge: () => {
-                        return this.ownedBadgeCount;
-                    },
-                    flex: 6,
-                }, {
-                    route: "/cart",
-                    icon: "mdi-cart",
-                    label: "View cart",
-                    actiontext: 'Checkout',
-                    badge: () => {
-                        return this.cartCount > 0 ? this.cartCount : null;
-                    },
-                    flex: 6,
-                });
-                if (!this.isLoggedIn) {
-                    items.push({
-                        route: "/login",
-                        icon: "mdi-login",
-                        label: "Login",
-                        actiontext: 'Access your account',
-                        flex: 6,
-                    });
-                }
-            } else {
+            if (this.adminMode) {
                 //Some general event permissions
 
                 items.push({
@@ -102,7 +64,7 @@ export default {
                 this.badgeContexts.forEach((group, i) => {
                     if (group.id > 0) {
                         items.push({
-                            route: "/Admin/Group/" + group.context_code,
+                            route: "/Admin/Application/" + group.context_code,
                             icon: "mdi-" + (group.menu_icon != null ? group.menu_icon : "newspaper"),
                             label: group.name,
                             show: () => {
@@ -158,8 +120,45 @@ export default {
                     flex: 4,
                 }, );
 
+            } else {
+                items.push({
+                    route: '/addbadge',
+                    icon: 'mdi-cart-plus',
+                    label: 'Register',
+                    actiontext: 'Add Badge',
+                    flex: 12,
+                }, {
+                    route: "/myBadges",
+                    icon: "mdi-badge-account-horizontal",
+                    label: "My badges",
+                    actiontext: 'Access your badges',
+                    show: () => {
+                        return this.ownedBadgeCount > 0;
+                    },
+                    badge: () => {
+                        return this.ownedBadgeCount;
+                    },
+                    flex: 6,
+                }, {
+                    route: "/cart",
+                    icon: "mdi-cart",
+                    label: "View cart",
+                    actiontext: 'Checkout',
+                    badge: () => {
+                        return this.cartCount > 0 ? this.cartCount : null;
+                    },
+                    flex: 6,
+                });
+                if (!this.isLoggedIn) {
+                    items.push({
+                        route: "/login",
+                        icon: "mdi-login",
+                        label: "Login",
+                        actiontext: 'Access your account',
+                        flex: 6,
+                    });
+                }
             }
-
 
             return items;
         },

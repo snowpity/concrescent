@@ -158,7 +158,8 @@ final class badgeinfo
                     'addon_id',
                     'payment_status'
                 ), array(
-                    new SearchTerm('attendee_id', $id)
+
+                    new SearchTerm('application_id', $id)
                 ));
                     foreach ($g_addons as $addon) {
                         $result['addons'][] = array(
@@ -222,7 +223,7 @@ final class badgeinfo
                            $this->a_badge_type,
                            array(
                              'id' => 'badge_type_id',
-                             new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
+                             $this->CurrentUserInfo->EventIdSearchTerm()
                            ),
                            alias:'typ'
                        )
@@ -709,13 +710,13 @@ final class badgeinfo
                         $result = count($found) > 0;
                         break;
                     default:
-                        $result =  $this->g_badge_type->Search(new View(
+                        $found =  $this->g_badge_type->Search(new View(
                             array('id'),
                             array(
                                   new Join(
                                       $this->g_group,
                                       array(
-                                        'group_id' => 'group_id',
+                                        'id' => 'group_id',
                                         new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId()),
                                         new SearchTerm('context_code', $context_code)
                                       ),
@@ -948,10 +949,9 @@ final class badgeinfo
                         new SearchTerm('staff_id', $result['id'])
                     )
                 );
-                //$result =  $this->s_badge->Create($data);
                 break;
             default:
-                $result =  $this->g_badge->Create($data);
+                //$result =  $this->g_badge->Create($data);
         }
     }
     public function updateSupplementaryBadgeData(&$result)

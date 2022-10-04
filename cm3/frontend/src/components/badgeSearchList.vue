@@ -56,59 +56,99 @@ import {
 } from '@/plugins/debounce';
 export default {
     components: {},
-    props: ['apiPath', 'context_code', 'actions', 'AddHeaders', 'RemoveHeaders', 'isEditingItem'],
-    data: () => ({
+    props: {
+        'apiPath': {
+            type: String
+        },
+        'context_code': {
+            type: String
+        },
+        'actions': {
+            type: Array
+        },
+        'headerKey': {
+            type: Object,
+            default () {
+                return {
+                    text: 'ID',
+                    align: 'start',
+                    value: 'id',
+                };
+            }
+        },
+        'headerFirst': {
+            type: Object,
+            default () {
+                return {
+                    text: 'Real Name',
+                    value: 'real_name',
+                };
+            }
+        },
+        'headerSecond': {
+            type: Object,
+            default () {
+                return {
+                    text: 'Fandom Name',
+                    value: 'fandom_name',
+                };
+            }
+        },
+        'AddHeaders': {
+            type: Array
+        },
+        'RemoveHeaders': {
+            type: Array
+        },
+        'isEditingItem': {
+            type: Boolean
+        }
+    },
+    data() {
+        return {
 
-        searchText: "",
-        loading: false,
-        tableOptions: {},
-        tableResults: [],
-        totalResults: 0,
-        defHeaders: [{
-                text: 'ID',
-                align: 'start',
-                value: 'id',
-            },
-            {
-                text: 'Real Name',
-                value: 'real_name',
-            },
-            {
-                text: 'Fandom Name',
-                value: 'fandom_name',
-            },
-            {
-                text: 'Badge Type',
-                value: 'badge_type_name',
-            },
-            {
-                text: 'Application Status',
-                value: 'application_status',
-            },
-            {
-                text: 'Payment Status',
-                value: 'payment_status',
-            },
-            {
-                text: 'Printed',
-                value: 'time_printed',
-            },
-            {
-                text: 'Checked-In',
-                value: 'time_checked_in',
-            },
-            {
-                text: 'Actions',
-                value: 'uuid',
-            },
-        ]
-    }),
+            searchText: "",
+            loading: false,
+            tableOptions: {},
+            tableResults: [],
+            totalResults: 0
+
+        }
+    },
     computed: {
         authToken: function() {
             return this.$store.getters['mydata/getAuthToken'];
         },
         headers() {
-            var result = this.defHeaders || [];
+            var result = [
+                this.headerKey,
+                this.headerFirst,
+                this.headerSecond,
+                {
+                    text: 'Badge Type',
+                    value: 'badge_type_name',
+                },
+                {
+                    text: 'Application Status',
+                    value: 'application_status',
+                },
+                {
+                    text: 'Payment Status',
+                    value: 'payment_status',
+                },
+                {
+                    text: 'Printed',
+                    value: 'time_printed',
+                },
+                {
+                    text: 'Checked-In',
+                    value: 'time_checked_in',
+                },
+                {
+                    text: 'Actions',
+                    value: 'uuid',
+                },
+            ];
             var rmv = this.RemoveHeaders || [];
             var inc = this.AddHeaders || [];
             var that = this;
@@ -151,6 +191,9 @@ export default {
             if (!newEditing)
                 this.doSearch();
         }, 200),
+        context_code: debounce(function(newCode) {
+            this.doSearch();
+        }, 20),
         tableOptions: {
             handler() {
                 this.doSearch()

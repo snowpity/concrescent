@@ -127,7 +127,7 @@ return function (App $app, $container) {
     );
 
     $app->group(
-        '/Application/{group_id}',
+        '/Application/{context_code}',
         function (RouteCollectorProxy $app) use ($r) {
             //Add all the sub-groups
             foreach ($r as $route => $definition) {

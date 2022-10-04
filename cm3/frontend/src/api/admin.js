@@ -8,7 +8,7 @@ export default {
             case 'S':
                 return 'Staff';
             default:
-                return 'Group/' + context_code;
+                return 'Application/' + context_code;
         }
     },
     genericGet(token, path, params, cb, errorCb) {

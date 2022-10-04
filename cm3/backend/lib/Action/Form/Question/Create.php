@@ -53,7 +53,7 @@ final class Create
             new SearchTerm('event_id', $data['event_id']),
             new SearchTerm('context_code', $data['context_code']),
         ), limit:1);
-        if (count($orderList) > 0) {
+        if (count($orderList) > 0 && !empty($orderList[0]['order'])) {
             $data['order'] = $orderList[0]['order'];
         } else {
             $data['order'] = 1;

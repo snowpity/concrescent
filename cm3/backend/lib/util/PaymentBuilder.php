@@ -434,7 +434,7 @@ final class PaymentBuilder
                     }
 
                     //TODO: Temp hack to ensure there is a valid name_on_badgeOptions
-                    if ($item['name_on_badge'] && empty($item['name_on_badge'])) {
+                    if (isset($item['name_on_badge']) && empty($item['name_on_badge'])) {
                         $item['name_on_badge'] = 'Real Name Only';
                     }
 
