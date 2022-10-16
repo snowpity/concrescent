@@ -2,7 +2,6 @@ cm3/backend/.php-cs-fixer.cache
 
 # Config Files
 concrescent.php
-concrescent.cm2.php
 msmtprc
 docker-compose.yaml
 docker-compose.cm2.yaml
