@@ -1,0 +1,24 @@
+# Use Node version 16
+FROM node:16-alpine as build
+
+# Copy frontend into image and set CWD
+COPY --chown=nobody:nobody ./cm3/frontend /app
+WORKDIR /app
+
+# Install package manager
+RUN corepack enable
+RUN yarn global add @vue/ui
+
+# Lower privileges to unprivileged user after all packages have been installed
+RUN yarn install
+COPY --chown=nobdoy:nobody ./docker-concrescent3/frontend.js /app/customization/config.js
+RUN yarn run build
+USER nobody
+
+# Use officla nginx image as webserver
+FROM nginx:latest
+
+# Copy concrescent over to the image
+COPY --chown=nginx:nginx --from=build /app/dist /usr/share/nginx/html
+
+EXPOSE 80

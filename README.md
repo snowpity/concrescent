@@ -109,3 +109,26 @@ Press Ctrl-Shift-8 on the check-in page to enable check-in with QR codes. When a
 
 ### I'm not using a QR code scanner to check people in.
 Press Ctrl-Shift-9 on the check-in page to disable check-in with QR codes.
+
+# CONcrescent 3
+CONcrescent 3 is the next generation of convention registration system with a nicer UI and a backend that runs independent of the frontend. It is still heavily in development and setup after initializing the back- and frontend is tedious and not well documented as of now.
+
+You are welcome to try out and set up an instance of CONcrescent 3 to test, but you will be on your own.
+
+## Docker Installation
+1.  Install [docker](https://docs.docker.com/engine/install/).
+2.  Copy `docker-concrescent3/backend.example.php` to `docker-concrescent3/backend.php` and edit the file to fit your config. Make sure the `frontend_host` is properly set.
+3.  Copy `docker-concrescent3/frontend.example.js` to `docker-concrescent3/frontend.js` and edit the file to fit your config. Make sure the `apiHostURL` is properly set.
+4.  Copy `msmtprc.example` to `msmtprc` and change the settings in this file to reflect your mail server. This is only necessary if you use `Sendmail` or `Mail` in your `backend.php`
+5.  Copy `docker-compose.cm3.example.yaml` to `docker-compose.cm3.yaml` and edit it to your liking, including potential SSL reverse proxy setups.<br>
+    Specifically make sure that your `backend.php` timezone matches your `TZ` environment variable in the SQL container. If you use an external MySQL server, make sure the `backend.php` contains the right server timezone.
+6.  Start concrescent with `docker compose -f docker-compose.cm3.yaml up [-d]` and go to `http://localhost:8081/` to verify CONcrescent's frontend is set up correctly.
+7. The backend is available under `http://localhost:8080/` by default, you can check if things work by trying to access `http://localhost:8080/public` and should get a JSON response from the API.
+
+Depending on the way you set up your `docker-compose.cm3.yaml` file you might have a different base URL than `http://localhost:8081/` or `http://localhost:8080/`.
+Simply replace that in all the above URLs.
+
+# Manual Installation
+TODO: Properly write manual installation instructions for back- and frontend.
+
+For now, you can read `cm3/frontend/README.md` and `cm3/backend/README.md` for installation instructions and requirements.

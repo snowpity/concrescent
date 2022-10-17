@@ -5,6 +5,12 @@ concrescent.php
 msmtprc
 docker-compose.yaml
 docker-compose.cm2.yaml
+docker-compose.cm3.yaml
+backend.php
+frontend.js
 
 # Data directories
 mysql-data
+
+#CM3 logs directory
+logs/
