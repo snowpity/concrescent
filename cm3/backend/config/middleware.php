@@ -52,6 +52,7 @@ return function (App $app, $s_config) {
             $CurrentUserInfo = $app->getContainer()->get(CM3_Lib\util\CurrentUserInfo::class);
             $CurrentUserInfo->SetEventId($event_id);
             $CurrentUserInfo->SetContactId($contact_id);
+            $CurrentUserInfo->SetPerms($perms);
 
             //Throw the result in as attributes
             return $request

@@ -7,6 +7,7 @@
                    sm="6"
                    md="3">
                 <v-text-field label="Contact Email Address"
+                              :readonly="readonly"
                               v-model="contactEmail"
                               :rules="RulesEmailRequired">
                 </v-text-field>
@@ -15,6 +16,7 @@
                    sm="6"
                    md="3">
                 <v-text-field label="Contact Name"
+                              :readonly="readonly"
                               v-model="contactName"
                               :rules="RulesNameFandom">
                 </v-text-field>
@@ -23,6 +25,7 @@
                    sm="6"
                    md="3">
                 <v-checkbox dense
+                            :readonly="readonly"
                             hide-details
                             v-model="contactSubscribePromotions">
                     <template v-slot:label>
@@ -37,12 +40,14 @@
                    sm="6"
                    md="3">
                 <v-text-field label="Phone"
+                              :readonly="readonly"
                               v-model="contactPhone"
                               :rules="RulesPhoneRequired"></v-text-field>
             </v-col>
         </v-row>
 
         <vuetify-google-autocomplete id="map"
+                                     v-if="!readonly"
                                      append-icon="mdi-map-search"
                                      @placechanged="retrieveAddress"
                                      placeholder="Search Address"
@@ -53,12 +58,14 @@
                    sm="6"
                    md="3">
                 <v-text-field label="Street Address"
+                              :readonly="readonly"
                               v-model="contactStreet1"></v-text-field>
             </v-col>
             <v-col cols="12"
                    sm="6"
                    md="3">
                 <v-text-field label="Street Address 2"
+                              :readonly="readonly"
                               v-model="contactStreet2"></v-text-field>
             </v-col>
         </v-row>
@@ -67,18 +74,21 @@
                    sm="6"
                    md="3">
                 <v-text-field label="City"
+                              :readonly="readonly"
                               v-model="contactCity"></v-text-field>
             </v-col>
             <v-col cols="6"
                    sm="3"
                    md="2">
                 <v-text-field label="State/Province"
+                              :readonly="readonly"
                               v-model="contactState"></v-text-field>
             </v-col>
             <v-col cols="6"
                    sm="3"
                    md="2">
                 <v-text-field label="Zip/Postal Code"
+                              :readonly="readonly"
                               v-model="contactPostalCode"></v-text-field>
             </v-col>
         </v-row>
@@ -88,6 +98,7 @@
                    sm="6"
                    md="3">
                 <v-text-field label="Country"
+                              :readonly="readonly"
                               v-model="contactCountry"></v-text-field>
             </v-col>
         </v-row>
@@ -101,7 +112,10 @@ import {
 } from 'vuex'
 export default {
     components: {},
-    props: ['value'],
+    props: {
+        'value': Object,
+        'readonly': Boolean
+    },
     data() {
         return {
 

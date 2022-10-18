@@ -49,11 +49,10 @@ final class Read
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
         //Fetch the context code of the group specified
-        $group = $this->group->GetByID($params['group_id'], []);
 
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
-        $result = $this->badgeinfo->GetSpecificBadge($params['id'], $group['context_code'], full:true);
+        $result = $this->badgeinfo->getASpecificGroupApplication($params['id'], $params['context_code'], full:true);
 
         // // Invoke the Domain with inputs and retain the result
         // $result = $this->badge->GetByID($params['id'], '*');
@@ -62,7 +61,7 @@ final class Read
         if ($result === false) {
             throw new HttpNotFoundException($request);
         }
-        if (!$this->badgeinfo->checkBadgeTypeBelongsToEvent($group['context_code'], $result['badge_type_id'])) {
+        if (!$this->badgeinfo->checkBadgeTypeBelongsToEvent($result['context_code'], $result['badge_type_id'])) {
             throw new HttpNotFoundException($request);
         }
 

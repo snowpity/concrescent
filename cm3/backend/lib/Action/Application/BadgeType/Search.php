@@ -3,7 +3,14 @@
 namespace CM3_Lib\Action\Application\BadgeType;
 
 use CM3_Lib\database\SearchTerm;
+use CM3_Lib\database\Join;
+use CM3_Lib\database\SelectColumn;
+use CM3_Lib\database\View;
 use CM3_Lib\models\application\badgetype;
+use CM3_Lib\models\application\group;
+
+use CM3_Lib\util\CurrentUserInfo;
+
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -20,8 +27,12 @@ final class Search
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private badgetype $badgetype)
-    {
+    public function __construct(
+        private Responder $responder,
+        private badgetype $badgetype,
+        private group $group,
+        private CurrentUserInfo $CurrentUserInfo,
+    ) {
     }
 
     /**
@@ -38,10 +49,6 @@ final class Search
         $data = (array)$request->getParsedBody();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
-        $whereParts = array(
-          new SearchTerm('group_id', $params['group_id'])
-        );
-
         $order = array('id' => false);
 
         $page      = ($request->getQueryParams()['page']?? 0 > 0) ? $request->getQueryParams()['page'] : 1;
@@ -52,7 +59,20 @@ final class Search
         }
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->badgetype->Search(array(), $whereParts, $order, $limit, $offset);
+        $data = $this->badgetype->Search(new View([
+            'id','name','price','base_applicant_count','dates_available'
+        ], [
+
+           new Join(
+               $this->group,
+               array(
+                 'id' => new SearchTerm('group_id', null),
+                 new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId()),
+                 new SearchTerm('context_code', $params['context_code'])
+               ),
+               alias:'grp'
+           )
+       ]), [], $order, $limit, $offset);
 
         // Build the HTTP response
         return $this->responder

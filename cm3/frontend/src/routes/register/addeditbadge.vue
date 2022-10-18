@@ -6,8 +6,6 @@
                     step="1">Badge Information <small>{{compiledBadge | badgeDisplayName}} &mdash; {{ badges[selectedBadge] ? badges[selectedBadge].name: "Nothing yet!" | subname }}</small></v-stepper-step>
     <v-stepper-content step="1">
 
-        <badgeGenInfo v-model="badgeGenInfoData"
-                      @valid="setValidGenInfo" />
         <v-select :items="badgeContexts"
                   :flat="true"
                   v-model="context_code"
@@ -18,6 +16,10 @@
                 <h3 class="flex-sm-grow-1 flex-sm-shrink-0 mr-4">Badge Type:</h3>
             </template>
         </v-select>
+        <badgeGenInfo v-model="badgeGenInfoData"
+                      :application_name1="currentContext.application_name1"
+                      :application_name2="currentContext.application_name2"
+                      @valid="setValidGenInfo" />
         <badgeTypeSelector v-model="selectedBadge"
                            :badges="badges"
                            no-data-text="No badges currently available!"
@@ -413,7 +415,7 @@ export default {
                 this.reachedStep >= 4
         },
         isUpdatingItem() {
-            return (this.cartIx != null && this.cartIx > -1) || (this.id != null && this.id > -1);
+            return (this.cartIx != NaN && this.cartIx > -1) || (this.id != null && this.id > -1);
         },
         isProbablyDowngrading() {
             if (!this.isUpdatingItem) {
@@ -504,7 +506,7 @@ export default {
             this.loadBadge();
         },
         context_code(newCode) {
-            this.loadBadge();
+            this.loadBadge(newCode);
         },
     },
     methods: {
@@ -546,7 +548,7 @@ export default {
             this.sentmagicmail = false;
             this.creatingAccount = false;
         },
-        async loadBadge() {
+        async loadBadge(newCode) {
             let cartItem;
             if (this.$route.query.override) {
                 const override = this.$route.query.override;
@@ -593,9 +595,13 @@ export default {
                 console.log('set context from URI query', this.$route.query.context_code);
                 context_code = this.$route.query.context_code
             }
+            if (newCode != undefined) {
+                console.log('set context from dropdown');
+                context_code = newCode;
+            }
             if (context_code == undefined) {
                 console.log('set context from default');
-                this.context_code = "A";
+                context_code = "A";
             }
 
             //If nothing loaded,  early exit

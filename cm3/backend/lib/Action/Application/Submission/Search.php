@@ -77,7 +77,7 @@ final class Search
         $pg = $this->badgeinfo->parseQueryParamsPagination($qp, defaultSortDesc:true);
         $totalRows = 0;
         // Invoke the Domain with inputs and retain the result
-        $data = $this->badgeinfo->SearchBadgesText($params['context_code'], $find, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
+        $data = $this->badgeinfo->SearchGroupApplicationsText($params['context_code'], $find, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
 
 
         $response = $response->withHeader('X-Total-Rows', (string)$totalRows);

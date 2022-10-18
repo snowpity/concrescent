@@ -1,29 +1,72 @@
 <template>
-<v-container fluid>
-    <v-row>
-        <v-col cols="12"
-               sm="6"
-               md="3">
+<v-stepper v-model="staff_step">
+    <v-stepper-header>
+        <v-stepper-step :complete="department_id_selected != null"
+                        step="1">
+            Select Department
+        </v-stepper-step>
+
+        <v-divider></v-divider>
+
+        <v-stepper-step :complete="position_id_selected != null"
+                        step="2">
+            Select Position
+        </v-stepper-step>
+
+        <v-divider></v-divider>
+
+        <v-stepper-step step="3">
+            Assigned Positions
+        </v-stepper-step>
+    </v-stepper-header>
+
+    <v-stepper-items>
+        <v-stepper-content step="1">
+
             <treeList apiPath="Staff/Department"
                       v-model="department_id_selected"
                       @data="cacheDepartment" />
-        </v-col>
-        <v-col cols="12"
-               sm="6"
-               md="3">
+
+            <v-btn color="primary"
+                   :disabled="department_id_selected == null"
+                   @click="staff_step = 2">
+                Continue
+            </v-btn>
+
+        </v-stepper-content>
+
+        <v-stepper-content step="2">
+
             <v-select label="Available positions"
                       :loading="available_positions_loading"
                       :items="available_positions"
                       v-model="position_id_selected"
                       item-value="id"
                       item-text="name"
-                      append-outer-icon="mdi-arrow-right"
+                      append-text="Add"
                       @click:append-outer="addPosition" />
-            Description: {{positionSelected.description}}
-        </v-col>
-        <v-col cols="12"
-               sm="6"
-               md="6">
+            <v-row>
+                <v-col>
+                    Description: {{positionSelected.description}}
+                </v-col>
+            </v-row>
+            <v-row>
+                <v-col>
+                    <v-btn text
+                           @click="staff_step = 1">
+                        Back
+                    </v-btn>
+                    <v-btn color="primary"
+                           :disabled="position_id_selected == null"
+                           @click="addPosition">
+                        Continue
+                    </v-btn>
+                </v-col>
+            </v-row>
+        </v-stepper-content>
+
+        <v-stepper-content step="3">
+
             List of assigned positions
             <v-expansion-panels>
                 <v-expansion-panel v-for="(item,i) in assigned_positions"
@@ -37,13 +80,19 @@
                     </v-expansion-panel-header>
                     <v-expansion-panel-content>
                         {{item.position_id}}
-                        <v-btn>Remove</v-btn>
+                        <v-btn @click="removePosition(i)">Remove</v-btn>
                     </v-expansion-panel-content>
                 </v-expansion-panel>
             </v-expansion-panels>
-        </v-col>
-    </v-row>
-</v-container>
+
+            <v-btn text
+                   @click="staff_step = 1">
+                Add another position
+            </v-btn>
+
+        </v-stepper-content>
+    </v-stepper-items>
+</v-stepper>
 </template>
 
 <script>
@@ -60,6 +109,7 @@ export default {
     data() {
         return {
             skipEmitOnce: false,
+            staff_step: this.value.length > 0 ? 3 : 1,
             department_id_selected: null,
             department_selected: {},
             available_positions_loading: false,
@@ -125,6 +175,13 @@ export default {
                     is_exec: this.positionSelected.is_exec
 
                 })
+                this.staff_step = 3;
+            }
+        },
+        removePosition: function(ix) {
+            this.assigned_positions.splice(ix);
+            if (this.assigned_positions.length < 1) {
+                this.staff_step = 1;
             }
         }
     },

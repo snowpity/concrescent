@@ -54,8 +54,24 @@
                     </v-toolbar>
                 </v-card-title>
                 <v-card-text class="pa-0">
-                    <editBadgeAdmin v-model="bSelected" />
+                    <editBadgeAdmin v-model="bSelected"
+                                    @save="saveBadge" />
                 </v-card-text>
+            </v-card>
+        </v-dialog>
+        <v-dialog v-model="bSaved">
+
+            <v-card>
+                <v-card-title class="headline">Saved</v-card-title>
+                <v-card-text>
+                    Successfully saved.
+
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary"
+                           @click="bSaved = false">Ok</v-btn>
+                </v-card-actions>
             </v-card>
         </v-dialog>
     </v-tab-item>
@@ -181,6 +197,8 @@ export default {
         bSelected: {},
         bEdit: false,
         bModified: false,
+        bSaved: false,
+        bSavedDetails: {},
         bPrint: false,
         btAddHeaders: [{
             text: 'Dates Available',
@@ -279,10 +297,12 @@ export default {
             console.log('saving badge', this.bSelected);
             let that = this;
             that.loading = true;
-            admin.genericPost(this.authToken, 'Staff/Badge/' + this.bSelected.id + "?sendupdate=" + (sendStatus ? "true" : "false"), this.bSelected, function(editBadge) {
+            admin.genericPost(this.authToken, 'Staff/Badge/' + this.bSelected.id + "?sendupdate=" + (sendStatus ? "true" : "false"), this.bSelected, function(SavedDetails) {
                 that.bSelected = {};
                 that.loading = false;
                 that.bEdit = false;
+                that.bSaved = true;
+                that.bSavedDetails = SavedDetails;
                 that.$nextTick(() => {
                     that.bModified = false;
                 })

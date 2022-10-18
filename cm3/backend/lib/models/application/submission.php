@@ -18,14 +18,25 @@ class submission extends \CM3_Lib\database\Table
             'display_id'	=> new cm_Column('INT', null, true),
             'hidden'        => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
 
-      'application_name1'          => new cm_Column('VARCHAR', '255', false),
-      'application_name2'          => new cm_Column('VARCHAR', '255', false),
-      'applicant_count' => new cm_Column('INT', null, false),
-      'assignment_count' => new cm_Column('INT', null, false),
+            'real_name'		=> new cm_Column('VARCHAR', '500', false),
+            'fandom_name'	=> new cm_Column('VARCHAR', '255', true),
+            'name_on_badge'	=> new cm_Column(
+                'ENUM',
+                array(
+                    'Fandom Name Large, Real Name Small',
+                    'Real Name Large, Fandom Name Small',
+                    'Fandom Name Only',
+                    'Real Name Only'
+                ),
+                false,
+                defaultValue: "'Real Name Only'"
+            ),
+            'applicant_count' => new cm_Column('INT', null, false, defaultValue: '0'),
+            'assignment_count' => new cm_Column('INT', null, false, defaultValue: '0'),
             'application_status'		=> new cm_Column(
                 'ENUM',
                 array(
-                    'Incomplete',
+                    'InProgress',
                     'Submitted',
                     'Cancelled',
                     'Rejected',

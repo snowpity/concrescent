@@ -2,7 +2,9 @@
 
 namespace CM3_Lib\Action\Attendee\Badge;
 
-use CM3_Lib\models\attendee;
+use CM3_Lib\util\badgeinfo;
+use CM3_Lib\util\CurrentUserInfo;
+use CM3_Lib\Modules\Notification\Mail;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -21,10 +23,10 @@ final class Update
      */
     public function __construct(
         private Responder $responder,
-        private badge $badge,
-        private badgetype $badgetype
-    )
-    {
+        private badgeinfo $badgeinfo,
+        private CurrentUserInfo $CurrentUserInfo,
+        private Mail $Mail
+    ) {
     }
 
     /**
@@ -40,18 +42,23 @@ final class Update
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
 
-        $current = $this->badge->GetByID($params['id'], array('badge_type_id'));
-        if ($current === false) {
-            throw new HttpNotFoundException($request);
-        }
-
-        if (!$this->badgetype->verifyBadgeTypeBelongsToEvent($current['badge_type_id'], $request->getAttribute('event_id'))) {
-            throw new HttpBadRequestException($request, 'Badge does not belong to current event');
-        }
-
+        //TODO: Verify badge belongs to event
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->attendee->Update($data);
+        $data = $this->badgeinfo->UpdateSpecificBadgeUnchecked($params['id'], 'A', $data);
+
+        //TODO: Use the notification framework for this...
+        $badge = $this->badgeinfo->getSpecificBadge($data['id'], 'A', true);
+        $to = $this->CurrentUserInfo->GetContactEmail($badge['contact_id']);
+        $template = 'A' . '-payment-' .$badge['payment_status'];
+        try {
+            //Attempt to send mail
+            $data['sentUpdate'] =  $this->Mail->SendTemplate($to, $template, $badge, $badge['notify_email']);
+        } catch (\Exception $e) {
+            //Oops, couldn't send. Oh well?
+            $data['sentUpdate'] = false;
+        }
+
 
         // Build the HTTP response
         return $this->responder

@@ -42,7 +42,6 @@ const result = [{
                 'Badges',
                 'Types',
                 'Questions',
-                'Departments',
                 'Notifications'
             ]
         },

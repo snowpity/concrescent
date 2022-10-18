@@ -66,7 +66,10 @@ final class badgevalidator
                 $v = new TableValidator($this->s_badge);
                 //Add the badge-type validations
                 if (!empty($item['badge_type_id'])) {
-                    $this->AddBadgeValidations($v, $this->s_badge_type->GetByID($item['badge_type_id'], $this->getBadgeTypeView()), $item);
+                    $badgeType = $this->s_badge_type->GetByID($item['badge_type_id'], $this->getBadgeTypeView());
+                    if ($badgeType !== false) {
+                        $this->AddBadgeValidations($v, $badgeType, $item);
+                    }
                 }
                 break;
             default: //Assume it's an application
@@ -74,7 +77,10 @@ final class badgevalidator
                 $v = new TableValidator($this->g_badge_submission);
                 //Add the badge-type validations
                 if (!empty($item['badge_type_id'])) {
-                    $this->AddBadgeValidations($v, $this->g_badge_type->GetByID($item['badge_type_id'], $this->getBadgeTypeView()), $item);
+                    $badgeType = $this->g_badge_type->GetByID($item['badge_type_id'], $this->getBadgeTypeView());
+                    if ($badgeType !== false) {
+                        $this->AddBadgeValidations($v, $badgeType, $item);
+                    }
                 }
                 //TODO: Add submission applicants
         }

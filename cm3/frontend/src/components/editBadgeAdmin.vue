@@ -128,12 +128,13 @@
                         v-model="validContactInfo">
                     <h3>Badge Owner</h3>
                     <v-row>
-                        <v-col v-if="!isLoggedIn">
-                            [Contact info display here]
-                            <profileForm />
+                        <v-col v-if="hasEventPerm('Contact_Full')">
+                            <profileForm v-model="model.contact"
+                                         readonly />
                         </v-col>
-
-
+                        <v-col v-else>
+                            Not available with current permissions
+                        </v-col>
                     </v-row>
                     <h3>Notify email</h3>
                     <v-row>
@@ -158,7 +159,7 @@
                     </v-row>
 
                     <h3>In case of Emergency</h3>
-                    <v-row>
+                    <v-row v-if="hasEventPerm('Badge_Ice')">
 
                         <v-col cols="12"
                                sm="6"
@@ -187,6 +188,9 @@
                                           :rules="RulesPhone"></v-text-field>
                         </v-col>
                     </v-row>
+                    <v-row v-else>
+                        Not available with current permissions
+                    </v-row>
                 </v-form>
             </v-tab-item>
 
@@ -212,14 +216,15 @@
               scrollable>
         <template v-slot:activator="{ on, attrs }">
 
-            <v-btn :color="applicationStatusColor[model.application_status]"
+            <v-btn :color="applicationStatusData.color"
                    fixed
                    bottom
                    right
                    v-if="model.application_status"
-                   fab
+                   faba
                    v-bind="attrs"
                    v-on="on">
+                Review
                 <v-icon>
                     mdi-check-decagram-outline
                 </v-icon>
@@ -229,27 +234,22 @@
             <v-card-title>Application Review</v-card-title>
             <v-divider></v-divider>
             <v-card-text>
-                <v-row>
-                    <v-col>
-                        <v-select label="Application Status"
-                                  v-model="model.application_status"
-                                  :items="applicationStatusList"
-                                  item-text="text"
-                                  item-value="value"
-                                  persistent-horizontal />
-                    </v-col>
-                </v-row>
                 <v-row v-if="model.context_code=='S'">
-                    <editBadgeApplicationStaffPosition v-model="model.assigned_positions" />
+                    <v-col cols="12">
+                        <editBadgeApplicationStaffPosition v-model="model.assigned_positions" />
+                    </v-col>
                 </v-row>
             </v-card-text>
             <v-divider></v-divider>
             <v-card-actions>
-
+                <v-checkbox v-model="sendUpdate"
+                            label="Send update" />
                 <v-spacer />
-                <v-btn color="primary"
-                       @click="reviewDialog = false">
-                    Ok
+                <v-btn v-for="item in appStatusNextList"
+                       :key="item.value"
+                       :color="item.color"
+                       @click="submitReview(item.value)">
+                    {{item.actionText}}
                 </v-btn>
             </v-card-actions>
         </v-card>
@@ -282,6 +282,7 @@ export default {
             validGenInfo: false,
             validContactInfo: false,
             validAdditionalInfo: false,
+            sendUpdate: true,
             model: {
                 cartIx: -1,
                 id: -1, // Attendee's ID, not the badgeType
@@ -332,70 +333,109 @@ export default {
 
             addonDisplayState: [],
 
-            applicationStatusColor: {
-                'InProgress': 'indigo', //Draft
-                'Submitted': 'purple accent-2', //Newly submitted
-                'Cancelled': 'red', //Applicant self-cancelled
-                'Rejected': 'red', //Staff rejected
-                'PendingAcceptance': 'yellow', //Accepted, waiting for them to confirm
-                'Waitlisted': 'gray', //Waitlisted for consideration
-                'Onboarding': 'blue', //Accepted, onboarding in progress
-                'Active': 'green', //Accepted, active staff
-                'Terminated': 'black', //No longer welcome
-            },
-
-            applicationStatusList: [{
+            applicationStatusMap: {
+                'InProgress': {
                     value: 'InProgress',
                     color: 'indigo',
-                    text: 'Draft'
+                    text: 'Draft',
+                    actionText: 'Revert to Draft',
+                    nextStatus: [
+                        'Submitted',
+                        'Cancelled',
+                        'Rejected',
+                        'PendingAcceptance',
+                        'Waitlisted',
+                        'Onboarding',
+                        'Active',
+                        'Terminated',
+                    ]
                 },
-                {
+                'Submitted': {
                     value: 'Submitted',
                     color: 'purple accent-2',
-                    text: 'Newly submitted'
+                    text: 'Newly submitted',
+                    actionText: 'Revert to Submitted',
+                    nextStatus: [
+                        'Cancelled',
+                        'Rejected',
+                        'PendingAcceptance',
+                        'Waitlisted',
+                    ]
                 },
-                {
+                'Cancelled': {
                     value: 'Cancelled',
                     color: 'red',
-                    text: 'Applicant self-cancelled'
+                    text: 'Applicant self-cancelled',
+                    actionText: 'Cancel',
+                    nextStatus: [
+                        'Submitted',
+                    ]
                 },
-                {
+                'Rejected': {
                     value: 'Rejected',
                     color: 'red',
-                    text: 'Staff rejected'
+                    text: 'Rejected',
+                    actionText: 'Reject',
+                    nextStatus: [
+                        'Submitted',
+                    ]
                 },
-                {
+                'PendingAcceptance': {
                     value: 'PendingAcceptance',
                     color: 'yellow',
-                    text: 'Accepted, waiting for them to confirm'
+                    text: 'Accepted, waiting for them to confirm',
+                    actionText: 'Accept',
+                    nextStatus: [
+                        'Cancelled',
+                        'Waitlisted',
+                        'Onboarding',
+                    ]
                 },
-                {
+                'Waitlisted': {
                     value: 'Waitlisted',
                     color: 'gray',
-                    text: 'Waitlisted for consideration'
+                    text: 'Waitlisted for consideration',
+                    actionText: 'Waitlist',
+                    nextStatus: [
+                        'Rejected',
+                        'PendingAcceptance',
+                    ]
                 },
-                {
+                'Onboarding': {
                     value: 'Onboarding',
                     color: 'blue',
-                    text: 'Accepted, onboarding in progress'
+                    text: 'Accepted, onboarding in progress',
+                    actionText: 'Begin Onboarding',
+                    nextStatus: [
+                        'Rejected',
+                        'Active',
+                        'Terminated',
+                    ]
                 },
-                {
+                'Active': {
                     value: 'Active',
                     color: 'green',
-                    text: 'Accepted, active staff'
+                    text: 'Accepted, active staff',
+                    actionText: 'Mark Active',
+                    nextStatus: [
+                        'Terminated',
+                    ]
                 },
-                {
+                'Terminated': {
                     value: 'Terminated',
                     color: 'black',
-                    text: 'No longer welcome here'
+                    text: 'No longer welcome here',
+                    actionText: 'Terminate',
+                    nextStatus: []
                 },
-            ],
+            },
         };
     },
     computed: {
         ...mapGetters('mydata', {
             'isLoggedIn': 'getIsLoggedIn',
             'LoggedInName': 'getLoggedInName',
+            'hasEventPerm': 'hasEventPerm'
         }),
         ...mapGetters('products', {
             badgeContexts: 'badgeContexts',
@@ -537,6 +577,18 @@ export default {
             result.sort((a, b) => a.order - b.order);
             return result;
         },
+        applicationStatusList() {
+            return Object.values(this.applicationStatusMap);
+        },
+        applicationStatusData() {
+            return this.applicationStatusMap[this.model.application_status] || {};
+        },
+        appStatusNextList() {
+            if (this.applicationStatusData != undefined && this.applicationStatusData.nextStatus != undefined)
+                return this.applicationStatusData.nextStatus
+                    .map((statusKey) => this.applicationStatusMap[statusKey]);
+            return [];
+        },
     },
     watch: {
         'badgeGenInfoData.date_of_birth': function() {
@@ -663,11 +715,22 @@ export default {
             }
         },
         badgeAddonPriorSelected(addonid) {
+            if (this.model.editBadgePriorAddons == undefined) return false;
             return this.model.editBadgePriorAddons.indexOf(addonid) != -1;
         },
         setValidGenInfo(isValid) {
             this.validGenInfo = isValid;
-        }
+        },
+        submitReview: function(newStatus) {
+            this.model.application_status = newStatus;
+            console.log('submitting review', this.model.application_status);
+            var that = this;
+            this.$nextTick(function() {
+                that.$emit('save', that.sendUpdate);
+            })
+
+
+        },
     },
     components: {
         badgeGenInfo,

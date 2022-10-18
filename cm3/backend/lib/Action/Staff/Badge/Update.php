@@ -2,7 +2,6 @@
 
 namespace CM3_Lib\Action\Staff\Badge;
 
-use CM3_Lib\models\staff;
 use CM3_Lib\Responder\Responder;
 use CM3_Lib\Modules\Notification\Mail;
 use CM3_Lib\util\badgeinfo;

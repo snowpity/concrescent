@@ -2,6 +2,8 @@
 
 namespace CM3_Lib\util;
 
+use CM3_Lib\util\EventPermissions;
+
 use CM3_Lib\database\SearchTerm;
 
 class CurrentUserInfo
@@ -9,6 +11,7 @@ class CurrentUserInfo
     public function __construct(
         private \CM3_Lib\models\contact $contact,
     ) {
+        $this->perms = new EventPermissions();
     }
     private $event_id = 0;
     public function SetEventId($event_id)
@@ -53,5 +56,33 @@ class CurrentUserInfo
             return '';
         }
         return $result['real_name'];
+    }
+
+    private EventPermissions $perms;
+    public function SetPerms($perms)
+    {
+        $this->perms = $perms;
+    }
+    public function GetPerms()
+    {
+        return $this->perms;
+    }
+
+    public function HasEventPerm(int $checkPerm)
+    {
+        if ($this->perms->EventPerms->isGlobalAdmin() || $this->perms->EventPerms->isEventAdmin()) {
+            return true;
+        }
+        return ($this->perms->EventPerms->getValue() & $checkPerm) == $checkPerm;
+    }
+    public function HasGroupPerm(int $groupId, int $checkPerm)
+    {
+        if ($this->perms->EventPerms->isGlobalAdmin() || $this->perms->EventPerms->isEventAdmin()) {
+            return true;
+        }
+        if (!isset($this->perms->GroupPerms[$groupId])) {
+            return false;
+        }
+        return ($this->perms->GroupPerms[$groupId]->getValue() & $checkPerm) == $checkPerm;
     }
 }

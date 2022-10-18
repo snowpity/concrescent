@@ -4,6 +4,11 @@ namespace CM3_Lib\Action\Application\Submission;
 
 use CM3_Lib\models\application\submission;
 use CM3_Lib\models\application\badgetype;
+
+use CM3_Lib\util\badgeinfo;
+use CM3_Lib\util\CurrentUserInfo;
+use CM3_Lib\Modules\Notification\Mail;
+
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -20,8 +25,12 @@ final class Update
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private submission $submission, private badgetype $badgetype)
-    {
+    public function __construct(
+        private Responder $responder,
+        private CurrentUserInfo $CurrentUserInfo,
+        private badgeinfo $badgeinfo,
+        private Mail $Mail
+    ) {
     }
 
     /**

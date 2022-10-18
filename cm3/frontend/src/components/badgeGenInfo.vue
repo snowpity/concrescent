@@ -7,7 +7,7 @@
             <v-text-field v-model="model.real_name"
                           :counter="500"
                           :rules="RulesName"
-                          label="Real Name"
+                          :label="application_name1"
                           required></v-text-field>
         </v-col>
 
@@ -16,7 +16,7 @@
             <v-text-field v-model="model.fandom_name"
                           :counter="255"
                           :rules="RulesNameFandom"
-                          label="Fandom Name (Optional)"></v-text-field>
+                          :label="application_name2 +' (Optional)'"></v-text-field>
         </v-col>
         <v-col cols="12"
                md="6">
@@ -56,7 +56,22 @@
 <script>
 export default {
     components: {},
-    props: ['value', 'readonly'],
+    props: {
+        'value': {
+            type: Object
+        },
+        'readonly': {
+            type: String
+        },
+        'application_name1': {
+            type: String,
+            default: 'Real Name'
+        },
+        'application_name2': {
+            type: String,
+            default: 'Fandom Name'
+        }
+    },
     data() {
         return {
 
@@ -68,7 +83,7 @@ export default {
                 name_on_badge: "Real Name Only",
                 date_of_birth: "",
             },
-            name_on_badgeOptions: ['Fandom Name Large, Real Name Small', 'Real Name Large, Fandom Name Small', 'Real Name Only', 'Fandom Name Only'],
+
             menuBDay: false,
             bdayActivePicker: 'YEAR',
 
@@ -89,7 +104,21 @@ export default {
         };
     },
     computed: {
-
+        name_on_badgeOptions() {
+            return [{
+                text: this.application_name2 + ' Large, ' + this.application_name1 + ' Small',
+                value: 'Fandom Name Large, Real Name Small'
+            }, {
+                text: this.application_name1 + ' Large, ' + this.application_name2 + ' Small',
+                value: 'Real Name Large, Fandom Name Small'
+            }, {
+                text: this.application_name1 + ' Only',
+                value: 'Real Name Only'
+            }, {
+                text: this.application_name2 + ' Only',
+                value: 'Fandom Name Only'
+            }];
+        },
         result() {
             return {
                 real_name: this.model.real_name,

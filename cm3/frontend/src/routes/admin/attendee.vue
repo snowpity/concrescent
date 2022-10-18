@@ -27,11 +27,29 @@
                         <v-toolbar-title>Edit Badge</v-toolbar-title>
                         <v-spacer></v-spacer>
                         <v-toolbar-items>
-                            <v-btn dark
-                                   text
-                                   @click="bEdit = false">
-                                Save
-                            </v-btn>
+                            <v-menu offset-y
+                                    open-on-hover>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn :color="bModified ? 'green' : 'primary'"
+                                           dark
+                                           v-bind="attrs"
+                                           v-on="on">
+                                        <v-icon>mdi-content-save</v-icon>
+                                    </v-btn>
+                                </template>
+                                <v-list>
+                                    <v-list-item @click="saveBadge(true)">
+                                        <v-list-item-title>
+                                            Save and send status email
+                                        </v-list-item-title>
+                                    </v-list-item>
+                                    <v-list-item @click="saveBadge(false)">
+                                        <v-list-item-title>
+                                            Save only
+                                        </v-list-item-title>
+                                    </v-list-item>
+                                </v-list>
+                            </v-menu>
                         </v-toolbar-items>
                     </v-toolbar>
 
@@ -149,6 +167,7 @@ export default {
         btSelected: {},
         btDialog: false,
         loading: false,
+        bModified: false,
 
     }),
     computed: {
@@ -200,6 +219,22 @@ export default {
                 that.bSelected = editBadge;
                 that.loading = false;
                 that.bEdit = true;
+            }, function() {
+                that.loading = false;
+            })
+        },
+        saveBadge: function(sendStatus) {
+            console.log('saving badge', this.bSelected);
+            let that = this;
+            that.loading = true;
+            admin.genericPost(this.authToken, 'Attendee/Badge/' + this.bSelected.id + "?sendupdate=" + (sendStatus ? "true" : "false"), this.bSelected, function(editBadge) {
+                that.bSelected = {};
+                that.loading = false;
+                that.bEdit = false;
+                that.$nextTick(() => {
+                    that.bModified = false;
+                })
+
             }, function() {
                 that.loading = false;
             })

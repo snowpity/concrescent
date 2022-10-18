@@ -110,7 +110,7 @@
                                 <v-icon>mdi-magnify{{newQuestionPreview ? '-close' :''}}</v-icon>
                             </v-btn>
                             <v-btn icon
-                                   :disabled="!newQuestionPreview"
+                                   :disabled="newQuestion.title == ''"
                                    :loading="newQuestionSaving"
                                    @click="saveNewQuestion"
                                    color="primary">

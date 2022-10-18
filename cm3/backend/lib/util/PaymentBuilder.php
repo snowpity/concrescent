@@ -243,8 +243,8 @@ final class PaymentBuilder
         }
 
         //If we're not an attendee, we'll need an Application Status field.
-        //This is always "InProgress
-        if ($item['context_code'] != 'A') {
+        //This is always "InProgress" unless they've already been accepted
+        if ($item['context_code'] != 'A' && empty($item['application_status'])) {
             $item['application_status'] = 'InProgress';
         }
 
@@ -399,6 +399,30 @@ final class PaymentBuilder
         return $this->cart['payment_txn_amt'] == 0;
     }
 
+    public function is_approved_status(string $application_status)
+    {
+        return in_array($application_status, [
+        'PendingAcceptance',
+        'Accepted',
+        'Onboarding', //Accepted, onboarding in progress
+        'Active',     //Accepted, active staff
+        ]);
+    }
+    public function is_submitted_status(string $application_status)
+    {
+        return in_array($application_status, [
+            'Submitted',
+            'Cancelled',
+            'Rejected',
+            'PendingAcceptance',
+            'Accepted',
+            'Onboarding', //Accepted, onboarding in progress
+            'Active',     //Accepted, active staff
+            'Terminated', //No longer welcome
+            'Waitlisted',
+            ]);
+    }
+
     public function resetPayment()
     {
         $this->stagedItems = array();
@@ -422,21 +446,25 @@ final class PaymentBuilder
             $bi = $this->badgeinfo->getSpecificBadge($item['id'] ?? 0, $item['context_code']);
             $item['payment_id'] = $this->cart['id'];
             $item['payment_status'] = 'Incomplete';
+
+            //TODO: Temp hack to ensure there is a valid name_on_badgeOptions
+            if (isset($item['name_on_badge']) && (empty($item['name_on_badge']) || $item['name_on_badge']=='')) {
+                $item['name_on_badge'] = 'Real Name Only';
+            }
+
             if (isset($item['existing'])) {
                 $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
             } else {
                 //Ensure the badge has an owner
                 $item['contact_id'] =$item['contact_id'] ?? $this->CurrentUserInfo->GetContactId();
                 //Ensure their application Status is "Submitted" if they're not allowed to pay yet
+                //and not already accepted
                 if ($bi === false) {
-                    if ($item['context_code'] != 'A' && !empty($bt['payment_deferred']) && $bt['payment_deferred']) {
+                    if ($item['context_code'] != 'A' && !empty($bt['payment_deferred']) && $bt['payment_deferred']
+                    &&  !$this->is_submitted_status($item['application_status'])) {
                         $item['application_status'] = 'Submitted';
                     }
 
-                    //TODO: Temp hack to ensure there is a valid name_on_badgeOptions
-                    if (isset($item['name_on_badge']) && empty($item['name_on_badge'])) {
-                        $item['name_on_badge'] = 'Real Name Only';
-                    }
 
                     $newID = $this->badgeinfo->CreateSpecificBadgeUnchecked($item);
                     if ($newID !== false) {
@@ -446,8 +474,10 @@ final class PaymentBuilder
                     //TODO: Badge exists? Should we do something special?
                     // Maybe update it with whatever the cart said it should become?
                     //Certainly keep any approval status so when we complete it will remain
-                    $item['application_status'] = $bi['application_status'];
-                    //$this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
+                    if (!$this->is_submitted_status($item['application_status'])) {
+                        $item['application_status'] = $bi['application_status'];
+                    }
+                    $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
                 }
             }
             //Save the form responses
@@ -598,7 +628,7 @@ final class PaymentBuilder
             if ($bi !== false) {
                 $item['payment_status'] = 'Completed';
                 if ($bi['application_status'] == 'AwaitingApproval') {
-                    $bi['application_status'] = 'Onboarding';
+                    $item['application_status'] = 'Onboarding';
                 }
 
                 $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);

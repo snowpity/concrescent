@@ -63,8 +63,25 @@
                     </v-toolbar>
                 </v-card-title>
                 <v-card-text class="pa-0">
-                    <editBadgeAdmin v-model="bSelected" />
+                    <editBadgeAdmin v-model="bSelected"
+                                    @save="saveBadge" />
                 </v-card-text>
+            </v-card>
+        </v-dialog>
+
+        <v-dialog v-model="bSaved">
+
+            <v-card>
+                <v-card-title class="headline">Saved</v-card-title>
+                <v-card-text>
+                    Successfully saved.
+
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary"
+                           @click="bSaved = false">Ok</v-btn>
+                </v-card-actions>
             </v-card>
         </v-dialog>
     </v-tab-item>
@@ -98,34 +115,6 @@
     </v-tab-item>
     <v-tab-item key="2">
         <formQuestionEditList :context_code="context_code" />
-    </v-tab-item>
-    <v-tab-item key="3">
-        <treeList :apiPath="'Application/' + context_code +'/Department'"
-                  :AddHeaders="dAddHeaders"
-                  :actions="btActions"
-                  :footerActions="btFooterActions"
-                  :isEditingItem="dDialog"
-                  @edit="editDepartment"
-                  @create="createDepartment" />
-        <v-dialog v-model="dDialog"
-                  scrollable
-                  persistent>
-
-            <v-card>
-                <v-card-title class="headline">Edit Department</v-card-title>
-                <v-card-text>
-
-                    <editDepartment v-model="dSelected" />
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="default"
-                           @click="dDialog = false">Cancel</v-btn>
-                    <v-btn color="primary"
-                           @click="saveDepartment">Save</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
     </v-tab-item>
 
     <v-dialog v-model="loading"
@@ -163,9 +152,7 @@ import badgeSearchList from '@/components/badgeSearchList.vue';
 import orderableList from '@/components/orderableList.vue';
 import badgeTypeForm from '@/components/badgeTypeForm.vue';
 import formQuestionEditList from '@/components/formQuestionEditList.vue';
-import treeList from '@/components/treeList.vue';
 import editBadgeAdmin from '@/components/editBadgeAdmin.vue';
-import editDepartment from '@/components/editDepartment.vue';
 
 export default {
     components: {
@@ -173,24 +160,22 @@ export default {
         orderableList,
         badgeTypeForm,
         formQuestionEditList,
-        treeList,
         editBadgeAdmin,
-        editDepartment
     },
     props: [
         'subTabIx'
     ],
     data: () => ({
         listRemoveHeaders: [
-            'time_checked_in'
+            'time_checked_in',
+            'time_printed'
         ],
-        listAddHeaders: [{
-            text: 'Secondary Email',
-            value: 'notify_email'
-        }],
+        listAddHeaders: [],
         bSelected: {},
         bEdit: false,
         bModified: false,
+        bSaved: false,
+        bSavedDetails: {},
         bPrint: false,
         btAddHeaders: [{
             text: 'Dates Available',
@@ -298,10 +283,12 @@ export default {
             console.log('saving badge', this.bSelected);
             let that = this;
             that.loading = true;
-            admin.genericPost(this.authToken, 'Application/' + this.context_code + '/Submission/' + this.bSelected.id + "?sendupdate=" + (sendStatus ? "true" : "false"), this.bSelected, function(editBadge) {
+            admin.genericPost(this.authToken, 'Application/' + this.context_code + '/Submission/' + this.bSelected.id + "?sendupdate=" + (sendStatus ? "true" : "false"), this.bSelected, function(SavedDetails) {
                 that.bSelected = {};
                 that.loading = false;
                 that.bEdit = false;
+                that.bSaved = true;
+                that.bSavedDetails = SavedDetails;
                 that.$nextTick(() => {
                     that.bModified = false;
                 })

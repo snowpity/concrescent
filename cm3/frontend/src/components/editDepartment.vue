@@ -216,9 +216,16 @@ export default {
             admin.genericGet(this.authToken, 'Staff/Department', null, function(departments) {
 
                 that.currentDepartments = departments.filter(department => department.id != that.model.id);
+                that.currentDepartments.unshift({
+                    id: null,
+                    parent_id: null,
+                    name: "[[Top level]]",
+                    email_primary: ""
+                })
             }, function() {
                 //Whoops
-            })
+            });
+
         },
     },
     watch: {

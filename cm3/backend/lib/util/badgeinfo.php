@@ -23,9 +23,12 @@ use CM3_Lib\models\application\addonpurchase as g_addonpurchase;
 use CM3_Lib\models\staff\badge as s_badge;
 use CM3_Lib\models\forms\question as f_question;
 use CM3_Lib\models\forms\response as f_response;
+use CM3_Lib\models\contact as contact;
 use CM3_Lib\util\CurrentUserInfo;
 use CM3_Lib\util\barcode;
 use CM3_Lib\util\FrontendUrlTranslator;
+use CM3_Lib\util\PermEvent;
+
 use CM3_Lib\models\staff\department as s_department;
 use CM3_Lib\models\staff\position as s_position;
 use CM3_Lib\models\staff\assignedposition as s_assignedposition;
@@ -57,7 +60,22 @@ final class badgeinfo
         private s_assignedposition $s_assignedposition,
         private s_department $s_department,
         private s_position $s_position,
+        private contact $contact,
     ) {
+
+
+        //If user has ICE permissions, add that in
+        if ($this->CurrentUserInfo->hasEventPerm(PermEvent::Badge_Ice)) {
+            $this->selectColumns =array_merge(
+                $this->selectColumns,
+                [
+                'ice_name',
+                'ice_relationship',
+                'ice_email_address',
+                'ice_phone_number',
+                ]
+            );
+        }
     }
 
 
@@ -519,6 +537,32 @@ final class badgeinfo
         }
         return $result;
     }
+    public function SearchGroupApplicationsText($context, string $searchText, $order, $limit, $offset, &$totalRows)
+    {
+        $whereParts =
+        empty($searchText) ? null :
+        array(
+            new SearchTerm('real_name', $searchText, Raw: 'MATCH(`real_name`, `fandom_name`, `notify_email`, `ice_name`, `ice_email_address`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
+        );
+        $wherePartsSimpler = array(
+            new SearchTerm(
+                '',
+                '',
+                subSearch: array(
+                    new SearchTerm('real_name', '%' . $searchText . '%', 'LIKE', 'OR'),
+                    new SearchTerm('fandom_name', '%' . $searchText . '%', 'LIKE', 'OR'),
+                    new SearchTerm('notify_email', '%' . $searchText . '%', 'LIKE', 'OR'),
+                    new SearchTerm('ice_name', '%' . $searchText . '%', 'LIKE', 'OR'),
+                    new SearchTerm('ice_email_address', '%' . $searchText . '%', 'LIKE', 'OR'),
+                )
+            ));
+        $result = $this->SearchGroupApplications($context, $whereParts, $order, $limit, $offset, $totalRows);
+        //If we got nothing, switch to a simpler search
+        if (count($result) == 0) {
+            $result =  $this->SearchGroupApplications($context, $wherePartsSimpler, $order, $limit, $offset, $totalRows);
+        }
+        return $result;
+    }
 
     public function SearchBadges($context, $terms, ?array $order = null, int $limit = -1, int $offset = 0, &$totalRows = null, $full = false)
     {
@@ -630,6 +674,83 @@ final class badgeinfo
 
         return $result;
     }
+    public function SearchGroupApplications($context, $terms, ?array $order = null, int $limit = -1, int $offset = 0, &$totalRows = null, $full = false)
+    {
+        // Invoke the Domain with inputs and retain the result
+        $g_bv = $this->groupApplicationBadgeView();
+        if ($full) {
+            $this->MergeView($g_bv, $this->badgeViewFullAddGroup());
+        }
+        $g_terms = $this->AdjustSearchTerms($terms, $g_bv);
+        //Add to the group search if context specified
+        $g_terms[] = new SearchTerm('context_code', $context, is_null($context) ? 'IS' : '=', JoinedTableAlias:'grp');
+
+        //$this->g_badge->debugThrowBeforeSelect = true;
+        $g_data = $this->g_badge_submission->Search($g_bv, $g_terms, $order, $limit, $offset, $totalRows);
+
+
+        //Add in any addons
+        $applicantIds = array_column($g_data, 'id');
+        if (count($applicantIds) == 0) {
+            $applicantIds[] = 0;
+        }
+        $g_addons = $this->g_addonpurchase->Search(array(
+            'application_id',
+            'addon_id'
+        ), array(
+            new SearchTerm('application_id', $applicantIds, 'IN'),
+            new SearchTerm('payment_status', 'Completed')
+        ));
+
+        $result = $g_data;
+
+        //Loop the badges to add their addons, if any addons were returned for it
+        foreach ($result as &$badge) {
+            $badge['addons'] = array();
+            foreach ($g_addons as $addon) {
+                if ($addon['application_id'] == $badge['id']) {
+                    $badge['addons'][] = array(
+                    'addon_id' => $addon['addon_id']
+                );
+                }
+            }
+
+            //While we're here, add the computed columns too
+            $badge = $this->addComputedColumns($badge, false);
+        }
+
+        //Fetch associated form responses if full == true
+        if ($full) {
+            //Generate searchTerms for each of the found badges
+            $f_searchTerms = [];
+            foreach ($result as &$badge) {
+                $f_searchTerms[] = new SearchTerm(
+                    '',
+                    '',
+                    TermType: 'OR',
+                    subSearch: [
+                            new SearchTerm('context_code', $badge['context_code']),
+                            new SearchTerm('context_id', $badge['id']),
+                    ]
+                );
+            }
+            $f_responsedata = $this->f_response->Search(
+                array('context_id','context_code','question_id','response'),
+                $f_searchTerms
+            );
+
+            foreach ($result as &$badge) {
+                $f_filteredbadgedata = array_filter($f_responsedata, function ($f_response) use ($badge) {
+                    return $f_response['context_id'] == $badge['id']
+                    &&  $f_response['context_code'] == $badge['context_code'] ;
+                });
+                //Zip together the responses
+                $badge['form_responses'] = array_combine(array_column($f_filteredbadgedata, 'question_id'), array_column($f_filteredbadgedata, 'response'));
+            }
+        }
+
+        return $result;
+    }
 
     private function AdjustSearchTerms($terms, $badgeView)
     {
@@ -684,6 +805,41 @@ final class badgeinfo
             $this->MergeView($view, $addView);
         }
         return $this->g_badge->GetByIDorUUID($id, null, $view);
+    }
+    public function getASpecificGroupApplication($id, $context_code, $full = false)
+    {
+        $view = $this->groupApplicationBadgeView();
+        if ($full) {
+            $this->MergeView($view, $this->badgeViewFullAddGroupApplication());
+        }
+        $result = $this->g_badge_submission->GetByIDorUUID($id, null, $view);
+
+        if ($result !== false) {
+            $result['addons'] = [];
+            $g_addons = $this->g_addonpurchase->Search(array(
+            'addon_id',
+            'payment_status'
+        ), array(
+
+            new SearchTerm('application_id', $id)
+        ));
+            foreach ($g_addons as $addon) {
+                $result['addons'][] = array(
+                'addon_id' => $addon['addon_id'],
+                'addon_payment_status' => $addon['payment_status']
+            );
+            }
+        }
+
+
+        if ($result === false || !$full) {
+            return $result;
+        }
+        //Add in form responses
+        $result['form_responses'] = $this->GetSpecificBadgeResponses($id, $context_code);
+        //Add in supplementary
+        $this->addSupplementaryBadgeData($result);
+        return $this->addComputedColumns($result, true);
     }
     public function checkBadgeTypeBelongsToEvent($context_code, $badge_type_id)
     {
@@ -902,6 +1058,57 @@ final class badgeinfo
         );
     }
 
+    public function groupApplicationBadgeView()
+    {
+        return new View(
+            array(
+                'id',
+                'uuid',
+                'display_id',
+                'contact_id',
+                'real_name',
+                'fandom_name',
+                'name_on_badge',
+               new SelectColumn('context_code', JoinedTableAlias:'grp'),
+               new SelectColumn('application_status'),
+               new SelectColumn('badge_type_id'),
+               new SelectColumn('payment_status'),
+               new SelectColumn('payment_id'),
+               new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ'),
+               new SelectColumn('payable_onsite', Alias:'badge_type_payable_onsite', JoinedTableAlias:'typ'),
+               new SelectColumn('payment_deferred', Alias:'badge_type_payment_deferred', JoinedTableAlias:'typ')
+
+            ),
+            array(
+                   new Join(
+                       $this->g_badge_type,
+                       array(
+                         'id' =>new SearchTerm('badge_type_id', null),
+                       ),
+                       alias:'typ'
+                   ),
+                  new Join(
+                      $this->g_group,
+                      array(
+                        'id' => new SearchTerm('group_id', null, JoinedTableAlias: 'typ'),
+                        new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
+                      ),
+                      alias:'grp'
+                  )
+                 )
+        );
+    }
+    public function badgeViewFullAddGroupApplication()
+    {
+        return new View(
+            array(
+                'notes',
+                'uuid'
+            ),
+            array()
+        );
+    }
+
     public function badgeTypeColumns($include_defferred_pay = false)
     {
         return new View(
@@ -952,6 +1159,25 @@ final class badgeinfo
                 break;
             default:
                 //$result =  $this->g_badge->Create($data);
+        }
+        //If user has contact permissions, add that in
+        if ($this->CurrentUserInfo->hasEventPerm(PermEvent::Contact_Full)) {
+            $result['contact'] = $this->contact->GetById(
+                $result['contact_id'],
+                [
+                'allow_marketing',
+                'email_address',
+                'real_name',
+                'phone_number',
+                'address_1',
+                'address_2',
+                'city',
+                'state',
+                'zip_code',
+                'country',
+                'notes'
+                ]
+            );
         }
     }
     public function updateSupplementaryBadgeData(&$result)

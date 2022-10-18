@@ -83,7 +83,7 @@ export default {
                     icon: "mdi-account-hard-hat",
                     label: "Staff",
                     show: () => {
-                        return this.hasEventPerm('Staff_View');
+                        return this.hasEventPerm(['Staff_View', 'Staff_Review']);
                     },
                     flex: 4,
                 }, {

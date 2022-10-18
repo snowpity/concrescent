@@ -66,16 +66,22 @@ const getters = {
     hasPerms: (state) => {
         return state.permissions != null;
     },
-    hasEventPerm: (state) => (permName) => {
+    hasEventPerm: (state) => (permNames) => {
         if (state.permissions == null || state.permissions == undefined) return false;
-        return state.permissions.EventPerms.findIndex((perm) => perm == permName || perm == 'GlobalAdmin') > -1;
+        //Make sure we're doing an array.
+        if (!Array.isArray(permNames))
+            permNames = [permNames];
+        return state.permissions.EventPerms.findIndex((perm) => permNames.find((il) => il == perm) || perm == 'GlobalAdmin') > -1;
     },
-    hasGroupPerm: (state, getters) => (groupId, permName) => {
+    hasGroupPerm: (state, getters) => (groupId, permNames) => {
         if (state.permissions == null || state.permissions == undefined) return false;
         //Check if they're a GlobalAdmin
         if (getters.hasEventPerm("GlobalAdmin")) return true;
         if (state.permissions.GroupPerms[groupId] == undefined) return false;
-        return state.permissions.GroupPerms[groupId].findIndex((perm) => perm == permName) > -1;
+        //Make sure we're doing an array.
+        if (!Array.isArray(permNames))
+            permNames = [permNames];
+        return state.permissions.GroupPerms[groupId].findIndex((perm) => permNames.find((il) => il == perm) || perm == 'GlobalAdmin') > -1;
     },
     getContactInfo: (state) => {
         return state.contactInfo;
