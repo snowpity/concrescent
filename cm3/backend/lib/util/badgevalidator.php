@@ -79,7 +79,7 @@ final class badgevalidator
                 if (!empty($item['badge_type_id'])) {
                     $badgeType = $this->g_badge_type->GetByID($item['badge_type_id'], $this->getBadgeTypeView());
                     if ($badgeType !== false) {
-                        $this->AddBadgeValidations($v, $badgeType, $item);
+                        $this->AddBadgeValidations($v, $badgeType, $item, true);
                     }
                 }
                 //TODO: Add submission applicants
@@ -103,7 +103,7 @@ final class badgevalidator
         ));
     }
 
-    private function AddBadgeValidations(TableValidator &$v, array $badgetypeData, &$item)
+    private function AddBadgeValidations(TableValidator &$v, array $badgetypeData, &$item, $groupApp = false)
     {
         //TODO: Test for things like badge upgrades for the start_date and end_date?
 
@@ -115,7 +115,11 @@ final class badgevalidator
         if (!empty($badgetypeData['max_age'])) {
             $bday = $bday->MaxAge($badgetypeData['max_age']);
         }
-        $v->addColumnValidator('date_of_birth', $bday);
+        if (!$groupApp) {
+            $v->addColumnValidator('date_of_birth', $bday);
+        } else {
+            //Add the validator to the applicant badges instead
+        }
 
         $v->addColumnValidator('notify_email', v::Optional(v::Email()), true);
         $v->addColumnValidator('ice_email_address', v::Optional(v::Email()), true);
@@ -163,5 +167,7 @@ final class badgevalidator
                 $addon['payment_price'] = $faddon['price'];
             }
         }
+
+        //TODO: Validate form questions?
     }
 }

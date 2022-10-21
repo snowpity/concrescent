@@ -27,6 +27,7 @@
                       label="Display on badge"></v-select>
         </v-col>
         <v-col cols="12"
+               v-if="!hide_dob"
                md="6">
             <v-menu ref="menuBDay"
                     v-model="menuBDay"
@@ -70,6 +71,9 @@ export default {
         'application_name2': {
             type: String,
             default: 'Fandom Name'
+        },
+        'hide_dob': {
+            type: Boolean
         }
     },
     data() {

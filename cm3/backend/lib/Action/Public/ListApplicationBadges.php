@@ -87,8 +87,8 @@ final class ListApplicationBadges
                   'LEFT',
                   'q',
                   array(
-                    'badge_type_id',
-                    new SelectColumn('id', true, 'count(?)', 'quantity_sold')
+                    new SelectColumn('badge_type_id', true),
+                    new SelectColumn('id', false, 'count(?)', 'quantity_sold')
                 ),
                   array(
                    new SearchTerm('payment_status', 'Cancelled', "<>"),

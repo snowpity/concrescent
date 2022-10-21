@@ -100,7 +100,7 @@ class CheckoutCart
         $errors = $this->PaymentBuilder->prepPayment();
 
         if (count($errors) > 0) {
-            throw new \Exception('Errors! ' . var_dump($errors));
+            throw new \Exception('Errors! ' . print_r($errors, true));
         }
         //Finish the prep
         if ($this->PaymentBuilder->confirmPrep()) {

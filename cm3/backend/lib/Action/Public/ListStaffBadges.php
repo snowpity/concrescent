@@ -71,11 +71,11 @@ final class ListStaffBadges
                 'LEFT',
                 'q',
                 array(
-                  'badge_type_id',
-                  new SelectColumn('id', true, 'count(?)', 'quantity_sold')
+                  new SelectColumn('badge_type_id', true),
+                  new SelectColumn('id', false, 'count(?)', 'quantity_sold')
               ),
                 array(
-                 new SearchTerm('application_status', 'Active'),
+                 new SearchTerm('application_status', ['Active','PendingAcceptance'], 'IN'),
                )
             ),
                new Join(
@@ -101,7 +101,6 @@ final class ListStaffBadges
         );
 
         $order = array('display_order' => false);
-
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->badgetype->Search($viewData, $whereParts, $order);

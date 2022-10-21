@@ -213,7 +213,12 @@ final class PaymentBuilder
         }
         //Ensure this badge is owned by the user (if we're not editing) and is good on the surface
         if (isset($item['id']) && $item['id'] > 0) {
-            $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code']);
+            //Group apps are special
+            if ($cartitem['context_code'] == 'A' || $cartitem['context_code'] == 'S') {
+                $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code']);
+            } else {
+                $bi = $this->badgeinfo->getASpecificGroupApplication($item['id'] ?? 0, $item['context_code']);
+            }
             //TODO: Determine if this badge is already in an active cart and abort
             //Preserve the current badge state, but only if it hasn't been preserved already
             if ($bi !== false && !isset($item['existing'])) {
@@ -336,7 +341,12 @@ final class PaymentBuilder
 
             //Check if this item is payable
             if (!empty($bt['payment_deferred']) && $bt['payment_deferred']) {
-                $bi = $this->badgeinfo->getSpecificBadge($item['id'] ?? 0, $item['context_code']);
+                //Get the badge info depending on staff or not
+                if ($item['context_code'] == 'S') {
+                    $bi = $this->badgeinfo->getSpecificBadge($item['id'] ?? 0, $item['context_code']);
+                } else {
+                    $bi = $this->badgeinfo->getASpecificGroupApplication($item['id'] ?? 0, $item['context_code']);
+                }
 
                 if ($bi != null) {
                     //Check if it's currently in an approved state
@@ -440,63 +450,54 @@ final class PaymentBuilder
 
         //TODO: craete the checked versions and use them instead of blind faith
 
-        foreach ($this->cart_items as $key => &$item) {
+        foreach ($this->cart_items as $key => &$cartitem) {
             //Create/Update the badge
-            $bt = $this->badgeinfo->getBadgetType($item['context_code'], $item['badge_type_id']);
-            $bi = $this->badgeinfo->getSpecificBadge($item['id'] ?? 0, $item['context_code']);
-            $item['payment_id'] = $this->cart['id'];
-            $item['payment_status'] = 'Incomplete';
+            $cartitem['payment_id'] = $this->cart['id'];
+            $cartitem['payment_status'] = 'Incomplete';
 
-            //TODO: Temp hack to ensure there is a valid name_on_badgeOptions
-            if (isset($item['name_on_badge']) && (empty($item['name_on_badge']) || $item['name_on_badge']=='')) {
-                $item['name_on_badge'] = 'Real Name Only';
-            }
+            $badge_items = [];
 
-            if (isset($item['existing'])) {
-                $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
+            $bt_base = $this->badgeinfo->getBadgetType($cartitem['context_code'], $cartitem['badge_type_id']);
+            $saveFormResponses = true;
+            //If it's not an application, wire up the processor normally
+            if ($cartitem['context_code'] == 'A' || $cartitem['context_code'] == 'S') {
+                $badgeItems = [&$cartitem];
+                $bt = $bt_base;
             } else {
-                //Ensure the badge has an owner
-                $item['contact_id'] =$item['contact_id'] ?? $this->CurrentUserInfo->GetContactId();
-                //Ensure their application Status is "Submitted" if they're not allowed to pay yet
-                //and not already accepted
-                if ($bi === false) {
-                    if ($item['context_code'] != 'A' && !empty($bt['payment_deferred']) && $bt['payment_deferred']
-                    &&  !$this->is_submitted_status($item['application_status'])) {
-                        $item['application_status'] = 'Submitted';
-                    }
+                //Grou applications are special
+                //Create/update the application submission
+                $this->createUpdateApplicationSubmission($cartitem, $bt_base);
 
-
-                    $newID = $this->badgeinfo->CreateSpecificBadgeUnchecked($item);
-                    if ($newID !== false) {
-                        $item['id'] = $newID['id'];
-                    }
-                } else {
-                    //TODO: Badge exists? Should we do something special?
-                    // Maybe update it with whatever the cart said it should become?
-                    //Certainly keep any approval status so when we complete it will remain
-                    if (!$this->is_submitted_status($item['application_status'])) {
-                        $item['application_status'] = $bi['application_status'];
-                    }
-                    $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
+                $saveFormResponses = false;
+                //Save the form responses
+                if (isset($cartitem['form_responses'])) {
+                    $this->badgeinfo->SetFormResponses($cartitem['id'], $cartitem['context_code'], $cartitem['form_responses']);
                 }
-            }
-            //Save the form responses
-            if (isset($item['form_responses'])) {
-                $this->badgeinfo->SetSpecificBadgeResponses($item['id'], $item['context_code'], $item['form_responses']);
+
+                //Generate badgetype data from base
+                $bt = $bt_base;
+                $badgeItems = [];
             }
 
-            //Check for bans
-            if ($this->banlist->is_banlisted($item)) {
-                $banlisted = true;
-                $canpay = false;
-                //TODO: Bubble a notify event
-                $errors[] = 'Banned:'.$key;
-            }
-            //TODO: Process applicants too
+            foreach ($badgeItems as $key => &$item) {
 
-            //Only add this as a line item if we're a new badge or upgrading (hence needing payment)
-            if (!isset($item['existing']) || 0 < $item['payment_promo_price']) {
-                $this->stagedItems[] = array(
+                //Check for bans
+                if ($this->banlist->is_banlisted($item)) {
+                    $banlisted = true;
+                    $canpay = false;
+                    //TODO: Bubble a notify event
+                    $errors[] = 'Banned:'.$key;
+                }
+                $this->createUpdateBadgeEntry($item);
+
+                //Save the form responses
+                if ($saveFormResponses && isset($item['form_responses'])) {
+                    $this->badgeinfo->SetFormResponses($item['id'], $item['context_code'], $item['form_responses']);
+                }
+
+                //Only add this as a line item if we're a new badge or upgrading (hence needing payment)
+                if (!isset($item['existing']) || 0 < $item['payment_promo_price']) {
+                    $this->stagedItems[] = array(
                     $bt['name'],
                     $bt['price'],
                     1,
@@ -505,19 +506,20 @@ final class PaymentBuilder
                     max(0, $bt['price'] - ($item['payment_promo_price'] ?? $item['payment_badge_price'])),
                     $item['payment_promo_code'] ?? null
                 );
+                }
+                //Prep Sanity check the cart's amount...
+                $this->cart_payment_txn_amt += max(0, $item['payment_promo_price'] ?? $item['payment_badge_price']);
             }
-            //Prep Sanity check the cart's amount...
-            $this->cart_payment_txn_amt += max(0, $item['payment_promo_price'] ?? $item['payment_badge_price']);
 
             //Check for addons
-            if (isset($item['addons'])) {
+            if (isset($cartitem['addons'])) {
                 $existingAddons = array_column(
-                    $this->badgeinfo->GetAttendeeAddons($item['id']),
+                    $this->badgeinfo->GetAddons($cartitem['id'], $cartitem['context_code']),
                     'payment_status',
                     'addon_id'
                 );
-                $availableaddons = array_column($this->badgeinfo->GetAttendeeAddonsAvailable($item['badge_type_id']), null, 'id');
-                foreach ($item['addons'] as $addon) {
+                $availableaddons = array_column($this->badgeinfo->GetAddonsAvailable($cartitem['badge_type_id'], $cartitem['context_code']), null, 'id');
+                foreach ($cartitem['addons'] as $addon) {
                     if (isset($existingAddons[$addon['addon_id']]) && $existingAddons[$addon['addon_id']] == 'Completed') {
                         continue;
                     }
@@ -525,7 +527,7 @@ final class PaymentBuilder
                     $addon['payment_id'] = $this->cart['id'];
                     $addon['payment_status'] = 'Incomplete';
 
-                    $this->badgeinfo->AddUpdateABadgeAddonUnchecked($addon);
+                    $this->badgeinfo->AddUpdateBadgeAddonUnchecked($addon, $cartitem['context_code']);
 
                     //Add it to the payment
                     $faddon = $availableaddons[$addon['addon_id']];
@@ -535,7 +537,7 @@ final class PaymentBuilder
                         $faddon['price'],
                         1,
                         $faddon['description'],
-                        $this->CurrentUserInfo->GetEventId() . ':' . $item['context_code'] . ',a:' . $addon['addon_id'],
+                        $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ',a:' . $addon['addon_id'],
                         max(0, $faddon['price'] - ($addon['payment_promo_price'] ?? $addon['payment_price'])),
                         $addon['payment_promo_code'] ?? null
                     );
@@ -571,6 +573,89 @@ final class PaymentBuilder
 
         //Report back the errors
         return $errors;
+    }
+
+    private function createUpdateApplicationSubmission(&$item, $bt)
+    {
+
+        //TODO: Temp hack to ensure there is a valid name_on_badgeOptions
+        if (isset($item['name_on_badge']) && (empty($item['name_on_badge']) || $item['name_on_badge']=='')) {
+            $item['name_on_badge'] = 'Real Name Only';
+        }
+
+        $bi = $this->badgeinfo->getASpecificGroupApplication($item['id'] ?? 0, $item['context_code']);
+        if (isset($item['existing'])) {
+            if (!empty($bt['payment_deferred']) && $bt['payment_deferred']
+            &&  !$this->is_submitted_status($bi['application_status'])) {
+                $item['application_status'] = 'Submitted';
+            } else {
+                //Take the application status of the active badge info
+                $item['application_status'] = $bi['application_status'];
+            }
+            $this->badgeinfo->UpdateSpecificGroupApplicationUnchecked($item['id'], $item['context_code'], $item);
+        } else {
+            //Ensure the badge has an owner
+            $item['contact_id'] =$item['contact_id'] ?? $this->CurrentUserInfo->GetContactId();
+            //Ensure their application Status is "Submitted" if they're not allowed to pay yet
+            //and not already accepted
+            if ($bi === false) {
+                if (!empty($bt['payment_deferred']) && $bt['payment_deferred']
+                &&  !$this->is_submitted_status($item['application_status'])) {
+                    $item['application_status'] = 'Submitted';
+                }
+
+                $newID = $this->badgeinfo->CreateSpecificGroupApplicationUnchecked($item);
+                if ($newID !== false) {
+                    $item['id'] = $newID['id'];
+                }
+            } else {
+                //TODO: Badge exists? Should we do something special?
+                // Maybe update it with whatever the cart said it should become?
+                //Certainly keep any approval status so when we complete it will remain
+                if (!$this->is_submitted_status($item['application_status'])) {
+                    $item['application_status'] = $bi['application_status'];
+                }
+                $this->badgeinfo->UpdateSpecificGroupApplicationUnchecked($item['id'], $item['context_code'], $item);
+            }
+        }
+    }
+    private function createUpdateBadgeEntry(&$item)
+    {
+
+        //TODO: Temp hack to ensure there is a valid name_on_badgeOptions
+        if (isset($item['name_on_badge']) && (empty($item['name_on_badge']) || $item['name_on_badge']=='')) {
+            $item['name_on_badge'] = 'Real Name Only';
+        }
+
+        $bi = $this->badgeinfo->getSpecificBadge($item['id'] ?? 0, $item['context_code']);
+        if (isset($item['existing'])) {
+            $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
+        } else {
+            //Ensure the badge has an owner
+            $item['contact_id'] =$item['contact_id'] ?? $this->CurrentUserInfo->GetContactId();
+            //Ensure their application Status is "Submitted" if they're not allowed to pay yet
+            //and not already accepted
+            if ($bi === false) {
+                if ($item['context_code'] != 'A' && !empty($bt['payment_deferred']) && $bt['payment_deferred']
+                &&  !$this->is_submitted_status($item['application_status'])) {
+                    $item['application_status'] = 'Submitted';
+                }
+
+
+                $newID = $this->badgeinfo->CreateSpecificBadgeUnchecked($item);
+                if ($newID !== false) {
+                    $item['id'] = $newID['id'];
+                }
+            } else {
+                //TODO: Badge exists? Should we do something special?
+                // Maybe update it with whatever the cart said it should become?
+                //Certainly keep any approval status so when we complete it will remain
+                if (!$this->is_submitted_status($item['application_status'])) {
+                    $item['application_status'] = $bi['application_status'];
+                }
+                $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
+            }
+        }
     }
 
     public function confirmPrep()
@@ -619,41 +704,56 @@ final class PaymentBuilder
             }
         }
 
-        foreach ($this->cart_items as $key => &$item) {
+        foreach ($this->cart_items as $key => &$cartitem) {
             //Update the badge
-            if (!isset($item['context_code'])) {
-                $item['context_code']='A';
+            if (!isset($cartitem['context_code'])) {
+                $cartitem['context_code']='A';
             }
-            $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code']);
-            if ($bi !== false) {
-                $item['payment_status'] = 'Completed';
-                if ($bi['application_status'] == 'AwaitingApproval') {
-                    $item['application_status'] = 'Onboarding';
-                }
 
-                $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
-                if (!isset($item['existing']) || (isset($item['existing']) && $item['existing']['display_id'] == null)) {
-                    $this->badgeinfo->setNextDisplayIDSpecificBadge($item['id'], $item['context_code']);
-                }
+            //If it's not an application, wire up the processor normally
+            if ($cartitem['context_code'] == 'A' || $cartitem['context_code'] == 'S') {
+                $badgeItems = [&$cartitem];
+                $bt = $bt_base;
             } else {
-                throw new \Exception('Badge not found?!?' . $item['context_code'] . $item['id']);
+                //Grou applications are special
+                //Create/update the application submission
+                $this->completeGroupApplication($cartitem);
+
+                //Send the application status
+                $template = $cartitem['context_code'] . '-application-' .$cartitem['application_status'];
+
+                try {
+                    //Attempt to send mail
+                    $to = $this->CurrentUserInfo->GetContactEmail($cartitem['contact_id']);
+                    if (!$this->Mail->SendTemplate($to, $template, $cartitem, $cartitem['notify_email'])) {
+                        $errors['sentUpdate'] =  false;
+                    }
+                } catch (\Exception $e) {
+                    //Oops, couldn't send. Oh well?
+                    $errors['sentUpdate'] = false;
+                }
+                $badgeItems = [];
+            }
+
+            foreach ($badgeItems as $key => &$item) {
+                $this->completeBadge($item);
             }
 
             //Check for addons
-            if (isset($item['addons'])) {
-                foreach ($item['addons'] as &$addon) {
+            if (isset($cartitem['addons'])) {
+                foreach ($cartitem['addons'] as &$addon) {
                     $addon['payment_id'] = $this->cart['id'];
                     $addon['payment_status'] = 'Completed';
-                    switch ($item['context_code']) {
+                    switch ($cartitem['context_code']) {
                         case 'A':
-                            $addon['attendee_id'] = $item['id'];
+                            $addon['attendee_id'] = $cartitem['id'];
                             $this->badgeinfo->AddUpdateABadgeAddonUnchecked($addon);
                             break;
                         case 'S':
                         //not supported (yet)
                         break;
                         default:
-                            $addon['application_id'] = $item['id'];
+                            $addon['application_id'] = $cartitem['id'];
                             $this->badgeinfo->AddUpdateGBadgeAddonUnchecked($addon);
                             break;
                     }
@@ -665,6 +765,38 @@ final class PaymentBuilder
         $this->cart['payment_date'] = $this->payment->getDbNow();
         $this->saveCart();
         return true;
+    }
+
+    private function completeGroupApplication(&$item)
+    {
+        $bi = $this->badgeinfo->getASpecificGroupApplication($item['id'], $item['context_code']);
+        if ($bi !== false) {
+            $item['payment_status'] = 'Completed';
+            if ($bi['application_status'] == 'PendingAcceptance') {
+                $item['application_status'] = 'Accepted';
+            }
+            $this->badgeinfo->UpdateSpecificGroupApplicationUnchecked($item['id'], $item['context_code'], $item);
+        } else {
+            throw new \Exception('Application not found?!?' . $item['context_code'] . $item['id']);
+        }
+    }
+
+    private function completeBadge(&$item)
+    {
+        $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code']);
+        if ($bi !== false) {
+            $item['payment_status'] = 'Completed';
+            if ($bi['application_status'] == 'AwaitingApproval') {
+                $item['application_status'] = 'Onboarding';
+            }
+
+            $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
+            if (!isset($item['existing']) || (isset($item['existing']) && $item['existing']['display_id'] == null)) {
+                $this->badgeinfo->setNextDisplayIDSpecificBadge($item['id'], $item['context_code']);
+            }
+        } else {
+            throw new \Exception('Badge not found?!?' . $item['context_code'] . $item['id']);
+        }
     }
 
 
@@ -710,11 +842,37 @@ final class PaymentBuilder
         foreach ($this->cart_items as $item) {
             $to = $this->CurrentUserInfo->GetContactEmail($item['contact_id']);
             //Get the current info, not what's in the order
-            $badge = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code'], true);
             $template = $this->cart['mail_template'] ?? ($item['context_code'] . '-payment-' .$this->cart['payment_status']);
+            //If it's not an application, wire up the processor normally
+            if ($item['context_code'] == 'A' || $item['context_code'] == 'S') {
+                $badgeItems = [ $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code'], true)];
+            } else {
+                $groupApp = $this->badgeinfo->getASpecificGroupApplication($item['id'] ?? 0, $item['context_code'], true);
+                $this->Mail->SendTemplate($to, $template, $groupApp, null);
+                // //Send the application status
+                // $template = $cartitem['context_code'] . '-application-' .$cartitem['application_status'];
+                //
+                // try {
+                //     //Attempt to send mail
+                //     $to = $this->CurrentUserInfo->GetContactEmail($cartitem['contact_id']);
+                //     if (!$this->Mail->SendTemplate($to, $template, $cartitem, $cartitem['notify_email'])) {
+                //         $errors['sentUpdate'] =  false;
+                //     }
+                // } catch (\Exception $e) {
+                //     //Oops, couldn't send. Oh well?
+                //     $errors['sentUpdate'] = $e->getMessage();
+                // }
+                //Only if payment is complete should we send out the badge emails
+                $badgeItems = [];
+            }
+
             try {
-                //Attempt to send mail
-                return $this->Mail->SendTemplate($to, $template, $badge, $badge['notify_email']);
+                //Attempt to send mail(s)
+                $anyFail = false;
+                foreach ($badgeItems as $badge) {
+                    $anyFail |= !$this->Mail->SendTemplate($to, $template, $badge, $badge['notify_email']);
+                }
+                return !$anyFail;
             } catch (\Exception $e) {
                 //Oops, couldn't send. Oh well?
                 return false;

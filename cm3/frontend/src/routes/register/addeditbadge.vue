@@ -11,7 +11,8 @@
                   v-model="context_code"
                   item-text="name"
                   item-value="context_code"
-                  no-data-text="Loading...">
+                  no-data-text="Loading..."
+                  :readonly="forbidContextChange">
             <template v-slot:prepend>
                 <h3 class="flex-sm-grow-1 flex-sm-shrink-0 mr-4">Badge Type:</h3>
             </template>
@@ -19,7 +20,8 @@
         <badgeGenInfo v-model="badgeGenInfoData"
                       :application_name1="currentContext.application_name1"
                       :application_name2="currentContext.application_name2"
-                      @valid="setValidGenInfo" />
+                      @valid="setValidGenInfo"
+                      :hide_dob="isGroupApp" />
         <badgeTypeSelector v-model="selectedBadge"
                            :badges="badges"
                            no-data-text="No badges currently available!"
@@ -476,6 +478,13 @@ export default {
                 this.createError = newval ? "???" : "";
             }
         },
+        isGroupApp() {
+            if (this.currentContext == undefined) return true;
+            return this.currentContext.id > 0;
+        },
+        forbidContextChange() {
+            return this.editBadgePriorBadgeId > -1;
+        }
     },
     watch: {
         step(newStep) {

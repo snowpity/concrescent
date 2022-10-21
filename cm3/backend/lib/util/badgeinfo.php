@@ -142,6 +142,23 @@ final class badgeinfo
         return $result;
     }
 
+    public function CreateSpecificGroupApplicationUnchecked($data, $allowedColumns = null)
+    {
+        $result = false;
+        //Filter in the allowed columns to update
+        if ($allowedColumns != null) {
+            $data = array_intersect_key($data, array_flip($allowedColumns));
+        }
+        //Actually don't accept updates to ID and uuid
+        unset($data['id']);
+        unset($data['uuid']);
+
+        $result =  $this->g_badge_submission->Create($data);
+        //Also set supplementary data
+        $data['id'] = $result['id'];
+        return $result;
+    }
+
     public function GetSpecificBadge($id, $context_code, $full = false)
     {
         $result = false;
@@ -192,7 +209,7 @@ final class badgeinfo
             return $result;
         }
         //Add in form responses
-        $result['form_responses'] = $this->GetSpecificBadgeResponses($id, $context_code);
+        $result['form_responses'] = $this->GetFormResponses($id, $context_code);
         //Add in supplementary
         $this->addSupplementaryBadgeData($result);
         return $this->addComputedColumns($result, true);
@@ -221,6 +238,22 @@ final class badgeinfo
         }
         //Also update supplementary data if provided
         $this->updateSupplementaryBadgeData($data);
+        return $result;
+    }
+
+    public function UpdateSpecificGroupApplicationUnchecked($id, $context_code, $data, $allowedColumns = null)
+    {
+        $result = false;
+        //Filter in the allowed columns to update
+        if ($allowedColumns != null) {
+            $data = array_intersect_key($data, array_flip($allowedColumns));
+        }
+        //Actually don't accept updates to uuid
+        unset($data['uuid']);
+        //TODO: Make sure the badge belongs to the context specified?
+        //Slide in the ID
+        $data['id'] = $id;
+        $result =  $this->g_badge_submission->Update($data);
         return $result;
     }
 
@@ -329,7 +362,7 @@ final class badgeinfo
         return $result;
     }
 
-    public function GetSpecificBadgeResponses($id, $context_code)
+    public function GetFormResponses($id, $context_code)
     {
         $data = $this->f_response->Search(
             array('question_id','response'),
@@ -342,7 +375,7 @@ final class badgeinfo
         return array_combine(array_column($data, 'question_id'), array_column($data, 'response'));
     }
 
-    public function SetSpecificBadgeResponses($id, $context_code, $responses)
+    public function SetFormResponses($id, $context_code, $responses)
     {
         //First fetch any that might exist already
         $existing =array_flip(array_column($this->f_response->Search(
@@ -367,7 +400,7 @@ final class badgeinfo
             }
         }
         //Delete the missing ones
-        foreach (array_diff($existing, $responses) as $question_id => $response) {
+        foreach (array_diff_key($existing, $responses) as $question_id => $response) {
             $item = array(
                 'context_code' => $context_code,
                 'context_id' => $id,
@@ -377,6 +410,17 @@ final class badgeinfo
         }
     }
 
+    public function GetAddonsAvailable($badge_type_id, $context_code)
+    {
+        switch ($context_code) {
+            case 'A':
+                return $this->GetAttendeeAddonsAvailable($badge_type_id);
+            case 'S':
+                return [];
+            default:
+                return $this->GetApplicationAddonsAvailable($badge_type_id);
+        }
+    }
     public function GetAttendeeAddonsAvailable($badge_type_id)
     {
         return $this->a_addon->Search(
@@ -435,6 +479,17 @@ final class badgeinfo
             )
         );
     }
+    public function GetAddons($id, $context_code)
+    {
+        switch ($context_code) {
+            case 'A':
+                return $this->GetAttendeeAddons($id);
+            case 'S':
+                return [];
+            default:
+                return $this->GetApplicationAddons($id);
+        }
+    }
     public function GetAttendeeAddons($attendee_id)
     {
         return $this->a_addonpurchase->Search(
@@ -460,6 +515,17 @@ final class badgeinfo
                 new SearchTerm('application_id', $attendee_id)
             )
         );
+    }
+    public function AddUpdateBadgeAddonUnchecked($data)
+    {
+        switch ($data['context_code'] ??'A') {
+            case 'A':
+                return $this->AddUpdateABadgeAddonUnchecked($data);
+            case 'S':
+                return [];
+            default:
+                return $this->AddUpdateGBadgeAddonUnchecked($data);
+        }
     }
     public function AddUpdateABadgeAddonUnchecked(&$data)
     {
@@ -836,7 +902,7 @@ final class badgeinfo
             return $result;
         }
         //Add in form responses
-        $result['form_responses'] = $this->GetSpecificBadgeResponses($id, $context_code);
+        $result['form_responses'] = $this->GetFormResponses($id, $context_code);
         //Add in supplementary
         $this->addSupplementaryBadgeData($result);
         return $this->addComputedColumns($result, true);

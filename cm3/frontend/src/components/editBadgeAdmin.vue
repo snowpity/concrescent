@@ -213,6 +213,7 @@
     </v-tabs-items>
 
     <v-dialog v-model="reviewDialog"
+              :fullscreen="$vuetify.breakpoint.xsOnly"
               scrollable>
         <template v-slot:activator="{ on, attrs }">
 
@@ -358,8 +359,8 @@ export default {
                     nextStatus: [
                         'Cancelled',
                         'Rejected',
-                        'PendingAcceptance',
                         'Waitlisted',
+                        'PendingAcceptance',
                     ]
                 },
                 'Cancelled': {
@@ -408,8 +409,8 @@ export default {
                     actionText: 'Begin Onboarding',
                     nextStatus: [
                         'Rejected',
-                        'Active',
                         'Terminated',
+                        'Active',
                     ]
                 },
                 'Active': {
