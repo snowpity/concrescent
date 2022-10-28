@@ -963,7 +963,7 @@ final class badgeinfo
                     $result =  $this->s_badge_type->GetByID($badge_type_id, $this->badgeTypeColumns(true));
                     break;
                 default:
-                    $result =  $this->g_badge_type->GetByID($badge_type_id, $this->badgeTypeColumns(true));
+                    $result =  $this->g_badge_type->GetByID($badge_type_id, $this->badgeTypeColumns(true, true));
             }
         return $result;
     }
@@ -1175,16 +1175,26 @@ final class badgeinfo
         );
     }
 
-    public function badgeTypeColumns($include_defferred_pay = false)
+    public function badgeTypeColumns($include_defferred_pay = false, $include_group_app = false)
     {
         return new View(
-            array(
-                'active',
-                'name',
-                'description',
-                'price',
-                'payable_onsite',
-                $include_defferred_pay ? 'payment_deferred' : null
+            array_merge(
+                [
+                    'active',
+                    'name',
+                    'description',
+                    'price',
+                    'payable_onsite'
+                ],
+                !$include_defferred_pay ? [] : [ 'payment_deferred'],
+                !$include_group_app ? [] : [
+                    'max_applicant_count',
+                    'max_assignment_count',
+                    'base_applicant_count',
+                    'base_assignment_count',
+                    'price_per_applicant',
+                    'price_per_assignment'
+                ],
             ),
             array()
         );

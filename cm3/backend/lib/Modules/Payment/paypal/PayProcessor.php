@@ -113,6 +113,18 @@ class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
             ))
         );
     }
+    public function ResetItems(): bool
+    {
+        //Have we already taken their money?
+        if ($this->orderData['stage'] == 'COMPLETED') {
+            return false;
+        }
+        $this->orderData['prep']['items'] = [];
+
+        $this->orderData['prep']['total']=0.0;
+        $this->orderData['prep']['discount']=0.0;
+        return true;
+    }
     public function AddItem(string $name, float $amount, int $count = 1, ?string $description = null, ?string $sku = null, ?float $discount = null, ?string $discountReason = null)
     {
         $this->orderData['prep']['items'][] = array(

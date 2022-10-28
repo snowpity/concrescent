@@ -3,7 +3,7 @@
            :vertical="true">
     <v-stepper-step :editable="reachedStep >= 1"
                     :complete="reachedStep > 1"
-                    step="1">Badge Information <small>{{compiledBadge | badgeDisplayName}} &mdash; {{ badges[selectedBadge] ? badges[selectedBadge].name: "Nothing yet!" | subname }}</small></v-stepper-step>
+                    step="1">{{isGroupApp ? "Application" : "Badge"}} Information <small>{{compiledBadge | badgeDisplayName}} &mdash; {{ badges[selectedBadge_ix] ? badges[selectedBadge_ix].name: "Nothing yet!" | subname }}</small></v-stepper-step>
     <v-stepper-content step="1">
 
         <v-select :items="badgeContexts"
@@ -14,7 +14,7 @@
                   no-data-text="Loading..."
                   :readonly="forbidContextChange">
             <template v-slot:prepend>
-                <h3 class="flex-sm-grow-1 flex-sm-shrink-0 mr-4">Badge Type:</h3>
+                <h3 class="flex-sm-grow-1 flex-sm-shrink-0 mr-4">{{isGroupApp ? 'Application' : 'Badge'}} Type:</h3>
             </template>
         </v-select>
         <badgeGenInfo v-model="badgeGenInfoData"
@@ -22,19 +22,19 @@
                       :application_name2="currentContext.application_name2"
                       @valid="setValidGenInfo"
                       :hide_dob="isGroupApp" />
-        <badgeTypeSelector v-model="selectedBadge"
+        <badgeTypeSelector v-model="selectedBadge_ix"
                            :badges="badges"
-                           no-data-text="No badges currently available!"
+                           :no-data-text="isGroupApp ? 'Applications currently closed!' : 'No Badges available!'"
                            :editBadgePriorBadgeId="editBadgePriorBadgeId" />
-        <v-sheet v-if="selectedBadge != null"
+        <v-sheet v-if="selectedBadge_ix != null"
                  color="grey lighten-4"
                  tile>
             <v-card>
                 <v-card-title class="title">Selected:
-                    {{ badges[selectedBadge] ? badges[selectedBadge].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
+                    {{ badges[selectedBadge_ix] ? badges[selectedBadge_ix].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
                 </v-card-title>
                 <v-card-text class="text--primary">
-                    <badgePerksRender :description="badges[selectedBadge] ? badges[selectedBadge].description : '' "
+                    <badgePerksRender :description="badges[selectedBadge_ix] ? badges[selectedBadge_ix].description : '' "
                                       :rewardlist="rewardlist"></badgePerksRender>
                 </v-card-text>
             </v-card>
@@ -233,7 +233,25 @@
 
         <v-btn text
                @click="step = 3">Back</v-btn>
+        <v-btn color="primary"
+               :disabled="!validAdditionalInfo"
+               v-if="hasSubBadges"
+               @click="step = 5">Continue</v-btn>
     </v-stepper-content>
+
+    <v-stepper-step :editable="reachedStep >= 5"
+                    :complete="step > 5"
+                    v-if="hasSubBadges"
+                    step="5">Applicant Badges</v-stepper-step>
+
+    <v-stepper-content step="5">
+
+        <subBadgeListEditor />
+        <v-btn text
+               @click="step = 4">Back</v-btn>
+    </v-stepper-content>
+
+
 
     <v-footer fixed
               cols="12">
@@ -264,6 +282,7 @@ import {
 
 import badgeGenInfo from '@/components/badgeGenInfo.vue';
 import formQuestions from '@/components/formQuestions.vue';
+import subBadgeListEditor from '@/components/subBadgeListEditor.vue';
 import badgeTypeSelector from '@/components/badgeTypeSelector.vue';
 import badgePerksRender from '@/components/badgePerksRender.vue';
 import profileForm from '@/components/profileForm.vue';
@@ -286,7 +305,7 @@ export default {
                 name_on_badge: 'Real Name Only',
                 date_of_birth: "",
             },
-            selectedBadge: null,
+            selectedBadge_ix: null,
             context_code: 'A',
             badge_type_id: -1,
             menuBDay: false,
@@ -346,8 +365,8 @@ export default {
             addonsAvailable: 'contextAddons',
         }),
         rewardlist() {
-            // return this.$options.filters.split_carriagereturn(this.badges[this.selectedBadge].rewards);
-            return this.badges[this.selectedBadge] ? this.badges[this.selectedBadge].rewards : '';
+            // return this.$options.filters.split_carriagereturn(this.selectedBadge.rewards);
+            return this.selectedBadge ? this.selectedBadge.rewards : '';
         },
         badges() {
             // Crude clone
@@ -381,6 +400,9 @@ export default {
 
             badges.sort((a, b) => a.order - b.order);
             return badges;
+        },
+        selectedBadge() {
+            return this.badges[this.selectedBadge_ix];
         },
         compiledBadge() {
             // Special because of how the select dropdown works
@@ -425,14 +447,14 @@ export default {
             }
 
             const oldBadge = this.badges.find((badge) => badge.id == this.editBadgePriorBadgeId);
-            const selectedBadge = this.badges[this.selectedBadge];
+
             return typeof oldBadge !== 'undefined' &&
-                typeof selectedBadge !== 'undefined' &&
-                parseFloat(oldBadge.originalprice) > parseFloat(selectedBadge.originalprice);
+                typeof selectedBadge_ix !== 'undefined' &&
+                parseFloat(oldBadge.originalprice) > parseFloat(this.selectedBadge.originalprice);
         },
         badgeQuestions() {
             // Todo: Filter by badge context
-            const badgeId = typeof this.badges[this.selectedBadge] === 'undefined' ? '' : this.badges[this.selectedBadge].id.toString();
+            const badgeId = typeof this.selectedBadge === 'undefined' ? '' : this.selectedBadge.id.toString();
             if (!(badgeId in this.questions)) return {};
             // Filter out the ones that don't apply to this badge
             const result = this.questions[badgeId];
@@ -443,7 +465,7 @@ export default {
         },
         badgeAddons() {
             // Todo: Filter by badge context
-            const badgeId = typeof this.badges[this.selectedBadge] === 'undefined' ? '' : this.badges[this.selectedBadge].id.toString();
+            const badgeId = typeof this.selectedBadge === 'undefined' ? '' : this.selectedBadge.id.toString();
             // Do we have questions at all for this badge?
             if (!(badgeId in this.addonsAvailable)) return {};
             // Filter out the ones that don't apply to this badge
@@ -482,6 +504,12 @@ export default {
             if (this.currentContext == undefined) return true;
             return this.currentContext.id > 0;
         },
+        hasSubBadges() {
+            if (this.selectedBadge != undefined) {
+                return this.selectedBadge.max_applicant_count > 0
+            }
+            return false;
+        },
         forbidContextChange() {
             return this.editBadgePriorBadgeId > -1;
         }
@@ -494,7 +522,7 @@ export default {
         'badgeGenInfoData.date_of_birth': function() {
             this.checkBadge();
         },
-        selectedBadge(val) {
+        selectedBadge_ix(val) {
             this.badge_type_id = typeof this.badges[val] === 'undefined' ? this.badge_type_id : this.badges[val].id;
         },
         compiledBadge() {
@@ -584,8 +612,8 @@ export default {
                 console.log('refreshed')
                 cartItem = this.$store.getters['cart/getCurrentlyEditingItem'];
 
-                // Should only be needed if we didn't have a selectedBadge?
-                // this.selectedBadge = this.badges.findIndex(badge => badge.id == cartItem.badge_type_id);
+                // Should only be needed if we didn't have a selectedBadge_ix?
+                // this.selectedBadge_ix = this.badges.findIndex(badge => badge.id == cartItem.badge_type_id);
             } else {
                 console.log('Something happen?', this.cartIx)
             }
@@ -636,7 +664,7 @@ export default {
                 setTimeout(() => {
                     const newIndex = _this.badges.findIndex((badge) => badge.id == badge_type_id);
                     if (newIndex > -1) {
-                        _this.selectedBadge = newIndex;
+                        _this.selectedBadge_ix = newIndex;
                     }
                     //Also select any selected addons
                     _this.addonsSelected = addons.map(addon => addon['addon_id']);
@@ -660,7 +688,7 @@ export default {
             const cartItem = this.compiledBadge;
             cartItem.reachedStep = this.reachedStep;
             cartItem.step = parseInt(this.step);
-            cartItem.selectedBadge = this.selectedBadge;
+            cartItem.selectedBadge_ix = this.selectedBadge_ix;
             this.$store.commit('cart/setCurrentlyEditingItem', cartItem);
         },
         checkBadge() {
@@ -669,7 +697,7 @@ export default {
                 const bid = this.badge_type_id;
                 let badge = this.badges.findIndex((badge) => badge.id == bid);
                 if (badge == -1) badge = 0;
-                this.selectedBadge = badge;
+                this.selectedBadge_ix = badge;
             }
 
             // Ensure only applicable badge addons are selected!
@@ -702,6 +730,7 @@ export default {
         badgeGenInfo,
         badgeTypeSelector,
         formQuestions,
+        subBadgeListEditor,
         badgePerksRender,
         profileForm,
     },

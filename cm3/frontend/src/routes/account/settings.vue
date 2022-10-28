@@ -1,7 +1,8 @@
 <template>
 <v-container>
     <v-card>
-        <editAdminUser v-model="userData" />
+        <editAdminUser v-model="userData"
+                       readonly_perms />
     </v-card>
 
     <v-snackbar v-model="saved"

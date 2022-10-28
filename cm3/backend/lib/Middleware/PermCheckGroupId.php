@@ -10,6 +10,7 @@ use CM3_Lib\Responder\Responder;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Slim\Exception\HttpUnauthorizedException;
+use Slim\Exception\HttpInternalServerErrorException;
 
 class PermCheckGroupId
 {
@@ -64,7 +65,7 @@ class PermCheckGroupId
                     }
                 }
             } else {
-                throw new HttpInternalServerErrorException("PermCheckGroupId called but no argument <$this->AttributeName> to check against?");
+                throw new HttpInternalServerErrorException($request, "PermCheckGroupId called but no argument <$this->AttributeName> to check against?");
             }
         }
         foreach ($this->AllowedPerms as $value) {

@@ -447,6 +447,8 @@ final class PaymentBuilder
         $banlisted = false;
         $errors = array();
         $this->refreshCartMeta();
+        //Reset the staged items
+        $this->stagedItems = [];
 
         //TODO: craete the checked versions and use them instead of blind faith
 
@@ -459,6 +461,7 @@ final class PaymentBuilder
 
             $bt_base = $this->badgeinfo->getBadgetType($cartitem['context_code'], $cartitem['badge_type_id']);
             $saveFormResponses = true;
+            $badgeFreebies = 0;
             //If it's not an application, wire up the processor normally
             if ($cartitem['context_code'] == 'A' || $cartitem['context_code'] == 'S') {
                 $badgeItems = [&$cartitem];
@@ -472,6 +475,34 @@ final class PaymentBuilder
                 //Save the form responses
                 if (isset($cartitem['form_responses'])) {
                     $this->badgeinfo->SetFormResponses($cartitem['id'], $cartitem['context_code'], $cartitem['form_responses']);
+                }
+
+                //Base application price
+                if (!isset($cartitem['existing']) || 0 < $cartitem['payment_promo_price']) {
+                    $this->stagedItems[] = array(
+                    $bt_base['name'],
+                    $bt_base['price'],
+                    1,
+                    'Application fee for ' . $bt_base['name'],
+                    $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':S' . $cartitem['badge_type_id'],
+                    max(0, $bt_base['price'] - ($cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price'])),
+                    null
+                );
+                }
+
+                for ($assignSpace=0; $assignSpace < ($cartitem['assignment_count'] ?? 0); $assignSpace++) {
+                    //Assignment space price
+                    if ($cartitem['assignment_count']??0 > 0 && (!isset($cartitem['existing']) || 0 < $cartitem['payment_promo_price'])) {
+                        $this->stagedItems[] = array(
+                        $bt_base['name'] . ' Assignment fee',
+                        $bt_base['base_assignment_count']> $assignSpace ? 0 : $bt_base['price_per_assignment'],
+                        1,
+                        'Assignment fee for ' . $bt_base['name'],
+                        $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':T' . $cartitem['badge_type_id'],
+                        0, //Assignments can never be on promotion
+                        null
+                    );
+                    }
                 }
 
                 //Generate badgetype data from base
@@ -498,7 +529,7 @@ final class PaymentBuilder
                 //Only add this as a line item if we're a new badge or upgrading (hence needing payment)
                 if (!isset($item['existing']) || 0 < $item['payment_promo_price']) {
                     $this->stagedItems[] = array(
-                    $bt['name'],
+                    $bt['name'] . ' Badge',
                     $bt['price'],
                     1,
                     $bt['description'],
@@ -507,9 +538,9 @@ final class PaymentBuilder
                     $item['payment_promo_code'] ?? null
                 );
                 }
-                //Prep Sanity check the cart's amount...
-                $this->cart_payment_txn_amt += max(0, $item['payment_promo_price'] ?? $item['payment_badge_price']);
             }
+            //Prep Sanity check the cart's amount...
+            $this->cart_payment_txn_amt += max(0, $cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price']);
 
             //Check for addons
             if (isset($cartitem['addons'])) {
@@ -549,6 +580,10 @@ final class PaymentBuilder
         }
 
         $this->getPayProcessor();
+        // make sure the order is reset
+        if (!$this->pp->ResetItems()) {
+            throw new \Exception('Could not prep payment because the order on this transation is already completed?');
+        }
 
         $this->pp->SetReturnURLs(
             $this->FrontendUrlTranslator->GetPaymentReturn($this->cart_uuid),

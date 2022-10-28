@@ -23,6 +23,8 @@ interface PayProcessorInterface
     public function SetReturnURLs(string $payComplete, string $payCancel);
     //Details about the current order state
     public function GetDetails();
+    //Clear the items list and order totals
+    public function ResetItems(): bool;
     //Add an item to the order
     public function AddItem(string $name, float $amount, int $count = 1, ?string $description = null, ?string $sku = null, ?float $discount = null, ?string $discountReason = null);
     //Compile the order and make sure it's ready to be processed

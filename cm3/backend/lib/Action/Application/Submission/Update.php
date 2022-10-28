@@ -51,12 +51,12 @@ final class Update
         $data = $this->badgeinfo->UpdateSpecificGroupApplicationUnchecked($params['id'], $params['context_code'], $data);
 
         //TODO: Use the notification framework for this...
-        $badge = $this->badgeinfo->getASpecificGroupApplication($data['id'] ?? 0, $data['context_code'], true);
+        $badge = $this->badgeinfo->getASpecificGroupApplication($data['id'] ?? 0, $params['context_code'], true);
         $to = $this->CurrentUserInfo->GetContactEmail($badge['contact_id']);
         $template = $params['context_code'] . '-application-' .$badge['application_status'];
         try {
             //Attempt to send mail
-            $data['sentUpdate'] =  $this->Mail->SendTemplate($to, $template, $badge, $badge['notify_email']);
+            $data['sentUpdate'] =  $this->Mail->SendTemplate($to, $template, $badge, null);
         } catch (\Exception $e) {
             //Oops, couldn't send. Oh well?
             $data['sentUpdate'] = false;

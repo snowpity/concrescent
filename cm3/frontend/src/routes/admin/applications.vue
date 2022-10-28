@@ -15,6 +15,91 @@
                              }"
                          :AddHeaders="listAddHeaders"
                          :RemoveHeaders="listRemoveHeaders"
+                         :isEditingItem="sEdit"
+                         :actions="listActions"
+                         @edit="editSubmission" />
+
+        <v-dialog v-model="sEdit"
+                  fullscreen
+                  scrollable
+                  hide-overlay>
+            <v-card>
+                <v-card-title class="pa-0">
+                    <v-toolbar dark
+                               flat
+                               color="primary">
+                        <v-btn icon
+                               dark
+                               @click="sEdit = false">
+                            <v-icon>mdi-close</v-icon>
+                        </v-btn>
+                        <v-toolbar-title>Edit Submission</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-toolbar-items>
+                            <v-menu offset-y
+                                    open-on-hover>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn :color="sModified ? 'green' : 'primary'"
+                                           dark
+                                           v-bind="attrs"
+                                           v-on="on">
+                                        <v-icon>mdi-content-save</v-icon>
+                                    </v-btn>
+                                </template>
+                                <v-list>
+                                    <v-list-item @click="saveSubmission(true)">
+                                        <v-list-item-title>
+                                            Save and send status email
+                                        </v-list-item-title>
+                                    </v-list-item>
+                                    <v-list-item @click="saveSubmission(false)">
+                                        <v-list-item-title>
+                                            Save only
+                                        </v-list-item-title>
+                                    </v-list-item>
+                                </v-list>
+                            </v-menu>
+                        </v-toolbar-items>
+                    </v-toolbar>
+                </v-card-title>
+                <v-card-text class="pa-0">
+                    <editBadgeAdmin v-model="sSelected"
+                                    @save="saveSubmission" />
+                </v-card-text>
+            </v-card>
+        </v-dialog>
+
+        <v-dialog v-model="sSaved">
+
+            <v-card>
+                <v-card-title class="headline">Saved</v-card-title>
+                <v-card-text>
+                    Successfully saved.
+
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary"
+                           @click="sSaved = false">Ok</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+    </v-tab-item>
+
+    <v-tab-item key="1">
+        <badgeSearchList v-if="context_id>0"
+                         :apiPath="'Application/' + context_code +'/Submission'"
+                         :context_code="context_code"
+                         :headerFirst="{
+                       text: currentContext.application_name1,
+                       value: 'real_name',
+                   }"
+                         :headerSecond="{
+                       text: currentContext.application_name2,
+                       value: 'fandom_name',
+                   }"
+                         :AddHeaders="listAddHeaders"
+                         :RemoveHeaders="listRemoveHeaders"
                          :isEditingItem="bEdit"
                          :actions="listActions"
                          @edit="editBadge" />
@@ -85,7 +170,7 @@
             </v-card>
         </v-dialog>
     </v-tab-item>
-    <v-tab-item key="1">
+    <v-tab-item key="2">
         <orderableList :apiPath="'Application/' + context_code +'/BadgeType'"
                        :AddHeaders="btAddHeaders"
                        :actions="btActions"
@@ -113,7 +198,7 @@
             </v-card>
         </v-dialog>
     </v-tab-item>
-    <v-tab-item key="2">
+    <v-tab-item key="3">
         <formQuestionEditList :context_code="context_code" />
     </v-tab-item>
 
@@ -171,6 +256,11 @@ export default {
             'time_printed'
         ],
         listAddHeaders: [],
+        sSelected: {},
+        sEdit: false,
+        sModified: false,
+        sSaved: false,
+        sSavedDetails: {},
         bSelected: {},
         bEdit: false,
         bModified: false,
@@ -262,6 +352,40 @@ export default {
     methods: {
         checkPermission: () => {
             console.log('Hey! Listen!');
+        },
+        editSubmission: function(selectedSubmission) {
+            console.log('edit submission from grid', selectedSubmission);
+            let that = this;
+            that.loading = true;
+            admin.genericGet(this.authToken, 'Application/' + this.context_code + '/Submission/' + selectedSubmission.id, null, function(editSubmission) {
+                that.sSelected = editSubmission;
+                that.loading = false;
+                that.sEdit = true;
+                that.$nextTick(() => {
+                    that.sModified = false;
+                })
+
+            }, function() {
+                that.loading = false;
+            })
+        },
+        saveSubmission: function(sendStatus) {
+            console.log('saving submission', this.sSelected);
+            let that = this;
+            that.loading = true;
+            admin.genericPost(this.authToken, 'Application/' + this.context_code + '/Submission/' + this.sSelected.id + "?sendupdate=" + (sendStatus ? "true" : "false"), this.sSelected, function(SavedDetails) {
+                that.sSelected = {};
+                that.loading = false;
+                that.sEdit = false;
+                that.sSaved = true;
+                that.sSavedDetails = SavedDetails;
+                that.$nextTick(() => {
+                    that.sModified = false;
+                })
+
+            }, function() {
+                that.loading = false;
+            })
         },
         editBadge: function(selectedBadge) {
             console.log('edit badge selected from grid', selectedBadge);

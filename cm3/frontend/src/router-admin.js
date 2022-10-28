@@ -39,6 +39,7 @@ const result = [{
         meta: {
             title: 'Group Applications',
             subTabs: [
+                'Submissions',
                 'Badges',
                 'Types',
                 'Questions',

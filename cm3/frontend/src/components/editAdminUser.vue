@@ -56,12 +56,31 @@
                       :items="perms.EventPerms"
                       chips
                       label="Event Permissions"
+                      :readonly="readonly_perms"
                       multiple></v-select>
         </v-col>
         <v-col>
-            <v-text-field readonly
-                          label="Group permissions"
-                          v-model="model.date_modified" />
+            <v-list>
+                <v-list-item v-for="context in groupPermList"
+                             :key="context.id">
+                    <v-list-item-avatar>
+                        <v-icon>mdi-{{context.menu_icon}}</v-icon>
+                    </v-list-item-avatar>
+
+                    <v-list-item-content>
+                        <v-list-item-title>
+
+                            <v-select v-model="model.permissions.GroupPerms[context.id]"
+                                      placeholder="No permissions"
+                                      :items="perms.GroupPerms"
+                                      chips
+                                      multiple
+                                      :readonly="readonly_perms"
+                                      :label="context.name" />
+                        </v-list-item-title>
+                    </v-list-item-content>
+                </v-list-item>
+            </v-list>
         </v-col>
     </v-row>
 
@@ -85,7 +104,14 @@ function undefinedIfEmptyOrZero(inValue) {
 }
 export default {
     components: {},
-    props: ['value'],
+    props: {
+        'value': {
+            type: Object
+        },
+        'readonly_perms': {
+            type: Boolean
+        }
+    },
     data() {
         return {
             showPassword: false,
@@ -118,6 +144,9 @@ export default {
             'isLoggedIn': 'getIsLoggedIn',
             'authToken': 'getAuthToken',
         }),
+        ...mapGetters('products', {
+            'badgeContexts': 'badgeContexts',
+        }),
         result() {
             return {
                 contact_id: this.model.contact_id || undefined,
@@ -129,6 +158,10 @@ export default {
                 permissions: this.model.permissions,
             }
         },
+        groupPermList() {
+            return this.badgeContexts
+                .filter((context) => context.id > 0);
+        }
     },
     methods: {
 

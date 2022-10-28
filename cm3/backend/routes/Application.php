@@ -3,7 +3,7 @@
 // Define app routes
 use CM3_Lib\util\PermEvent;
 use CM3_Lib\util\PermGroup;
-use CM3_Lib\Middleware\PermCheckGroupId;
+use CM3_Lib\Middleware\PermCheckGroupByContextCode;
 
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
@@ -12,7 +12,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 return function (App $app, $container) {
-    $groupPerm = $container->get(PermCheckGroupId::class);
+    $groupPerm = $container->get(PermCheckGroupByContextCode::class)->withAttributeName('context_code');
 
     $r = array(
         '/BadgeType' => function (RouteCollectorProxy $app) use ($groupPerm) {
@@ -134,7 +134,7 @@ return function (App $app, $container) {
                 $app->group($route, $definition);
             }
         }
-    )->add($groupPerm->withAttributeName('group_id'));
+    )->add($groupPerm);
 
     $app->get('/Application', \CM3_Lib\Action\Application\GroupList::class);
 };

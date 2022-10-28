@@ -246,11 +246,15 @@
                 <v-checkbox v-model="sendUpdate"
                             label="Send update" />
                 <v-spacer />
-                <v-btn v-for="item in appStatusNextList"
-                       :key="item.value"
-                       :color="item.color"
-                       @click="submitReview(item.value)">
-                    {{item.actionText}}
+                <v-select v-model="newApplication_status"
+                          :items="appStatusNextList"
+                          :hint="appStatusNext.Text"
+                          item-text="actionText"
+                          label="Action to take">
+                </v-select>
+                <v-btn :color="appStatusNext.color"
+                       @click="submitReview(newApplication_status)">
+                    Go
                 </v-btn>
             </v-card-actions>
         </v-card>
@@ -306,6 +310,7 @@ export default {
 
                 assigned_positions: undefined,
             },
+            newApplication_status: null,
             addonsSelected: [],
             selectedbadge: null,
             modelString: '',
@@ -585,10 +590,33 @@ export default {
             return this.applicationStatusMap[this.model.application_status] || {};
         },
         appStatusNextList() {
-            if (this.applicationStatusData != undefined && this.applicationStatusData.nextStatus != undefined)
-                return this.applicationStatusData.nextStatus
+            if (this.applicationStatusData != undefined && this.applicationStatusData.nextStatus != undefined) {
+
+                var result = this.applicationStatusData.nextStatus
                     .map((statusKey) => this.applicationStatusMap[statusKey]);
+
+                result.unshift({
+                    value: null,
+                    color: 'primary',
+                    text: 'Just save',
+                    actionText: 'Keep the same status',
+                    nextStatus: []
+                });
+                return result;
+            }
             return [];
+        },
+        appStatusNext() {
+            if (this.newApplication_status && this.applicationStatusMap[this.newApplication_status]) {
+                return this.applicationStatusMap[this.newApplication_status];
+            }
+            return {
+                value: null,
+                color: 'primary',
+                text: 'Just save',
+                actionText: 'Keep the same status',
+                nextStatus: []
+            }
         },
     },
     watch: {
@@ -723,7 +751,8 @@ export default {
             this.validGenInfo = isValid;
         },
         submitReview: function(newStatus) {
-            this.model.application_status = newStatus;
+            if (newStatus != null)
+                this.model.application_status = newStatus;
             console.log('submitting review', this.model.application_status);
             var that = this;
             this.$nextTick(function() {
