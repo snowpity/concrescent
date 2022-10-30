@@ -31,7 +31,10 @@
             <v-tab-item key="1">
 
                 <badgeGenInfo v-model="model.badgeGenInfoData"
-                              @valid="setValidGenInfo" />
+                              :application_name1="currentContext.application_name1"
+                              :application_name2="currentContext.application_name2"
+                              @valid="setValidGenInfo"
+                              :hide_dob="isGroupApp" />
                 <badgeTypeSelector v-model="selectedbadge"
                                    :badges="badges"
                                    no-data-text="No badges currently available!"
@@ -49,6 +52,8 @@
                         </v-expansion-panel-content>
                     </v-expansion-panel>
                 </v-expansion-panels>
+
+                <subBadgeListEditor v-model="model.subbadges" />
 
                 <v-row>
                     <v-col cols="12"
@@ -272,6 +277,7 @@ import {
 import badgeGenInfo from '@/components/badgeGenInfo.vue';
 import formQuestions from '@/components/formQuestions.vue';
 import badgeTypeSelector from '@/components/badgeTypeSelector.vue';
+import subBadgeListEditor from '@/components/subBadgeListEditor.vue';
 import badgePerksRender from '@/components/badgePerksRender.vue';
 import profileForm from '@/components/profileForm.vue';
 import paymentItemView from '@/components/paymentItemView.vue';
@@ -518,6 +524,7 @@ export default {
                 notes: this.model.notes,
                 //supplementary data
                 assigned_positions: this.model.assigned_positions,
+                subbadges: this.model.subbadges,
 
             };
         },
@@ -617,6 +624,16 @@ export default {
                 actionText: 'Keep the same status',
                 nextStatus: []
             }
+        },
+        isGroupApp() {
+            if (this.currentContext == undefined) return true;
+            return this.currentContext.id > 0;
+        },
+        hasSubBadges() {
+            if (this.selectedBadge != undefined) {
+                return this.selectedBadge.max_applicant_count > 0
+            }
+            return false;
         },
     },
     watch: {
@@ -769,7 +786,8 @@ export default {
         badgePerksRender,
         profileForm,
         paymentItemView,
-        editBadgeApplicationStaffPosition
+        editBadgeApplicationStaffPosition,
+        subBadgeListEditor
     },
     created() {
         this.loadBadge(this.value);

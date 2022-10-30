@@ -685,7 +685,7 @@ final class PaymentBuilder
                 //TODO: Badge exists? Should we do something special?
                 // Maybe update it with whatever the cart said it should become?
                 //Certainly keep any approval status so when we complete it will remain
-                if (!$this->is_submitted_status($item['application_status'])) {
+                if (!$this->is_submitted_status($item['application_status'] ??'')) {
                     $item['application_status'] = $bi['application_status'];
                 }
                 $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);

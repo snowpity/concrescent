@@ -246,7 +246,7 @@
 
     <v-stepper-content step="5">
 
-        <subBadgeListEditor />
+        <subBadgeListEditor v-model="subbadges" />
         <v-btn text
                @click="step = 4">Back</v-btn>
     </v-stepper-content>
@@ -326,6 +326,7 @@ export default {
             validAdditionalInfo: false,
             form_responses: {},
             addonsSelected: [],
+            subbadges: [],
 
             RulesRequired: [
                 (v) => !!v || 'Required',
@@ -429,7 +430,7 @@ export default {
                         'addon_id': id
                     }
                 }),
-
+                subbadges: this.subbadges,
             };
         },
         badgeOk() {

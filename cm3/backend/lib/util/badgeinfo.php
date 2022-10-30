@@ -254,6 +254,8 @@ final class badgeinfo
         //Slide in the ID
         $data['id'] = $id;
         $result =  $this->g_badge_submission->Update($data);
+        //Also update supplementary data if provided
+        $this->updateSupplementaryBadgeData($data);
         return $result;
     }
 
@@ -1234,7 +1236,22 @@ final class badgeinfo
                 );
                 break;
             default:
-                //$result =  $this->g_badge->Create($data);
+                $result['subbadges'] = $this->g_badge->Search(array(
+                    'id',
+                    'display_id',
+                    'real_name',
+                    'fandom_name',
+                    'name_on_badge',
+                    'date_of_birth',
+                    'notify_email',
+                    'can_transfer',
+                    'ice_name',
+                    'ice_relationship',
+                    'ice_email_address',
+                    'ice_phone_number',
+                ), array(
+                    new SearchTerm('application_id', $result['id'])
+                ));
         }
         //If user has contact permissions, add that in
         if ($this->CurrentUserInfo->hasEventPerm(PermEvent::Contact_Full)) {
@@ -1266,26 +1283,8 @@ final class badgeinfo
             if (isset($result['assigned_positions'])) {
                 $setPositions = $result['assigned_positions'];
                 $currentPositions = $this->s_assignedposition->Search(
-                    new View(
-                        array(
-                            'position_id','onboard_completed','onboard_meta','date_created','date_modified',
-                            new SelectColumn('is_exec', JoinedTableAlias:'p'),
-                            new SelectColumn('name', Alias:'position_text', JoinedTableAlias:'p'),
-                            new SelectColumn('department_id', JoinedTableAlias:'p'),
-                            new SelectColumn('name', Alias:'department_text', JoinedTableAlias:'d'),
-                        ),
-                        array(
-                            new Join(
-                                $this->s_position,
-                                array('id'=>'position_id'),
-                                alias:'p'
-                            ),
-                            new Join(
-                                $this->s_department,
-                                array('id'=>new SearchTerm('department_id', null, JoinedTableAlias:'p')),
-                                alias:'d'
-                            ),
-                        )
+                    array(
+                        'position_id'
                     ),
                     array(
                         new SearchTerm('staff_id', $result['id'])
@@ -1310,7 +1309,38 @@ final class badgeinfo
 
                 break;
             default:
-                //$result =  $this->g_badge->Create($data);
+
+            if (isset($result['subbadges'])) {
+                $setSubbadges = $result['subbadges'];
+                $currentSubbadges = $this->g_badge->Search(
+                    array(
+                            'id'
+                    ),
+                    array(
+                        new SearchTerm('application_id', $result['id'])
+                    )
+                );
+                //Process adds
+                foreach (array_udiff($setSubbadges, $currentSubbadges, array($this,'compareID')) as $newSubbadge) {
+                    $newSubbadge['application_id'] = $result['id'];
+                    $newSubbadge['contact_id'] = $result['contact_id'];
+                    $newSubbadge['date_of_birth'] = $result['date_of_birth'] ?? '';
+
+                    $this->g_badge->Create($newSubbadge);
+                    //TODO: If completed payment and accepted add display ID
+                }
+                //Process removes
+                foreach (array_udiff($currentSubbadges, $setSubbadges, array($this,'compareID')) as $deletedSubbadge) {
+                    $deletedSubbadge['application_id'] = $result['id'];
+                    $this->g_badge->Delete($deletedSubbadge);
+                }
+                //Process modifications
+                foreach (array_uintersect($setSubbadges, $currentSubbadges, array($this,'compareID')) as $existingSubbadge) {
+                    $existingSubbadge['application_id'] = $result['id'];
+                    $this->g_badge->Update($existingSubbadge);
+                    //TODO: Check if this badge needs a display ID
+                }
+            }
         }
     }
 
