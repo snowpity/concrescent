@@ -459,17 +459,44 @@ final class PaymentBuilder
 
             $badge_items = [];
 
-            $bt_base = $this->badgeinfo->getBadgetType($cartitem['context_code'], $cartitem['badge_type_id']);
+            $bt = $this->badgeinfo->getBadgetType($cartitem['context_code'], $cartitem['badge_type_id']);
             $saveFormResponses = true;
             $badgeFreebies = 0;
             //If it's not an application, wire up the processor normally
             if ($cartitem['context_code'] == 'A' || $cartitem['context_code'] == 'S') {
                 $badgeItems = [&$cartitem];
-                $bt = $bt_base;
+
+
+                //Check for bans
+                if ($this->banlist->is_banlisted($cartitem)) {
+                    $banlisted = true;
+                    $canpay = false;
+                    //TODO: Bubble a notify event
+                    $errors[] = 'Banned:'.$key;
+                }
+                $this->createUpdateBadgeEntry($cartitem);
+
+                //Save the form responses
+                if (isset($cartitem['form_responses'])) {
+                    $this->badgeinfo->SetFormResponses($cartitem['id'], $cartitem['context_code'], $cartitem['form_responses']);
+                }
+
+                //Only add this as a line item if we're a new badge or upgrading (hence needing payment)
+                if (!isset($cartitem['existing']) || 0 < $cartitem['payment_promo_price']) {
+                    $this->stagedItems[] = array(
+                    $bt['name'] . ' Badge',
+                    $bt['price'],
+                    1,
+                    $bt['description'],
+                    $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':' . $cartitem['badge_type_id'],
+                    max(0, $bt['price'] - ($cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price'])),
+                    $cartitem['payment_promo_code'] ?? null
+                );
+                }
             } else {
                 //Grou applications are special
                 //Create/update the application submission
-                $this->createUpdateApplicationSubmission($cartitem, $bt_base);
+                $this->createUpdateApplicationSubmission($cartitem, $bt);
 
                 $saveFormResponses = false;
                 //Save the form responses
@@ -480,12 +507,12 @@ final class PaymentBuilder
                 //Base application price
                 if (!isset($cartitem['existing']) || 0 < $cartitem['payment_promo_price']) {
                     $this->stagedItems[] = array(
-                    $bt_base['name'],
-                    $bt_base['price'],
+                    $bt['name'],
+                    $bt['price'],
                     1,
-                    'Application fee for ' . $bt_base['name'],
+                    'Application fee for ' . $bt['name'],
                     $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':S' . $cartitem['badge_type_id'],
-                    max(0, $bt_base['price'] - ($cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price'])),
+                    max(0, $bt['price'] - ($cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price'])),
                     null
                 );
                 }
@@ -494,10 +521,10 @@ final class PaymentBuilder
                     //Assignment space price
                     if ($cartitem['assignment_count']??0 > 0 && (!isset($cartitem['existing']) || 0 < $cartitem['payment_promo_price'])) {
                         $this->stagedItems[] = array(
-                        $bt_base['name'] . ' Assignment fee',
-                        $bt_base['base_assignment_count']> $assignSpace ? 0 : $bt_base['price_per_assignment'],
+                        $bt['name'] . ' Assignment fee',
+                        $bt['base_assignment_count']> $assignSpace ? 0 : $bt['price_per_assignment'],
                         1,
-                        'Assignment fee for ' . $bt_base['name'],
+                        'Assignment fee for ' . $bt['name'],
                         $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':T' . $cartitem['badge_type_id'],
                         0, //Assignments can never be on promotion
                         null
@@ -505,40 +532,25 @@ final class PaymentBuilder
                     }
                 }
 
-                //Generate badgetype data from base
-                $bt = $bt_base;
-                $badgeItems = [];
-            }
-
-            foreach ($badgeItems as $key => &$item) {
-
-                //Check for bans
-                if ($this->banlist->is_banlisted($item)) {
-                    $banlisted = true;
-                    $canpay = false;
-                    //TODO: Bubble a notify event
-                    $errors[] = 'Banned:'.$key;
-                }
-                $this->createUpdateBadgeEntry($item);
-
-                //Save the form responses
-                if ($saveFormResponses && isset($item['form_responses'])) {
-                    $this->badgeinfo->SetFormResponses($item['id'], $item['context_code'], $item['form_responses']);
-                }
-
-                //Only add this as a line item if we're a new badge or upgrading (hence needing payment)
-                if (!isset($item['existing']) || 0 < $item['payment_promo_price']) {
+                //Sort the subbadges to have the Created ones last
+                usort($cartitem['subbadges'], function ($a, $b) {
+                    return ($a['created'] ?? 0)- ($b['created'] ?? 0);
+                });
+                $sbadgeCount = 0;
+                foreach ($cartitem['subbadges'] as $badge) {
                     $this->stagedItems[] = array(
-                    $bt['name'] . ' Badge',
-                    $bt['price'],
-                    1,
-                    $bt['description'],
-                    $this->CurrentUserInfo->GetEventId() . ':' . $item['context_code'] . ':' . $item['badge_type_id'],
-                    max(0, $bt['price'] - ($item['payment_promo_price'] ?? $item['payment_badge_price'])),
-                    $item['payment_promo_code'] ?? null
-                );
+                        $bt['name'] . ' Badge fee',
+                        ($bt['base_applicant_count']> $sbadgeCount || !($badge['created']?? false)) ? 0 : $bt['price_per_applicant'],
+                        1,
+                        'Badge fee for ' . $bt['name'],
+                        $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':B' . $cartitem['badge_type_id'],
+                        0, //(this type of) badge can never be on promotion
+                        null
+                    );
+                    $sbadgeCount++;
                 }
             }
+
             //Prep Sanity check the cart's amount...
             $this->cart_payment_txn_amt += max(0, $cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price']);
 

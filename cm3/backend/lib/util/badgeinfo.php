@@ -115,7 +115,7 @@ final class badgeinfo
 
     );
 
-    public function CreateSpecificBadgeUnchecked($data, $allowedColumns = null)
+    public function CreateSpecificBadgeUnchecked(&$data, $allowedColumns = null)
     {
         $result = false;
         //Filter in the allowed columns to update
@@ -142,7 +142,7 @@ final class badgeinfo
         return $result;
     }
 
-    public function CreateSpecificGroupApplicationUnchecked($data, $allowedColumns = null)
+    public function CreateSpecificGroupApplicationUnchecked(&$data, $allowedColumns = null)
     {
         $result = false;
         //Filter in the allowed columns to update
@@ -154,8 +154,12 @@ final class badgeinfo
         unset($data['uuid']);
 
         $result =  $this->g_badge_submission->Create($data);
-        //Also set supplementary data
-        $data['id'] = $result['id'];
+        if ($result!==false) {
+            //Also set supplementary data
+            $data['id'] = $result['id'];
+            //Also create supplementary data if provided
+            $this->updateSupplementaryBadgeData($data);
+        }
         return $result;
     }
 
@@ -215,7 +219,7 @@ final class badgeinfo
         return $this->addComputedColumns($result, true);
     }
 
-    public function UpdateSpecificBadgeUnchecked($id, $context_code, $data, $allowedColumns = null)
+    public function UpdateSpecificBadgeUnchecked($id, $context_code, &$data, $allowedColumns = null)
     {
         $result = false;
         //Filter in the allowed columns to update
@@ -241,7 +245,7 @@ final class badgeinfo
         return $result;
     }
 
-    public function UpdateSpecificGroupApplicationUnchecked($id, $context_code, $data, $allowedColumns = null)
+    public function UpdateSpecificGroupApplicationUnchecked($id, $context_code, &$data, $allowedColumns = null)
     {
         $result = false;
         //Filter in the allowed columns to update
@@ -1311,7 +1315,7 @@ final class badgeinfo
             default:
 
             if (isset($result['subbadges'])) {
-                $setSubbadges = $result['subbadges'];
+                $setSubbadges = &$result['subbadges'];
                 $currentSubbadges = $this->g_badge->Search(
                     array(
                             'id'
@@ -1321,13 +1325,21 @@ final class badgeinfo
                     )
                 );
                 //Process adds
-                foreach (array_udiff($setSubbadges, $currentSubbadges, array($this,'compareID')) as $newSubbadge) {
+                foreach (array_udiff($setSubbadges, $currentSubbadges, array($this,'compareID')) as &$newSubbadge) {
+                    $curIx = array_search($newSubbadge, $setSubbadges, true);
+
+                    unset($newSubbadge['id']);//Just in case
                     $newSubbadge['application_id'] = $result['id'];
                     $newSubbadge['contact_id'] = $result['contact_id'];
                     $newSubbadge['date_of_birth'] = $result['date_of_birth'] ?? '';
 
-                    $this->g_badge->Create($newSubbadge);
+                    $newSubbadge['id'] = $this->g_badge->Create($newSubbadge)['id'];
+                    //Tag this badge as new...?
+                    $newSubbadge['created'] = true;
+
                     //TODO: If completed payment and accepted add display ID
+                    //Save back to the subbadges
+                    $setSubbadges[$curIx] = $newSubbadge;
                 }
                 //Process removes
                 foreach (array_udiff($currentSubbadges, $setSubbadges, array($this,'compareID')) as $deletedSubbadge) {

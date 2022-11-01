@@ -127,7 +127,7 @@ export default {
             return {
                 real_name: this.model.real_name,
                 fandom_name: this.model.fandom_name,
-                name_on_badge: this.model.name_on_badge,
+                name_on_badge: (!!this.model.fandom_name) ? this.model.name_on_badge : 'Real Name Only',
                 date_of_birth: this.model.date_of_birth,
             }
         },
