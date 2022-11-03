@@ -45,10 +45,23 @@ class PermCheckGroupByContextCode
         $perms = $request->getAttribute('perms');
         $hasPerm = false;
 
+        $context_code = $routeArguments[$this->AttributeName];
+        //Fetch group ID from context code
+        $matchedGroups = $this->g_group->Search(['id'], [
+                $this->CurrentUserInfo->EventIdSearchTerm(),
+                new SearchTerm('context_code', $context_code),
+            ]);
+        //Does a group with this context code exist?
+        if (count($matchedGroups)<1) {
+            throw new HttpUnauthorizedException($request, 'Context Code not accessible with current permissions or does not exist');
+        }
+
+        $desiredGroupID = $matchedGroups[0]['id'] ?? 0;
+
         //Short circuit if we're global admin
         if ($perms->EventPerms->isGlobalAdmin()) {
             //Instant thumbs up
-            return  $handler->handle($request);
+            return  $handler->handle($request->withAttribute('group_id', $desiredGroupID));
         }
 
         //If we have an AttributeName, check it
@@ -58,18 +71,7 @@ class PermCheckGroupByContextCode
         if (!isset($routeArguments[$this->AttributeName])) {
             throw new HttpInternalServerErrorException($request, "PermCheckGroupByContextCode called but no argument <$this->AttributeName> to check against?");
         } else {
-            $context_code = $routeArguments[$this->AttributeName];
-            //Fetch group ID from context code
-            $matchedGroups = $this->g_group->Search(['id'], [
-                    $this->CurrentUserInfo->EventIdSearchTerm(),
-                    new SearchTerm('context_code', $context_code),
-                ]);
-            //Does a group with this context code exist?
-            if (count($matchedGroups)<1) {
-                throw new HttpUnauthorizedException($request, 'Context Code not accessible with current permissions or does not exist');
-            }
 
-            $desiredGroupID = $matchedGroups[0]['id'] ?? 0;
             //Do they have permissions for the specified group at all?
             if (isset($perms->GroupPerms[$desiredGroupID])) {
                 //Are we checking for more than the group id at this time?
@@ -92,7 +94,7 @@ class PermCheckGroupByContextCode
         if (!$hasPerm) {
             throw new HttpUnauthorizedException($request, 'Context Code ' . $context_code . ' not accessible with current permissions');
         }
-        return  $handler->handle($request);
+        return  $handler->handle($request->withAttribute('group_id', $desiredGroupID));
     }
 
     public function withAttributeName(string $inAttributeName)

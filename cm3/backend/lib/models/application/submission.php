@@ -3,6 +3,7 @@
 namespace CM3_Lib\models\application;
 
 use CM3_Lib\database\Column as cm_Column;
+use CM3_Lib\database\ColumnIndex;
 
 class submission extends \CM3_Lib\database\Table
 {
@@ -74,7 +75,10 @@ class submission extends \CM3_Lib\database\Table
             //Generated columns
 
         );
-        $this->IndexDefs = array();
+        $this->IndexDefs = array('ft_name' => new ColumnIndex(array(
+            'real_name' =>false,
+            'fandom_name'=>false
+        ), 'fulltext'));
         $this->PrimaryKeys = array('id'=>false);
         $this->DefaultSearchColumns = array('id','application_name1','application_name2','display_id','application_status');
     }

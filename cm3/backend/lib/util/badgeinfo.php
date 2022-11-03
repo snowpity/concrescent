@@ -614,7 +614,7 @@ final class badgeinfo
         $whereParts =
         empty($searchText) ? null :
         array(
-            new SearchTerm('real_name', $searchText, Raw: 'MATCH(`real_name`, `fandom_name`, `notify_email`, `ice_name`, `ice_email_address`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
+            new SearchTerm('real_name', $searchText, Raw: 'MATCH(`real_name`, `fandom_name`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
         );
         $wherePartsSimpler = array(
             new SearchTerm(
@@ -623,9 +623,6 @@ final class badgeinfo
                 subSearch: array(
                     new SearchTerm('real_name', '%' . $searchText . '%', 'LIKE', 'OR'),
                     new SearchTerm('fandom_name', '%' . $searchText . '%', 'LIKE', 'OR'),
-                    new SearchTerm('notify_email', '%' . $searchText . '%', 'LIKE', 'OR'),
-                    new SearchTerm('ice_name', '%' . $searchText . '%', 'LIKE', 'OR'),
-                    new SearchTerm('ice_email_address', '%' . $searchText . '%', 'LIKE', 'OR'),
                 )
             ));
         $result = $this->SearchGroupApplications($context, $whereParts, $order, $limit, $offset, $totalRows);

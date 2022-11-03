@@ -9,31 +9,39 @@ use CM3_Lib\database\Join;
 use CM3_Lib\database\SearchTerm;
 use CM3_Lib\database\SelectColumn;
 
-use CM3_Lib\models\attendee\badgetype;
-use CM3_Lib\models\attendee\badge;
-use CM3_Lib\models\attendee\promocode;
+use CM3_Lib\models\attendee\badgetype as a_badgetype;
+use CM3_Lib\models\attendee\badge as a_badge;
+use CM3_Lib\models\attendee\promocode as a_promocode;
+use CM3_Lib\models\application\badgetype as g_badgetype;
+use CM3_Lib\models\application\group as g_group;
+use CM3_Lib\models\application\submission as g_badge;
+use CM3_Lib\models\application\promocode as g_promocode;
 
 final class badgepromoapplicator
 {
     public function __construct(
-        private badgetype $badgetype,
-        private badge $badge,
-        private promocode $promocode,
+        private a_badgetype $a_badgetype,
+        private a_badge $a_badge,
+        private a_promocode $a_promocode,
+        private g_badgetype $g_badgetype,
+        private g_group $g_group,
+        private g_badge $g_badge,
+        private g_promocode $g_promocode,
         private CurrentUserInfo $CurrentUserInfo
     ) {
     }
 
-    private array $loadedPromoCodes = array();
-    private array $applicableIDs = array();
-    public function LoadCode(string $code): bool
+    private array $loadedPromoCodes = array(false =>array(), true=>array());
+    private array $applicableIDs = array(false =>array(), true=>array());
+    public function LoadCode(string $code, bool $group = false): bool
     {
         $code = strtoupper($code);
         //Do we already have it loaded?
-        if (isset($this->loadedPromoCode[$code])) {
-            return $this->loadedPromoCode[$code]!== false;
+        if (isset($this->loadedPromoCode[$group][$code])) {
+            return $this->loadedPromoCode[$group][$code]!== false;
         }
 
-        $foundCode = $this->promocode->Search(
+        $foundCode = ($group ? $this->g_promocode : $this->a_promocode)->Search(
             new View(array(
             'valid_badge_type_ids',
             'is_percentage',
@@ -52,21 +60,13 @@ final class badgepromoapplicator
         //Did we find that code?
         if ($foundCode !== false && count($foundCode) >0) {
             $foundCode = $foundCode[0];
-            $this->applicableIDs[$code] =array_diff(explode(',', $foundCode['valid_badge_type_ids']), array(""));
+            $this->applicableIDs[$group][$code] =array_diff(explode(',', $foundCode['valid_badge_type_ids']), array(""));
             //Count up how many times this code has been used
             if (!empty($foundCode['quantity'])) {
-                $usedCounts = $this->badge->Search(
+                $usedCounts = ($group ? $this->g_badge : $this->a_badge)->Search(
                     new View(
                         array(new SelectColumn('id', false, 'COUNT(?)', 'UsedQuantity')),
-                        array(
-                            new Join(
-                                $this->badgetype,
-                                array('id'=> 'badge_type_id',
-                                    new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
-                                ),
-                                alias:'typ'
-                            )
-                        )
+                        $this->eventCheckJoin($group),
                     ),
                     array(
                         new SearchTerm('payment_promo_code', $code),
@@ -77,11 +77,11 @@ final class badgepromoapplicator
                     $foundCode['used'] = $usedCounts[0]['UsedQuantity'];
                 }
             }
-            $this->loadedPromoCode[$code] = $foundCode;
+            $this->loadedPromoCode[$group][$code] = $foundCode;
             return true;
         } else {
-            $this->loadedPromoCode[$code] = false;
-            $this->applicableIDs[$code] = array();
+            $this->loadedPromoCode[$group][$code] = false;
+            $this->applicableIDs[$group][$code] = array();
             return false;
         }
     }
@@ -91,15 +91,18 @@ final class badgepromoapplicator
         if (!empty($code)) {
             $code = strtoupper($code);
             //First, does this badge match our type?
-            if ($item['context_code'] != 'A') {
+            $group = $item['context_code'] != 'A';
+            if ($group && $item['context_code'] == 'S') {
+                //Staff badges can't be discounted
                 return false;
             }
+
             if (empty($code)) {
                 $this->resetCode($item);
                 return false;
             }
             //Did we load this code?
-            if (!$this->LoadCode($code)) {
+            if (!$this->LoadCode($code, $group)) {
                 if (isset($item['payment_promo_code']) && $code != $item['payment_promo_code']) {
                     //Re-apply the one they theoretically have already
                     $this->TryApplyCode($item, $item['payment_promo_code']);
@@ -111,8 +114,8 @@ final class badgepromoapplicator
 
             //Does this badge apply?
             if (
-                !in_array($item['badge_type_id'], $this->applicableIDs[$code])
-                && count($this->applicableIDs[$code])>0) {
+                !in_array($item['badge_type_id'], $this->applicableIDs[$group][$code])
+                && count($this->applicableIDs[$group][$code])>0) {
                 if (isset($item['payment_promo_code']) && $code != $item['payment_promo_code']) {
                     //Re-apply the one they theoretically have already
                     $this->TryApplyCode($item, $item['payment_promo_code']);
@@ -123,7 +126,7 @@ final class badgepromoapplicator
             }
 
             //Initial quote
-            $promo_code = $this->loadedPromoCode[$code];
+            $promo_code = $this->loadedPromoCode[$group][$code];
         } else {
             $promo_code = array(
                 'code'=>null,
@@ -188,5 +191,41 @@ final class badgepromoapplicator
         } else {
             unset($item['payment_promo_price']);
         }
+    }
+
+    private function eventCheckJoin($isGroup)
+    {
+        if ($isGroup) {
+            return [
+                new Join(
+                    $this->g_badgetype,
+                    [
+                        "id" => "badge_type_id",
+                    ],
+                    alias: "typ"
+                ),
+                      new Join(
+                          $this->g_group,
+                          array(
+                            'id' => new SearchTerm('group_id', null, JoinedTableAlias:'typ'),
+                            new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
+                          ),
+                          alias:'grp'
+                      )
+            ];
+        }
+        return [
+            new Join(
+                $group ? $this->g_badgetype : $this->a_badgetype,
+                [
+                    "id" => "badge_type_id",
+                    new SearchTerm(
+                        "event_id",
+                        $this->CurrentUserInfo->GetEventId()
+                    ),
+                ],
+                alias: "typ"
+            ),
+        ];
     }
 }

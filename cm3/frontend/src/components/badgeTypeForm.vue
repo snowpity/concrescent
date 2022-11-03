@@ -47,6 +47,17 @@
                     </template>
                 </v-checkbox>
             </v-col>
+            <v-col cols="12"
+                   sm="6"
+                   md="3">
+                <v-checkbox dense
+                            hide-details
+                            v-model="model.payment_deferred">
+                    <template v-slot:label>
+                        Require acceptance
+                    </template>
+                </v-checkbox>
+            </v-col>
         </v-row>
         <v-row>
             <v-col>
@@ -56,6 +67,34 @@
             <v-col>
                 <v-textarea label="Rewards"
                             v-model="model.rewards" />
+            </v-col>
+        </v-row>
+        <v-row v-if="isGroup">
+            <v-col>
+                <v-text-field label="Included Applicant Badges"
+                              v-model="model.base_applicant_count" />
+            </v-col>
+            <v-col>
+                <v-text-field label="Max Applicant Badges"
+                              v-model="model.max_applicant_count" />
+            </v-col>
+            <v-col>
+                <v-text-field label="Badge Price"
+                              v-model="model.price_per_applicant" />
+            </v-col>
+        </v-row>
+        <v-row v-if="isGroup">
+            <v-col>
+                <v-text-field label="Included Assignments"
+                              v-model="model.base_assignment_count" />
+            </v-col>
+            <v-col>
+                <v-text-field label="Max Assignments"
+                              v-model="model.max_assignment_count" />
+            </v-col>
+            <v-col>
+                <v-text-field label="Assignment Price"
+                              v-model="model.price_per_assignment" />
             </v-col>
         </v-row>
         <v-row>
@@ -148,7 +187,14 @@ function nullIfEmptyOrZero(inValue) {
 }
 export default {
     components: {},
-    props: ['value'],
+    props: {
+        'value': {
+            type: Object
+        },
+        'isGroup': {
+            type: Boolean
+        }
+    },
     data() {
         return {
 
@@ -188,7 +234,7 @@ export default {
             'isLoggedIn': 'getIsLoggedIn',
         }),
         result() {
-            return {
+            var result = {
                 id: this.model.id || null,
                 active: this.model.active == 1,
                 display_order: this.model.display_order || 0,
@@ -206,6 +252,22 @@ export default {
                 date_created: this.model.date_created || "",
                 date_modified: this.model.date_modified || "",
                 notes: this.model.notes || "",
+            };
+            if (this.isGroup) {
+                return {
+                    ...result,
+                    payment_deferred: this.model.payment_deferred == 1,
+                    max_applicant_count: nullIfEmptyOrZero(this.model.max_applicant_count),
+                    max_assignment_count: nullIfEmptyOrZero(this.model.max_assignment_count),
+                    base_applicant_count: nullIfEmptyOrZero(this.model.base_applicant_count),
+                    base_assignment_count: nullIfEmptyOrZero(this.model.base_assignment_count),
+                    price_per_applicant: nullIfEmptyOrZero(this.model.price_per_applicant),
+                    price_per_assignment: nullIfEmptyOrZero(this.model.price_per_assignment),
+                    display_order: nullIfEmptyOrZero(this.model.display_order),
+
+                }
+            } else {
+                return result;
             }
         },
     },

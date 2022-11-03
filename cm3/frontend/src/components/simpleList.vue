@@ -113,6 +113,9 @@ export default {
                 this.doSearch()
             },
             deep: true,
+        },
+        apiPath() {
+            this.doSearch();
         }
     }
 };

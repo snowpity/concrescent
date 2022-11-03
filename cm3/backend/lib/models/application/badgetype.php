@@ -34,7 +34,8 @@ class badgetype extends \CM3_Lib\database\Table
                   'Price per Assignment',
                   'Total Price',
               ),
-                false
+                false,
+                defaultValue: '\'No Discount\''
             ),
             'payable_onsite'            => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
             'payment_deferred'          => new cm_Column('BOOLEAN', null, false, defaultValue: 'true'), //Whether they need to be accepted in order to pay

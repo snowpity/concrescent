@@ -40,11 +40,11 @@ final class Read
 
         $whereParts = array(
             new SearchTerm('id', $params['id']),
-            new SearchTerm('group_id', $params['group_id'])
+            new SearchTerm('group_id', $request->getAttribute('group_id'))
         );
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->badgetype->Search("*", $whereParts);
+        $data = $this->badgetype->Search("*", $whereParts)[0];
 
         // Build the HTTP response
         return $this->responder

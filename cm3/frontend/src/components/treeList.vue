@@ -167,6 +167,9 @@ export default {
         selected_id: function(newId) {
             this.$emit('input', newId[0]);
             this.$emit('data', this.tableResults.find(item => item[this.valueKey] == newId));
+        },
+        apiPath() {
+            this.doSearch();
         }
     },
     created() {

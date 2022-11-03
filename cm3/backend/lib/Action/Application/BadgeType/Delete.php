@@ -36,7 +36,7 @@ final class Update
         // Extract the form data from the request body
         $data =array(
             'id' => $params['id'],
-            'group_id' => $params['group_id']
+            'group_id' => $request->getAttribute('group_id')
         );
 
         // Invoke the Domain with inputs and retain the result

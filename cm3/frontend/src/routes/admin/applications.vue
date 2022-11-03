@@ -186,7 +186,8 @@
                 <v-card-title class="headline">Edit Badge Type</v-card-title>
                 <v-card-text>
 
-                    <badgeTypeForm v-model="btSelected" />
+                    <badgeTypeForm v-model="btSelected"
+                                   isGroup />
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
