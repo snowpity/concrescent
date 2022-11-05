@@ -695,8 +695,12 @@ export default {
             })
         }
         this.$store.dispatch('mydata/fetchCarts', false).then(() => {
-            this.cartIdSelected = this.currentCartId;
-        })
+                this.cartIdSelected = this.currentCartId;
+            })
+            .catch((error) => {
+                //Couldn't do that. Pop a message!
+                this.cartLocked = error.error.message;
+            })
         if (this.needsave) {
             this.saveCart()
                 .then((cartId) => {

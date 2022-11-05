@@ -1,24 +1,33 @@
 <template>
 <v-data-table :headers="headers"
               :items="model"
+              disable-sort
               hide-default-footer
               :itemsPerPage="-1"
               class="elevation-1">
     <template v-slot:top>
+        <div v-if="isTiny">
+
+            <h4>Included: {{base_applicant_count}}, Max: {{max_applicant_count}}</h4>
+            <h4>Price per extra: {{price_per_applicant | currency}}</h4>
+        </div>
         <v-toolbar flat>
-            <v-toolbar-title>Included: {{base_applicant_count}}, Max: {{max_applicant_count}}</v-toolbar-title>
+            <v-toolbar-title v-if="!isTiny">Included: {{base_applicant_count}}, Max: {{max_applicant_count}}</v-toolbar-title>
             <v-divider class="mx-4"
+                       v-if="!isTiny"
                        inset
                        vertical></v-divider>
+
+            <v-toolbar-title v-if="!isTiny">Price per extra: {{price_per_applicant | currency}}</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-dialog v-model="dialog"
                       scrollable
                       max-width="1500px">
                 <template v-slot:activator="{ on, attrs }">
                     <v-btn color="primary"
-                           dark
                            class="mb-2"
                            v-bind="attrs"
+                           :disabled="maxBadgesMet"
                            v-on="on">
                         Add Badge
                     </v-btn>
@@ -46,7 +55,9 @@
                                        md="6">
                                     <v-checkbox dense
                                                 hide-details
-                                                v-model="editedItem.can_transfer">
+                                                v-model="editedItem.can_transfer"
+                                                true-value="1"
+                                                false-value="0">
                                         <template v-slot:label>
                                             <small>Allow badge transfer to the owner of this email.</small>
                                         </template>
@@ -94,8 +105,7 @@
                                @click="close">
                             Cancel
                         </v-btn>
-                        <v-btn color="blue darken-1"
-                               text
+                        <v-btn color="primary"
                                @click="save">
                             Save
                         </v-btn>
@@ -111,9 +121,8 @@
                         <v-btn color="blue darken-1"
                                text
                                @click="closeDelete">Cancel</v-btn>
-                        <v-btn color="blue darken-1"
-                               text
-                               @click="deleteItemConfirm">OK</v-btn>
+                        <v-btn color="red"
+                               @click="deleteItemConfirm">Yes</v-btn>
                         <v-spacer></v-spacer>
                     </v-card-actions>
                 </v-card>
@@ -153,6 +162,10 @@ export default {
         },
         'max_applicant_count': {
             type: Number,
+            default: 0,
+        },
+        'price_per_applicant': {
+            type: [Number, String],
             default: 0,
         },
         'readonly': {
@@ -211,10 +224,15 @@ export default {
         ],
     }),
     computed: {
-
+        isTiny() {
+            return this.$vuetify.breakpoint.xsOnly;
+        },
         formTitle() {
             return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
         },
+        maxBadgesMet() {
+            return this.max_applicant_count <= this.model.length;
+        }
     },
     methods: {
 

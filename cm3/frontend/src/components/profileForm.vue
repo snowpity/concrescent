@@ -42,7 +42,7 @@
                 <v-text-field label="Phone"
                               :readonly="readonly"
                               v-model="contactPhone"
-                              :rules="RulesPhoneRequired"></v-text-field>
+                              :rules="RulesPhone"></v-text-field>
             </v-col>
         </v-row>
 
@@ -107,10 +107,13 @@
 </template>
 
 <script>
+import VInput from 'vuetify/lib/components/VInput/VInput.js';
+
 import {
     mapGetters
 } from 'vuex'
 export default {
+    extends: VInput,
     components: {},
     props: {
         'value': Object,
@@ -192,6 +195,8 @@ export default {
     },
     watch: {
         result(newData) {
+            var isValid = this.$refs.fContactInfo.validate();
+            this.$emit('valid', isValid);
             this.$emit('input', newData);
         },
         value(newValue) {
@@ -206,7 +211,7 @@ export default {
             this.contactState = newValue.state;
             this.contactPostalCode = newValue.zip_code;
             this.contactCountry = newValue.country;
-        }
+        },
     },
 };
 </script>

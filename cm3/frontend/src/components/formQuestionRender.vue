@@ -53,21 +53,21 @@
                       :hint="question.text"
                       :readonly="readonly"
                       v-model="userResponse"
-                      :rules="question.isRequired ? RulesRequired : undefined "></v-text-field>
+                      :rules="question.required ? RulesRequired : undefined "></v-text-field>
     </template>
     <template v-if="question.type == 'textarea'">
         <v-textarea :label="question.title"
                     :hint="question.text"
                     :readonly="readonly"
                     v-model="userResponse"
-                    :rules="question.isRequired ? RulesRequired : undefined "></v-textarea>
+                    :rules="isRequired ? RulesRequired : undefined "></v-textarea>
     </template>
     <template v-if="question.type == 'url'">
         <v-text-field :label="question.title"
                       :hint="question.text"
                       :readonly="readonly"
                       v-model="userResponse"
-                      :rules="question.isRequired ? RulesURLRequired : RulesURL "></v-text-field>
+                      :rules="isRequired ? RulesURLRequired : RulesURL "></v-text-field>
     </template>
     <template v-if="question.type == 'urllist'">
         <p v-if="question.title != ''">
@@ -82,7 +82,7 @@
                 <v-list-item-content>
                     <v-text-field v-model="multiSelectResponse[i]"
                                   append-outer-icon="mdi-close"
-                                  :rules="question.isRequired ? RulesURLRequired : RulesURL "
+                                  :rules="isRequired ? RulesURLRequired : RulesURL "
                                   @click:append-outer="removeValue(i)"
                                   @keyup="listValueChanged" />
                 </v-list-item-content>
@@ -102,7 +102,7 @@
                       :hint="question.text"
                       :readonly="readonly"
                       v-model="userResponse"
-                      :rules="question.isRequired ? RulesEmailRequired : RulesEmail "></v-text-field>
+                      :rules="isRequired ? RulesEmailRequired : RulesEmail "></v-text-field>
     </template>
     <template v-if="question.type == 'radio'">
         <p v-if="question.title != ''">
@@ -136,7 +136,7 @@
 
         <v-input :readonly="readonly"
                  v-model="userResponse"
-                 :rules="question.isRequired ? RulesRequired : undefined ">
+                 :rules="isRequired ? RulesRequired : undefined ">
             <template v-slot:default>
                 <div></div>
             </template>
@@ -146,7 +146,7 @@
         <v-select :label="question.title"
                   :hint="question.text"
                   :items="listItems"
-                  :clearable="question.isRequired"
+                  :clearable="isRequired"
                   :readonly="readonly"
                   v-model="userResponse"></v-select>
     </template>
@@ -154,7 +154,9 @@
 </template>
 
 <script>
+import VInput from 'vuetify/lib/components/VInput/VInput.js';
 export default {
+    extends: VInput,
     props: ['question', 'value', 'readonly'],
     data: () => ({
         // userResponse: ""
@@ -195,6 +197,9 @@ export default {
     computed: {
         listItems() {
             return this.question.values; // .split("\n")
+        },
+        isRequired() {
+            return (this.question.required > 0) || false;
         },
         userResponse: {
             get() {

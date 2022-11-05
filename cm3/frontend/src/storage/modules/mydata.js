@@ -210,6 +210,14 @@ const actions = {
         state
     }, include_all) {
         return new Promise((resolve, reject) => {
+            if (state.token.length < 1) {
+                reject({
+                    error: {
+                        message: 'not logged in'
+                    }
+                });
+                return;
+            }
             shop.getCarts(state.token, include_all, (carts) => {
                 commit('setCarts', {
                     carts,

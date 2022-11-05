@@ -53,7 +53,7 @@
         <v-expansion-panels v-model="addonDisplayState"
                             multiple
                             v-if="badgeAddons.length">
-            <h3>Optional addons currently available for the selected badge:</h3>
+            <h3>Optional addons currently available for the selected {{isGroupApp ? "application" : "badge"}}:</h3>
             <v-expansion-panel v-for="addon in badgeAddons"
                                v-bind:key="addon.id">
                 <v-expansion-panel-header>
@@ -88,7 +88,7 @@
 
         </v-expansion-panels>
         <div v-else>
-            <h3>No addons are currently available for the selected badge type. Check back later if they become available!</h3>
+            <h3>No addons are currently available for the selected {{isGroupApp ? "Application" : "Badge"}} type. Check back later if they become available!</h3>
         </div>
 
         <v-btn color="primary"
@@ -108,7 +108,9 @@
             <v-row>
                 <v-col v-if="!isLoggedIn">
                     <router-link to="/login?returnTo=/addbadge">Log in</router-link> or create profile:
-                    <profileForm v-model="newAccountData" />
+                    <profileForm v-model="newAccountData"
+                                 @valid="(v) => newAccountDataValid = v"
+                                 :rules="RulesNewAccountDataValid" />
                 </v-col>
                 <v-col v-else>
                     <v-list-item>
@@ -228,7 +230,9 @@
                 v-model="validAdditionalInfo">
             <formQuestions v-model="form_responses"
                            :questions="badgeQuestions"
-                           no-data-text="Nothing else needed at the moment!" />
+                           no-data-text="Nothing else needed at the moment!"
+                           @valid="(v) => validAdditionalInfo = v"
+                           :rules="RulesValidAdditionalInfo" />
         </v-form>
 
         <v-btn text
@@ -246,7 +250,11 @@
 
     <v-stepper-content step="5">
 
-        <subBadgeListEditor v-model="subbadges" />
+        <subBadgeListEditor v-model="subbadges"
+                            v-if="hasSubBadges"
+                            :base_applicant_count="selectedBadge.base_applicant_count"
+                            :max_applicant_count="selectedBadge.max_applicant_count"
+                            :price_per_applicant="selectedBadge.price_per_applicant" />
         <v-btn text
                @click="step = 4">Back</v-btn>
     </v-stepper-content>
@@ -260,7 +268,6 @@
             <v-icon>mdi-bomb</v-icon>
         </v-btn>
         <v-spacer></v-spacer>
-
         <v-spacer></v-spacer>
 
         <v-btn color="primary"
@@ -312,6 +319,7 @@ export default {
 
             validContactInfo: false,
             newAccountData: {},
+            newAccountDataValid: false,
             creatingAccount: false,
             createError: "",
             sendingmagicemail: false,
@@ -348,6 +356,12 @@ export default {
             RulesPhone: [
                 (v) => !v || v.length > 6 || 'Phone number too short',
                 /* v =>  !v || /^\D?(\d{3})\D?\D?(\d{3})\D?(\d{4})$/.test(v) || 'Phone number should be valid' */
+            ],
+            RulesNewAccountDataValid: [
+                (v) => !!this.newAccountDataValid
+            ],
+            RulesValidAdditionalInfo: [
+                (v) => !!this.validAdditionalInfo
             ],
 
             addonDisplayState: [],
@@ -420,6 +434,7 @@ export default {
                 badge_type_id: this.badge_type_id,
 
                 notify_email: this.notify_email,
+                can_transfer: this.can_transfer,
                 ice_name: this.ice_name,
                 ice_relationship: this.ice_relationship,
                 ice_email_address: this.ice_email_address,
@@ -437,7 +452,7 @@ export default {
             return this.validGenInfo &&
                 this.validContactInfo &&
                 this.validAdditionalInfo &&
-                this.reachedStep >= 4
+                this.reachedStep >= (this.hasSubBadges ? 5 : 4)
         },
         isUpdatingItem() {
             return (this.cartIx != NaN && this.cartIx > -1) || (this.id != null && this.id > -1);
@@ -506,7 +521,7 @@ export default {
             return this.currentContext.id > 0;
         },
         hasSubBadges() {
-            if (this.selectedBadge != undefined) {
+            if (this.selectedBadge != undefined && this.isGroupApp) {
                 return this.selectedBadge.max_applicant_count > 0
             }
             return false;
