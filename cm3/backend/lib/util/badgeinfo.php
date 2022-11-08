@@ -588,7 +588,7 @@ final class badgeinfo
         $whereParts =
         empty($searchText) ? null :
         array(
-            new SearchTerm('real_name', $searchText, Raw: 'MATCH(`real_name`, `fandom_name`, `notify_email`, `ice_name`, `ice_email_address`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
+            new SearchTerm('real_name', $searchText, Raw: 'MATCH(`b`.`real_name`, `b`.`fandom_name`, `b`.`notify_email`, `ice_name`, `ice_email_address`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
         );
         $wherePartsSimpler = array(
             new SearchTerm(
@@ -653,10 +653,10 @@ final class badgeinfo
         //Add to the group search if context specified
         $g_terms[] = new SearchTerm('context_code', $context, is_null($context) ? 'IS' : '=', JoinedTableAlias:'grp');
 
-        $a_data = (($context ?? 'A') == 'A') ? $this->a_badge->Search($a_bv, $a_terms, $order, $limit, $offset, $trA) : array();
-        $s_data = (($context ?? 'S') == 'S') ? $this->s_badge->Search($s_bv, $s_terms, $order, $limit, $offset, $trG) : array();
+        $a_data = (($context ?? 'A') == 'A') ? $this->a_badge->Search($a_bv, $a_terms, $order, $limit, $offset, $trA, 'b') : array();
+        $s_data = (($context ?? 'S') == 'S') ? $this->s_badge->Search($s_bv, $s_terms, $order, $limit, $offset, $trG, 'b') : array();
         //$this->g_badge->debugThrowBeforeSelect = true;
-        $g_data = $this->g_badge->Search($g_bv, $g_terms, $order, $limit, $offset, $trS);
+        $g_data = $this->g_badge->Search($g_bv, $g_terms, $order, $limit, $offset, $trS, 'b');
         $totalRows =  $trA + $trG + $trS;
 
 

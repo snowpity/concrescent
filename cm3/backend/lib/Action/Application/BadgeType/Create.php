@@ -41,6 +41,7 @@ final class Create
         //Ensure consistency with the enpoint being posted to
         $data['group_id'] = $request->getAttribute('group_id');
         unset($data['id']);
+        $data['display_order'] = 0;
         unset($data['date_created']);
         unset($data['date_modified']);
         unset($data['dates_available']);
@@ -54,6 +55,7 @@ final class Create
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->badgetype->Create($data);
+        //Todo: Run the re-numerate script to get a better display_order
 
         // Build the HTTP response
         return $this->responder

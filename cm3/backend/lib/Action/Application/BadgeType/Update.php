@@ -38,6 +38,7 @@ final class Update
         //Ensure consistency with the enpoint being posted to
         $data['id'] = $params['id'];
         $data['group_id'] = $request->getAttribute('group_id');
+        $data['display_order'] = $data['display_order'] ?? 0;
         unset($data['date_created']);
         unset($data['date_modified']);
         unset($data['dates_available']);

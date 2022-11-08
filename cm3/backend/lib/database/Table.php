@@ -310,7 +310,7 @@ abstract class Table
         return $count;
     }
 
-    public function Search(View|array|string|null $columns = null, ?array $terms = null, ?array $order = null, int $limit = -1, int $offset = 0, &$resultTotal = null)
+    public function Search(View|array|string|null $columns = null, ?array $terms = null, ?array $order = null, int $limit = -1, int $offset = 0, &$resultTotal = null, $initialTableAlias = null)
     {
         $errors = array();
         $groupNames = array();
@@ -365,13 +365,30 @@ abstract class Table
             //TODO: Check column name is correct
             //A bare string is just the column name
             if (gettype($value) == 'string') {
-                $selectParts .= (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`.' : $this->dbTableName()) .
-                '.`' . $value .'`, ';
+                $selectParts .= (
+                    (
+                        isset($value->JoinedTableAlias)
+                ? '`' .$value->JoinedTableAlias.'`'
+                : (
+                    !is_null($initialTableAlias)
+                    ? '`' .$initialTableAlias.'`'
+                    : $this->dbTableName()
+                )
+                    )
+                ) . '.`' . $value .'`, ';
             } elseif ($value instanceof SelectColumn) {
                 $selectParts .= str_replace(
                     '?',
-                    (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`.' : $this->dbTableName() .'.').
-                        '`' . $value->ColumnName .'`',
+                    (
+                        isset($value->JoinedTableAlias)
+                    ? '`' .$value->JoinedTableAlias.'`.'
+                    : (
+                        !is_null($initialTableAlias)
+                        ? '`' .$initialTableAlias.'`.'
+                        : $this->dbTableName().'.'
+                    )
+                    )
+                    . '`' . $value->ColumnName .'`',
                     $value->EncapsulationFunction != null ? $value->EncapsulationFunction : '?'
                 );
                 if (!is_null($value->Alias)) {
@@ -391,6 +408,9 @@ abstract class Table
         $selectParts = substr($selectParts, 0, -2);
         $sqlBody = ' FROM ' . $this->dbTableName() . ' ';
 
+        if (!is_null($initialTableAlias)) {
+            $sqlBody .= 'as `' . $initialTableAlias . '` ';
+        }
         $whereCodes = '';
         $whereData = array();
 
@@ -447,7 +467,7 @@ abstract class Table
 
                     //Do we have any terms?
                     if ($join->subQSearchTerms != null && count($join->subQSearchTerms)) {
-                        $sqlBody .= 'WHERE ' . $join->Table->_WhereBuilder($join->subQSearchTerms, $whereCodes, $whereData);
+                        $sqlBody .= 'WHERE ' . $join->Table->_WhereBuilder($join->subQSearchTerms, $whereCodes, $whereData, $initialTableAlias);
                     }
 
                     //Are we grouping?
@@ -489,7 +509,11 @@ abstract class Table
                         }
                         //Straight column join
                         if (in_array($joinedColumn, $joinSubQueryExposed)) {
-                            $sqlBody .= $this->dbTableName() .'.`' . $sourceColumn . '` = ' .
+                            $sqlBody .= (
+                                !is_null($initialTableAlias)
+                                ? '`' .$initialTableAlias.'`'
+                                : $this->dbTableName()
+                            ).'.`' . $sourceColumn . '` = ' .
                             (isset($join->alias) ? '`' . $join->alias . '`' : $join->Table->dbTableName()) .
                             '.`'. $joinedColumn . '` ';
                         } else {
@@ -531,7 +555,11 @@ abstract class Table
                                        ? '`' . $sourceColumn->JoinedTableAlias . '`'
                                        : (
                                            is_string($joinedColumn)
-                                       ? $this->dbTableName()
+                                       ? (
+                                           !is_null($initialTableAlias)
+                                           ? '`' .$initialTableAlias.'`'
+                                           : $this->dbTableName()
+                                       )
                                        : (isset($join->alias) ? '`' . $join->alias . '`' : $join->Table->dbTableName())
                                        ))
                                      . '.`' . $sourceColumn->ColumnName .'` ',
@@ -588,7 +616,7 @@ abstract class Table
 
         //Do we have any terms?
         if ($terms != null && count($terms)) {
-            $sqlBody .= 'WHERE ' . $this->_WhereBuilder($terms, $whereCodes, $whereData);
+            $sqlBody .= 'WHERE ' . $this->_WhereBuilder($terms, $whereCodes, $whereData, $initialTableAlias);
         }
 
         //Are we grouping?
@@ -716,7 +744,7 @@ abstract class Table
         return $result;
     }
 
-    protected function _WhereBuilder(array $terms, string &$whereCodes, array &$whereData)
+    protected function _WhereBuilder(array $terms, string &$whereCodes, array &$whereData, $initialTableAlias= nujll)
     {
         $result = '(';
         $firstInGroup = true;
@@ -756,7 +784,11 @@ abstract class Table
                     //Normal term, add it in
                     $result .= str_replace(
                         '?',
-                        (isset($term->JoinedTableAlias) ? '`' . $term->JoinedTableAlias . '`' : $this->dbTableName()) . '.' .
+                        (isset($term->JoinedTableAlias) ? '`' . $term->JoinedTableAlias . '`' : (
+                            !is_null($initialTableAlias)
+                            ? '`' .$initialTableAlias.'`'
+                            : $this->dbTableName()
+                        )) . '.' .
                             '`' . $term->ColumnName .'` ',
                         $term->EncapsulationFunction != null && $term->EncapsulationColumnOnly !== false ? $term->EncapsulationFunction : '?'
                     ) . $term->Operation . ' ';
@@ -794,7 +826,7 @@ abstract class Table
                 }
             } else {
                 //Sub-search. Ignore everything and recurse.
-                $result .= $this->_WhereBuilder($term->subSearch, $whereCodes, $whereData);
+                $result .= $this->_WhereBuilder($term->subSearch, $whereCodes, $whereData, $initialTableAlias);
             }
         }
         //And we're done!
