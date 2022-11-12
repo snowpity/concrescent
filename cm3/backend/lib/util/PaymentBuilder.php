@@ -214,7 +214,7 @@ final class PaymentBuilder
         //Ensure this badge is owned by the user (if we're not editing) and is good on the surface
         if (isset($item['id']) && $item['id'] > 0) {
             //Group apps are special
-            if ($cartitem['context_code'] == 'A' || $cartitem['context_code'] == 'S') {
+            if ($item['context_code'] == 'A' || $item['context_code'] == 'S') {
                 $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code']);
             } else {
                 $bi = $this->badgeinfo->getASpecificGroupApplication($item['id'] ?? 0, $item['context_code']);
@@ -760,7 +760,6 @@ final class PaymentBuilder
             //If it's not an application, wire up the processor normally
             if ($cartitem['context_code'] == 'A' || $cartitem['context_code'] == 'S') {
                 $badgeItems = [&$cartitem];
-                $bt = $bt_base;
             } else {
                 //Grou applications are special
                 //Create/update the application submission

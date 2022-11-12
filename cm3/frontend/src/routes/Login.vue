@@ -27,8 +27,9 @@
                     <v-card class="px-4">
                         <v-form @submit.prevent="SendMagicLink"
                                 v-model="formEMValid">
+                            {{$route.params.message}}
                             <v-card-text>
-                                <v-text-field label="Email used to purchase"
+                                <v-text-field label="Email used to register"
                                               v-model="email"
                                               name="email"
                                               prepend-icon="mdi-email"
@@ -52,6 +53,7 @@
                     <v-card class="px-4">
                         <v-form @submit.prevent="login"
                                 v-model="formPWValid">
+                            {{$route.params.message}}
                             <v-card-text>
                                 <v-text-field id="username"
                                               label="Username"

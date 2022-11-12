@@ -29,7 +29,6 @@ const getters = {
         return rootState.mydata.token.length > 0 && state.dirty;
     },
     canPay: (state, getters, rootState) => {
-        console.log(state.canPay);
         return rootState.mydata.token.length > 0 && state.canPay;
     },
     cartProducts: (state, getters, rootState) => state.items.map((badge) => {

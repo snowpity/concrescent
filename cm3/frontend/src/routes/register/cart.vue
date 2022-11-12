@@ -671,7 +671,18 @@ export default {
             (this.dirty ?
                 this.saveCart() : Promise.resolve()).then(() => {
                 if (newId)
-                    this.loadCart(newId);
+                    this.loadCart(newId)
+                    .catch((error) => {
+                        console.log('Failed to load cart, redirecting to login', newId);
+                        this.$store.commit('cart/setcartId', null)
+                        this.$router.push({
+                            name: 'login',
+                            params: {
+                                returnTo: this.$route.fullPath,
+                                message: 'Cart inaccessible or does not exist? Try logging in again.'
+                            }
+                        })
+                    });
             })
 
         }
@@ -694,12 +705,24 @@ export default {
                 query: {}
             })
         }
+        if (query.id)
+            this.$store.commit('cart/setcartId', query.id);
+
         this.$store.dispatch('mydata/fetchCarts', false).then(() => {
+                console.log('carts should be loaded, selecting cart', this.currentCartId)
                 this.cartIdSelected = this.currentCartId;
             })
             .catch((error) => {
-                //Couldn't do that. Pop a message!
-                this.cartLocked = error.error.message;
+                //Couldn't do that.If they're not logged in, redirect to get a magic link!
+                this.$store.commit('cart/setcartId', null)
+                if (query.id)
+                    this.$router.push({
+                        name: 'login',
+                        params: {
+                            returnTo: this.$route.fullPath,
+                            message: 'You need to be logged in to do that.'
+                        }
+                    })
             })
         if (this.needsave) {
             this.saveCart()
