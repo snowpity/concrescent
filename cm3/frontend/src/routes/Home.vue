@@ -39,7 +39,7 @@ export default {
     computed: {
         cards: function() {
             var items = [];
-            if (this.adminMode) {
+            if (this.adminMode === true) {
                 //Some general event permissions
 
                 items.push({

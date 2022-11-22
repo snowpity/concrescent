@@ -6,39 +6,22 @@
             <v-col cols="6"
                    sm="8"
                    md="6">
-                <v-text-field label="Name"
-                              v-model="model.name"
+                <v-text-field label="Code"
+                              v-model="model.code"
+                              counter="255"
                               :rules="RulesRequired">
                 </v-text-field>
             </v-col>
             <v-col cols="12"
                    sm="6"
                    md="3">
-                <v-row>
-                    <v-col>
-                        <v-checkbox dense
-                                    hide-details
-                                    v-model="model.active">
-                            <template v-slot:label>
-                                Active
-                            </template>
-                        </v-checkbox>
-                    </v-col>
-                    <v-col>
-                        <v-text-field v-if="!model.active"
-                                      label="Active Override code"
-                                      v-model="model.active_override_code"
-                                      append-icon="mdi-link"
-                                      @click:append="copyOverrideLink" />
-                    </v-col>
-                </v-row>
-            </v-col>
-            <v-col cols="12"
-                   sm="6"
-                   md="3">
-                <v-text-field label="Price"
-                              v-model="model.price"
-                              :rules="RulesRequired"></v-text-field>
+                <v-checkbox dense
+                            hide-details
+                            v-model="model.active">
+                    <template v-slot:label>
+                        Active
+                    </template>
+                </v-checkbox>
             </v-col>
             <v-col cols="12"
                    sm="6"
@@ -52,72 +35,37 @@
                    md="3">
                 <v-checkbox dense
                             hide-details
-                            v-model="model.payable_onsite">
+                            v-model="model.is_percentage">
                     <template v-slot:label>
-                        Payable on-site?
+                        Discount is percentage?
                     </template>
                 </v-checkbox>
             </v-col>
             <v-col cols="12"
                    sm="6"
                    md="3">
-                <v-checkbox dense
-                            hide-details
-                            v-model="model.payment_deferred">
-                    <template v-slot:label>
-                        Require acceptance
-                    </template>
-                </v-checkbox>
+                <v-text-field label="Discount"
+                              v-model="model.discount"
+                              :prefix="model.is_percentage ? '': '$ '"
+                              :suffix="model.is_percentage ? '%': ''"
+                              :rules="RulesRequired"></v-text-field>
             </v-col>
         </v-row>
         <v-row>
             <v-col>
-                Description
-                <v-md-editor label="Description"
-                             v-model="model.description" />
+                <v-textarea label="Description"
+                            v-model="model.description" />
             </v-col>
             <v-col>
-                Rewards
-                <v-md-editor label="Rewards"
-                             v-model="model.rewards" />
-            </v-col>
-        </v-row>
-        <v-row v-if="isGroup">
-            <v-col>
-                <v-text-field label="Included Applicant Badges"
-                              v-model="model.base_applicant_count" />
-            </v-col>
-            <v-col>
-                <v-text-field label="Max Applicant Badges"
-                              v-model="model.max_applicant_count" />
-            </v-col>
-            <v-col>
-                <v-text-field label="Badge Price"
-                              v-model="model.price_per_applicant" />
-            </v-col>
-        </v-row>
-        <v-row v-if="isGroup">
-            <v-col>
-                <v-text-field label="Included Assignments"
-                              v-model="model.base_assignment_count" />
-            </v-col>
-            <v-col>
-                <v-text-field label="Max Assignments"
-                              v-model="model.max_assignment_count" />
-            </v-col>
-            <v-col>
-                <v-text-field label="Assignment Price"
-                              v-model="model.price_per_assignment" />
-            </v-col>
-        </v-row>
-        <v-row>
-            <v-col>
-                <v-text-field label="Min applicable age"
-                              v-model="model.min_age" />
-            </v-col>
-            <v-col>
-                <v-text-field label="Max applicable age"
-                              v-model="model.max_age" />
+                <v-select label="Applies to"
+                          v-model="model.valid_badge_type_ids"
+                          :items="badge_types"
+                          item-text="name"
+                          item-value="id"
+                          chips
+                          multiple
+                          persistent-hint
+                          hint="Select which badges can have this promo applied to them" />
             </v-col>
         </v-row>
         <v-row>
@@ -133,6 +81,7 @@
                     <template v-slot:activator="{ on }">
                         <v-text-field v-model="model.start_date"
                                       type="date"
+                                      clearable
                                       label="Available starting"
                                       v-on="on"></v-text-field>
                     </template>
@@ -154,6 +103,7 @@
                     <template v-slot:activator="{ on }">
                         <v-text-field v-model="model.end_date"
                                       type="date"
+                                      clearable
                                       label="Unavailable after"
                                       v-on="on"></v-text-field>
                     </template>
@@ -211,6 +161,9 @@ export default {
         },
         'isGroup': {
             type: Boolean
+        },
+        'badge_types': {
+            type: Array
         }
     },
     data() {
@@ -220,23 +173,19 @@ export default {
             validbadgeTypeInfo: false,
             model: {
                 id: this.value?.id || null,
+                valid_badge_type_ids: (this.value?.valid_badge_type_ids || '').split(',').map(Number) || [],
+                is_percentage: this.value?.is_percentage == 1,
                 active: this.value?.active == 1,
-                display_order: this.value?.display_order || null,
-                name: this.value?.name || "",
+                code: this.value?.code || "",
                 description: this.value?.description || "",
-                rewards: this.value?.rewards || "",
-                price: this.value?.price || "",
-                payable_onsite: this.value?.payable_onsite == 1,
+                discount: this.value?.discount || "",
                 quantity: this.value?.quantity || "",
                 start_date: this.value?.start_date || "",
                 end_date: this.value?.end_date || "",
-                min_age: this.value?.min_age || "",
-                max_age: this.value?.max_age || "",
-                active_override_code: this.value?.active_override_code || "",
+                limit_per_customer: this.value?.limit_per_customer || 0,
                 date_created: this.value?.date_created || "",
                 date_modified: this.value?.date_modified || "",
-                notes: this.value?.notes || "",
-                country: this.value?.country || "",
+                notes: this.value?.notes || ""
             },
             menuStartDate: false,
             menuEndDate: false,
@@ -252,41 +201,29 @@ export default {
             'isLoggedIn': 'getIsLoggedIn',
         }),
         result() {
+            if (this.model == undefined) return undefined;
+            var vbs = this.model.valid_badge_type_ids || '';
+            if (typeof vbs == 'object')
+                vbs = vbs.join();
+            if (vbs.length == 0)
+                vbs = null;
             var result = {
                 id: this.model.id || null,
-                active: this.model.active == 1,
-                display_order: this.model.display_order || 0,
-                name: this.model.name || "",
+                valid_badge_type_ids: vbs,
+                is_percentage: this.model.is_percentage ? 1 : 0,
+                active: this.model.active ? 1 : 0,
+                code: this.model.code || "",
                 description: this.model.description || "",
-                rewards: this.model.rewards || "",
-                price: this.model.price || "",
-                payable_onsite: this.model.payable_onsite == 1,
+                discount: this.model.discount,
                 quantity: nullIfEmptyOrZero(this.model.quantity),
                 start_date: this.model.start_date || "",
                 end_date: this.model.end_date || "",
-                min_age: nullIfEmptyOrZero(this.model.min_age),
-                max_age: nullIfEmptyOrZero(this.model.max_age),
-                active_override_code: this.model.active_override_code || "",
+                limit_per_customer: nullIfEmptyOrZero(this.model.limit_per_customer),
                 date_created: this.model.date_created || "",
                 date_modified: this.model.date_modified || "",
                 notes: this.model.notes || "",
             };
-            if (this.isGroup) {
-                return {
-                    ...result,
-                    payment_deferred: this.model.payment_deferred == 1,
-                    max_applicant_count: ZeroIfEmpty(this.model.max_applicant_count),
-                    max_assignment_count: ZeroIfEmpty(this.model.max_assignment_count),
-                    base_applicant_count: ZeroIfEmpty(this.model.base_applicant_count),
-                    base_assignment_count: ZeroIfEmpty(this.model.base_assignment_count),
-                    price_per_applicant: ZeroIfEmpty(this.model.price_per_applicant),
-                    price_per_assignment: ZeroIfEmpty(this.model.price_per_assignment),
-                    display_order: nullIfEmptyOrZero(this.model.display_order),
-
-                }
-            } else {
-                return result;
-            }
+            return result;
         },
     },
     methods: {
@@ -299,9 +236,6 @@ export default {
             this.$refs.menuEndDate.save(date);
             this.model.end_date = this.model.end_date;
         },
-        copyOverrideLink() {
-
-        }
     },
     watch: {
         result(newData) {
@@ -315,7 +249,21 @@ export default {
             //Splat the input into the form
             this.skipEmitOnce = true;
             this.model = {
-                ...newValue
+
+                id: newValue?.id || null,
+                valid_badge_type_ids: (newValue?.valid_badge_type_ids || '').split(',').map(Number) || [],
+                is_percentage: newValue?.is_percentage == 1,
+                active: newValue?.active == 1,
+                code: newValue?.code || "",
+                description: newValue?.description || "",
+                discount: newValue?.discount || "",
+                quantity: newValue?.quantity || "",
+                start_date: newValue?.start_date || "",
+                end_date: newValue?.end_date || "",
+                limit_per_customer: newValue?.limit_per_customer || 0,
+                date_created: newValue?.date_created || "",
+                date_modified: newValue?.date_modified || "",
+                notes: newValue?.notes || ""
             };
             this.result.quantity + 1;
         }

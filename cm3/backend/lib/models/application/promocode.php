@@ -19,8 +19,8 @@ class promocode extends \CM3_Lib\database\Table
             'description'   => new cm_Column('TEXT', null, true),
             'discount'         => new cm_Column('DECIMAL', '7,2', false),
             'quantity'      => new cm_Column('INT', null, true),
-            'start_date'	=> new cm_Column('DATE', null, false),
-            'end_date'  	=> new cm_Column('DATE', null, false),
+            'start_date'	=> new cm_Column('DATE', null, true),
+            'end_date'  	=> new cm_Column('DATE', null, true),
             'limit_per_customer' => new cm_Column('INT', null, true),
             'date_created'	=> new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP'),
             'date_modified'	=> new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP', false, 'ON UPDATE CURRENT_TIMESTAMP'),
@@ -31,5 +31,17 @@ class promocode extends \CM3_Lib\database\Table
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
         $this->DefaultSearchColumns = array('id','code','discount','quantity','dates_available');
+    }
+
+    public function verifyPromoCodeBelongsToEvent(int $id, int $event_id)
+    {
+        $bt = $this->GetByID($id, array('event_id'));
+        if ($bt === false) {
+            return false;
+        }
+        if ($bt['event_id'] != $event_id) {
+            return false;
+        }
+        return true;
     }
 }

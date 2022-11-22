@@ -1,10 +1,12 @@
 <?php
 
-namespace CM3_Lib\Action\AdminUser;
+namespace CM3_Lib\Action\Attendee\PromoCode;
 
 use CM3_Lib\database\SearchTerm;
-use CM3_Lib\models\admin\user;
+use CM3_Lib\models\attendee\promocode;
+
 use CM3_Lib\util\badgeinfo;
+
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -21,8 +23,11 @@ final class Search
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private user $user, private badgeinfo $badgeinfo)
-    {
+    public function __construct(
+        private Responder $responder,
+        private promocode $promocode,
+        private badgeinfo $badgeinfo
+    ) {
     }
 
     /**
@@ -33,25 +38,24 @@ final class Search
      *
      * @return ResponseInterface The response
      */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
-        // Extract the form data from the request body
-        $data = (array)$request->getParsedBody();
+        $qp = $request->getQueryParams();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
         $whereParts = array(
-          new SearchTerm('username', '%' . ($request->getQueryParams()['find']??'') .'%', 'LIKE'),
+          new SearchTerm('event_id', $request->getAttribute('event_id'))
         );
 
-        $qp = $request->getQueryParams();
 
-        $pg = $this->badgeinfo->parseQueryParamsPagination($qp, 'contact_id', false);
+
+        $pg = $this->badgeinfo->parseQueryParamsPagination($qp, 'code');
         $totalRows = 0;
-
         // Invoke the Domain with inputs and retain the result
-        $data = $this->user->Search(array(), $whereParts, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
+        $data = $this->promocode->Search(array(), $whereParts, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
 
         $response = $response->withHeader('X-Total-Rows', (string)$totalRows);
+
         // Build the HTTP response
         return $this->responder
             ->withJson($response, $data);

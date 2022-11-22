@@ -18,7 +18,17 @@
             </v-col>
         </v-row>
         <v-row v-if="!questionSettings.hideText">
-            <v-col cols="12">
+            <v-col v-if="questionSettings.textIsMarkdown"
+                   cols="12">
+                Text
+                <v-md-editor v-model="result.text"
+                             hide-details="true"
+                             rows="1"
+                             auto-grow
+                             label="Text" />
+            </v-col>
+            <v-col v-else
+                   cols="12">
                 <v-textarea v-model="result.text"
                             hide-details="true"
                             rows="1"
@@ -77,22 +87,27 @@ export default {
         questionTypes: [{
             value: 'h1',
             text: "Title",
+            textIsMarkdown: true,
             hideValue: true
         }, {
             value: 'h2',
             text: "Medium Title",
+            textIsMarkdown: true,
             hideValue: true
         }, {
             value: 'h3',
             text: "Small Title",
+            textIsMarkdown: true,
             hideValue: true
         }, {
             value: 'p',
             text: "Text block",
+            textIsMarkdown: true,
             hideValue: true
         }, {
             value: 'q',
             text: "Indented Text",
+            textIsMarkdown: true,
             hideValue: true
         }, {
             value: 'hr',
@@ -114,6 +129,7 @@ export default {
         }, {
             value: 'urllist',
             text: "List of web links",
+            textIsMarkdown: true,
             hideValue: true
         }, {
             value: 'email',
@@ -121,10 +137,12 @@ export default {
             hideValue: true
         }, {
             value: 'radio',
-            text: "Multiple choice (Single select)"
+            text: "Multiple choice (Single select)",
+            textIsMarkdown: true,
         }, {
             value: 'checkbox',
-            text: "Multiple choice (Multiple select)"
+            text: "Multiple choice (Multiple select)",
+            textIsMarkdown: true,
         }, {
             value: 'select',
             text: "Single select (dropdown)"

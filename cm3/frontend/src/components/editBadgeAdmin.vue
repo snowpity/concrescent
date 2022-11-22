@@ -53,7 +53,8 @@
                     </v-expansion-panel>
                 </v-expansion-panels>
 
-                <subBadgeListEditor v-model="model.subbadges" />
+                <subBadgeListEditor v-if="isGroupApp"
+                                    v-model="model.subbadges" />
 
                 <v-row>
                     <v-col cols="12"

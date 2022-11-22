@@ -34,10 +34,18 @@ Vue.use(mdRenderer, {
 });
 
 
-//Phat editor:
-import mavonEditor from 'md-editor2'
-import 'md-editor2/dist/css/index.css'
-Vue.use(mavonEditor)
+//Phat editor, creates the component v-md-editor
+import VueMarkdownEditor from '@kangc/v-md-editor';
+import '@kangc/v-md-editor/lib/style/base-editor.css';
+import kancenUS from '@kangc/v-md-editor/lib/lang/en-US';
+VueMarkdownEditor.lang.use('en-US', kancenUS);
+import vuepressTheme from '@kangc/v-md-editor/lib/theme/vuepress.js';
+VueMarkdownEditor.use(vuepressTheme, {
+    config: {
+        'disabled-menus': ['save', 'toc']
+    }
+});
+Vue.use(VueMarkdownEditor)
 
 Vue.config.productionTip = false
 Vue.filter('currency', currency)

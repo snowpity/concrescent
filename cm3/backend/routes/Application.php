@@ -63,6 +63,25 @@ return function (App $app, $container) {
             $app->delete('/{id}', \CM3_Lib\Action\Application\SubmissionApplicant\Delete::class)
             ->add($gpAsign->withAllowedPerm(PermGroup::Submission_Edit()));
         },
+        '/Applicant' => function (RouteCollectorProxy $app) use ($groupPerm) {
+            $gpAsign =$groupPerm->withAllowedPerm(PermGroup::Submission_ReviewAssign());
+            $app->get('', \CM3_Lib\Action\Application\SubmissionApplicant\Search::class)
+            ->add($gpAsign->withAllowedPerms(array(
+                PermGroup::Submission_View(),
+                PermGroup::Submission_Edit()
+            )));
+            $app->post('', \CM3_Lib\Action\Application\SubmissionApplicant\Create::class)
+            ->add($gpAsign->withAllowedPerm(PermGroup::Submission_Edit()));
+            $app->get('/{id}', \CM3_Lib\Action\Application\SubmissionApplicant\Read::class)
+            ->add($gpAsign->withAllowedPerms(array(
+                PermGroup::Submission_View(),
+                PermGroup::Submission_Edit()
+            )));
+            $app->post('/{id}', \CM3_Lib\Action\Application\SubmissionApplicant\Update::class)
+            ->add($gpAsign->withAllowedPerm(PermGroup::Submission_Edit()));
+            $app->delete('/{id}', \CM3_Lib\Action\Application\SubmissionApplicant\Delete::class)
+            ->add($gpAsign->withAllowedPerm(PermGroup::Submission_Edit()));
+        },
         '/Submission/{application_id}/Assignment' => function (RouteCollectorProxy $app) use ($groupPerm) {
             $gpAsign = $groupPerm->withAllowedPerm(PermGroup::Submission_ReviewAssign());
             $app->get('', \CM3_Lib\Action\Application\Assignment\Search::class)

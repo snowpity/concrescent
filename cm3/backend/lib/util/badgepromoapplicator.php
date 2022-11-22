@@ -77,6 +77,9 @@ final class badgepromoapplicator
                     $foundCode['used'] = $usedCounts[0]['UsedQuantity'];
                 }
             }
+            //Make the dates DateTime objects
+            $foundCode['start_date'] = new \DateTime(is_null($foundCode['start_date']) ? '1970-01-01' : $foundCode['start_date']);
+            $foundCode['end_date'] = new \DateTime(is_null($foundCode['end_date']) ? '2099-01-01' : $foundCode['end_date']);
             $this->loadedPromoCode[$group][$code] = $foundCode;
             return true;
         } else {
@@ -86,7 +89,7 @@ final class badgepromoapplicator
         }
     }
 
-    public function TryApplyCode(&$item, $code): bool
+    public function TryApplyCode(&$item, $code, bool $skipDateCheck = false): bool
     {
         if (!empty($code)) {
             $code = strtoupper($code);
@@ -105,11 +108,11 @@ final class badgepromoapplicator
             if (!$this->LoadCode($code, $group)) {
                 if (isset($item['payment_promo_code']) && $code != $item['payment_promo_code']) {
                     //Re-apply the one they theoretically have already
-                    $this->TryApplyCode($item, $item['payment_promo_code']);
-                } else {
+                    return $this->TryApplyCode($item, $item['payment_promo_code'], true);
+                } elseif (empty($item['payment_promo_code'])) {
                     $this->resetCode($item);
                 }
-                return false;
+                return !empty($item['payment_promo_code']);
             }
 
             //Does this badge apply?
@@ -118,15 +121,31 @@ final class badgepromoapplicator
                 && count($this->applicableIDs[$group][$code])>0) {
                 if (isset($item['payment_promo_code']) && $code != $item['payment_promo_code']) {
                     //Re-apply the one they theoretically have already
-                    $this->TryApplyCode($item, $item['payment_promo_code']);
-                } else {
+                    return $this->TryApplyCode($item, $item['payment_promo_code'], true);
+                } elseif (empty($item['payment_promo_code'])) {
                     $this->resetCode($item);
                 }
-                return false;
+                return !empty($item['payment_promo_code']);
             }
 
             //Initial quote
             $promo_code = $this->loadedPromoCode[$group][$code];
+
+            //Are we still in the applicable timeframe for this?
+            $now = new \DateTime();
+            if (!$skipDateCheck) {
+                if (
+                !($promo_code['start_date'] <= $now && $now <= $promo_code['end_date'])
+                && count($this->applicableIDs[$group][$code])>0) {
+                    if (isset($item['payment_promo_code']) && $code != $item['payment_promo_code']) {
+                        //Re-apply the one they theoretically have already
+                        return $this->TryApplyCode($item, $item['payment_promo_code'], true);
+                    } elseif (empty($item['payment_promo_code'])) {
+                        $this->resetCode($item);
+                    }
+                    return !empty($item['payment_promo_code']);
+                }
+            }
         } else {
             $promo_code = array(
                 'code'=>null,

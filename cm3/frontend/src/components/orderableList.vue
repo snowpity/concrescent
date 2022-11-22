@@ -38,6 +38,16 @@
                @click="doEmit(action.name)"
                class="ma-2">{{action.text}}</v-btn>
     </template>
+    <!--courtesy https://gist.github.com/loilo/73c55ed04917ecf5d682ec70a2a1b8e2 -->
+    <slot v-for="(_, name) in $slots"
+          :name="name"
+          :slot="name" />
+    <template v-for="(_, name) in $scopedSlots"
+              :slot="name"
+              slot-scope="slotData">
+        <slot :name="name"
+              v-bind="slotData" />
+    </template>
 </v-data-table>
 </template>
 

@@ -104,6 +104,19 @@ return function (App $app, $container) {
                 PermEvent::Attendee_Refund()
             )));
         },
+        '/PromoCode' => function (RouteCollectorProxy $app) use ($attendeePerm) {
+            $atManage = $attendeePerm->withAllowedPerm(PermEvent::Attendee_Manage());
+            $app->get('', \CM3_Lib\Action\Attendee\PromoCode\Search::class)
+            ->add($attendeePerm);
+            $app->post('', \CM3_Lib\Action\Attendee\PromoCode\Create::class)
+            ->add($atManage);
+            $app->get('/{id}', \CM3_Lib\Action\Attendee\PromoCode\Read::class)
+            ->add($attendeePerm);
+            $app->post('/{id}', \CM3_Lib\Action\Attendee\PromoCode\Update::class)
+            ->add($atManage);
+            $app->delete('/{id}', \CM3_Lib\Action\Attendee\PromoCode\Delete::class)
+            ->add($atManage);
+        },
     );
 
     $app->group(
