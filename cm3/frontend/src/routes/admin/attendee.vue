@@ -3,7 +3,7 @@
               touchless>
     <v-tab-item key="0">
         <badgeSearchList apiPath="Attendee/Badge"
-                         context="A"
+                         context_code="A"
                          :AddHeaders="listAddHeaders"
                          :RemoveHeaders="listRemoveHeaders"
                          :isEditingItem="bEdit || bPrint"

@@ -46,7 +46,7 @@ final class Update
         }
 
         //combine the values back to a string
-        if (is_array($data['values'])) {
+        if (isset($data['values']) && is_array($data['values'])) {
             $data['values'] = implode("\n", $data['values']);
         }
 

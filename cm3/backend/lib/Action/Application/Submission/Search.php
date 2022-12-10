@@ -76,9 +76,20 @@ final class Search
 
         $pg = $this->badgeinfo->parseQueryParamsPagination($qp, defaultSortDesc:true);
         $totalRows = 0;
-        // Invoke the Domain with inputs and retain the result
-        $data = $this->badgeinfo->SearchGroupApplicationsText($params['context_code'], $find, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
 
+        //Add in the questions requested
+        $questionIds = array_filter(explode(',', $qp['questions']??''), function ($v) {
+            return !empty($v);
+        });
+        // Invoke the Domain with inputs and retain the result
+        $data = $this->badgeinfo->SearchGroupApplicationsText($params['context_code'], $find, $pg['order'], $pg['limit'], $pg['offset'], $totalRows, $questionIds);
+        // if (count($questionIds)>0) {
+        //     $responses = $this->badgeinfo->GetFormResponses(array_column($data, 'id'), $params['context_code'], $questionIds);
+        //     //Add the responses into the data
+        //     foreach ($data as &$value) {
+        //         $value['form_responses'] = $responses[$value['id']];
+        //     }
+        // }
 
         $response = $response->withHeader('X-Total-Rows', (string)$totalRows);
 

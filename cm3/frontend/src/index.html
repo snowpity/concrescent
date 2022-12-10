@@ -19,11 +19,14 @@
     window.onload = function() {
       var app = document.getElementById("app");
       if (typeof app.dataset.app == "undefined") {
-        app.innerHTML = "Browser not supported, Please update and try again.";
-        // document.cookie = "L=; expires=31 Dec 2036 12:00:00 UTC; path=/";
-        // //Nope! Redirect to legacy app
-        // //TODO: Fick this to use the config value
-        // window.location.replace("/?legacy=true");
+        app.innerHTML = "Site has been updated, Please wait for refresh and try again.";
+        //Check if we've attempted to reload
+        if(window.location.hash.indexOf('attemptedReload') == -1){
+
+            window.location.replace(window.location.pathname + (window.location.hash || '?') + '&attemptedReload' );
+        } else {
+            app.innerHTML += " Alternatively, your browser might be out of date?";
+        }
 
       }
     }

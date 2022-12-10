@@ -45,8 +45,12 @@ final class Search
 
         $pg = $this->badgeinfo->parseQueryParamsPagination($qp, defaultSortDesc:true);
         $totalRows = 0;
+        //Add in the questions requested
+        $questionIds = array_filter(explode(',', $qp['questions']??''), function ($v) {
+            return !empty($v);
+        });
         // Invoke the Domain with inputs and retain the result
-        $data = $this->badgeinfo->SearchBadgesText('S', $find, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
+        $data = $this->badgeinfo->SearchBadgesText('S', $find, $pg['order'], $pg['limit'], $pg['offset'], $totalRows, $questionIds);
 
 
         $response = $response->withHeader('X-Total-Rows', (string)$totalRows);

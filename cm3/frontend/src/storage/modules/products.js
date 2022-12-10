@@ -104,6 +104,8 @@ const actions = {
     }) {
 
         return new Promise((resolve) => {
+            if (state.selectedEventId == null)
+                return reject('Unable to get context if the event ID is not known');
             //Load only if necessary
             if (!state.gotBadgeContexts) {
                 shop.getBadgeContexts(state.selectedEventId, contexts => {
@@ -128,6 +130,7 @@ const actions = {
             //Check that the desired context exists
             if (state.badgecontextselected == undefined)
                 return reject('Context Code not found');
+                return reject('Context Code not found:' + context_code);
             //Fetch all the things!
             await dispatch('getContextBadges', state.badgecontextselected.context_code);
             await dispatch('getContextQuestions', state.badgecontextselected.context_code);

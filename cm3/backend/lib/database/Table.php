@@ -396,7 +396,17 @@ abstract class Table
                 }
                 //Are we grouping this column?
                 if ($value->GroupBy) {
-                    $groupNames[] = $value->ColumnName;
+                    // TODO: May not be correct if we're using an EncapsulationFunction?
+                    $groupNames[] = (
+                        isset($value->JoinedTableAlias)
+                        ? '`' .$value->JoinedTableAlias.'`.'
+                        : (
+                            !is_null($initialTableAlias)
+                            ? '`' .$initialTableAlias.'`.'
+                            : $this->dbTableName().'.'
+                        )
+                    ).
+                        $value->ColumnName;
                 }
                 $selectParts .= ', ';
             } elseif (!is_null($value)) {
@@ -454,7 +464,9 @@ abstract class Table
 
                             //Are we grouping this column?
                             if ($value->GroupBy) {
-                                $joinSubQuerygroupNames[] = $value->ColumnName;
+                                // TODO: May not be correct if we're using an EncapsulationFunction?
+                                $joinSubQuerygroupNames[] = (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`.' : $join->Table->dbTableName() .'.').
+                                    $value->ColumnName;
                             }
                             $sqlBody .= ', ';
                         } else {
@@ -474,7 +486,7 @@ abstract class Table
                     if (count($joinSubQuerygroupNames)) {
                         $sqlBody .= ' GROUP BY ';
                         foreach ($joinSubQuerygroupNames as $value) {
-                            $sqlBody .= '`' . $value .'`, ';
+                            $sqlBody .=  $value .', ';
                         }
 
                         //Snip the trailing comma
@@ -620,14 +632,15 @@ abstract class Table
         }
 
         //Are we grouping?
+        $sqlGrouping = '';
         if (count($groupNames)) {
-            $sqlBody .= ' GROUP BY ';
+            $sqlGrouping .= ' GROUP BY ';
             foreach ($groupNames as $value) {
-                $sqlBody .= '`' . $value .'`, ';
+                $sqlGrouping .=  $value .', ';
             }
 
             //Snip the trailing comma
-            $sqlBody = substr($sqlBody, 0, -2);
+            $sqlGrouping = substr($sqlGrouping, 0, -2);
         }
 
         //Are we ordering?
@@ -656,7 +669,7 @@ abstract class Table
             $sqlOrdering .= ' OFFSET ' . $offset . ' ';
         }
 
-        $sqlText = $selectParts . $sqlBody . $sqlOrdering;
+        $sqlText = $selectParts . $sqlBody .$sqlGrouping . $sqlOrdering;
 
         if ($this->debugThrowBeforeSelect) {
             $errors[] = 'Throwing intentionally due to debugThrowBeforeSelect';
@@ -687,9 +700,20 @@ abstract class Table
         $resultCountStmt = false;
         if ($resultTotal !== null) {
             //Prepare the resultCountStmt since we asked for a count
-            $resultCountStmt = $this->cm_db->connection->prepare('Select count(*) ' . $sqlBody);
-            if (strlen($whereCodes) > 0) {
-                ( new \ReflectionMethod('mysqli_stmt', 'bind_param'))->invokeArgs($resultCountStmt, $whereData);
+            $resultCountSql = 'Select count(*) from ( select 1 ' . $sqlBody . $sqlGrouping . ' ) a';
+            $resultCountStmt = $this->cm_db->connection->prepare($resultCountSql);
+            if ($resultCountStmt !== false) {
+                if (strlen($whereCodes) > 0) {
+                    ( new \ReflectionMethod('mysqli_stmt', 'bind_param'))->invokeArgs($resultCountStmt, $whereData);
+                }
+            } else {
+                $this->checkAndThrowError(
+                    "Error while preparing statement to count total Search for $this->TableName.",
+                    array(
+                      'LastError: ' . print_r($this->cm_db->connection->error, true)
+                    ),
+                    $resultCountSql
+                );
             }
         }
 

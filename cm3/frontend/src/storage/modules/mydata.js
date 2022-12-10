@@ -64,7 +64,7 @@ const getters = {
         return state.permissions;
     },
     hasPerms: (state) => {
-        return state.permissions != null;
+        return state.permissions != null && state.permissions != undefined;
     },
     hasEventPerm: (state) => (permNames) => {
         if (state.permissions == null || state.permissions == undefined) return false;

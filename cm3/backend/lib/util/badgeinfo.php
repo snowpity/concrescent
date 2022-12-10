@@ -368,17 +368,29 @@ final class badgeinfo
         return $result;
     }
 
-    public function GetFormResponses($id, $context_code)
+    public function GetFormResponses($id, $context_code, $question_ids = null)
     {
         $data = $this->f_response->Search(
-            array('question_id','response'),
+            array('question_id','response',is_array($id) ? 'context_id' : null),
             array(
                 new SearchTerm('context_code', $context_code),
-                new SearchTerm('context_id', $id),
+                new SearchTerm('context_id', $id, is_array($id) ? 'IN' : '='),
+                is_null($question_ids) ? null : new SearchTerm('question_id', $question_ids, 'IN')
             )
         );
-        //Zip together the responses
-        return array_combine(array_column($data, 'question_id'), array_column($data, 'response'));
+        //Zip together the responses, if single context supplied
+        if (!is_array($id)) {
+            return array_combine(array_column($data, 'question_id'), array_column($data, 'response'));
+        } else {
+            $result = array_flip($id);
+            foreach ($result as $key => &$value) {
+                $data2 = array_filter($data, function ($item) use ($key) {
+                    return $item['context_id'] == $key;
+                });
+                $value = array_combine(array_column($data2, 'question_id'), array_column($data2, 'response'));
+            }
+            return $result;
+        }
     }
 
     public function SetFormResponses($id, $context_code, $responses)
@@ -583,7 +595,7 @@ final class badgeinfo
         return $this->addComputedColumns($result);
     }
 
-    public function SearchBadgesText($context, string $searchText, $order, $limit, $offset, &$totalRows)
+    public function SearchBadgesText($context, string $searchText, $order, $limit, $offset, &$totalRows, $includeFormQuestions = null)
     {
         $whereParts =
         empty($searchText) ? null :
@@ -602,14 +614,14 @@ final class badgeinfo
                     new SearchTerm('ice_email_address', '%' . $searchText . '%', 'LIKE', 'OR'),
                 )
             ));
-        $result = $this->SearchBadges($context, $whereParts, $order, $limit, $offset, $totalRows);
+        $result = $this->SearchBadges($context, $whereParts, $order, $limit, $offset, $totalRows, false, $includeFormQuestions);
         //If we got nothing, switch to a simpler search
         if (count($result) == 0) {
-            $result =  $this->SearchBadges($context, $wherePartsSimpler, $order, $limit, $offset, $totalRows);
+            $result =  $this->SearchBadges($context, $wherePartsSimpler, $order, $limit, $offset, $totalRows, false, $includeFormQuestions);
         }
         return $result;
     }
-    public function SearchGroupApplicationsText($context, string $searchText, $order, $limit, $offset, &$totalRows)
+    public function SearchGroupApplicationsText($context, string $searchText, $order, $limit, $offset, &$totalRows, $includeFormQuestions = null)
     {
         $whereParts =
         empty($searchText) ? null :
@@ -625,22 +637,22 @@ final class badgeinfo
                     new SearchTerm('fandom_name', '%' . $searchText . '%', 'LIKE', 'OR'),
                 )
             ));
-        $result = $this->SearchGroupApplications($context, $whereParts, $order, $limit, $offset, $totalRows);
+        $result = $this->SearchGroupApplications($context, $whereParts, $order, $limit, $offset, $totalRows, false, $includeFormQuestions);
         //If we got nothing, switch to a simpler search
         if (count($result) == 0) {
-            $result =  $this->SearchGroupApplications($context, $wherePartsSimpler, $order, $limit, $offset, $totalRows);
+            $result =  $this->SearchGroupApplications($context, $wherePartsSimpler, $order, $limit, $offset, $totalRows, false, $includeFormQuestions);
         }
         return $result;
     }
 
-    public function SearchBadges($context, $terms, ?array $order = null, int $limit = -1, int $offset = 0, &$totalRows = null, $full = false)
+    public function SearchBadges($context, $terms, ?array $order = null, int $limit = -1, int $offset = 0, &$totalRows = null, $full = false, $includeFormQuestions = null)
     {
         // Invoke the Domain with inputs and retain the result
         $trA = 0;
         $trG = 0;
         $trS = 0;
-        $a_bv = $this->badgeView($this->a_badge_type, 'A');
-        $s_bv = $this->staffBadgeView($this->s_badge_type, 'S');
+        $a_bv = $this->badgeView($this->a_badge_type, 'A', $includeFormQuestions);
+        $s_bv = $this->staffBadgeView($this->s_badge_type, 'S', $includeFormQuestions);
         $g_bv = $this->groupBadgeView();
         if ($full) {
             $this->MergeView($a_bv, $this->badgeViewFullAddAttendee());
@@ -743,10 +755,10 @@ final class badgeinfo
 
         return $result;
     }
-    public function SearchGroupApplications($context, $terms, ?array $order = null, int $limit = -1, int $offset = 0, &$totalRows = null, $full = false)
+    public function SearchGroupApplications($context, $terms, ?array $order = null, int $limit = -1, int $offset = 0, &$totalRows = null, $full = false, $includeFormQuestions = null)
     {
         // Invoke the Domain with inputs and retain the result
-        $g_bv = $this->groupApplicationBadgeView();
+        $g_bv = $this->groupApplicationBadgeView($includeFormQuestions);
         if ($full) {
             $this->MergeView($g_bv, $this->badgeViewFullAddGroup());
         }
@@ -990,9 +1002,9 @@ final class badgeinfo
         return $this->g_badge->GetByIDorUUID(null, $uuid, $view);
     }
 
-    public function badgeView($badgetype, $contextCode)
+    public function badgeView($badgetype, $contextCode, $includeFormQuestions = null)
     {
-        return new View(
+        $result = new View(
             array_merge(
                 $this->selectColumns,
                 array(
@@ -1018,11 +1030,42 @@ final class badgeinfo
                )
              )
         );
+
+        if (!empty($includeFormQuestions)) {
+            //Add join for the question results table
+            $result->Joins[] = new Join(
+                $this->f_response,
+                array(
+                new SearchTerm('context_code', $contextCode),
+                'context_id' => 'id'
+            ),
+                'LEFT',
+                alias:'FR'
+            );
+            //Make all the other columns group_by
+            foreach ($result->Columns as &$col) {
+                if ($col instanceof SelectColumn) {
+                    //Except if we have an EncapsulationFunction that doesn't have a ?
+                    if (is_null($col->EncapsulationFunction)
+                    || (!is_null($col->EncapsulationFunction) && strpos($col->EncapsulationFunction, '?') !== false)) {
+                        $col->GroupBy = true;
+                    }
+                } else {
+                    $col = new SelectColumn($col, true);
+                }
+            }
+
+            //Add in the extra questions asked for
+            foreach ($includeFormQuestions as $questionId) {
+                $result->Columns[] = new SelectColumn('response', false, 'MAX(CASE WHEN `FR`.`question_id` = ' . $questionId . ' THEN ? END)', 'form_responses[' . $questionId . ']', 'FR');
+            }
+        }
+        return $result;
     }
 
-    public function staffBadgeView($badgetype, $contextCode)
+    public function staffBadgeView($badgetype, $contextCode, $includeFormQuestions = null)
     {
-        return new View(
+        $result = new View(
             array_merge(
                 $this->selectColumns,
                 array(
@@ -1048,6 +1091,37 @@ final class badgeinfo
                )
              )
         );
+
+        if (!empty($includeFormQuestions)) {
+            //Add join for the question results table
+            $result->Joins[] = new Join(
+                $this->f_response,
+                array(
+                new SearchTerm('context_code', $contextCode),
+                'context_id' => 'id'
+            ),
+                'LEFT',
+                alias:'FR'
+            );
+            //Make all the other columns group_by
+            foreach ($result->Columns as &$col) {
+                if ($col instanceof SelectColumn) {
+                    //Except if we have an EncapsulationFunction that doesn't have a ?
+                    if (is_null($col->EncapsulationFunction)
+                    || (!is_null($col->EncapsulationFunction) && strpos($col->EncapsulationFunction, '?') !== false)) {
+                        $col->GroupBy = true;
+                    }
+                } else {
+                    $col = new SelectColumn($col, true);
+                }
+            }
+
+            //Add in the extra questions asked for
+            foreach ($includeFormQuestions as $questionId) {
+                $result->Columns[] = new SelectColumn('response', false, 'MAX(CASE WHEN `FR`.`question_id` = ' . $questionId . ' THEN ? END)', 'form_responses[' . $questionId . ']', 'FR');
+            }
+        }
+        return $result;
     }
     public function badgeViewFullAddAttendee()
     {
@@ -1127,9 +1201,9 @@ final class badgeinfo
         );
     }
 
-    public function groupApplicationBadgeView()
+    public function groupApplicationBadgeView($includeFormQuestions = null)
     {
-        return new View(
+        $result =  new View(
             array(
                 'id',
                 'uuid',
@@ -1166,6 +1240,33 @@ final class badgeinfo
                   )
                  )
         );
+
+        if (!empty($includeFormQuestions)) {
+            //Add join for the question results table
+            $result->Joins[] = new Join(
+                $this->f_response,
+                array(
+                'context_code' => new SearchTerm('context_code', '', JoinedTableAlias:'grp'),
+                'context_id' => 'id'
+            ),
+                'LEFT',
+                alias:'FR'
+            );
+            //Make all the other columns group_by
+            foreach ($result->Columns as &$col) {
+                if ($col instanceof SelectColumn) {
+                    $col->GroupBy = true;
+                } else {
+                    $col = new SelectColumn($col, true);
+                }
+            }
+
+            //Add in the extra questions asked for
+            foreach ($includeFormQuestions as $questionId) {
+                $result->Columns[] = new SelectColumn('response', false, 'MAX(CASE WHEN `FR`.`question_id` = ' . $questionId . ' THEN ? END)', 'form_responses[' . $questionId . ']', 'FR');
+            }
+        }
+        return $result;
     }
     public function badgeViewFullAddGroupApplication()
     {
@@ -1328,7 +1429,7 @@ final class badgeinfo
                     unset($newSubbadge['id']);//Just in case
                     $newSubbadge['application_id'] = $result['id'];
                     $newSubbadge['contact_id'] = $result['contact_id'];
-                    $newSubbadge['date_of_birth'] = $result['date_of_birth'] ?? '';
+                    $newSubbadge['date_of_birth'] = empty($newSubbadge['date_of_birth']) ? '1000-01-01' : $newSubbadge['date_of_birth'] ;
 
                     $newSubbadge['id'] = $this->g_badge->Create($newSubbadge)['id'];
                     //Tag this badge as new...?

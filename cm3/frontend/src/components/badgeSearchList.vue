@@ -10,12 +10,98 @@
               :search="searchText">
 
     <template v-slot:top="">
-        <v-text-field v-model="searchText"
-                      label="Search"
-                      clearable
-                      append-outer-icon="mdi-refresh"
-                      @click:append-outer="doSearch"
-                      class="mx-4"></v-text-field>
+        <v-container fluid>
+            <v-row style="flex-wrap: nowrap;"
+                   no-gutters>
+                <v-col cols="1"
+                       class="flex-grow-1 flex-shrink-0"
+                       style="min-width: 100px; max-width: 100%;">
+                    <v-text-field v-model="searchText"
+                                  label="Search"
+                                  clearable
+                                  append-outer-icon="mdi-refresh"
+                                  @click:append-outer="doSearch"
+                                  class="mx-4"></v-text-field>
+                </v-col>
+                <v-col cols="1">
+                    <v-dialog v-model="showConfig"
+                              scrollable>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn dark
+                                   v-bind="attrs"
+                                   v-on="on">
+                                <v-icon>mdi-cog</v-icon>
+                            </v-btn>
+                        </template>
+
+                        <v-card>
+                            <v-card-title class="text-h5 grey lighten-2">
+                                List configuration
+                            </v-card-title>
+                            <v-divider></v-divider>
+
+                            <v-card-text>
+
+                                <v-list subheader
+                                        two-line
+                                        flat>
+                                    <v-subheader>Displayed Form questions</v-subheader>
+                                </v-list>
+                                <v-expansion-panels accordion>
+
+                                    <v-expansion-panel v-for="item in questions"
+                                                       :key="item.id">
+
+                                        <v-expansion-panel-header>
+                                            <v-list-item>
+                                                <v-list-item-action @click.stop="">
+                                                    <v-checkbox :value="item"
+                                                                v-model="displayedQuestions"
+                                                                color="primary"></v-checkbox>
+                                                </v-list-item-action>
+
+                                                <v-list-item-content>
+                                                    <v-list-item-title>{{item.title}}</v-list-item-title>
+                                                    <v-list-item-subtitle></v-list-item-subtitle>
+                                                </v-list-item-content>
+                                            </v-list-item>
+
+                                        </v-expansion-panel-header>
+
+                                        <v-expansion-panel-content>
+                                            Filter options here
+                                            <v-list dense>
+                                                <v-list-item>
+                                                    <v-list-item-content>Order:</v-list-item-content>
+                                                    <v-list-item-content class="align-end">
+                                                        {{ item.order }}
+                                                    </v-list-item-content>
+                                                </v-list-item>
+                                            </v-list>
+                                        </v-expansion-panel-content>
+                                    </v-expansion-panel>
+                                </v-expansion-panels>
+
+
+
+
+
+                            </v-card-text>
+
+                            <v-divider></v-divider>
+
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn color="primary"
+                                       @click="showConfig = false">
+                                    Ok
+                                </v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-dialog>
+                </v-col>
+            </v-row>
+        </v-container>
     </template>
     <template v-slot:[`item.id`]="{ item }">
         {{item.context_code}}{{item.display_id}}
@@ -112,17 +198,18 @@ export default {
         },
         'isEditingItem': {
             type: Boolean
-        }
+        },
     },
     data() {
         return {
-
             searchText: "",
             loading: false,
+            showConfig: false,
             tableOptions: {},
             tableResults: [],
-            totalResults: 0
-
+            totalResults: 0,
+            questions: [],
+            displayedQuestions: []
         }
     },
     computed: {
@@ -163,6 +250,14 @@ export default {
             var inc = this.AddHeaders || [];
             var that = this;
             result = result.filter(item => !rmv.includes(item.value)).concat(inc);
+            //Add in any displayedQuestions
+            this.displayedQuestions.forEach((item, i) => {
+                result.push({
+                    text: item.title,
+                    value: 'form_responses[' + item.id + ']'
+                })
+            });
+
             //Ensure the "Actions" header is last
             var actionsIx = result.findIndex(item => item.value == 'uuid');
             if (actionsIx > -1)
@@ -180,6 +275,7 @@ export default {
                 'page',
                 'itemsPerPage'
             ].reduce((a, e) => (a[e] = this.tableOptions[e], a), {});
+            if (this.displayedQuestions.length) pageOptions['questions'] = this.displayedQuestions.map(x => x.id).join(',');
             if (this.searchText) pageOptions['find'] = this.searchText;
             if (this.context_code) pageOptions['context_code'] = this.context_code;
             admin.genericGetList(this.authToken, this.apiPath, pageOptions, (results, total) => {
@@ -190,6 +286,16 @@ export default {
         },
         doEmit: function(eventName, item) {
             this.$emit(eventName, item);
+        },
+        doRefreshQuestions: function() {
+            console.log('bsl refreshing questions', this.context_code);
+            admin.genericGetList(this.authToken, 'Form/Question/' + this.context_code, null, (results, total) => {
+                this.questions = results;
+
+                var initialQuestions = this.questions.filter(q => q.listed);
+                //TODO: Apply personal preferences
+                this.displayedQuestions = initialQuestions;
+            })
         }
     },
     watch: {
@@ -197,11 +303,15 @@ export default {
         searchText: debounce(function(newSearch) {
             this.doSearch();
         }, 500),
+        displayedQuestions: debounce(function(newSearch) {
+            this.doSearch();
+        }, 500),
         isEditingItem: debounce(function(newEditing) {
             if (!newEditing)
                 this.doSearch();
         }, 200),
         context_code: debounce(function(newCode) {
+            this.doRefreshQuestions();
             this.doSearch();
         }, 20),
         tableOptions: {
@@ -211,8 +321,12 @@ export default {
             deep: true,
         },
         apiPath() {
+            this.doRefreshQuestions();
             this.doSearch();
         }
+    },
+    mounted() {
+        this.doRefreshQuestions();
     }
 };
 </script>

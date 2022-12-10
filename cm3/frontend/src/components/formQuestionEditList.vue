@@ -41,7 +41,11 @@
                             </v-btn>
                             <v-btn icon
                                    @click="prepDestroyQuestion(ix)">
-                                <v-icon>mdi-trash</v-icon>
+                                <v-icon>mdi-delete</v-icon>
+                            </v-btn>
+                            <v-btn icon
+                                   @click="toggleQuestionListed(item.id)">
+                                <v-icon>mdi-table-eye{{bQuestionListed(item.id) ? '' : '-off'}}</v-icon>
                             </v-btn>
                             <v-spacer />
                             <i v-if="selectedBadgeType > 0">
@@ -251,6 +255,9 @@ export default {
             if (this.selectedBadgeType == 0) return true;
             return this.questionMap.find(item => item.question_id == id) != undefined;
         },
+        bQuestionListed: function(id) {
+            return this.questions.find(item => item.id == id).listed > 0;
+        },
         toggleQuestionActive: function(id) {
             if (this.bQuestionActive(id)) {
                 //Active, make it not so!
@@ -270,6 +277,21 @@ export default {
                 })
             }
 
+        },
+        toggleQuestionListed: function(id) {
+            var q = this.questions.findIndex(item => item.id == id);
+            console.log("toggle listed", q)
+            var question = this.questions[q];
+            question.listed = question.listed == 0 ? 1 : 0;
+            admin.genericPost(this.authToken, 'Form/Question/' + this.context_code + '/' + id, {
+                id: id,
+                listed: question.listed
+            }, (result) => {
+                //Update the state in the quetsions and editedQuestions
+                this.$set(this.questions, q, question);
+                console.log('edited question', this.editedQuestions[id])
+                this.editedQuestions[id].question.listed = question.listed;
+            })
         },
         toggleQuestionRequired: function(id) {
             console.log("toggle required", this.questionMap.find(item => item.question_id == id))
