@@ -45,21 +45,24 @@ final class Update
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
+        $qp = $request->getQueryParams();
         $data['id'] = $params['id'];
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->badgeinfo->UpdateSpecificGroupApplicationUnchecked($params['id'], $params['context_code'], $data);
+        if (isset($qp['sendupdate']) && $qp['sendupdate'] == 'true') {
 
-        //TODO: Use the notification framework for this...
-        $badge = $this->badgeinfo->getASpecificGroupApplication($data['id'] ?? 0, $params['context_code'], true);
-        $to = $this->CurrentUserInfo->GetContactEmail($badge['contact_id']);
-        $template = $params['context_code'] . '-application-' .$badge['application_status'];
-        try {
-            //Attempt to send mail
-            $data['sentUpdate'] =  $this->Mail->SendTemplate($to, $template, $badge, null);
-        } catch (\Exception $e) {
-            //Oops, couldn't send. Oh well?
-            $data['sentUpdate'] = false;
+            //TODO: Use the notification framework for this...
+            $badge = $this->badgeinfo->getASpecificGroupApplication($data['id'] ?? 0, $params['context_code'], true);
+            $to = $this->CurrentUserInfo->GetContactEmail($badge['contact_id']);
+            $template = $params['context_code'] . '-application-' .$badge['application_status'];
+            try {
+                //Attempt to send mail
+                $data['sentUpdate'] =  $this->Mail->SendTemplate($to, $template, $badge, null);
+            } catch (\Exception $e) {
+                //Oops, couldn't send. Oh well?
+                $data['sentUpdate'] = false;
+            }
         }
 
         // Build the HTTP response

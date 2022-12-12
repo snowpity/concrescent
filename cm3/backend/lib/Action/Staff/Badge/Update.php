@@ -41,22 +41,24 @@ final class Update
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
+        $qp = $request->getQueryParams();
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->badgeinfo->UpdateSpecificBadgeUnchecked($params['id'], 'S', $data);
 
-        //TODO: Use the notification framework for this...
-        $badge = $this->badgeinfo->getSpecificBadge($data['id'], 'S', true);
-        $to = $this->CurrentUserInfo->GetContactEmail($badge['contact_id']);
-        $template = 'S' . '-application-' .$badge['application_status'];
-        try {
-            //Attempt to send mail
-            $data['sentUpdate'] =  $this->Mail->SendTemplate($to, $template, $badge, $badge['notify_email']);
-        } catch (\Exception $e) {
-            //Oops, couldn't send. Oh well?
-            $data['sentUpdate'] = false;
+        if (isset($qp['sendupdate']) && $qp['sendupdate'] == 'true') {
+            //TODO: Use the notification framework for this...
+            $badge = $this->badgeinfo->getSpecificBadge($data['id'], 'S', true);
+            $to = $this->CurrentUserInfo->GetContactEmail($badge['contact_id']);
+            $template = 'S' . '-application-' .$badge['application_status'];
+            try {
+                //Attempt to send mail
+                $data['sentUpdate'] =  $this->Mail->SendTemplate($to, $template, $badge, $badge['notify_email']);
+            } catch (\Exception $e) {
+                //Oops, couldn't send. Oh well?
+                $data['sentUpdate'] = false;
+            }
         }
-
 
         // Build the HTTP response
         return $this->responder

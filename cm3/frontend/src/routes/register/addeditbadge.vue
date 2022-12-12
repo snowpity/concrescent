@@ -692,7 +692,18 @@ export default {
 
             //refresh the current context data
             console.log('Selecting context ' + this.context_code);
-            await this.$store.dispatch('products/selectContext', this.context_code);
+            try {
+                await this.$store.dispatch('products/getEventInfo');
+                await this.$store.dispatch('products/selectContext', this.context_code);
+
+            } catch (e) {
+                console.log('Selecting context ' + this.context_code + ' failed, waiting for a moment');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                await this.$store.dispatch('products/getEventInfo');
+                await this.$store.dispatch('products/selectContext', this.context_code);
+            } finally {
+
+            }
 
         },
         resetBadge() {
