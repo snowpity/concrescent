@@ -23,7 +23,10 @@
         //Check if we've attempted to reload
         if(window.location.hash.indexOf('attemptedReload') == -1){
 
-            window.location.replace(window.location.pathname + (window.location.hash || '?') + '&attemptedReload' );
+            setTimeout(() =>
+            {
+                 window.location.replace(window.location.pathname + (window.location.hash || '?') + '&attemptedReload' );
+            }, 5000);
         } else {
             app.innerHTML += " Alternatively, your browser might be out of date?";
         }

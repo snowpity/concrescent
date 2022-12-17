@@ -81,11 +81,16 @@ return function (App $app, $container) {
 
     $app->group(
         '/Staff',
-        function (RouteCollectorProxy $app) use ($r) {
+        function (RouteCollectorProxy $app) use ($r, $container) {
             //Add all the sub-routes
             foreach ($r as $route => $definition) {
                 $app->group($route, $definition);
             }
+            //Special route for the Org Chart
+            $app->get('/OrgChart', \CM3_Lib\Action\Staff\OrgChart::class)
+            ->add($container->get(PermCheckEventPerm::class)->withAllowedPerms([
+                PermEvent::Staff_View()
+            ]));
         }
     );
 };

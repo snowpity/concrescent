@@ -135,6 +135,52 @@
         </v-dialog>
     </v-tab-item>
 
+    <v-tab-item key="4">
+        <v-container>
+            <v-treeview :items="OrgChart"
+                        open-on-click>
+
+                <template v-slot:prepend="{ item, open }">
+                    <v-icon v-if="item.type!='staff'">
+                        {{ open ? 'mdi-account-supervisor-circle' : 'mdi-account-supervisor-circle-outline' }}
+                    </v-icon>
+                    <v-icon v-else-if="item.is_exec == 1">
+                        mdi-crown
+                    </v-icon>
+                    <v-icon v-else>
+                        mdi-account-circle
+                    </v-icon>
+                </template>
+                <template v-slot:label="{ item }">
+                    <b v-if="item.type!='staff'">
+                        {{item.name}}
+                    </b>
+                    <v-container v-else>
+
+                        <v-row>
+                            <v-col>
+                                {{item.real_name}}
+                            </v-col>
+                            <v-col>
+                                {{item.fandom_name}}
+                            </v-col>
+                            <v-col>
+                                {{item.application_status}}
+                            </v-col>
+                        </v-row>
+
+                    </v-container>
+                </template>
+                <template v-slot:append="{ item }">
+                    <v-btn v-if="item.type=='staff'">
+                        view
+                    </v-btn>
+
+                </template>
+            </v-treeview>
+        </v-container>
+    </v-tab-item>
+
     <v-dialog v-model="loading"
               width="200"
               height="200"
@@ -225,6 +271,8 @@ export default {
         }],
         dDialog: false,
         dSelected: {},
+
+        OrgChart: [],
 
         loading: false,
         createError: '',
@@ -373,6 +421,13 @@ export default {
                 that.loading = false;
             })
         },
+        getOrgChart: function() {
+            this.loading = true;
+            admin.genericGetList(this.authToken, "Staff/OrgChart", null, (results, total) => {
+                this.OrgChart = results;
+                this.loading = false;
+            })
+        },
     },
     watch: {
         $route() {
@@ -381,6 +436,10 @@ export default {
         bSelected(newBadgeData) {
             this.bModified = true;
         },
+        subTabIx(tabIx) {
+            if (tabIx == "4")
+                this.getOrgChart();
+        }
     },
     created() {
         this.checkPermission();
