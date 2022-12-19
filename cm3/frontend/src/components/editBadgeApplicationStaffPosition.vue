@@ -196,6 +196,9 @@ export default {
         value(newValue) {
             //TODO: Retrieve position meta and add to the assigned_positions array if it doesn't exist
             console.log('got new value', newValue);
+            //set the form state
+            this.staff_step = newValue.length > 0 ? 3 : 1;
+
             this.skipEmitOnce = true;
             this.assigned_positions = newValue;
         },

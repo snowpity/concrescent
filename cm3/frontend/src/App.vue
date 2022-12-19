@@ -216,6 +216,13 @@ export default {
                         return this.hasEventPerm('Staff_View');
                     }
                 }, {
+                    route: "/Admin/OrgChart",
+                    icon: "mdi-domain",
+                    label: "Org Chart",
+                    show: () => {
+                        return true; //return this.hasEventPerm('Badge_Stats');
+                    }
+                }, {
                     route: "/Admin/Badge_Stats",
                     icon: "mdi-chart-bell-curve-cumulative",
                     label: "Badge Stats",

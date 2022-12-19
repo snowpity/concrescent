@@ -294,7 +294,7 @@ export default {
             validGenInfo: false,
             validContactInfo: false,
             validAdditionalInfo: false,
-            sendUpdate: true,
+            sendUpdate: false,
             model: {
                 cartIx: -1,
                 id: -1, // Attendee's ID, not the badgeType
@@ -683,6 +683,14 @@ export default {
             },
             deep: true
         },
+        newApplication_status(newStatus) {
+            if (newStatus != null)
+                this.sendUpdate = true;
+        },
+        'model.assigned_positions': function(newPositions) {
+            if (newPositions != null)
+                this.sendUpdate = true;
+        },
     },
     methods: {
 
@@ -738,6 +746,10 @@ export default {
                 //     _this.model.addonsSelected = addons.map(addon => addon['addon_id']);
                 //
                 // }, 1200);
+
+                //Also reset the Review form
+                this.newApplication_status = null;
+                this.sendUpdate = false;
             }
 
 

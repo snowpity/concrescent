@@ -114,21 +114,76 @@ final class OrgChart
         //Set all the assigned positions into the actual positions
         foreach ($assignedpositions as $value) {
             $value['type'] = 'staff';
+            $value['tid'] = 's'.$value['staff_id'].'p'.$value['position_id'];
             $positions[$value['position_id']]['children'][] = $value;
         }
         //Set all the positions into their departments
         foreach ($positions as $value) {
             $value['type'] = 'position';
+            $value['tid'] = 'p'.$value['id'];
             $departments[$value['department_id']]['children'][] = $value;
         }
         //Set all the sub-departments into their parent departments
-        foreach ($departments as $value) {
+        foreach ($departments as &$value) {
             $value['type'] = 'department';
+            $value['tid'] = 'd'.$value['id'];
             if ($value['parent_id'] != null) {
-                $departments[$value['parent_id']]['children'][] = $value;
+                $departments[$value['parent_id']]['children'][] = &$value;
             }
         }
 
+        //Effect the sorts on the departments' childrens
+        foreach ($departments as &$value) {
+            usort($value['children'], function ($a, $b) {
+                switch ($a['type']) {
+                    case 'staff':
+                    {
+                        switch ($b['type']) {
+                            case 'staff':
+                                //Staff-staff just compare real_name
+                                return strcmp($a["real_name"], $b["real_name"]);
+                            case 'position':
+                            case 'department':
+                            //Staff-position/department always below
+                                return 1;
+
+                        }
+                    }
+                    break;
+                    case 'position':
+                    {
+                        switch ($b['type']) {
+                            case 'position':
+                                //position-position just compare exec status, execs first
+                                return -1 * ($a["is_exec"] <=> $b["is_exec"]);
+                            case 'staff':
+                                return -1;
+                            case 'department':
+                                return 1;
+
+                        }
+                    }
+                    break;
+                    case 'department':
+                    {
+                        switch ($b['type']) {
+                            case 'department':
+                                //position-position just compare exec status, execs first
+                                return $a["display_order"] <=> $b["display_order"];
+                            case 'staff':
+                            case 'position':
+                                //department-Staff/position always below
+                                return -1;
+
+                        }
+                    }
+                    break;
+                }
+            });
+        }
+        // usort($departments, function ($a, $b) {
+        //     return $a["display_order"] <=> $b["display_order"];
+        // });
         //Finally, make out the result
         $result = array_values(array_filter($departments, function ($item) {
             return is_null($item['parent_id']);

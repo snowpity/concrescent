@@ -64,6 +64,15 @@ const result = [{
         component: () => import( /* webpackChunkName: "admin_staff" */ './routes/admin/staff.vue'),
     },
     {
+        path: 'OrgChart',
+        name: 'OrgChart',
+        meta: {
+            title: 'Organization Chart',
+
+        },
+        component: () => import( /* webpackChunkName: "admin_orgchart" */ './routes/admin/orgchart.vue'),
+    },
+    {
         path: 'Users',
         name: 'Users',
         meta: {

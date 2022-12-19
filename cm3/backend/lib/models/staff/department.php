@@ -27,7 +27,7 @@ class department extends \CM3_Lib\database\Table
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
-        $this->DefaultSearchColumns = array('id','parent_id','name','email_primary');
+        $this->DefaultSearchColumns = array('id','parent_id','display_order','name','email_primary');
     }
 
     public function verifyDepartmentBelongsToEvent(int $id, int $event_id)
