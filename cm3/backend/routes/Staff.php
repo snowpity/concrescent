@@ -88,9 +88,7 @@ return function (App $app, $container) {
             }
             //Special route for the Org Chart
             $app->get('/OrgChart', \CM3_Lib\Action\Staff\OrgChart::class)
-            ->add($container->get(PermCheckEventPerm::class)->withAllowedPerms([
-                PermEvent::Staff_View()
-            ]));
+            ->add($container->get(PermCheckEventPerm::class));
         }
     );
 };

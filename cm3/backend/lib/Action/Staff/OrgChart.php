@@ -16,6 +16,7 @@ use CM3_Lib\models\contact as contact;
 
 use CM3_Lib\util\CurrentUserInfo;
 use CM3_Lib\util\badgeinfo;
+use CM3_Lib\util\PermEvent;
 
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
@@ -60,44 +61,53 @@ final class OrgChart
         $event_id = $request->getAttribute('event_id');
 
         //Grab the departments, positions, and staff assigned to those positions
-        $departments = $this->s_department->Search(array(), [new SearchTerm('event_id', $event_id)]);
+        $departments = $this->s_department->Search(array('id','parent_id','display_order','name','email_primary','email_secondary' ,'description' ), [new SearchTerm('event_id', $event_id)]);
         $positions = $this->s_position->Search(array('id','department_id','name','is_exec','description','desired_count'), [new SearchTerm('active', 1)]);
-        $assignedpositions = $this->s_assignedposition->Search(
-            new View(array(
-                new SelectColumn('position_id'),
-                new SelectColumn('staff_id'),
-                new SelectColumn('display_id', JoinedTableAlias:'s'),
-                new SelectColumn('real_name', JoinedTableAlias:'s'),
-                new SelectColumn('fandom_name', JoinedTableAlias:'s'),
-                new SelectColumn('name_on_badge', JoinedTableAlias:'s'),
-                new SelectColumn('application_status', JoinedTableAlias:'s'),
-                new SelectColumn('application_status', JoinedTableAlias:'s'),
-                new SelectColumn('name', Alias:'Position_Name', JoinedTableAlias:'p'),
-                new SelectColumn('description', Alias:'Position_Descrioption', JoinedTableAlias:'p'),
-                new SelectColumn('onboard_completed'),
-                new SelectColumn('onboard_meta'),
-            ), array(
-                //Link the department and position stuff
-                new Join($this->s_position, array(
-                    'id' => 'position_id',
-                      new SearchTerm('active', 1),
-                ), alias: 'p'),
-                new Join($this->s_department, array(
-                    'id' => new SearchTerm('id', 'position_id', JoinedTableAlias:'p'),
-                      new SearchTerm('event_id', $event_id),
-                      new SearchTerm('active', 1),
-                ), alias: 'd'),
-                //And now the staff badge stuff
-                new Join($this->s_badge, array(
-                    'id' => 'staff_id',
-                      new SearchTerm('application_status', array(
-                          'PendingAcceptance','Onboarding','Active'
-                      ), 'IN'),
-                ), alias: 's'),
-            ))
-        );
+        $staffView = new View(array(
+            new SelectColumn('position_id'),
+            new SelectColumn('staff_id'),
+            new SelectColumn('display_id', JoinedTableAlias:'s'),
+            new SelectColumn('real_name', JoinedTableAlias:'s'),
+            new SelectColumn('fandom_name', JoinedTableAlias:'s'),
+            new SelectColumn('name_on_badge', JoinedTableAlias:'s'),
+            new SelectColumn('application_status', JoinedTableAlias:'s'),
+            new SelectColumn('application_status', JoinedTableAlias:'s'),
+            new SelectColumn('name', Alias:'Position_Name', JoinedTableAlias:'p'),
+            new SelectColumn('is_exec', JoinedTableAlias:'p'),
+            new SelectColumn('description', Alias:'Position_Description', JoinedTableAlias:'p'),
+            new SelectColumn('onboard_completed'),
+            new SelectColumn('onboard_meta'),
+        ), array(
+            //Link the department and position stuff
+            new Join($this->s_position, array(
+                'id' => 'position_id',
+                new SearchTerm('active', 1),
+            ), alias: 'p'),
+            new Join($this->s_department, array(
+                'id' => new SearchTerm('department_id', 'id', JoinedTableAlias:'p'),
+                new SearchTerm('event_id', $event_id),
+                new SearchTerm('active', 1),
+            ), alias: 'd'),
+            //And now the staff badge stuff
+            new Join($this->s_badge, array(
+                'id' => 'staff_id',
+                new SearchTerm('application_status', array(
+                    'PendingAcceptance','Onboarding','Active'
+                ), 'IN'),
+            ), alias: 's'),
+        ));
+        //Do we have contact permissions?
+        if ($this->CurrentUserInfo->hasEventPerm(PermEvent::Contact_Full)) {
+            $staffView->Columns[] = new SelectColumn('email_address', JoinedTableAlias:'c');
+            $staffView->Columns[] = new SelectColumn('phone_number', JoinedTableAlias:'c');
 
-        //TODO: If current user has contact info reading privs...
+            $staffView->Joins[] =new Join($this->contact, array(
+                'id' => new SearchTerm('contact_id', 'id', JoinedTableAlias:'s'),
+            ), alias: 'c');
+        }
+        //$this->s_assignedposition->debugThrowBeforeSelect = true;
+        $assignedpositions = $this->s_assignedposition->Search($staffView);
+
 
 
         //First, index the departments
