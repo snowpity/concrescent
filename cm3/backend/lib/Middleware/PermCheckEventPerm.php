@@ -40,7 +40,13 @@ class PermCheckEventPerm
                 $hasPerm |= $perms->EventPerms->getValue() & $value->getValue();
             }
         }
-        if (!$hasPerm && !$perms->EventPerms->isGlobalAdmin()) {
+        //Check if we don't have any required perms (and thus only require basic event perms)
+        if (count($this->AllowedPerms) == 0) {
+            $hasPerm = true;
+        }
+        if (!$hasPerm
+            && !$perms->EventPerms->isGlobalAdmin()
+            && !$perms->EventPerms->isEventAdmin()) {
             throw new HttpUnauthorizedException($request, 'Not accessible with current permissions');
         }
         return  $handler->handle($request);

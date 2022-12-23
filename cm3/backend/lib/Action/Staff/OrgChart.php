@@ -62,7 +62,15 @@ final class OrgChart
 
         //Grab the departments, positions, and staff assigned to those positions
         $departments = $this->s_department->Search(array('id','parent_id','display_order','name','email_primary','email_secondary' ,'description' ), [new SearchTerm('event_id', $event_id)]);
-        $positions = $this->s_position->Search(array('id','department_id','name','is_exec','description','desired_count'), [new SearchTerm('active', 1)]);
+        $positions = $this->s_position->Search(new View(
+            array('id','department_id','name','is_exec','description','desired_count'),
+            array(
+                new Join($this->s_department, array(
+                'id' => 'department_id',
+                new SearchTerm('event_id', $event_id),
+                new SearchTerm('active', 1),
+            ), alias: 'd'),)
+        ), [new SearchTerm('active', 1)]);
         $staffView = new View(array(
             new SelectColumn('position_id'),
             new SelectColumn('staff_id'),
@@ -109,7 +117,6 @@ final class OrgChart
         $assignedpositions = $this->s_assignedposition->Search($staffView);
 
 
-
         //First, index the departments
         $departments = array_combine(
             array_column($departments, 'id'),
@@ -122,23 +129,23 @@ final class OrgChart
         );
 
         //Set all the assigned positions into the actual positions
-        foreach ($assignedpositions as $value) {
-            $value['type'] = 'staff';
-            $value['tid'] = 's'.$value['staff_id'].'p'.$value['position_id'];
-            $positions[$value['position_id']]['children'][] = $value;
+        foreach ($assignedpositions as $avalue) {
+            $avalue['type'] = 'staff';
+            $avalue['tid'] = 's'.$avalue['staff_id'].'p'.$avalue['position_id'];
+            $positions[$avalue['position_id']]['children'][] = $avalue;
         }
         //Set all the positions into their departments
-        foreach ($positions as $value) {
-            $value['type'] = 'position';
-            $value['tid'] = 'p'.$value['id'];
-            $departments[$value['department_id']]['children'][] = $value;
+        foreach ($positions as $pvalue) {
+            $pvalue['type'] = 'position';
+            $pvalue['tid'] = 'p'.$pvalue['id'];
+            $departments[$pvalue['department_id']]['children'][] = $pvalue;
         }
         //Set all the sub-departments into their parent departments
-        foreach ($departments as &$value) {
-            $value['type'] = 'department';
-            $value['tid'] = 'd'.$value['id'];
-            if ($value['parent_id'] != null) {
-                $departments[$value['parent_id']]['children'][] = &$value;
+        foreach ($departments as &$dvalue) {
+            $dvalue['type'] = 'department';
+            $dvalue['tid'] = 'd'.$dvalue['id'];
+            if ($dvalue['parent_id'] != null) {
+                $departments[$dvalue['parent_id']]['children'][] = &$dvalue;
             }
         }
 

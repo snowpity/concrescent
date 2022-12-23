@@ -80,6 +80,14 @@ const result = [{
         },
         component: () => import( /* webpackChunkName: "admin_users" */ './routes/admin/users.vue'),
     },
+    {
+        path: 'System',
+        name: 'System',
+        meta: {
+            title: 'System',
+        },
+        component: () => import( /* webpackChunkName: "admin_system" */ './routes/admin/system.vue'),
+    },
     // {
     //   path: '/Printing',
     //   name: 'Printing',
