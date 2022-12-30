@@ -1,63 +1,57 @@
 <template>
-<v-tabs-items :value="subTabIx"
-              touchless>
+<v-card>
+    <v-btn>Show All</v-btn>
+    <v-treeview :items="OrgChart"
+                item-key="tid"
+                :open.sync="OrgChartOpened"
+                dense
+                open-on-click>
 
-    <v-tab-item key="0">
-        <v-container>
-            <v-btn>Show All</v-btn>
-            <v-treeview :items="OrgChart"
-                        item-key="tid"
-                        :open.sync="OrgChartOpened"
-                        dense
-                        open-on-click>
+        <template v-slot:prepend="{ item, open }">
+            <v-icon v-if="item.type=='department'">
+                {{ open ? 'mdi-account-group' : 'mdi-account-group-outline' }}
+            </v-icon>
+            <v-icon v-else-if="item.type=='position'">
+                {{ open ? 'mdi-account-supervisor-circle' : 'mdi-account-supervisor-circle-outline' }}
+            </v-icon>
+            <v-icon v-else-if="item.is_exec == 1">
+                mdi-crown
+            </v-icon>
+            <v-icon v-else>
+                mdi-account-circle
+            </v-icon>
+        </template>
+        <template v-slot:label="{ item }">
+            <b v-if="item.type!='staff'">
+                {{item.name}}
+            </b>
+            <v-container v-else>
 
-                <template v-slot:prepend="{ item, open }">
-                    <v-icon v-if="item.type=='department'">
-                        {{ open ? 'mdi-account-group' : 'mdi-account-group-outline' }}
-                    </v-icon>
-                    <v-icon v-else-if="item.type=='position'">
-                        {{ open ? 'mdi-account-supervisor-circle' : 'mdi-account-supervisor-circle-outline' }}
-                    </v-icon>
-                    <v-icon v-else-if="item.is_exec == 1">
-                        mdi-crown
-                    </v-icon>
-                    <v-icon v-else>
-                        mdi-account-circle
-                    </v-icon>
-                </template>
-                <template v-slot:label="{ item }">
-                    <b v-if="item.type!='staff'">
-                        {{item.name}}
-                    </b>
-                    <v-container v-else>
+                <v-row>
+                    <v-col>
+                        {{item.real_name}}
+                    </v-col>
+                    <v-col>
+                        {{item.fandom_name}}
+                    </v-col>
+                    <v-col>
+                        {{item.application_status}}
+                    </v-col>
+                </v-row>
 
-                        <v-row>
-                            <v-col>
-                                {{item.real_name}}
-                            </v-col>
-                            <v-col>
-                                {{item.fandom_name}}
-                            </v-col>
-                            <v-col>
-                                {{item.application_status}}
-                            </v-col>
-                        </v-row>
-
-                    </v-container>
-                </template>
-                <template v-slot:append="{ item }">
-                    <v-btn color="primary"
-                           @click.stop='selectedItem = item'
-                           icon
-                           dark>
-                        <v-icon>
-                            mdi-information
-                        </v-icon>
-                    </v-btn>
-                </template>
-            </v-treeview>
-        </v-container>
-    </v-tab-item>
+            </v-container>
+        </template>
+        <template v-slot:append="{ item }">
+            <v-btn color="primary"
+                   @click.stop='selectedItem = item'
+                   icon
+                   dark>
+                <v-icon>
+                    mdi-information
+                </v-icon>
+            </v-btn>
+        </template>
+    </v-treeview>
     <v-dialog v-model="detailsDialog"
               scrollable>
         <v-card>
@@ -149,15 +143,7 @@
                                  indeterminate />
         </v-card-text>
     </v-dialog>
-</v-tabs-items>
-<!-- <v-container fluid
-             fill-height>
-
-    <v-row>
-        <v-col align-self="start">
-        </v-col>
-    </v-row>
-</v-container> -->
+</v-card>
 </template>
 <script>
 import {

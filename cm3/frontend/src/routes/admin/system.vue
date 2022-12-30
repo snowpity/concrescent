@@ -2,15 +2,15 @@
 <v-tabs-items :value="subTabIx"
               touchless>
     <v-tab-item value="0">
-        <badgeSearchList apiPath="Staff/Badge"
-                         context_code="S"
-                         :AddHeaders="listAddHeaders"
-                         :RemoveHeaders="listRemoveHeaders"
-                         :isEditingItem="bEdit || bPrint"
-                         :actions="listActions"
-                         @edit="editBadge" />
+        <simpleList apiPath="System/ErrorLog"
+                    context_code="S"
+                    :AddHeaders="listAddHeaders"
+                    :RemoveHeaders="listRemoveHeaders"
+                    :isEditingItem="bEdit || bPrint"
+                    :actions="listActions"
+                    @view="viewErrorLog" />
 
-        <v-dialog v-model="bEdit"
+        <v-dialog v-model="eView"
                   fullscreen
                   scrollable
                   hide-overlay>
@@ -21,57 +21,89 @@
                                color="primary">
                         <v-btn icon
                                dark
-                               @click="bEdit = false">
+                               @click="eView = false">
                             <v-icon>mdi-close</v-icon>
                         </v-btn>
-                        <v-toolbar-title>Edit Badge</v-toolbar-title>
+                        <v-toolbar-title>View Error Log Entry</v-toolbar-title>
                         <v-spacer></v-spacer>
                         <v-toolbar-items>
-                            <v-menu offset-y
-                                    open-on-hover>
-                                <template v-slot:activator="{ on, attrs }">
-                                    <v-btn :color="bModified ? 'green' : 'primary'"
-                                           dark
-                                           v-bind="attrs"
-                                           v-on="on">
-                                        <v-icon>mdi-content-save</v-icon>
-                                    </v-btn>
-                                </template>
-                                <v-list>
-                                    <v-list-item @click="saveBadge(true)">
-                                        <v-list-item-title>
-                                            Save and send status email
-                                        </v-list-item-title>
-                                    </v-list-item>
-                                    <v-list-item @click="saveBadge(false)">
-                                        <v-list-item-title>
-                                            Save only
-                                        </v-list-item-title>
-                                    </v-list-item>
-                                </v-list>
-                            </v-menu>
+                            <v-btn color="primary"
+                                   dark>
+                                <v-icon>mdi-export</v-icon>
+                            </v-btn>
                         </v-toolbar-items>
                     </v-toolbar>
                 </v-card-title>
                 <v-card-text class="pa-0">
-                    <editBadgeAdmin v-model="bSelected"
-                                    @save="saveBadge" />
+                    <v-container fluid>
+                        <v-row>
+                            <v-col cols="2"
+                                   sm="2"
+                                   md="2">
+                                <v-text-field label="Log ID"
+                                              v-model="eSelected.id">
+                                </v-text-field>
+                            </v-col>
+                            <v-col cols="2"
+                                   sm="2"
+                                   md="2">
+                                <v-text-field label="Timestamp"
+                                              v-model="eSelected.timestamp">
+                                </v-text-field>
+                            </v-col>
+                            <v-col cols="2"
+                                   sm="2"
+                                   md="2">
+                                <v-text-field label="Level"
+                                              v-model="eSelected.level">
+                                </v-text-field>
+                            </v-col>
+                            <v-col cols="2"
+                                   sm="2"
+                                   md="2">
+                                <v-text-field label="Channel"
+                                              v-model="eSelected.channel">
+                                </v-text-field>
+                            </v-col>
+                            <v-col cols="2"
+                                   sm="2"
+                                   md="2">
+                                <v-text-field label="Contact Name"
+                                              v-model="eSelected.contact_id">
+                                </v-text-field>
+                            </v-col>
+                            <v-col cols="2"
+                                   sm="2"
+                                   md="2">
+                                <v-text-field label="IP"
+                                              v-model="eSelected.remote_addr">
+                                </v-text-field>
+                            </v-col>
+                        </v-row>
+                        <v-row>
+                            <v-col cols="6"
+                                   sm="12"
+                                   md="6">
+                                <v-text-field label="Path"
+                                              v-model="eSelected.request_uri">
+                                </v-text-field>
+                            </v-col>
+                            <v-col cols="6"
+                                   sm="12"
+                                   md="6">
+                                <v-textarea label="Message"
+                                            v-model="eSelected.message"
+                                            auto-grow
+                                            dense
+                                            rows="1">
+                                </v-textarea>
+                            </v-col>
+                        </v-row>
+                    </v-container>
+                    <h3>Data</h3>
+                    <JsonEditorVue v-model="eSelected.dataJSON"
+                                   readOnly />
                 </v-card-text>
-            </v-card>
-        </v-dialog>
-        <v-dialog v-model="bSaved">
-
-            <v-card>
-                <v-card-title class="headline">Saved</v-card-title>
-                <v-card-text>
-                    Successfully saved.
-
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="primary"
-                           @click="bSaved = false">Ok</v-btn>
-                </v-card-actions>
             </v-card>
         </v-dialog>
     </v-tab-item>
@@ -166,7 +198,7 @@ import {
     debounce
 } from '@/plugins/debounce';
 import badgeSearchList from '@/components/badgeSearchList.vue';
-import orderableList from '@/components/orderableList.vue';
+import simpleList from '@/components/simpleList.vue';
 import badgeTypeForm from '@/components/badgeTypeForm.vue';
 import formQuestionEditList from '@/components/formQuestionEditList.vue';
 import treeList from '@/components/treeList.vue';
@@ -175,12 +207,12 @@ import editDepartment from '@/components/editDepartment.vue';
 
 export default {
     components: {
-        badgeSearchList,
-        orderableList,
+        //badgeSearchList,
+        simpleList,
         badgeTypeForm,
         formQuestionEditList,
         treeList,
-        editBadgeAdmin,
+        //editBadgeAdmin,
         editDepartment
     },
     props: [
@@ -191,9 +223,20 @@ export default {
             'time_checked_in'
         ],
         listAddHeaders: [{
-            text: 'Secondary Email',
-            value: 'notify_email'
+            text: 'User',
+            value: 'real_name'
+        }, {
+            text: 'IP',
+            value: 'remote_addr'
+        }, {
+            text: 'URL',
+            value: 'request_uri'
+        }, {
+            text: 'Message',
+            value: 'message'
         }],
+        eSelected: {},
+        eView: false,
         bSelected: {},
         bEdit: false,
         bModified: false,
@@ -237,12 +280,8 @@ export default {
             var result = [];
             //TODO: Detect permissions
             result.push({
-                name: "edit",
-                text: "Edit"
-            });
-            result.push({
-                name: "print",
-                text: "Print"
+                name: "view",
+                text: "View"
             });
             return result;
         },
@@ -276,6 +315,20 @@ export default {
     methods: {
         checkPermission: () => {
             console.log('Hey! Listen!');
+        },
+        viewErrorLog: function(errorRow) {
+            console.log('view error selected from grid', errorRow);
+            let that = this;
+            that.loading = true;
+            admin.genericGet(this.authToken, 'System/ErrorLog/' + errorRow.id, null, function(logData) {
+                logData.dataJSON = JSON.parse(logData.data);
+                that.eSelected = logData;
+                that.loading = false;
+                that.eView = true;
+
+            }, function() {
+                that.loading = false;
+            })
         },
         editBadge: function(selectedBadge) {
             console.log('edit badge selected from grid', selectedBadge);
@@ -385,33 +438,6 @@ export default {
     created() {
         this.checkPermission();
         //this.doSearch();
-        this.$emit('updateSubTabs', [{
-                key: '0',
-                text: 'Badges',
-                title: 'Badges'
-            },
-            {
-                key: '1',
-                text: 'Types',
-                title: 'Types'
-            },
-            {
-                key: '2',
-                text: 'Questions',
-                title: 'Questions'
-            },
-            {
-                key: '3',
-                text: 'Departments',
-                title: 'Departments'
-            },
-            {
-                key: '4',
-                text: 'Notifications',
-                title: 'Notifications'
-            }
-
-        ]);
     }
 };
 </script>

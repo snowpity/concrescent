@@ -28,7 +28,7 @@
     <v-toolbar />
     <v-tabs-items v-model="step">
         <v-container>
-            <v-tab-item key="1">
+            <v-tab-item value="1">
 
                 <badgeGenInfo v-model="model.badgeGenInfoData"
                               :application_name1="currentContext.application_name1"
@@ -84,7 +84,7 @@
 
                 </v-row>
             </v-tab-item>
-            <v-tab-item key="2">
+            <v-tab-item value="2">
                 <v-expansion-panels v-model="addonDisplayState"
                                     multiple
                                     v-if="badgeAddons.length">
@@ -128,7 +128,7 @@
 
             </v-tab-item>
 
-            <v-tab-item key="3">
+            <v-tab-item value="3">
 
                 <v-form ref="fContactInfo"
                         v-model="validContactInfo">
@@ -201,7 +201,7 @@
             </v-tab-item>
 
 
-            <v-tab-item key="4">
+            <v-tab-item value="4">
                 <v-form ref="fAdditionalInfo"
                         v-model="validAdditionalInfo">
                     <formQuestions v-model="model.form_responses"
@@ -210,7 +210,7 @@
                 </v-form>
 
             </v-tab-item>
-            <v-tab-item key="5">
+            <v-tab-item value="5">
                 <paymentItemView v-model="model" />
 
             </v-tab-item>

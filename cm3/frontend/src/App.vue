@@ -42,7 +42,7 @@
                color="appbar"
                dark>
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-        <v-toolbar-title>{{appTitle}}</v-toolbar-title>
+        <v-toolbar-title>{{appHead}}</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-menu bottom
                 left>
@@ -102,14 +102,16 @@
                 <v-tabs-slider color="yellow"></v-tabs-slider>
 
                 <v-tab v-for="item in subTabs"
-                       :key="item">
-                    {{ item }}
+                       :key="item.key">
+                    {{ item.text }}
                 </v-tab>
             </v-tabs>
         </template>
     </v-app-bar>
     <v-main>
-        <router-view :subTabIx="subTabIx" />
+        <router-view :subTabIx="hasSubTabs ? subTabs[subTabIx].key : 0"
+                     @updateSubTabs="updateSubTabs"
+                     @updateSubTitle="updateSubTitle" />
     </v-main>
 </v-app>
 </template>
@@ -122,15 +124,42 @@ import {
 } from 'vuex'
 export default {
     data: () => ({
-        "drawer": false,
+        drawer: false,
+        subHead: null,
+        subTabs: [],
         subTabIx: 0
     }),
     computed: {
         appTitle: function() {
-            return this.AppName + (this.$route.name == null ? "" : " - " + (this.$route.meta.title || this.$route.name));
+            var result = [this.AppName];
+            if (this.subHead != null) {
+                result.push(this.subHead);
+            } else
+            if (this.$route.name != null) {
+                result.push(this.$route.meta.title || this.$route.name);
+            }
+            if (this.hasSubTabs) {
+                var subTabInfo = this.subTabs[this.subTabIx];
+                if (subTabInfo != undefined) {
+                    //Determine if the subtab has a title
+                    if (subTabInfo.title) {
+                        result.push("" + subTabInfo.title);
+                    }
+                }
+            }
+
+            return result.join(' - ');
         },
-        subTabs: function() {
-            return this.$route.meta.subTabs || [];
+        appHead: function() {
+            var result = [this.AppName];
+            if (this.subHead != null) {
+                result.push(this.subHead);
+            } else
+            if (this.$route.name != null) {
+                result.push(this.$route.meta.title || this.$route.name);
+            }
+
+            return result.join(' - ');
         },
         hasSubTabs: function() {
             return this.subTabs.length > 0;
@@ -252,6 +281,21 @@ export default {
                     }
                 }, );
 
+                //System
+
+                items.push({
+                    divider: true,
+                    show: () => {
+                        return this.hasEventPerm(['GlobalAdmin', 'EventAdmin']);
+                    }
+                }, {
+                    route: "/Admin/System",
+                    icon: "mdi-cog",
+                    label: "System Setup",
+                    show: () => {
+                        return this.hasEventPerm(['GlobalAdmin', 'EventAdmin']);
+                    }
+                }, );
             }
 
 
@@ -363,17 +407,32 @@ export default {
             return this.productselectedEvent.date_start + "-" + this.productselectedEvent.date_end;
         }
     },
+    methods: {
+        updateSubTitle(newSubTitle) {
+            this.subHead = newSubTitle;
+        },
+        updateSubTabs(newSubTabs) {
+            this.subTabs = newSubTabs;
+            //TODO:Determine if the current route is intended to be on a particular sub-tab
+
+
+        }
+    },
     watch: {
         '$route.name': function(name) {
-            //Do something when the route changes?
             console.log("Switching route to " + name);
+            //Reset title
             document.title = this.appTitle;
+            //Expect a new set of subtabs if this route has them
+            this.subTabs = [];
+            this.subTabIx = 0;
+            this.subHead = null;
         },
         'appTitle': function(newTitle) {
             document.title = this.appTitle;
         },
         'subTabIx': function(newSubTab) {
-            console.log('Switching subtab to ' + newSubTab);
+            console.log('Switching subtab to ' + newSubTab, this.subTabs[this.subTabIx].key);
         }
     },
     created() {

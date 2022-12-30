@@ -1,7 +1,7 @@
 <template>
 <v-tabs-items :value="subTabIx"
               touchless>
-    <v-tab-item key="0">
+    <v-tab-item value="0">
         <simpleList apiPath="AdminUser"
                     :AddHeaders="listAddHeaders"
                     :RemoveHeaders="listRemoveHeaders"
@@ -218,6 +218,17 @@ export default {
     created() {
         this.checkPermission();
         //this.doSearch();
+        this.$emit('updateSubTabs', [{
+                key: '0',
+                text: 'Users',
+                title: 'Users'
+            },
+            {
+                key: '1',
+                text: 'Permissions Info',
+                title: 'Permissions Info'
+            },
+        ]);
     }
 };
 </script>

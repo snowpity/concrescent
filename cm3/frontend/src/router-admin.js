@@ -23,13 +23,6 @@ const result = [{
         name: 'Attendee',
         meta: {
             title: 'Attendee',
-            subTabs: [
-                'Badges',
-                'Types',
-                'Questions',
-                'Promos',
-                'Notifications'
-            ]
         },
         component: () => import( /* webpackChunkName: "admin_attendee" */ './routes/admin/attendee.vue'),
     },
@@ -38,13 +31,6 @@ const result = [{
         name: 'Application',
         meta: {
             title: 'Group Applications',
-            subTabs: [
-                'Submissions',
-                'Badges',
-                'Types',
-                'Questions',
-                'Notifications'
-            ]
         },
         component: () => import( /* webpackChunkName: "admin_group" */ './routes/admin/applications.vue'),
     },
@@ -53,13 +39,6 @@ const result = [{
         name: 'Staff',
         meta: {
             title: 'Staff',
-            subTabs: [
-                'Badges',
-                'Types',
-                'Questions',
-                'Departments',
-                'Notifications'
-            ]
         },
         component: () => import( /* webpackChunkName: "admin_staff" */ './routes/admin/staff.vue'),
     },
@@ -68,7 +47,6 @@ const result = [{
         name: 'OrgChart',
         meta: {
             title: 'Organization Chart',
-
         },
         component: () => import( /* webpackChunkName: "admin_orgchart" */ './routes/admin/orgchart.vue'),
     },

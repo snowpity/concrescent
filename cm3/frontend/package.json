@@ -15,6 +15,7 @@
     "@mdi/font": "^6",
     "axios": "^0.26.1",
     "css-loader": "^6",
+    "json-editor-vue": "^0.10.5",
     "vue": "^2",
     "vue-markdown-renderer": "^0.2.7",
     "vue-qrcode-component": "^2.1.1",

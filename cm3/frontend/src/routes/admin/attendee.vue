@@ -1,7 +1,7 @@
 <template>
 <v-tabs-items :value="subTabIx"
               touchless>
-    <v-tab-item key="0">
+    <v-tab-item value="0">
         <badgeSearchList apiPath="Attendee/Badge"
                          context_code="A"
                          :AddHeaders="listAddHeaders"
@@ -60,7 +60,7 @@
             </v-card>
         </v-dialog>
     </v-tab-item>
-    <v-tab-item key="1">
+    <v-tab-item value="1">
         <orderableList apiPath="Attendee/BadgeType"
                        :AddHeaders="btAddHeaders"
                        :actions="btActions"
@@ -89,10 +89,10 @@
             </v-card>
         </v-dialog>
     </v-tab-item>
-    <v-tab-item key="2">
+    <v-tab-item value="2">
         <formQuestionEditList context_code="A" />
     </v-tab-item>
-    <v-tab-item key="3">
+    <v-tab-item value="3">
 
         <simpleList apiPath="Attendee/PromoCode"
                     :isEditingItem="pEdit"
@@ -378,6 +378,33 @@ export default {
     created() {
         this.checkPermission();
         //this.doSearch();
+        this.$emit('updateSubTabs', [{
+                key: '0',
+                text: 'Badges',
+                title: 'Badges'
+            },
+            {
+                key: '1',
+                text: 'Types',
+                title: 'Types'
+            },
+            {
+                key: '2',
+                text: 'Questions',
+                title: 'Questions'
+            },
+            {
+                key: '3',
+                text: 'Promos',
+                title: 'Promos'
+            },
+            {
+                key: '4',
+                text: 'Notifications',
+                title: 'Notifications'
+            }
+
+        ]);
     }
 };
 </script>

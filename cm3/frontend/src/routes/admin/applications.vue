@@ -1,7 +1,7 @@
 <template>
 <v-tabs-items :value="subTabIx"
               touchless>
-    <v-tab-item key="0">
+    <v-tab-item value="0">
         <badgeSearchList v-if="context_id>0"
                          :apiPath="'Application/' + context_code +'/Submission'"
                          :context_code="context_code"
@@ -86,7 +86,7 @@
         </v-dialog>
     </v-tab-item>
 
-    <v-tab-item key="1">
+    <v-tab-item value="1">
         <badgeSearchList v-if="context_id>0"
                          :apiPath="'Application/' + context_code +'/Submission'"
                          :context_code="context_code"
@@ -170,7 +170,7 @@
             </v-card>
         </v-dialog>
     </v-tab-item>
-    <v-tab-item key="2">
+    <v-tab-item value="2">
         <orderableList :apiPath="'Application/' + context_code +'/BadgeType'"
                        :AddHeaders="btAddHeaders"
                        :actions="btActions"
@@ -199,7 +199,7 @@
             </v-card>
         </v-dialog>
     </v-tab-item>
-    <v-tab-item key="3">
+    <v-tab-item value="3">
         <formQuestionEditList :context_code="context_code" />
     </v-tab-item>
 
@@ -304,6 +304,9 @@ export default {
         authToken: function() {
             return this.$store.getters['mydata/getAuthToken'];
         },
+        pageTitle: function() {
+            return 'Group Applications - ' + this.currentContext.name;
+        },
         context_code: function() {
             return this.$route.params.context_code;
         },
@@ -351,8 +354,10 @@ export default {
         },
     },
     methods: {
-        checkPermission: () => {
+        checkPermission() {
             console.log('Hey! Listen!');
+
+            this.$emit('updateSubTitle', this.pageTitle);
         },
         editSubmission: function(selectedSubmission) {
             console.log('edit submission from grid', selectedSubmission);
@@ -501,6 +506,33 @@ export default {
         await this.$store.dispatch('products/selectContext', this.context_code);
         this.checkPermission();
         //this.doSearch();
+        this.$emit('updateSubTabs', [{
+                key: '0',
+                text: 'Submissions',
+                title: 'Submissions'
+            },
+            {
+                key: '1',
+                text: 'Badges',
+                title: 'Badges'
+            },
+            {
+                key: '2',
+                text: 'Types',
+                title: 'Types'
+            },
+            {
+                key: '3',
+                text: 'Questions',
+                title: 'Questions'
+            },
+            {
+                key: '4',
+                text: 'Notifications',
+                title: 'Notifications'
+            }
+
+        ]);
     }
 };
 </script>

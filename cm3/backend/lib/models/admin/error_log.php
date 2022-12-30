@@ -29,7 +29,7 @@ class error_log extends \CM3_Lib\database\Table
                 'remote_addr' => false
             )));
         $this->PrimaryKeys = array('id'=>false);
-        $this->DefaultSearchColumns = array('id');
+        $this->DefaultSearchColumns = array('id','timestamp','remote_addr','request_uri','message');
     }
 
 

@@ -27,13 +27,6 @@ var router = new vRouter({
 
 import store from './storage'
 
-//Just the renderer
-import mdRenderer from "vue-markdown-renderer";
-Vue.use(mdRenderer, {
-    /* Configuration */
-});
-
-
 //Phat editor, creates the component v-md-editor
 import VueMarkdownEditor from '@kangc/v-md-editor';
 import '@kangc/v-md-editor/lib/style/base-editor.css';
@@ -46,6 +39,14 @@ VueMarkdownEditor.use(vuepressTheme, {
     }
 });
 Vue.use(VueMarkdownEditor)
+
+//JSON Editor
+import JsonEditorVue from 'json-editor-vue'
+
+Vue.use(JsonEditorVue, {
+    // global props & attrs (one-way data flow)
+})
+
 
 Vue.config.productionTip = false
 Vue.filter('currency', currency)
