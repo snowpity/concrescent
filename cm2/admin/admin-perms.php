@@ -34,6 +34,11 @@ $cm_admin_perms_attendee = (
 			'name' => 'Attendees - Delete',
 			'description' => 'Delete attendee registration records.'
 		),
+		array(
+			'id' => 'attendees-refund',
+			'name' => 'Attendees - Refund',
+			'description' => 'Refund attendee registrations.'
+		),
 	)
 );
 

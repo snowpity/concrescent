@@ -257,6 +257,75 @@ function transaction_details_update($originalTxnDetailsString, $transaction_id, 
 
 }
 
+function transaction_details_listTransactions($TxnDetailsString)
+{
+
+		$originalTxnDetails = json_decode($TxnDetailsString,true);
+		//Detect legacy transaction details
+		if(is_null($originalTxnDetails))
+		{
+			//Arbitrary text
+			$originalTxnDetails = array();
+			if(strlen($TxnDetailsString) > 0)
+				$originalTxnDetails['LegacyData'] = $TxnDetailsString;
+		}
+		if(isset($originalTxnDetails['id']))
+		{
+			//Legacy PayPal transactiopn
+			$oTId = 'UnknownPayPalTransaction';
+			if (isset($originalTxnDetails['transactions'])
+			&& (isset($originalTxnDetails['transactions'][0]))
+			&& (isset($originalTxnDetails['transactions'][0]['related_resources']))
+			&& (isset($originalTxnDetails['transactions'][0]['related_resources'][0]))
+			&& (isset($originalTxnDetails['transactions'][0]['related_resources'][0]['sale']))
+			&& (isset($originalTxnDetails['transactions'][0]['related_resources'][0]['sale']['id']))
+			)
+				$oTId = $originalTxnDetails['transactions'][0]['related_resources'][0]['sale']['id'];
+			$originalTxnDetails = array($oTId=>$originalTxnDetails);
+		}
+
+		//Loop all the transactions
+		$result = array();
+		foreach ($originalTxnDetails as $k => $v) {
+			$payment_status = 'Unknown';
+			$payment_txn_amt = '';
+			$payment_saleID = '';
+
+			//Is this a PayPal?
+			if(isset($v['id']) && isset($v['transactions']))
+			{
+				//Probably!
+				if(isset($v['state']))
+					$payment_status = $v['state'];
+				//Drill down to the sale info
+				if ($payment_status == 'approved'
+				&& (isset($v['transactions'][0]))
+				&& (isset($v['transactions'][0]['related_resources']))
+				&& (isset($v['transactions'][0]['related_resources'][0]))
+				&& (isset($v['transactions'][0]['related_resources'][0]['sale']))
+				&& (isset($v['transactions'][0]['related_resources'][0]['sale']['id']))
+				)
+				{
+					$payment_payID = $v['id'];
+					$payment_saleID = $v['transactions'][0]['related_resources'][0]['sale']['id'];
+					$payment_txn_amt =  $v['transactions'][0]['amount']['total'];
+					$invoice_number =  isset($v['transactions'][0]['invoice_number']) ? $v['transactions'][0]['invoice_number'] : '';
+
+					//Stuff it into the result
+					$result[$k] = array('payment-txn-id' => $k,
+					 'payment_status' => $payment_status,
+					 'payment_txn_amt' => $payment_txn_amt,
+					 'payment_saleID' => $payment_saleID,
+					 'payment_payID' => $payment_payID,
+					 'invoice_number' => $invoice_number
+				 );
+				}
+
+			}
+		}
+		return $result;
+}
+
 //Are we an AJAX call?
 $_SERVER['IS_AJAX'] = false;
 if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {

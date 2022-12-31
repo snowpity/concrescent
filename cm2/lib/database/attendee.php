@@ -2040,6 +2040,23 @@ class cm_attendee_db {
 		return $success;
 	}
 
+	public function update_attendee_notes($id, $newnote){
+		if (!$id) return false;
+		$stmt = $this->cm_db->connection->prepare(
+			'UPDATE '.$this->cm_db->table_name('attendees').' SET '.
+			'`notes` = ?'.
+			' WHERE `id` = ? LIMIT 1'
+		);
+		$stmt->bind_param('si', $newnote,  $id);
+		$success = $stmt->execute();
+		if (!$success)
+		{
+			error_log('Error while attempting to update attendee note:\n' . print_r($this->cm_db->connection->error, true));
+			error_log('Submitted data:\n' . print_r(array('id' =>$id, 'notes'  => $newnote),true));
+		}
+		$stmt->close();
+		return $success;
+	}
 	public function update_payment_status($id, $status, $type, $txn, $details) {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(

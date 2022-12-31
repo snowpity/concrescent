@@ -691,6 +691,13 @@ echo '<article>';
 					echo '</tr>';
 				}
 
+				if ($adb->user_has_permission($admin_user, 'attendees-refund') ) {
+					echo '<tr>';
+						echo '<th>Refund</th>';
+						echo '<td><a href="refund.php?id=' . $item['id'] . '" >Initiate refund</a></td>';
+					echo '</tr>';
+				}
+
 				echo '<tr><td colspan="2" class="hr"><hr></td></tr>';
 				echo '<tr><td colspan="2"><h2>Record Information</h2></td></tr>';
 

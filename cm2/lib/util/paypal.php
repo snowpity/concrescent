@@ -49,16 +49,18 @@ class cm_paypal {
 		return $this->token;
 	}
 
-	public function api($method, $data) {
+	public function api($method, $data = null) {
 		$curl = curl_init('https://' . $this->api_url . '/v1/' . $method);
-		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($curl, CURLOPT_HTTPHEADER, array(
 			'Content-Type: application/json',
 			'Authorization: ' . $this->token['token_type']
 			            . ' ' . $this->token['access_token']
 		));
-		curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+		if(!is_null($data)){
+			curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+			curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+		}
 		$result = curl_exec($curl);
 		$http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		curl_close($curl);
@@ -170,6 +172,24 @@ class cm_paypal {
 		return $this->api(
 			'payments/payment/' . $payment_id . '/execute',
 			array('payer_id' => $payer_id)
+		);
+	}
+
+	public function execute_refund($sale_id,$invoice_number, $amount, $note)
+	{
+		return $this->api(
+			'payments/sale/' . $sale_id . '/refund',
+			array('amount' => array( 'total' => $amount,'currency' => $this->currency ),
+				'invoice_number' => $invoice_number,
+				'description' => $note
+			)
+		);
+	}
+
+	public function retrieve_payment($payment_id)
+	{
+		return $this->api(
+			'payments/payment/' . $payment_id
 		);
 	}
 
