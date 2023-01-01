@@ -4,6 +4,7 @@ namespace CM3_Lib\Action\AdminUser;
 
 use CM3_Lib\database\SearchTerm;
 use CM3_Lib\models\admin\user;
+use CM3_Lib\models\contact;
 use CM3_Lib\Responder\Responder;
 use CM3_Lib\util\TokenGenerator;
 use CM3_Lib\util\CurrentUserInfo;
@@ -26,6 +27,7 @@ final class Read
     public function __construct(
         private Responder $responder,
         private user $user,
+        private contact $contact,
         private TokenGenerator $TokenGenerator,
         private CurrentUserInfo $CurrentUserInfo
     ) {
@@ -54,6 +56,24 @@ final class Read
             'preferences',
             'permissions'
         ]);
+
+        //Fetch the contact record as well
+
+        $data['contact'] = $this->contact->GetByID($data['contact_id'], ['id',
+            'uuid',
+            'date_created',
+            'date_modified',
+            'allow_marketing',
+            'email_address',
+            'real_name',
+            'phone_number',
+            'address_1',
+            'address_2',
+            'city',
+            'state',
+            'zip_code',
+            'country',
+            'notes']);
 
 
         //Translate permissions

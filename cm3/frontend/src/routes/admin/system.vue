@@ -1,7 +1,7 @@
 <template>
 <v-tabs-items :value="subTabIx"
               touchless>
-    <v-tab-item value="0">
+    <v-tab-item value="ErrorLog">
         <simpleList apiPath="System/ErrorLog"
                     context_code="S"
                     :AddHeaders="listAddHeaders"
@@ -438,6 +438,17 @@ export default {
     created() {
         this.checkPermission();
         //this.doSearch();
+        this.$emit('updateSubTabs', [{
+                key: 'ErrorLog',
+                text: 'Error Log',
+                title: 'Error Log'
+            },
+            {
+                key: '1',
+                text: 'Permissions Info',
+                title: 'Permissions Info'
+            },
+        ]);
     }
 };
 </script>

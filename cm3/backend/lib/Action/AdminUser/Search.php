@@ -3,7 +3,12 @@
 namespace CM3_Lib\Action\AdminUser;
 
 use CM3_Lib\database\SearchTerm;
+use CM3_Lib\database\Join;
+use CM3_Lib\database\SelectColumn;
+use CM3_Lib\database\View;
+
 use CM3_Lib\models\admin\user;
+use CM3_Lib\models\contact;
 use CM3_Lib\util\badgeinfo;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
@@ -21,8 +26,12 @@ final class Search
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private user $user, private badgeinfo $badgeinfo)
-    {
+    public function __construct(
+        private Responder $responder,
+        private user $user,
+        private contact $contact,
+        private badgeinfo $badgeinfo
+    ) {
     }
 
     /**
@@ -49,7 +58,21 @@ final class Search
         $totalRows = 0;
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->user->Search(array(), $whereParts, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
+        $data = $this->user->Search(new View([
+                    'contact_id','username','active',
+                    new SelectColumn('real_name', Alias:'real_name', EncapsulationFunction: 'IFNULL(?,\'Anonymous\')', JoinedTableAlias:'c'),
+                    new SelectColumn('email_address', Alias:'email_address', EncapsulationFunction: 'IFNULL(?,\'\')', JoinedTableAlias:'c')
+                ], [
+
+                   new Join(
+                       $this->contact,
+                       array(
+                         'id' => new SearchTerm('contact_id', null)
+                     ),
+                       'LEFT',
+                       alias:'c'
+                   )
+               ]), $whereParts, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
 
         $response = $response->withHeader('X-Total-Rows', (string)$totalRows);
         // Build the HTTP response

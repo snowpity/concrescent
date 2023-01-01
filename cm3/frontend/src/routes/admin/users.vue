@@ -12,7 +12,8 @@
                     @create="createUser" />
 
         <v-dialog v-model="uEdit">
-            <v-card tile>
+            <v-card tile
+                    v-if="uEdit">
 
                 <v-toolbar dark
                            flat
@@ -32,7 +33,18 @@
                         </v-btn>
                     </v-toolbar-items>
                 </v-toolbar>
-
+                <v-expansion-panels>
+                    <v-expansion-panel>
+                        <v-expansion-panel-header>
+                            <v-list-item-title>{{uSelected.contact.real_name}}</v-list-item-title>
+                            <v-list-item-subtitle>{{uSelected.contact.email_address}}</v-list-item-subtitle>
+                        </v-expansion-panel-header>
+                        <v-expansion-panel-content>
+                            <profileForm v-model="uSelected.contact"
+                                         readonly />
+                        </v-expansion-panel-content>
+                    </v-expansion-panel>
+                </v-expansion-panels>
                 <editAdminUser v-model="uSelected" />
             </v-card>
         </v-dialog>
@@ -100,12 +112,14 @@ import {
 import simpleList from '@/components/simpleList.vue';
 import simpleDropdown from '@/components/simpleDropdown.vue';
 import editAdminUser from '@/components/editAdminUser.vue';
+import profileForm from '@/components/profileForm.vue';
 
 export default {
     components: {
         simpleList,
         simpleDropdown,
-        editAdminUser
+        editAdminUser,
+        profileForm
     },
     props: [
         'subTabIx'
@@ -120,6 +134,12 @@ export default {
         }, {
             text: 'Username',
             value: 'username'
+        }, {
+            text: 'Real Name',
+            value: 'real_name'
+        }, {
+            text: 'Email Address',
+            value: 'email_address'
         }, {
             text: 'Active',
             value: 'active'

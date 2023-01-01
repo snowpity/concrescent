@@ -240,10 +240,10 @@ export default {
                 name: "edit",
                 text: "Edit"
             });
-            result.push({
-                name: "print",
-                text: "Print"
-            });
+            // result.push({
+            //     name: "print",
+            //     text: "Print"
+            // });
             return result;
         },
         btActions: function() {
