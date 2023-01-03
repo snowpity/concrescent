@@ -18,7 +18,6 @@
     "json-editor-vue": "^0.10.5",
     "vanilla-jsoneditor": "^0.11.5",
     "vue": "^2",
-    "vue-markdown-renderer": "^0.2.7",
     "vue-qrcode-component": "^2.1.1",
     "vue-router": "^3.0.0",
     "vuetify": "^2.6.9",

@@ -45,6 +45,7 @@ final class badgepromoapplicator
             new View(array(
             'valid_badge_type_ids',
             'is_percentage',
+            'description',
             'discount',
             'start_date',
             'end_date',
@@ -150,7 +151,8 @@ final class badgepromoapplicator
             $promo_code = array(
                 'code'=>null,
                 'is_percentage'=>0,
-                'discount'=>0
+                'discount'=>0,
+                'description'=>null
             );
         }
 
@@ -185,8 +187,14 @@ final class badgepromoapplicator
             //For display purposes
             $item['payment_promo_type'] = $promo_code['is_percentage'] ? 1 : 0;
             $item['payment_promo_amount'] = $promo_price;
+            $item['payment_promo_description'] = $promo_code['description'];
         } else {
+            $item['payment_promo_code'] = null;
             $item['payment_promo_price'] = $final_price;
+            //Dummy data
+            $item['payment_promo_type'] = 0;
+            $item['payment_promo_amount'] = 0;
+            $item['payment_promo_description'] =null;
         }
 
         //Do it for addons too, if specified

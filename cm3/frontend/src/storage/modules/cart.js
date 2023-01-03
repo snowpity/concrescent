@@ -115,7 +115,7 @@ const actions = {
                     });
                     commit('setCartItems', result);
                     commit('clearDirty');
-                    commit('setCanPay', result.canpay);
+                    commit('setCanPay', result.canPay);
                     //Now make sure our contexts for any added badges are loaded
                     var contexts = result.items.map(({
                         context_code

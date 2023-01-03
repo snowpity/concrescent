@@ -5,6 +5,7 @@ namespace CM3_Lib\Action\Account\Cart;
 use CM3_Lib\database\SearchTerm;
 
 use CM3_Lib\models\payment;
+use CM3_Lib\util\PaymentBuilder;
 use CM3_Lib\util\CurrentUserInfo;
 
 use Branca\Branca;
@@ -27,6 +28,7 @@ class ListCarts
     public function __construct(
         private Responder $responder,
         private payment $payment,
+        private PaymentBuilder $PaymentBuilder,
         private CurrentUserInfo $CurrentUserInfo
     ) {
     }
@@ -57,16 +59,25 @@ class ListCarts
         }
 
         //Simply get the user's active Payments
-        $result = $this->payment->Search(
+        $carts = $this->payment->Search(
             array(
-                'id','uuid',
-                'requested_by',
-                'payment_system',
-                'payment_status',
-                'date_modified'
+                'id', 'uuid', 'event_id','contact_id',
+                'payment_status','payment_system','payment_txn_amt',
+                'items','payment_details','requested_by' ,
+                'date_created' ,'date_modified' ,
             ),
             $searchTerms
         );
+
+        //expand the cart items
+        $result = [];
+        foreach ($carts as $cart) {
+            if ($this->PaymentBuilder->loadCartFromPayment($cart)) {
+                $result[] = $this->PaymentBuilder->getCartExpandedState();
+            } else {
+                $result[] = $cart;
+            }
+        }
 
         // Build the HTTP response
         return $this->responder

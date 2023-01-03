@@ -27,6 +27,7 @@ final class PaymentBuilder
     private string $cart_uuid = "";
     private float $cart_payment_txn_amt = 0;//Our own sanity check against the cart
     private bool $AllowPay = true;
+    private bool $RequiresApproval = false;
     private bool $CanPay = true;
     private ?PayProcessorInterface $pp = null;
     private array $stagedItems = array();
@@ -63,6 +64,7 @@ final class PaymentBuilder
         $cart_payment_txn_amt = 0;
         $this->AllowPay = true;
         $this->CanPay = true;
+        $this->RequiresApproval = false;
         $this->pp = null;
         $this->stagedItems = array();
     }
@@ -85,31 +87,58 @@ final class PaymentBuilder
             'items','payment_details','requested_by' ,
             'date_created' ,'date_modified' ,
         ));
+        return $this->loadCartFromPayment($cart, $expectedEventId, $expectedContactId);
+    }
 
-        if ($cart === false) {
+    public function loadCartFromPayment($paymentData, $expectedEventId = null, $expectedContactId = null)
+    {
+        //TODO: Check that we have necessary columns
+
+        if ($paymentData === false) {
             $this->cart = array();
+            $this->cart_items = array();
+            $cart_payment_txn_amt = 0;
+            $this->AllowPay = true;
+            $this->CanPay = true;
+            $this->RequiresApproval = false;
+            $this->pp = null;
+            $this->stagedItems = array();
             return false;
         }
 
         //Check that the cart is in the right event, and right contact
         if (
-            (!is_null($expectedEventId) && $cart['event_id'] != $expectedEventId)
-            ||(!is_null($expectedContactId) && $cart['contact_id'] != $expectedContactId)
+            (!is_null($expectedEventId) && $paymentData['event_id'] != $expectedEventId)
+            ||(!is_null($expectedContactId) && $paymentData['contact_id'] != $expectedContactId)
         ) {
             $this->cart = array();
+            $this->cart_items = array();
+            $cart_payment_txn_amt = 0;
+            $this->AllowPay = true;
+            $this->CanPay = true;
+            $this->RequiresApproval = false;
+            $this->pp = null;
+            $this->stagedItems = array();
             return false;
         }
 
-        $this->cart = $cart;
+        $this->cart = $paymentData;
         //Extract and remove the UUID, since we never want to try saving it back
-        $this->cart_uuid = $cart['uuid'];
+        $this->cart_uuid = $paymentData['uuid'];
         unset($this->cart['uuid']);
-        $this->cart_items = json_decode($cart['items'], true) ?? array();
+        $this->cart_items = json_decode($paymentData['items'], true) ?? array();
+        $cart_payment_txn_amt = 0;
+        $this->AllowPay = true;
+        $this->CanPay = true;
+        $this->RequiresApproval = false;
+        $this->pp = null;
+        $this->stagedItems = array();
 
         //Load cart meta
         $this->refreshCartMeta();
         return true;
     }
+
 
     public function saveCart()
     {
@@ -149,6 +178,10 @@ final class PaymentBuilder
     {
         return $this->CanPay;
     }
+    public function getRequiresApproval()
+    {
+        return $this->RequiresApproval;
+    }
     public function getCartId()
     {
         return $this->cart['id'] ?? null;
@@ -172,9 +205,14 @@ final class PaymentBuilder
             'items' => $this->getCartItems(),
             'state' => $this->getCartStatus(),
             'id' => $this->getCartId(),
-            'canpay' => $this->getCanPay(),
+            'uuid' => $this->cart_uuid,
+            'canEdit' => $this->canEdit(),
+            'RequiresApproval' => $this->getRequiresApproval(),
+            'canPay' => $this->getCanPay(),
+            'canCheckout' => $this->canCheckout(),
             'requested_by' => $this->cart['requested_by'],
             'payment_system' => $this->cart['payment_system'],
+            'payment_txn_amt' =>$this->cart['payment_txn_amt'],
             'date_created' => $this->cart['date_created'],
             'date_modified' => $this->cart['date_modified'],
         );
@@ -331,6 +369,8 @@ final class PaymentBuilder
     {
         $this->canPay = true;
 
+        $this->getCartTotal(true);
+
         foreach ($this->cart_items as $key => &$item) {
             //Fetch type info
             $bt = $this->badgeinfo->getBadgetType($item['context_code'] ?? 'A', $item['badge_type_id'] ?? 0);
@@ -338,9 +378,11 @@ final class PaymentBuilder
             if ($this->banlist->is_banlisted($item)) {
                 $this->AllowPay = false;
             }
+            $item['badge_type_name'] = $bt['name'];
 
             //Check if this item is payable
             if (!empty($bt['payment_deferred']) && $bt['payment_deferred']) {
+                $this->RequiresApproval = true;
                 //Get the badge info depending on staff or not
                 if ($item['context_code'] == 'S') {
                     $bi = $this->badgeinfo->getSpecificBadge($item['id'] ?? 0, $item['context_code']);
@@ -360,6 +402,8 @@ final class PaymentBuilder
                         default:
                             $this->CanPay = false;
                     }
+                    //Sync down said status into the cart
+                    $item['application_status'] = $bi['application_status'];
                 } else {
                     $this->CanPay = false;
                 }
@@ -470,7 +514,7 @@ final class PaymentBuilder
                 //Check for bans
                 if ($this->banlist->is_banlisted($cartitem)) {
                     $banlisted = true;
-                    $canpay = false;
+                    $canPay = false;
                     //TODO: Bubble a notify event
                     $errors[] = 'Banned:'.$key;
                 }

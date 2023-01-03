@@ -5485,11 +5485,6 @@ markdown-it@^8.4.1:
     mdurl "^1.0.1"
     uc.micro "^1.0.5"
 
-marked@^1.0.0:
-  version "1.2.9"
-  resolved "https://registry.yarnpkg.com/marked/-/marked-1.2.9.tgz#53786f8b05d4c01a2a5a76b7d1ec9943d29d72dc"
-  integrity sha512-H8lIX2SvyitGX+TRdtS06m1jHMijKN/XjfH6Ooii9fvxMlh8QdqBfBDkGUpMWH2kQNrtixjzYUa3SH8ROTgRRw==
-
 mdn-data@2.0.14:
   version "2.0.14"
   resolved "https://registry.yarnpkg.com/mdn-data/-/mdn-data-2.0.14.tgz#7113fc4281917d63ce29b43446f701e68c25ba50"
@@ -7752,13 +7747,6 @@ vue-loader@^17.0.0:
     chalk "^4.1.0"
     hash-sum "^2.0.0"
     loader-utils "^2.0.0"
-
-vue-markdown-renderer@^0.2.7:
-  version "0.2.7"
-  resolved "https://registry.yarnpkg.com/vue-markdown-renderer/-/vue-markdown-renderer-0.2.7.tgz#09ce3d9d8d08637fe6599db38376f8bfdb4b2130"
-  integrity sha512-FAOppeZ/2vXKC2MLt4SyaezjUbJIIn+uyBNCGolo/wlv3eQ6jbCvcEbVvwL2ynD5lQyHwlYS23SkckU5E1insQ==
-  dependencies:
-    marked "^1.0.0"
 
 vue-qrcode-component@^2.1.1:
   version "2.1.1"

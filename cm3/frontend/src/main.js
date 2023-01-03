@@ -29,6 +29,7 @@ import store from './storage'
 
 //Phat editor, creates the component v-md-editor
 import VueMarkdownEditor from '@kangc/v-md-editor';
+import VMdPreview from '@kangc/v-md-editor/lib/preview';
 import '@kangc/v-md-editor/lib/style/base-editor.css';
 import kancenUS from '@kangc/v-md-editor/lib/lang/en-US';
 VueMarkdownEditor.lang.use('en-US', kancenUS);
@@ -38,7 +39,9 @@ VueMarkdownEditor.use(vuepressTheme, {
         'disabled-menus': ['save', 'toc']
     }
 });
+VMdPreview.use(vuepressTheme, {});
 Vue.use(VueMarkdownEditor)
+Vue.use(VMdPreview)
 
 //JSON Editor
 import JsonEditorVue from 'json-editor-vue'

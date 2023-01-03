@@ -5,33 +5,33 @@
     </template>
     <template v-if="question.type == 'h1'">
         <h1 v-if="question.title != ''">{{question.title}}</h1>
-        <markdown-renderer v-if="question.text != null && question.text.length > 0"
-                           :value="question.text" />
+        <v-md-preview v-if="question.text != null && question.text.length > 0"
+                      :text="question.text" />
     </template>
     <template v-if="question.type == 'h2'">
         <h2 v-if="question.title != ''">{{question.title}}</h2>
-        <markdown-renderer v-if="question.text != null && question.text.length > 0"
-                           :value="question.text" />
+        <v-md-preview v-if="question.text != null && question.text.length > 0"
+                      :text="question.text" />
     </template>
     <template v-if="question.type == 'h3'">
         <h3 v-if="question.title != ''">{{question.title}}</h3>
-        <markdown-renderer v-if="question.text != null && question.text.length > 0"
-                           :value="question.text" />
+        <v-md-preview v-if="question.text != null && question.text.length > 0"
+                      :text="question.text" />
     </template>
     <template v-if="question.type == 'p'">
         <p v-if="question.title != ''">
             <strong>{{question.title}}</strong>
         </p>
-        <markdown-renderer v-if="question.text != null && question.text.length > 0"
-                           :value="question.text" />
+        <v-md-preview v-if="question.text != null && question.text.length > 0"
+                      :text="question.text" />
     </template>
     <template v-if="question.type == 'q'">
         <p v-if="question.title != ''">
             <strong>{{question.title}}</strong>
         </p>
         <blockquote class="blockquote">
-            <markdown-renderer v-if="question.text != null && question.text.length > 0"
-                               :value="question.text" />
+            <v-md-preview v-if="question.text != null && question.text.length > 0"
+                          :text="question.text" />
         </blockquote>
     </template>
     <template v-if="question.type == 'hr'">
@@ -73,8 +73,8 @@
         <p v-if="question.title != ''">
             <strong>{{question.title}}</strong>
         </p>
-        <markdown-renderer v-if="question.text != null && question.text.length > 0"
-                           :value="question.text" />
+        <v-md-preview v-if="question.text != null && question.text.length > 0"
+                      :text="question.text" />
         <v-list outlined>
 
             <v-list-item v-for="(item,i) in multiSelectResponse"
@@ -112,8 +112,8 @@
                        v-model="userResponse"
                        :mandatory="false">
             <template v-slot:label>
-                <markdown-renderer v-if="question.text != null && question.text.length > 0"
-                                   :value="question.text" />
+                <v-md-preview v-if="question.text != null && question.text.length > 0"
+                              :text="question.text" />
             </template>
             <v-radio v-for="(item,idx) in listItems"
                      v-bind:label="item"
@@ -125,8 +125,8 @@
         <p v-if="question.title != ''">
             <strong>{{question.title}}</strong>
         </p>
-        <markdown-renderer v-if="question.text != null && question.text.length > 0"
-                           :value="question.text" />
+        <v-md-preview v-if="question.text != null && question.text.length > 0"
+                      :text="question.text" />
         <v-checkbox hide-details
                     v-for="(item,idx) in listItems"
                     v-bind:label="item"
