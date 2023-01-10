@@ -108,39 +108,52 @@ const actions = {
             if (rootState.mydata.token.length > 0) {
 
                 commit('setcartId', cartId);
-                shop.loadCart(rootState.mydata.token, cartId, async (result) => {
+                if (cartId == null) {
+                    //Implicit clear but not delete
                     commit('setCheckoutStatus', {
-                        errors: result.errors,
-                        state: result.state
+                        errors: [],
+                        state: "NotReady"
                     });
-                    commit('setCartItems', result);
+                    commit('setCartItems', []);
                     commit('clearDirty');
-                    commit('setCanPay', result.canPay);
-                    //Now make sure our contexts for any added badges are loaded
-                    var contexts = result.items.map(({
-                        context_code
-                    }) => context_code)
-                    contexts = contexts.filter(function(value, index, self) {
-                        return self.indexOf(value) === index;
-                    })
-                    contexts.forEach(async (context_code, ) => {
-
-                        await dispatch('products/getContextBadges', context_code, {
-                            root: true
-                        });
-                        await dispatch('products/getContextQuestions', context_code, {
-                            root: true
-                        });
-                        await dispatch('products/getContextAddons', context_code, {
-                            root: true
-                        });
-
-                    });
-
+                    commit('setCanPay', false);
                     resolve();
-                }, (er) => {
-                    reject(er);
-                })
+                } else {
+                    //Just attempt a load
+                    shop.loadCart(rootState.mydata.token, cartId, async (result) => {
+                        commit('setCheckoutStatus', {
+                            errors: result.errors,
+                            state: result.state
+                        });
+                        commit('setCartItems', result);
+                        commit('clearDirty');
+                        commit('setCanPay', result.canPay);
+                        //Now make sure our contexts for any added badges are loaded
+                        var contexts = result.items.map(({
+                            context_code
+                        }) => context_code)
+                        contexts = contexts.filter(function(value, index, self) {
+                            return self.indexOf(value) === index;
+                        })
+                        contexts.forEach(async (context_code, ) => {
+
+                            await dispatch('products/getContextBadges', context_code, {
+                                root: true
+                            });
+                            await dispatch('products/getContextQuestions', context_code, {
+                                root: true
+                            });
+                            await dispatch('products/getContextAddons', context_code, {
+                                root: true
+                            });
+
+                        });
+
+                        resolve();
+                    }, (er) => {
+                        reject(er);
+                    })
+                }
             } else {
                 reject({
                     error: {

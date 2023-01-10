@@ -92,19 +92,15 @@ final class badgepromoapplicator
 
     public function TryApplyCode(&$item, $code, bool $skipDateCheck = false): bool
     {
+        $group = $item['context_code'] != 'A';
         if (!empty($code)) {
             $code = strtoupper($code);
             //First, does this badge match our type?
-            $group = $item['context_code'] != 'A';
             if ($group && $item['context_code'] == 'S') {
                 //Staff badges can't be discounted
                 return false;
             }
 
-            if (empty($code)) {
-                $this->resetCode($item);
-                return false;
-            }
             //Did we load this code?
             if (!$this->LoadCode($code, $group)) {
                 if (isset($item['payment_promo_code']) && $code != $item['payment_promo_code']) {
@@ -134,9 +130,13 @@ final class badgepromoapplicator
 
             //Are we still in the applicable timeframe for this?
             $now = new \DateTime();
+            $nullDateTime = new \DateTime('0001-00-00');
             if (!$skipDateCheck) {
                 if (
-                !($promo_code['start_date'] <= $now && $now <= $promo_code['end_date'])
+                !(
+                    ($promo_code['start_date'] <= $now || $promo_code['start_date'] < $nullDateTime)
+                     && ($now <= $promo_code['end_date'] || $promo_code['end_date'] < $nullDateTime)
+                )
                 && count($this->applicableIDs[$group][$code])>0) {
                     if (isset($item['payment_promo_code']) && $code != $item['payment_promo_code']) {
                         //Re-apply the one they theoretically have already
@@ -148,12 +148,18 @@ final class badgepromoapplicator
                 }
             }
         } else {
-            $promo_code = array(
-                'code'=>null,
-                'is_percentage'=>0,
-                'discount'=>0,
-                'description'=>null
-            );
+            //Not applying a new code
+            if (!empty($item['payment_promo_code']) && $this->LoadCode($item['payment_promo_code'], $group)) {
+                //Assume it still applies
+                $promo_code = $this->loadedPromoCode[$group][$item['payment_promo_code']];
+            } else {
+                $promo_code = array(
+                    'code'=>null,
+                    'is_percentage'=>0,
+                    'discount'=>0,
+                    'description'=>null
+                );
+            }
         }
 
         $badge_price = (float)$item['payment_badge_price'];

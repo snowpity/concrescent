@@ -1,6 +1,7 @@
 <template>
 <v-container fluid>
-    <v-expansion-panels focusable
+    <v-expansion-panels v-model="cartsExpanded"
+                        focusable
                         multiple>
         <v-expansion-panel v-for="cart in activeCarts"
                            :key="cart.id">
@@ -12,9 +13,18 @@
                     </v-list-item-title>
                     <v-list-item-subtitle>Saved: {{new Date(cart.date_modified).toLocaleString()}}</v-list-item-subtitle>
                 </v-list-item-content>
-                <v-list-item-action>&zwj;
-                    <v-chip :color="cartStateColor[cart.state]">{{ cartStateTranslation(cart.state) }}</v-chip>
-                </v-list-item-action>
+
+                <template v-slot:actions>
+
+                    <v-sheet rounded="lg"
+                             class="pa-3"
+                             elevation="4"
+                             :color="cartStateColor[cart.state]">{{ cartStateTranslation(cart.state) }}</v-sheet>
+
+                    <v-icon color="primary">
+                        $expand
+                    </v-icon>
+                </template>
             </v-expansion-panel-header>
             <v-expansion-panel-content v-if="cart">&nbsp;
                 <v-container fluid>
@@ -50,7 +60,7 @@
                                     </v-badge>
                                     <v-btn icon
                                            :disabled="!cart.canEdit"
-                                           @click.stop="removeBadge = idx">
+                                           @click.stop="startRemoveBadge(cart.id, idx)">
                                         <v-icon>mdi-delete</v-icon>
                                     </v-btn>
                                 </v-card-actions>
@@ -62,6 +72,14 @@
                                     </div>&nbsp;|&nbsp;
                                     <span>{{ (getAddonByID(product.context_code, product.badge_type_id, addonid['addon_id']) ? getAddonByID(product.context_code, product.badge_type_id, addonid['addon_id']).price : "Loading" ) | currency }}&nbsp;</span>
                                 </v-card-actions>
+                                <v-card-actions v-for="(subbadge,ix) in product.subbadges"
+                                                :key="ix">
+                                    <v-icon>mdi-account</v-icon>
+                                    <div class="text-truncate">
+                                        {{subbadge | badgeDisplayName(false)}}
+                                    </div>
+
+                                </v-card-actions>
                             </v-card>
                         </v-col>
                         <v-col cols="12"
@@ -72,7 +90,9 @@
                             <v-card class="fill-height ma-0"
                                     justify="center">
                                 <v-btn block
+                                       color="primary"
                                        rounded
+                                       @click="addBadge(cart.id)"
                                        align="center">Add
                                     {{cart.items.length ? "another" : "a"}} badge
                                 </v-btn>
@@ -80,24 +100,30 @@
                         </v-col>
                     </v-row>
                     <v-row>
-                        <v-col :cols="2">
+                        <v-col cols="3"
+                               sm="2">
                             <v-btn color="red"
                                    @click="showclearCartDialog(cart.id)">
                                 <v-icon>mdi-bomb</v-icon>
                             </v-btn>
                         </v-col>
 
-                        <v-col :cols="2">
+                        <v-col cols="3"
+                               sm="2">
                             <v-btn v-show="products.length"
                                    :disabled="!cart.canEdit"
                                    color="green"
                                    dark
-                                   @click="openpromocodeDialog(cart.id)">
-                                Enter Promo Code
+                                   @click="showpromocodeDialog(cart.id)">
+                                <v-icon v-if="$vuetify.breakpoint.xs">mdi-sale</v-icon>
+                                <div v-else>
+                                    Enter Promo Code
+                                </div>
                             </v-btn>
                         </v-col>
 
-                        <v-col :cols="2">&nbsp;
+                        <v-col cols="2"
+                               sm="3">&nbsp;
 
                             <v-btn color="primary"
                                    right
@@ -106,11 +132,16 @@
                                    :disabled="!cart.canCheckout"
                                    @click="checkout(cart.id)">
                                 <div v-if="!cart.RequiresApproval || cart.canPay">
-                                    Checkout:
+                                    <v-icon>mdi-credit-card-outline</v-icon>
+
                                     {{ cart.payment_txn_amt | currency }}
                                 </div>
                                 <div v-else>
-                                    Submit
+                                    <v-icon v-if="$vuetify.breakpoint.xs">mdi-send</v-icon>
+                                    <div v-else>
+                                        Submit
+                                    </div>
+
                                 </div>
                             </v-btn>
                             <v-btn v-else
@@ -134,8 +165,8 @@
                 Promo Code Applied
             </v-card-title>
 
-            <v-card-text>
-                {{promoAppliedDialogData ? promoAppliedDialogData.promoDescription : null}}
+            <v-card-text class="text--primary">
+                {{promoAppliedDialogData ? promoAppliedDialogData.payment_promo_description : null}}
             </v-card-text>
             <v-card-text class="text--primary">A discount of
                 <b>{{promoAppliedDialogData ? (promoAppliedDialogData.payment_promo_type == 1 ? "" : "$") : ""}}{{promoAppliedDialogData ? promoAppliedDialogData.payment_promo_amount : ""}}{{promoAppliedDialogData ? (promoAppliedDialogData.payment_promo_type == 1 ? "%" : "") : ""}}</b>
@@ -161,34 +192,35 @@
     </v-dialog>
     <v-dialog v-model="promocodeDialog"
               width="500">
+        <v-form @submit.prevent="submitPromoCode">
+            <v-card>
+                <v-card-title class="headline grey lighten-2"
+                              primary-title>
+                    Enter a Promo Code
+                </v-card-title>
 
-        <v-card>
-            <v-card-title class="headline grey lighten-2"
-                          primary-title>
-                Enter a Promo Code
-            </v-card-title>
+                <v-card-text>
+                    Only one promo code can be used on a badge. Also, editing a badge may remove the promo code from the badge; you will then need to enter the promo code again.
+                </v-card-text>
 
-            <v-card-text>
-                Only one promo code can be used on a badge. Also, editing a badge may remove the promo code from the badge; you will then need to enter the promo code again.
-            </v-card-text>
+                <v-divider></v-divider>
 
-            <v-divider></v-divider>
-
-            <v-col cols="12">
-                <v-text-field label="Enter Code"
-                              :readonly="promoCodeProcessing"
-                              v-model="promocode"
-                              :error-messages="promoCodeErrors"></v-text-field>
-            </v-col>
-            <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="primary"
-                       @click="submitPromoCode"
-                       :loading="promoCodeProcessing">
-                    Submit
-                </v-btn>
-            </v-card-actions>
-        </v-card>
+                <v-col cols="12">
+                    <v-text-field label="Enter Code"
+                                  :readonly="promoCodeProcessing"
+                                  v-model="promocode"
+                                  :error-messages="promoCodeErrors"></v-text-field>
+                </v-col>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary"
+                           type="submit"
+                           :loading="promoCodeProcessing">
+                        Submit
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-form>
     </v-dialog>
     <v-dialog v-model="removeBadgeModal"
               persistent
@@ -342,7 +374,30 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
+    <v-container fluid>
+        <v-row>
+            <v-col>
+                <v-btn color="primary"
+                       @click="addBadge(null)"
+                       left
+                       rounded
+                       absolute>Add a badge</v-btn>
+            </v-col>
+            <v-spacer></v-spacer>
+        </v-row>
 
+    </v-container>
+
+    <v-row>
+        <v-col>
+            <v-btn text
+                   x-large
+                   disabled
+                   block>
+                <!-- Hack allocating space for the footer -->
+            </v-btn>
+        </v-col>
+    </v-row>
 </v-container>
 </template>
 
@@ -361,6 +416,7 @@ export default {
         profileForm,
     },
     data: () => ({
+        cartsExpanded: [],
         createAccountDialog: false,
         newAccountData: {},
         creatingAccount: false,
@@ -460,6 +516,7 @@ export default {
             'removeProductFromCart',
             'loadCart',
             'saveCart',
+            'switchCart',
             'checkoutCart',
             'clearCart'
         ]),
@@ -525,6 +582,20 @@ export default {
             this.saveCart();
             this.promoAppliedDialog = false;
         },
+        addBadge: async function(cartId) {
+            this.loadCart(cartId);
+
+            this.$router.push({
+                path: '/addbadge',
+                params: {
+                    cartIx: -1
+                }
+            });
+        },
+        startRemoveBadge(cartId, badgeix) {
+            this.cartIdSelected = cartId;
+            this.removeBadge = badgeix;
+        },
         confirmRemoveBadge: function() {
             this.removeProductFromCart(this.removeBadge);
             this.removeBadge = -1;
@@ -578,6 +649,8 @@ export default {
             return product.addons.filter(addon => !product.editBadgePriorAddons.includes(addon['addon_id']));
         },
         getAddonByID(context_code, badge_type_id, id) {
+            if (undefined == this.addons[context_code])
+                return undefined;
             if (undefined == this.addons[context_code][badge_type_id])
                 return undefined;
             return this.addons[context_code][badge_type_id].find(addon => addon.id == id);
@@ -629,24 +702,13 @@ export default {
             this.$store.dispatch('mydata/fetchCarts', false)
         },
         'cartIdSelected': function(newId) {
-            console.log('load cart ' + newId);
-            (this.dirty ?
-                this.saveCart() : Promise.resolve()).then(() => {
-                if (newId)
-                    this.loadCart(newId)
-                    .catch((error) => {
-                        console.log('Failed to load cart, redirecting to login', newId);
-                        this.$store.commit('cart/setcartId', null)
-                        this.$router.push({
-                            name: 'login',
-                            params: {
-                                returnTo: this.$route.fullPath,
-                                message: 'Cart inaccessible or does not exist? Try logging in again.'
-                            }
-                        })
-                    });
-            })
-
+            console.log('showing cart because selected', this.cartIdSelected);
+            //Find the cart index associated with the ID and ensure it's expanded
+            var cartIx = this.activeCarts.findIndex(cart => cart.id == newId);
+            if (cartIx != undefined) {
+                if (this.cartsExpanded.find(x => x == cartIx) == undefined)
+                    this.cartsExpanded.push(cartIx);
+            }
         },
         'promoAppliedDialogData': function(newData) {
             this.promoAppliedDialog = newData != null;
@@ -686,7 +748,6 @@ export default {
             })
             .catch((error) => {
                 //Couldn't do that.If they're not logged in, redirect to get a magic link!
-                this.$store.commit('cart/setcartId', null)
                 if (query.id)
                     this.$router.push({
                         name: 'login',
@@ -697,6 +758,7 @@ export default {
                     })
             })
         if (this.needsave && this.cartIdSelected != null) {
+            console.log('Saving cart because we need to and we have it selected')
             this.saveCart()
                 .then((cartId) => {
                     this.cartIdSelected = cartId;
