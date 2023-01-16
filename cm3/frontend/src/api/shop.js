@@ -42,8 +42,10 @@ export default {
             })
     },
 
-    getAddons(event_id, context, cb) {
-        axios.get(global.config.apiHostURL + "public/" + event_id + '/badges/' + context + '/addons')
+    getAddons(event_id, context, override_code, cb) {
+        const override = (override_code ?? '').replace(/[^a-z0-9]/gi, '').toUpperCase();
+        var query = override != '' ? '?override=' + override : '';
+        axios.get(global.config.apiHostURL + "public/" + event_id + '/badges/' + context + '/addons' + query)
             .then(function(response) {
                 cb(response.data);
             })
@@ -240,6 +242,19 @@ export default {
     getSpecificBadge(context_code, id, uuid, cb, errorCb) {
         axios.get(global.config.apiHostURL + "public/getspecificbadge?context_code=" +
                 context_code + "&id=" + id + "&uuid=" + uuid)
+            .then(function(response) {
+                cb(response.data);
+            })
+            .catch(function(error) {
+                errorCb(error.response.data);
+            })
+    },
+    getMyApplications(token, cb, errorCb) {
+        axios.get(global.config.apiHostURL + "account/applications", {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
             .then(function(response) {
                 cb(response.data);
             })

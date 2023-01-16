@@ -129,7 +129,6 @@ const actions = {
             commit('setBadgeContextSelected', context_code);
             //Check that the desired context exists
             if (state.badgecontextselected == undefined)
-                return reject('Context Code not found');
                 return reject('Context Code not found:' + context_code);
             //Fetch all the things!
             await dispatch('getContextBadges', state.badgecontextselected.context_code);
@@ -215,7 +214,7 @@ const actions = {
             if (state.gotAddons[context_code] != undefined)
                 return resolve();
             shop.getAddons(state.selectedEventId,
-                context_code,
+                context_code, state.override_code,
                 addons => {
                     commit('setContextAddons', {
                         addons: addons,

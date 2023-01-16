@@ -52,6 +52,14 @@ export default [{
         component: () => import( /* webpackChunkName: "login" */ './routes/register/mybadges.vue'),
     },
     {
+        path: '/myApplications',
+        name: 'myApplications',
+        meta: {
+            title: 'My Applications',
+        },
+        component: () => import( /* webpackChunkName: "login" */ './routes/register/myapplications.vue'),
+    },
+    {
         path: '/addbadge',
         name: 'addbadge',
         meta: {

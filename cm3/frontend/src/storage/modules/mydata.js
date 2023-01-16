@@ -8,6 +8,7 @@ const state = {
     preferences: {},
     adminMode: false,
     ownedbadges: [],
+    applications: [],
     BadgeRetrievalStatus: false,
     BadgeRetrievalResult: '',
     contactInfo: {
@@ -22,7 +23,7 @@ const state = {
         "zip_code": "",
         "country": ""
     },
-    activeCarts: null,
+    activeCarts: [],
     allCarts: null,
 }
 
@@ -31,6 +32,9 @@ const state = {
 const getters = {
     ownedBadgeCount: (state) => {
         return state.ownedbadges == undefined ? 0 : state.ownedbadges.length;
+    },
+    applicationCount: (state) => {
+        return state.applications == undefined ? 0 : state.applications.length;
     },
 
     getBadgeAsCart: (state) =>
@@ -42,7 +46,17 @@ const getters = {
             var result = state.ownedbadges[badgeIx];
             if (result.addonsSelected != undefined && result.addonsSelected.length > 0)
                 result.editBadgePriorAddons = [...result.addonsSelected];
-            result.id = result.id;
+            return result;
+        },
+    getApplicationAsCart: (state) =>
+        (badgeIx) => {
+            // var tempProduct = [
+            //     state.ownedbadges[badgeIx]
+            // ]
+            // var result = shop.transformPOSTData(tempProduct, true)[0];
+            var result = state.applications[badgeIx];
+            if (result.addonsSelected != undefined && result.addonsSelected.length > 0)
+                result.editBadgePriorAddons = [...result.addonsSelected];
             return result;
         },
     getAuthToken: (state) => {
@@ -130,6 +144,7 @@ const actions = {
                     dispatch('refreshContactInfo');
                     commit('setOwnedBadges', []);
                     dispatch('retrieveBadges');
+                    dispatch('retrieveApplications');
                     resolve(true);
                 },
                 (error) => {
@@ -169,9 +184,9 @@ const actions = {
         })
     },
     logout({
-        commit
+        commit,
+        dispatch
     }) {
-        commit('setToken', "");
         commit('setPermissions', null);
         commit('setUsername', "");
         commit('setPreferences', {});
@@ -189,6 +204,23 @@ const actions = {
         });
         commit('setAdminMode', false);
         commit('setOwnedBadges', []);
+        commit('setApplications', []);
+        commit('setCarts', {
+            include_all: true,
+            carts: []
+        });
+        commit('setCarts', {
+            include_all: false,
+            carts: []
+        });
+
+        dispatch('cart/loadCart', null, {
+            root: true
+        });
+        dispatch('cart/clearCart', null, {
+            root: true
+        });
+        commit('setToken', "");
     },
     setAdminMode({
         commit
@@ -357,6 +389,16 @@ const actions = {
             }
         )
     },
+    retrieveApplications({
+        commit,
+        state
+    }) {
+        shop.getMyApplications(state.token, (data) => {
+
+            commit('setApplications', data);
+
+        })
+    },
     clearBadgeRetrievalResult({
         commit
     }) {
@@ -406,6 +448,12 @@ const mutations = {
     },
     setBadgeRetrievalResult(state, newState) {
         state.BadgeRetrievalResult = newState;
+    },
+    setApplications(state, items) {
+        if (items != undefined)
+            state.applications = items;
+        else
+            state.applications = [];
     },
     setCarts(state, cartsInfo) {
         //      {carts:null,include_all:include_all,success:false}

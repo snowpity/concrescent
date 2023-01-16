@@ -34,7 +34,7 @@ class addon extends \CM3_Lib\database\Table
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
-        $this->DefaultSearchColumns = array('id','name','price','quantity','dates_available');
+        $this->DefaultSearchColumns = array('id','name','price','quantity','dates_available','active');
     }
 
     public function verifyAddonBelongsToEvent(int $id, int $event_id)

@@ -140,6 +140,18 @@ export default {
                     },
                     flex: 6,
                 }, {
+                    route: "/myApplications",
+                    icon: "mdi-account-box-multiple",
+                    label: "My Applications",
+                    actiontext: 'Access your applications',
+                    show: () => {
+                        return this.applicationCount > 0;
+                    },
+                    badge: () => {
+                        return this.applicationCount;
+                    },
+                    flex: 6,
+                }, {
                     route: "/cart",
                     icon: "mdi-cart",
                     label: "View cart",
@@ -167,6 +179,7 @@ export default {
         }),
         ...mapGetters('mydata', {
             'ownedBadgeCount': 'ownedBadgeCount',
+            'applicationCount': 'applicationCount',
             'isLoggedIn': 'getIsLoggedIn',
             'isAdmin': 'hasPerms',
             'adminMode': 'getAdminMode',

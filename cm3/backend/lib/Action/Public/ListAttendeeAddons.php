@@ -44,6 +44,8 @@ final class ListAttendeeAddons
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
+        $qp = $request->getQueryParams();
+        $override = $qp['override'] ?? null;
         $viewData = new View(
             array(
               'id',
@@ -96,8 +98,11 @@ final class ListAttendeeAddons
         );
 
         $whereParts = array(
-          new SearchTerm('active', 1),
-          new SearchTerm('event_id', $params['event_id'])
+          new SearchTerm('event_id', $params['event_id']),
+          new SearchTerm('', '', subSearch:array(
+              new SearchTerm('active', 1),
+              new SearchTerm('active_override_code', $override, TermType:'OR'),
+          ))
         );
 
         $order = array('display_order' => false);

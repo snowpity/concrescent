@@ -119,6 +119,39 @@ const actions = {
                     commit('setCanPay', false);
                     resolve();
                 } else {
+                    //Is it in our cache?
+                    var foundCart = rootState.mydata.activeCarts.find(cart => cart.id == cartId);
+                    if (foundCart != undefined) {
+                        commit('setCheckoutStatus', {
+                            errors: foundCart.errors,
+                            state: foundCart.state
+                        });
+                        commit('setCartItems', foundCart);
+                        commit('clearDirty');
+                        commit('setCanPay', foundCart.canPay);
+                        //Now make sure our contexts for any added badges are loaded
+                        var contexts = foundCart.items.map(({
+                            context_code
+                        }) => context_code)
+                        contexts = contexts.filter(function(value, index, self) {
+                            return self.indexOf(value) === index;
+                        })
+                        contexts.forEach(async (context_code, ) => {
+
+                            await dispatch('products/getContextBadges', context_code, {
+                                root: true
+                            });
+                            await dispatch('products/getContextQuestions', context_code, {
+                                root: true
+                            });
+                            await dispatch('products/getContextAddons', context_code, {
+                                root: true
+                            });
+
+                        });
+
+                        return resolve();
+                    }
                     //Just attempt a load
                     shop.loadCart(rootState.mydata.token, cartId, async (result) => {
                         commit('setCheckoutStatus', {

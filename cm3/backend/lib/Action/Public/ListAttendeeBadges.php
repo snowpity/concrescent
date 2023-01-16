@@ -65,10 +65,10 @@ final class ListAttendeeBadges
               'min_age',
               'max_age',
               new SelectColumn('date_start', EncapsulationFunction: 'date_sub(?, INTERVAL `min_age` YEAR)', Alias: 'max_birthdate', JoinedTableAlias: 'event'),
-              new SelectColumn('date_start', EncapsulationFunction: 'date_sub(?, INTERVAL `max_age` YEAR)', Alias: 'min_birthdate', JoinedTableAlias: 'event'),
+              new SelectColumn('date_start', EncapsulationFunction: 'date_sub(?+1, INTERVAL `max_age`+1 YEAR)', Alias: 'min_birthdate', JoinedTableAlias: 'event'),
               'dates_available',
               new SelectColumn('quantity_sold', EncapsulationFunction: 'ifnull(?,0)', Alias: 'quantity_sold', JoinedTableAlias: 'q'),
-              new SelectColumn('quantity_sold', EncapsulationFunction: 'quantity - ?', Alias: 'quantity_remaining', JoinedTableAlias: 'q')
+              new SelectColumn('quantity_sold', EncapsulationFunction: 'quantity - ifnull(?,0)', Alias: 'quantity_remaining', JoinedTableAlias: 'q')
           ),
             array(
             new Join(

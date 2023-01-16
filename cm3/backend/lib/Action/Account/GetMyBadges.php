@@ -2,19 +2,8 @@
 
 namespace CM3_Lib\Action\Account;
 
-use CM3_Lib\database\SelectColumn;
 use CM3_Lib\database\SearchTerm;
-use CM3_Lib\database\View;
-use CM3_Lib\database\Join;
 
-use CM3_Lib\models\attendee\badge as a_badge;
-use CM3_Lib\models\attendee\badgetype as a_badge_type;
-use CM3_Lib\models\attendee\addonpurchase as a_addonpurchase;
-use CM3_Lib\models\application\submissionapplicant as g_badge;
-use CM3_Lib\models\application\submission as g_badge_submission;
-use CM3_Lib\models\application\badgetype as g_badge_type;
-use CM3_Lib\models\application\group as g_group;
-use CM3_Lib\models\eventinfo;
 use CM3_Lib\util\CurrentUserInfo;
 use CM3_Lib\util\badgeinfo;
 
@@ -26,23 +15,6 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class GetMyBadges
 {
-    private $selectColumns = array(
-      'id',
-      'display_id',
-      'hidden',
-      'can_transfer',
-      'uuid',
-      'real_name',
-      'fandom_name',
-      'name_on_badge',
-      'date_of_birth',
-      'notify_email',
-      'can_transfer',
-      'ice_name',
-      'ice_relationship',
-      'ice_email_address',
-      'ice_phone_number',
-    );
     /**
      * The constructor.
      *
@@ -51,7 +23,6 @@ class GetMyBadges
      */
     public function __construct(
         private Responder $responder,
-        private eventinfo $eventinfo,
         private CurrentUserInfo $CurrentUserInfo,
         private badgeinfo $badgeinfo
     ) {

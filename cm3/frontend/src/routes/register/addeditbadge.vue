@@ -608,8 +608,10 @@ export default {
                 console.log('setting override code', override);
                 await this.$store.dispatch('products/setOverrideCode', override);
             }
+            console.log("params", this.$route.params)
             this.cartIx = parseInt(this.$route.params.cartIx);
-            const idString = this.$route.params.editIx;
+            const editIx = this.$route.params.editIx;
+            const editAppIx = this.$route.params.editAppIx;
             console.log('load a badge')
             let badge_type_id = -1;
             if (this.cartIx > -1) {
@@ -617,10 +619,16 @@ export default {
                 console.log('cart item ' + this.cartIx)
                 cartItem = this.$store.getters['cart/getProductInCart'](this.cartIx);
                 this.reachedStep = 4;
-            } else if (idString != undefined) {
+            } else if (editIx != undefined) {
                 // Load up the badge from the owned badges
-                console.log('owned badge  ' + idString)
-                cartItem = this.$store.getters['mydata/getBadgeAsCart'](idString);
+                console.log('owned badge  ' + editIx)
+                cartItem = this.$store.getters['mydata/getBadgeAsCart'](editIx);
+                this.editBadgePriorBadgeId = cartItem.badge_type_id;
+                this.reachedStep = 4;
+            } else if (editAppIx != undefined) {
+                // Load up the badge from the owned badges
+                console.log('application  ' + editAppIx)
+                cartItem = this.$store.getters['mydata/getApplicationAsCart'](editAppIx);
                 this.editBadgePriorBadgeId = cartItem.badge_type_id;
                 this.reachedStep = 4;
             } else if (isNaN(this.cartIx)) {

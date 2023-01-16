@@ -764,7 +764,9 @@ final class badgeinfo
         }
         $g_terms = $this->AdjustSearchTerms($terms, $g_bv);
         //Add to the group search if context specified
-        $g_terms[] = new SearchTerm('context_code', $context, is_null($context) ? 'IS' : '=', JoinedTableAlias:'grp');
+        if (!empty($context)) {
+            $g_terms[] = new SearchTerm('context_code', $context, is_null($context) ? 'IS' : '=', JoinedTableAlias:'grp');
+        }
 
         //$this->g_badge->debugThrowBeforeSelect = true;
         $g_data = $this->g_badge_submission->Search($g_bv, $g_terms, $order, $limit, $offset, $totalRows);
@@ -1127,7 +1129,7 @@ final class badgeinfo
     {
         return new View(
             array(
-                'notes',
+                 $this->CurrentUserInfo->GetPerms()->EventPerms->getValue() > 0 ? 'notes' : null,
                 'uuid',
                 'payment_id'
             ),
@@ -1140,7 +1142,7 @@ final class badgeinfo
     {
         return new View(
             array(
-                'notes',
+                 $this->CurrentUserInfo->GetPerms()->EventPerms->getValue() > 0 ? 'notes' : null,
                 'uuid',
                 'payment_id'
             )
@@ -1194,7 +1196,7 @@ final class badgeinfo
     {
         return new View(
             array(
-                'notes',
+                 $this->CurrentUserInfo->GetPerms()->EventPerms->getValue() > 0 ? 'notes' : null,
                 'uuid'
             ),
             array()
@@ -1272,7 +1274,7 @@ final class badgeinfo
     {
         return new View(
             array(
-                'notes',
+                 $this->CurrentUserInfo->GetPerms() ? 'notes' : null,
                 'uuid'
             ),
             array()
@@ -1456,7 +1458,6 @@ final class badgeinfo
 
     public function addComputedColumns($result, $includeImageData = false)
     {
-        $result['display_name'] = $result['real_name'];
         //Add some computed helper columns
         switch ($result['name_on_badge']) {
             case 'Fandom Name Large, Real Name Small':
@@ -1473,9 +1474,11 @@ final class badgeinfo
                 break;
             case 'Fandom Name Only':
                 $result['only_name'] = $result['fandom_name'];
+                $result['display_name'] = $result['fandom_name'];
                 break;
             case 'Real Name Only':
                 $result['only_name'] = $result['real_name'];
+                $result['display_name'] = $result['real_name'];
                 break;
         }
         $result['badge_id_display'] = $result['context_code'] . $result['display_id'];

@@ -172,7 +172,7 @@ final class PaymentBuilder
         ) {
             return false;
         }
-        return true;
+        return $this->AllowPay;
     }
     public function getCanPay()
     {
@@ -397,8 +397,11 @@ final class PaymentBuilder
                         case 'Active':
                         case 'PendingAcceptance':
                         case 'Accepted':
-                        case 'Onboatding':
                             break;
+                        case 'Rejected':
+                        case 'Waitlisted':
+                            $this->AllowPay = false;
+                            // no break
                         default:
                             $this->CanPay = false;
                     }
@@ -409,7 +412,7 @@ final class PaymentBuilder
                 }
             }
         }
-        if ($this->cart['payment_status'] == 'AwaitingApproval' && $this->CanPay) {
+        if ($this->cart['payment_status'] == 'AwaitingApproval' && $this->CanPay && $this->AllowPay) {
             //They must now meet the criteria to pay, switch them to NotStarted
             $this->cart['payment_status'] = 'NotStarted';
         }
@@ -876,7 +879,7 @@ final class PaymentBuilder
         $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code']);
         if ($bi !== false) {
             $item['payment_status'] = 'Completed';
-            if ($bi['application_status'] == 'AwaitingApproval') {
+            if ($bi['application_status'] == 'PendingAcceptance') {
                 $item['application_status'] = 'Onboarding';
             }
 

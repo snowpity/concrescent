@@ -54,7 +54,7 @@
                                              :value="!!badgeErrorCount[product.cartIx]">
                                         <v-btn icon
                                                :disabled="!cart.canEdit"
-                                               :to="{name:'editbadge', params: {cartIx: idx}}">
+                                               @click.stop="editBadge(cart.id, idx)">
                                             <v-icon>mdi-pencil</v-icon>
                                         </v-btn>
                                     </v-badge>
@@ -133,7 +133,6 @@
                                    @click="checkout(cart.id)">
                                 <div v-if="!cart.RequiresApproval || cart.canPay">
                                     <v-icon>mdi-credit-card-outline</v-icon>
-
                                     {{ cart.payment_txn_amt | currency }}
                                 </div>
                                 <div v-else>
@@ -592,6 +591,17 @@ export default {
                 }
             });
         },
+        editBadge: async function(cartId, badgeix) {
+            await this.loadCart(cartId);
+            this.cartIdSelected = cartId;
+            console.log("badgeix", badgeix);
+            this.$router.push({
+                name: 'addbadge',
+                params: {
+                    cartIx: badgeix
+                }
+            });
+        },
         startRemoveBadge(cartId, badgeix) {
             this.cartIdSelected = cartId;
             this.removeBadge = badgeix;
@@ -714,7 +724,7 @@ export default {
             this.promoAppliedDialog = newData != null;
         }
     },
-    created() {
+    async created() {
         var query = this.$route.query;
         if (query.checkout != undefined) {
             if (query.checkout == "confirm") {
@@ -740,7 +750,7 @@ export default {
             })
         }
         if (query.id)
-            this.$store.commit('cart/setcartId', query.id);
+            await this.loadCart(query.id);
 
         this.$store.dispatch('mydata/fetchCarts', false).then(() => {
                 console.log('carts should be loaded, selecting cart', this.currentCartId)
