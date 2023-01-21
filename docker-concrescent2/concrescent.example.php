@@ -11,6 +11,12 @@ require_once dirname(__FILE__).'/../lib/util/dontbeevil.php';
 
 /* This is the default configuration for CONcrescent. Replace all values in this file. */
 $cm_config = array(
+	
+	/* Override the site's base URL.
+	   This is required if due to proxy shenanigans
+	   the actual server URL cannot be properly determined.
+	   Otherwise this should be left blank. */
+	'site-override' => '',
 
 	/* Database Configuration */
 	'database' => array(
