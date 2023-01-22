@@ -179,6 +179,13 @@ export default {
                         return this.ownedBadgeCount > 0;
                     }
                 }, {
+                    route: "/myApplications",
+                    icon: "mdi-account-box-multiple",
+                    label: "My Applications",
+                    show: () => {
+                        return this.applicationCount > 0;
+                    }
+                }, {
                     route: "/addbadge",
                     icon: "mdi-cart-plus",
                     label: "Add Badge"
@@ -365,6 +372,7 @@ export default {
         }),
         ...mapGetters('mydata', {
             'ownedBadgeCount': 'ownedBadgeCount',
+            'applicationCount': 'applicationCount',
             'isLoggedIn': 'getIsLoggedIn',
             'isAdmin': 'hasPerms',
             'hasEventPerm': 'hasEventPerm',
