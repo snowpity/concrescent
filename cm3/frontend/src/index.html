@@ -26,6 +26,7 @@
             setTimeout(() =>
             {
                  window.location.replace(window.location.pathname + (window.location.hash || '?') + '&attemptedReload' );
+                 window.location.reload();
             }, 5000);
         } else {
             app.innerHTML += " Alternatively, your browser might be out of date?";

@@ -19,6 +19,7 @@ class badgetype extends \CM3_Lib\database\Table
             'rewards'         => new cm_Column('TEXT', null, true),
             'price'           => new cm_Column('DECIMAL', '7,2', false, defaultValue: 0),
             'payable_onsite'  => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
+            'quantity'                  => new cm_Column('INT', null, true),
             'payment_deferred'=> new cm_Column('BOOLEAN', null, false, defaultValue: 'true'), //Whether they need to be accepted in order to pay
             'start_date'      => new cm_Column('DATE', null, true),
             'end_date'        => new cm_Column('DATE', null, true),
@@ -28,7 +29,7 @@ class badgetype extends \CM3_Lib\database\Table
             'date_modified'   => new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP', false, 'ON UPDATE CURRENT_TIMESTAMP'),
             'notes'           => new cm_Column('TEXT', null, true),
             //Generated columns
-            'dates_available' => new cm_Column('VARCHAR', '50', null, customPostfix: 'GENERATED ALWAYS as (concat(case `start_date` is null when true then \'forever\' else `start_date` end,\' to \', case end_date is null when true then \'forever\' else `end_date` end)) VIRTUAL'),
+            'dates_available' => new cm_Column('VARCHAR', '50', null, customPostfix: 'GENERATED ALWAYS as (CASE `start_date` IS NULL WHEN true THEN CASE end_date IS NULL WHEN true THEN \'Always\' ELSE CONCAT( \'Until \' ,`end_date`) END ELSE CASE end_date IS NULL WHEN true THEN CONCAT ( \'From \' ,`start_date` ) ELSE CONCAT ( `end_date` ,\' to \' ,`end_date` ) END END ) VIRTUAL'),
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);

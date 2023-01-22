@@ -50,8 +50,8 @@
                                     <v-spacer></v-spacer>
                                     <v-badge color="error"
                                              overlap
-                                             :content="badgeErrorCount[product.cartIx]"
-                                             :value="!!badgeErrorCount[product.cartIx]">
+                                             :content="badgeErrorCount(cart,idx)"
+                                             :value="!!badgeErrorCount(cart,idx)">
                                         <v-btn icon
                                                :disabled="!cart.canEdit"
                                                @click.stop="editBadge(cart.id, idx)">
@@ -432,7 +432,7 @@ export default {
         AwaitingApprovalDialog: false,
         removeBadge: -1,
         clearCartDialog: false,
-        badgeErrorCount: [],
+        //badgeErrorCount: [],
         orderSteps: {
             'undefined': 'Processing order, please wait...',
             'ready': 'Directing to Merchant...',
@@ -472,7 +472,13 @@ export default {
             canPayCart: 'canPay',
         }),
         selectedCart: function() {
-            return this.activeCarts.find(cart => cart.id == this.cartIdSelected) || {
+            if (this.activeCarts)
+                return this.activeCarts.find(cart => cart.id == this.cartIdSelected) || {
+                    canEdit: false,
+                    canPay: false,
+
+                };
+            return {
                 canEdit: false,
                 canPay: false,
 
@@ -510,6 +516,9 @@ export default {
             'submitCreateAccount': 'createAccount',
             'sendRetrieveBadgeEmail': 'sendRetrieveBadgeEmail',
         }),
+        ...mapActions('products', {
+            'selectContext': 'selectContext',
+        }),
         ...mapActions('cart', [
             'removePromoFromProduct',
             'removeProductFromCart',
@@ -517,25 +526,15 @@ export default {
             'saveCart',
             'switchCart',
             'checkoutCart',
+            'checkoutCartByUUID',
             'clearCart'
         ]),
-        updatedbadgeErrorCount: function() {
-
-            //populate all the badges
-            var result = [];
-            this.promoCodeErrors = [];
-            this.products.forEach(product => result[product.cartIx + ''] = 0);
-            if (this.checkoutStatus) {
-                if (this.checkoutStatus.errors) {
-                    Object.keys(this.checkoutStatus.errors).forEach(key => {
-                        result[key] = Object.keys(this.checkoutStatus.errors[key]).length;
-                    })
-                    if (this.checkoutStatus.errors['promo'])
-                        this.promoCodeErrors = this.checkoutStatus.errors['promo'];
-                }
-            }
-            this.badgeErrorCount = result;
-            return result;
+        badgeErrorCount: function(cart, ix) {
+            if (cart == undefined) return 0;
+            if (ix == undefined) return 0;
+            if (cart.errors == undefined) return 0;
+            if (cart.errors.length < ix) return 0;
+            return Object.keys(cart.errors[ix]).length;
         },
         cartStateTranslation: function(state) {
             return ({
@@ -602,7 +601,8 @@ export default {
                 }
             });
         },
-        startRemoveBadge(cartId, badgeix) {
+        async startRemoveBadge(cartId, badgeix) {
+            await this.loadCart(cartId);
             this.cartIdSelected = cartId;
             this.removeBadge = badgeix;
         },
@@ -634,9 +634,9 @@ export default {
                 })
             })
         },
-        checkout(cartid) {
+        async checkout(cartid) {
             this.processingCheckoutDialog = true;
-            this.$store.commit('cart/setcartId', cartid);
+            await this.loadCart(cartid);
             var _this = this;
             //Fancy delays
             setTimeout(function() {
@@ -659,16 +659,32 @@ export default {
             return product.addons.filter(addon => !product.editBadgePriorAddons.includes(addon['addon_id']));
         },
         getAddonByID(context_code, badge_type_id, id) {
+            var result = {
+                "id": 0,
+                "display_order": 0,
+                "name": "[Loading...]",
+                "description": "Loading description, please wait",
+                "rewards": null,
+                "price": "",
+                "payable_onsite": 0,
+                "quantity": null,
+                "start_date": null,
+                "end_date": null,
+                "min_age": null,
+                "max_age": null,
+                "dates_available": "forever to forever",
+                "quantity_sold": 0,
+                "quantity_remaining": null
+            }
             if (undefined == this.addons[context_code])
-                return undefined;
+                return result;
             if (undefined == this.addons[context_code][badge_type_id])
-                return undefined;
-            return this.addons[context_code][badge_type_id].find(addon => addon.id == id);
+                return result;
+            return this.addons[context_code][badge_type_id].find(addon => addon.id == id) || result;
         }
     },
     watch: {
         'checkoutStatus': function(newstatus) {
-            this.updatedbadgeErrorCount();
             this.cartState = newstatus ? newstatus.state : 'undefined';
             if (newstatus)
                 switch (newstatus.state) {
@@ -711,7 +727,7 @@ export default {
             //Always refresh the cart list
             this.$store.dispatch('mydata/fetchCarts', false)
         },
-        'cartIdSelected': function(newId) {
+        'cartIdSelected': async function(newId) {
             console.log('showing cart because selected', this.cartIdSelected);
             //Find the cart index associated with the ID and ensure it's expanded
             var cartIx = this.activeCarts.findIndex(cart => cart.id == newId);
@@ -719,6 +735,18 @@ export default {
                 if (this.cartsExpanded.find(x => x == cartIx) == undefined)
                     this.cartsExpanded.push(cartIx);
             }
+        },
+        'cartsExpanded': async function(newcarts) {
+
+            //Determine all the contexts and then ask for them to be loaded
+            for (var cartIx of newcarts) {
+                if (this.activeCarts[cartIx] != undefined) {
+                    for (var item of this.activeCarts[cartIx].items) {
+                        await this.selectContext(item.context_code);
+                    };
+                }
+            };
+
         },
         'promoAppliedDialogData': function(newData) {
             this.promoAppliedDialog = newData != null;
@@ -732,15 +760,23 @@ export default {
                 this.cartState = query.checkout;
                 //Un-pop the dialog after a few seconds
                 var _this = this;
-                setTimeout(function() {
+                setTimeout(async function() {
                     //Check if we should switch ID due to UUID being specified
                     if (query.uuid != undefined) {
                         var uuidcart = this.activeCarts.find(cart => cart.uuid == query.uuid);
-                        if (uuidcart != undefined)
-                            this.$store.commit('cart/setcartId', uuidcart.id);
-                    }
+                        if (uuidcart != undefined) {
+                            await _this.loadCart(uuidcart.id);
 
-                    _this.checkoutCart();
+                            _this.checkoutCart();
+                        } else {
+                            //Huh. Not one of ours? Well, do it manually then...
+                            _this.checkoutCartByUUID(query.uuid);
+                        }
+
+                    } else {
+                        //... not sure how they got here, just close the processing dialog
+                        _this.processingCheckoutDialog = false;
+                    }
                 }, 2000);
 
             }
@@ -777,8 +813,6 @@ export default {
                     this.cartLocked = error.error.message;
                 });
         }
-
-        this.updatedbadgeErrorCount();
     }
 }
 </script>

@@ -428,6 +428,47 @@ final class badgeinfo
         }
     }
 
+    public function GetValidTypeIdsForContext($context_code)
+    {
+        switch ($context_code) {
+            case 'A':
+                return array_column($this->a_badge_type->Search(
+                    array('id'),
+                    array(
+                        $this->CurrentUserInfo->EventIdSearchTerm(),
+                        new SearchTerm('active', 1)
+                    )
+                ), 'id');
+            case 'S':
+                return array_column($this->s_badge_type->Search(
+                    array('id'),
+                    array(
+                        $this->CurrentUserInfo->EventIdSearchTerm(),
+                        new SearchTerm('active', 1)
+                    )
+                ), 'id');
+            default:
+                return array_column($this->s_badge_type->Search(
+                    new View(
+                        array('id'),
+                        array(new Join(
+                            $this->g_group,
+                            array(
+                              'id' => 'group_id',
+                            ),
+                            alias:'grp'
+                        ))
+                    ),
+                    array(
+                        new SearchTerm('active', 1),
+                        new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId(), JoinedTableAlias: 'grp'),
+                        new SearchTerm('context_code', $context_code, JoinedTableAlias: 'grp')
+                    )
+                ), 'id');
+        }
+    }
+
+
     public function GetAddonsAvailable($badge_type_id, $context_code)
     {
         switch ($context_code) {
@@ -668,7 +709,11 @@ final class badgeinfo
         $a_data = (($context ?? 'A') == 'A') ? $this->a_badge->Search($a_bv, $a_terms, $order, $limit, $offset, $trA, 'b') : array();
         $s_data = (($context ?? 'S') == 'S') ? $this->s_badge->Search($s_bv, $s_terms, $order, $limit, $offset, $trG, 'b') : array();
         //$this->g_badge->debugThrowBeforeSelect = true;
-        $g_data = $this->g_badge->Search($g_bv, $g_terms, $order, $limit, $offset, $trS, 'b');
+        //Sub badges do not have queestion responses, so filder out possible form responses
+        $orderNoFormResponses = array_filter($order, function ($colname) {
+            return !str_starts_with($colname, 'form_responses');
+        }, ARRAY_FILTER_USE_KEY);
+        $g_data = $this->g_badge->Search($g_bv, $g_terms, $orderNoFormResponses, $limit, $offset, $trS, 'b');
         $totalRows =  $trA + $trG + $trS;
 
 
@@ -777,10 +822,13 @@ final class badgeinfo
         if (count($applicantIds) == 0) {
             $applicantIds[] = 0;
         }
-        $g_addons = $this->g_addonpurchase->Search(array(
+        $g_addons = $this->g_addonpurchase->Search(new View(array(
             'application_id',
-            'addon_id'
+            'addon_id',
+            new SelectColumn('name', JoinedTableAlias:'a'),
         ), array(
+            new Join($this->g_addon, array('id'=>'addon_id'), 'inner', 'a')
+        )), array(
             new SearchTerm('application_id', $applicantIds, 'IN'),
             new SearchTerm('payment_status', 'Completed')
         ));
@@ -793,7 +841,8 @@ final class badgeinfo
             foreach ($g_addons as $addon) {
                 if ($addon['application_id'] == $badge['id']) {
                     $badge['addons'][] = array(
-                    'addon_id' => $addon['addon_id']
+                    'addon_id' => $addon['addon_id'],
+                    'name' => $addon['name']
                 );
                 }
             }
@@ -829,6 +878,24 @@ final class badgeinfo
                 });
                 //Zip together the responses
                 $badge['form_responses'] = array_combine(array_column($f_filteredbadgedata, 'question_id'), array_column($f_filteredbadgedata, 'response'));
+                //Retrieve subbadges
+
+                $badge['subbadges'] = $this->g_badge->Search(array(
+                    'id',
+                    'display_id',
+                    'real_name',
+                    'fandom_name',
+                    'name_on_badge',
+                    'date_of_birth',
+                    'notify_email',
+                    'can_transfer',
+                    'ice_name',
+                    'ice_relationship',
+                    'ice_email_address',
+                    'ice_phone_number',
+                ), array(
+                    new SearchTerm('application_id', $badge['id'])
+                ));
             }
         }
 

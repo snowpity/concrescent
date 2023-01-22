@@ -24,6 +24,7 @@ final class PaymentBuilder
 {
     private array $cart = array();
     private array $cart_items = array();
+    private array $cart_errors = array();
     private string $cart_uuid = "";
     private float $cart_payment_txn_amt = 0;//Our own sanity check against the cart
     private bool $AllowPay = true;
@@ -113,6 +114,7 @@ final class PaymentBuilder
         ) {
             $this->cart = array();
             $this->cart_items = array();
+            $this->cart_errors = array();
             $cart_payment_txn_amt = 0;
             $this->AllowPay = true;
             $this->CanPay = true;
@@ -165,9 +167,10 @@ final class PaymentBuilder
     {
         //Check if we can alter this payment
         if (!(
-            $this->cart['payment_status'] == 'NotStarted'
+            ($this->cart['payment_status'] == 'NotStarted'
             ||$this->cart['payment_status'] == 'Incomplete'
-            ||$this->cart['payment_status'] == 'Cancelled'
+            ||$this->cart['payment_status'] == 'Cancelled')
+            &&$this->cartErrorCount()==0
         )
         ) {
             return false;
@@ -262,13 +265,31 @@ final class PaymentBuilder
             if ($bi !== false && !isset($item['existing'])) {
                 $item['existing'] = $bi;
             }
+            //TODO: Make this actually work right
+            // //Disallowed fields
+            $disallowed = array();
+            // $disallowed = array(
+            //     'application_status',
+            //     'editBadgePriorAddons',
+            //     'editBadgePriorBadgeId',
+            //     'existing',
+            //     'id',
+            //     'payment_badge_price',
+            //     'payment_id',
+            //     'payment_promo_amount',
+            //     'payment_promo_code',
+            //     'payment_promo_description',
+            //     'payment_promo_price',
+            //     'payment_promo_type',
+            //     'payment_status',
+            // )
             //If this isn't ours, ensure certain fields aren't tampered with
             if ($bi['contact_id'] != $this->cart['contact_id']) {
-                $allowed = array(
+                $disallowed =array_merge($disallowed, array(
                     'notify_email',
                     'can_transfer',
                     'contact_id'
-                );
+                ));
                 array_walk($allowed, function ($col) use ($item, $bi) {
                     if (isset($bi[$col])) {
                         $item[$col] = $bi[$col];
@@ -319,17 +340,15 @@ final class PaymentBuilder
         return $this->cart_items;
     }
 
-    public function getCartErrors(bool $updateReadyStatus = false)
+    public function getCartErrors()
     {
-        //Just run through and validate the items as they sit
-        $result = array();
-        foreach ($this->cart_items as $key => $badge) {
-            $result[$key] = $this->badgevalidator->ValdateCartBadge($badge);
-        }
-        if ($updateReadyStatus) {
-            $this->cart['payment_status'] = count($result) ? 'NotStarted' : 'NotReady';
-        }
-        return $result;
+        return $this->cart_errors;
+    }
+    public function cartErrorCount()
+    {
+        return array_reduce($this->cart_errors, function ($errorCount, $itemErrors) {
+            return $errorCount + count($itemErrors);
+        }, 0);
     }
 
     public function getCartTotal(bool $refresh = true)
@@ -343,11 +362,11 @@ final class PaymentBuilder
                 //Check for addons
                 if (isset($item['addons'])) {
                     $existingAddons = array_column(
-                        $this->badgeinfo->GetAttendeeAddons($item['id']),
+                        $this->badgeinfo->GetAddons($item['id'], $item['context_code']),
                         'payment_status',
                         'addon_id'
                     );
-                    $availableaddons = array_column($this->badgeinfo->GetAttendeeAddonsAvailable($item['badge_type_id']), null, 'id');
+                    $availableaddons = array_column($this->badgeinfo->GetAddonsAvailable($item['badge_type_id'], $item['context_code']), null, 'id');
                     foreach ($item['addons'] as $addon) {
                         if (isset($existingAddons[$addon['addon_id']]) && $existingAddons[$addon['addon_id']] == 'Completed') {
                             continue;
@@ -378,6 +397,13 @@ final class PaymentBuilder
             if ($this->banlist->is_banlisted($item)) {
                 $this->AllowPay = false;
             }
+
+            //If the badge type is invalid, short circuit because the rest of this loop does not make sense
+            if ($bt === false) {
+                $this->AllowPay = false;
+                continue;
+            }
+
             $item['badge_type_name'] = $bt['name'];
 
             //Check if this item is payable
@@ -415,6 +441,15 @@ final class PaymentBuilder
         if ($this->cart['payment_status'] == 'AwaitingApproval' && $this->CanPay && $this->AllowPay) {
             //They must now meet the criteria to pay, switch them to NotStarted
             $this->cart['payment_status'] = 'NotStarted';
+        }
+
+        //Just run through and validate the items as they sit
+        $this->cart_errors = array();
+        foreach ($this->cart_items as $key => $badge) {
+            $this->cart_errors[$key] = $this->badgevalidator->ValdateCartBadge($badge);
+        }
+        if ($this->cart['payment_status'] == 'NotStarted') {
+            $this->cart['payment_status'] = count($this->cart_errors) ? 'NotStarted' : 'NotReady';
         }
     }
 
@@ -613,7 +648,8 @@ final class PaymentBuilder
                     if (isset($existingAddons[$addon['addon_id']]) && $existingAddons[$addon['addon_id']] == 'Completed') {
                         continue;
                     }
-                    $addon['attendee_id'] = $item['id'];
+                    $addon[($cartitem['context_code'] == 'A' || $cartitem['context_code'] == 'S') ? 'attendee_id' : 'application_id'] = $cartitem['id'];
+                    $addon['context_code'] = $cartitem['context_code'];
                     $addon['payment_id'] = $this->cart['id'];
                     $addon['payment_status'] = 'Incomplete';
 

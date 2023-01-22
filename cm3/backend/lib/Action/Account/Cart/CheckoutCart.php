@@ -51,6 +51,8 @@ class CheckoutCart
             throw new HttpNotFoundException($request);
         }
 
+        //TODO: Validate ownership/permissions?
+
         //If the cart is in progress, we cannot adjust it until cancelled or completed...
         if (!$this->PaymentBuilder->canCheckout()
         ) {

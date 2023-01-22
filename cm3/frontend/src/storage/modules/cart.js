@@ -107,8 +107,8 @@ const actions = {
         return new Promise((resolve, reject) => {
             if (rootState.mydata.token.length > 0) {
 
-                commit('setcartId', cartId);
                 if (cartId == null) {
+                    commit('setcartId', cartId);
                     //Implicit clear but not delete
                     commit('setCheckoutStatus', {
                         errors: [],
@@ -120,40 +120,44 @@ const actions = {
                     resolve();
                 } else {
                     //Is it in our cache?
-                    var foundCart = rootState.mydata.activeCarts.find(cart => cart.id == cartId);
-                    if (foundCart != undefined) {
-                        commit('setCheckoutStatus', {
-                            errors: foundCart.errors,
-                            state: foundCart.state
-                        });
-                        commit('setCartItems', foundCart);
-                        commit('clearDirty');
-                        commit('setCanPay', foundCart.canPay);
-                        //Now make sure our contexts for any added badges are loaded
-                        var contexts = foundCart.items.map(({
-                            context_code
-                        }) => context_code)
-                        contexts = contexts.filter(function(value, index, self) {
-                            return self.indexOf(value) === index;
-                        })
-                        contexts.forEach(async (context_code, ) => {
-
-                            await dispatch('products/getContextBadges', context_code, {
-                                root: true
+                    if (rootState.mydata.activeCarts) {
+                        var foundCart = rootState.mydata.activeCarts.find(cart => cart.id == cartId);
+                        if (foundCart != undefined) {
+                            commit('setcartId', cartId);
+                            commit('setCheckoutStatus', {
+                                errors: foundCart.errors,
+                                state: foundCart.state
                             });
-                            await dispatch('products/getContextQuestions', context_code, {
-                                root: true
-                            });
-                            await dispatch('products/getContextAddons', context_code, {
-                                root: true
+                            commit('setCartItems', foundCart);
+                            commit('clearDirty');
+                            commit('setCanPay', foundCart.canPay);
+                            //Now make sure our contexts for any added badges are loaded
+                            var contexts = foundCart.items.map(({
+                                context_code
+                            }) => context_code)
+                            contexts = contexts.filter(function(value, index, self) {
+                                return self.indexOf(value) === index;
+                            })
+                            contexts.forEach(async (context_code, ) => {
+
+                                await dispatch('products/getContextBadges', context_code, {
+                                    root: true
+                                });
+                                await dispatch('products/getContextQuestions', context_code, {
+                                    root: true
+                                });
+                                await dispatch('products/getContextAddons', context_code, {
+                                    root: true
+                                });
+
                             });
 
-                        });
-
-                        return resolve();
+                            return resolve();
+                        }
                     }
                     //Just attempt a load
                     shop.loadCart(rootState.mydata.token, cartId, async (result) => {
+                        commit('setcartId', cartId);
                         commit('setCheckoutStatus', {
                             errors: result.errors,
                             state: result.state
@@ -239,6 +243,32 @@ const actions = {
             rootState.mydata.token,
             state.cartId,
             payment_system || "PayPal",
+            (data) => {
+                commit('setCheckoutStatus', data);
+            },
+            (data) => {
+                if (typeof data != "string") {
+                    commit('setCheckoutStatus', data);
+                } else {
+                    commit('setCheckoutStatus', {
+                        state: 'Failed',
+                        errors: []
+                    })
+                }
+
+
+            },
+        );
+    },
+    checkoutCartByUUID({
+        commit,
+        state,
+        rootState
+    }, uuid) {
+        commit('setCheckoutStatus', null);
+        shop.buyProducts(
+            rootState.mydata.token,
+            uuid,
             (data) => {
                 commit('setCheckoutStatus', data);
             },

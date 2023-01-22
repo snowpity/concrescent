@@ -23,7 +23,7 @@
                         class="ma-4"
                         min-width="220"
                         @click="toggle"
-                        :disabled="product.quantity != null && !product.quantity">
+                        :class="product.disabled ? 'text--disabled':'' ">
                     <v-card-title align="center"
                                   justify="center">
                         {{ product.name | subname}}
@@ -58,7 +58,7 @@
                 <v-card color="grey lighten-1"
                         class="ma-4"
                         min-width="220"
-                        :disabled="item.quantity != null && !item.quantity">
+                        :class="item.disabled ? 'text--disabled':'' ">
                     <v-card-title align="center"
                                   justify="center">
                         {{ item.name | subname}}
@@ -148,6 +148,18 @@ export default {
     watch: {
         selectedBadge(newData) {
             this.$emit('input', newData);
+            const selectedBadge = this.badges[this.selectedBadge];
+            if (selectedBadge) {
+                var valid = !selectedBadge.disabled;
+                if (selectedBadge.quantity) {
+                    if (selectedBadge.quantity_remaining < 1)
+                        valid = false;
+                }
+                if (selectedBadge.id == this.editBadgePriorBadgeId)
+                    valid = true;
+                //console.log('selected bad valid?', valid)
+                this.$emit('valid', valid)
+            }
         },
         value(newValue) {
             //Splat the input into the form

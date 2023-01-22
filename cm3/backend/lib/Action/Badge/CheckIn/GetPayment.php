@@ -54,7 +54,7 @@ class GetPayment
 
         $result = array();
         $result['items']= $this->PaymentBuilder->getCartItems();
-        $result['errors']= $this->PaymentBuilder->getCartErrors(false);
+        $result['errors']= $this->PaymentBuilder->getCartErrors();
         $result['state']= $this->PaymentBuilder->getCartStatus();
         $result['total']= $this->PaymentBuilder->getCartTotal();
 

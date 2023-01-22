@@ -7,9 +7,10 @@ use CM3_Lib\database\SearchTerm;
 use CM3_Lib\database\View;
 use CM3_Lib\database\Join;
 
-use CM3_Lib\models\eventinfo;
-use CM3_Lib\models\attendee\badgetype;
-use CM3_Lib\models\attendee\badge;
+use CM3_Lib\models\application\badgetype;
+use CM3_Lib\models\application\addon;
+use CM3_Lib\models\application\addonmap;
+use CM3_Lib\models\application\addonpurchase;
 
 use CM3_Lib\util\CurrentUserInfo;
 
@@ -21,7 +22,7 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * Action.
  */
-final class ListAttendeeBadges
+final class ListApplicationAddons
 {
     /**
      * The constructor.
@@ -29,13 +30,8 @@ final class ListAttendeeBadges
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(
-        private Responder $responder,
-        private eventinfo $eventinfo,
-        private badgetype $badgetype,
-        private badge $badge,
-        private CurrentUserInfo $CurrentUserInfo
-    ) {
+    public function __construct(private Responder $responder, private badgetype $badgetype, private addon $addon, private addonmap $addonmap, private addonpurchase $addonpurchase, private CurrentUserInfo $CurrentUserInfo)
+    {
     }
 
     /**
@@ -64,43 +60,40 @@ final class ListAttendeeBadges
               'end_date',
               'min_age',
               'max_age',
-              new SelectColumn('date_start', EncapsulationFunction: 'date_sub(?, INTERVAL `min_age` YEAR)', Alias: 'max_birthdate', JoinedTableAlias: 'event'),
-              new SelectColumn('date_start', EncapsulationFunction: 'date_sub(?+1, INTERVAL `max_age`+1 YEAR)', Alias: 'min_birthdate', JoinedTableAlias: 'event'),
               'dates_available',
               new SelectColumn('quantity_sold', EncapsulationFunction: 'ifnull(?,0)', Alias: 'quantity_sold', JoinedTableAlias: 'q'),
-              new SelectColumn('quantity_sold', EncapsulationFunction: 'quantity - ifnull(?,0)', Alias: 'quantity_remaining', JoinedTableAlias: 'q')
+              new SelectColumn('quantity_sold', EncapsulationFunction: 'quantity - ?', Alias: 'quantity_remaining', JoinedTableAlias: 'q')
           ),
             array(
             new Join(
-                $this->badge,
+                $this->addonpurchase,
                 array(
-                  'badge_type_id'=>'id',
+                  'addon_id'=>'id',
                 ),
                 'LEFT',
                 'q',
                 array(
-                  new SelectColumn('badge_type_id', true),
-                  new SelectColumn('id', false, 'count(?)', 'quantity_sold')
+                  'addon_id',
+                  new SelectColumn('id', true, 'count(?)', 'quantity_sold')
               ),
                 array(
                  new SearchTerm('payment_status', 'Completed'),
                )
             ),
-           new Join(
-               $this->eventinfo,
-               array(
-                   'id' => 'event_id',
-               ),
-               'INNER',
-               'event',
-               array(
-                   new SelectColumn('id'),
-                   new SelectColumn('date_start')
-               ),
-               array(
-                   new SearchTerm('id', $params['event_id'])
+            new Join(
+                $this->addonmap,
+                array(
+                  'addon_id'=>'id',
+                ),
+                'RIGHT',
+                'a',
+                array(
+                    'addon_id'
+                ),
+                array(
+                 new SearchTerm('badge_type_id', $params['badge_id']),
                )
-           )
+            )
           )
         );
 
@@ -117,14 +110,6 @@ final class ListAttendeeBadges
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->badgetype->Search($viewData, $whereParts, $order);
-
-        // $now = new \DateTime();
-        foreach ($data as &$value) {
-            //Ensure quantity remaining is a value if quantity available is set
-            if (!is_null($value['quantity'])) {
-                $value['quantity_remaining'] = $value['quantity_remaining'] ?? $value['quantity'];
-            }
-        }
 
         // Build the HTTP response
         return $this->responder

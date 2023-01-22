@@ -33,7 +33,7 @@
                                 :key="addon['addon_id']">
                     <v-icon>mdi-plus</v-icon>
                     <div class="text-truncate">
-                        {{getAddonByID(badge.badge_type_id, addon['addon_id']) ? getAddonByID(badge.badge_type_id, addon['addon_id']).name : "Loading..."}}
+                        {{addon['name']}}
                     </div>
                 </v-card-actions>
             </v-card>
@@ -190,7 +190,7 @@ export default {
             'clearBadgeRetrievalResult',
         ]),
         ...mapActions('cart', [
-            'clearCart',
+            'loadCart',
         ]),
         ...mapActions('products', [
             'getContextBadges',
@@ -246,7 +246,7 @@ export default {
             this.retrieveTransactionBadges(query);
             // Presumably they're here from a Review Order link or the checkout summary page
             // Which *probably* means it was successful, so... clear the cart!
-            this.clearCart();
+            this.loadCart(null);
             this.$router.replace({
                 ...this.$router.currentRoute,
                 query: {}

@@ -132,8 +132,10 @@
                         min-width="290px">
                     <template v-slot:activator="{ on }">
                         <v-text-field v-model="model.start_date"
-                                      type="date"
+                                      clearable
                                       label="Available starting"
+                                      placeholder="No start date"
+                                      persistent-placeholder
                                       v-on="on"></v-text-field>
                     </template>
                     <!--TODO: Set this based on event end! :max="new Date().toISOString().substr(0, 10)"saveStartDate -->
@@ -153,7 +155,9 @@
                         min-width="290px">
                     <template v-slot:activator="{ on }">
                         <v-text-field v-model="model.end_date"
-                                      type="date"
+                                      clearable
+                                      placeholder="No end date"
+                                      persistent-placeholder
                                       label="Unavailable after"
                                       v-on="on"></v-text-field>
                     </template>
@@ -262,8 +266,8 @@ export default {
                 price: this.model.price || "",
                 payable_onsite: this.model.payable_onsite == 1,
                 quantity: nullIfEmptyOrZero(this.model.quantity),
-                start_date: this.model.start_date || "",
-                end_date: this.model.end_date || "",
+                start_date: nullIfEmptyOrZero(this.model.start_date),
+                end_date: nullIfEmptyOrZero(this.model.end_date),
                 min_age: nullIfEmptyOrZero(this.model.min_age),
                 max_age: nullIfEmptyOrZero(this.model.max_age),
                 active_override_code: this.model.active_override_code || "",
@@ -297,7 +301,7 @@ export default {
         },
         saveEndDate(date) {
             this.$refs.menuEndDate.save(date);
-            this.model.end_date = this.model.end_date;
+            this.model.end_date = this.model.end_date || "";
         },
         copyOverrideLink() {
 
@@ -315,7 +319,9 @@ export default {
             //Splat the input into the form
             this.skipEmitOnce = true;
             this.model = {
-                ...newValue
+                ...newValue,
+                start_date: newValue?.start_date || "",
+                end_date: newValue?.end_date || "",
             };
             this.result.quantity + 1;
         }

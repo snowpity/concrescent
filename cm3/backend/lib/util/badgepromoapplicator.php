@@ -161,6 +161,9 @@ final class badgepromoapplicator
                 );
             }
         }
+        if (empty($item['payment_badge_price'])) {
+            return false;
+        }
 
         $badge_price = (float)$item['payment_badge_price'];
         $promo_price = (float)$promo_code['discount'];

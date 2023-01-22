@@ -47,11 +47,12 @@ final class Update
         unset($data['date_modified']);
         unset($data['dates_available']);
 
-        if (empty($data['start_date'])) {
-            unset($data['start_date']);
+        $consideredNull = date_create('1971-01-01');
+        if (empty($data['start_date']) || (date_create($data['start_date']) < $consideredNull)) {
+            $data['start_date'] = null;
         }
-        if (empty($data['end_date'])) {
-            unset($data['end_date']);
+        if (empty($data['end_date']) || (date_create($data['end_date']) < $consideredNull)) {
+            $data['end_date'] =null;
         }
 
 

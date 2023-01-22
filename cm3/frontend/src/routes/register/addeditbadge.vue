@@ -24,9 +24,10 @@
                       :hide_dob="isGroupApp" />
         <badgeTypeSelector v-model="selectedBadge_ix"
                            :badges="badges"
+                           @valid="setValidBadgeType"
                            :no-data-text="isGroupApp ? 'Applications currently closed!' : 'No Badges available!'"
                            :editBadgePriorBadgeId="editBadgePriorBadgeId" />
-        <v-sheet v-if="selectedBadge_ix != null"
+        <v-sheet v-if="selectedBadge_ix != null && badges[selectedBadge_ix]"
                  color="grey lighten-4"
                  tile>
             <v-card>
@@ -34,6 +35,7 @@
                     {{ badges[selectedBadge_ix] ? badges[selectedBadge_ix].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
                 </v-card-title>
                 <v-card-text class="text--primary">
+                    Availability: {{badges[selectedBadge_ix].dates_available}}
                     <badgePerksRender :description="badges[selectedBadge_ix] ? badges[selectedBadge_ix].description : '' "
                                       :rewardlist="rewardlist"></badgePerksRender>
                 </v-card-text>
@@ -41,7 +43,7 @@
         </v-sheet>
 
         <v-btn color="primary"
-               :disabled="!validGenInfo"
+               :disabled="!(validGenInfo && validBadgeType)"
                @click="step = 2">Continue</v-btn>
     </v-stepper-content>
 
@@ -313,6 +315,7 @@ export default {
                 date_of_birth: "",
             },
             selectedBadge_ix: null,
+            validBadgeType: false,
             context_code: 'A',
             badge_type_id: -1,
             menuBDay: false,
@@ -400,6 +403,18 @@ export default {
                 });
             }
 
+            //Disable those that are outside the availability
+            var now = new Date();
+            badges.forEach((item, i) => {
+                var start = new Date(item["start_date"]);
+                var end = new Date(item["end_date"]);
+                if (end < new Date('2000-01-01'))
+                    end.setYear(2099);
+                var disabled = new Date(item["end_date"]) < now || new Date(item["start_date"]) > now || item.quantity_remaining === 0;
+                badges[i].disabled = disabled;
+            });
+
+
             // Are we editing a badge?
             if (this.id > -1) {
                 const oldBadge = badges.find((badge) => badge.id == this.editBadgePriorBadgeId);
@@ -409,6 +424,9 @@ export default {
                     badges.forEach((badge) => {
                         badge.originalprice = badge.price;
                         badge.price = Math.max(parseFloat(badge.price) - oldPrice, 0).toFixed(2);
+                        //If we already had this badge, ensure it's not disabled
+                        if (badge.id == oldBadge.id)
+                            badge.disabled = false;
                     });
                 }
             }
@@ -450,6 +468,7 @@ export default {
         },
         badgeOk() {
             return this.validGenInfo &&
+                this.validBadgeType &&
                 this.validContactInfo &&
                 this.validAdditionalInfo &&
                 this.reachedStep >= (this.hasSubBadges ? 5 : 4)
@@ -732,6 +751,8 @@ export default {
                 const bid = this.badge_type_id;
                 let badge = this.badges.findIndex((badge) => badge.id == bid);
                 if (badge == -1) badge = 0;
+
+                this.validBadgeType = true;
                 this.selectedBadge_ix = badge;
             }
 
@@ -759,6 +780,14 @@ export default {
         },
         setValidGenInfo(isValid) {
             this.validGenInfo = isValid;
+        },
+        setValidBadgeType(isValid) {
+            const oldBadge = this.badges.find((badge) => badge.id == this.editBadgePriorBadgeId);
+
+            var alreadyHaveBadge = typeof oldBadge !== 'undefined' &&
+                oldBadge.badge_type_id == this.selectedBadge.badge_type_id;
+
+            this.validBadgeType = isValid || alreadyHaveBadge;
         }
     },
     components: {

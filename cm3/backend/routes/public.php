@@ -21,14 +21,16 @@ return function (App $app) {
             $app->get('/{event_id}/badges/A/addons', \CM3_Lib\Action\Public\ListAllAttendeeAddons::class);
             $app->get('/{event_id}/badges/A/{badge_id}/addons', \CM3_Lib\Action\Public\ListAttendeeAddons::class);
             $app->get('/{event_id}/badges/S', \CM3_Lib\Action\Public\ListStaffBadges::class);
-            $app->get('/{event_id}/badges/{context_code}', \CM3_Lib\Action\Public\ListApplicationBadges::class);
-            //Dummy until maybe the other badge types can get addons...
-            $app->get('/{event_id}/badges/{context_code}/addons', function ($request, $response, $params) {
+            //Dummy until staff badge types can get addons...
+            $app->get('/{event_id}/badges/S/addons', function ($request, $response, $params) {
                 $response->getBody()->write("[]");
                 return $response
-                          ->withHeader('Content-Type', 'application/json')
-                          ->withStatus(200);
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(200);
             });
+            $app->get('/{event_id}/badges/{context_code}', \CM3_Lib\Action\Public\ListApplicationBadges::class);
+            $app->get('/{event_id}/badges/{context_code}/{badge_id}/addons', \CM3_Lib\Action\Public\ListApplicationAddons::class);
+            $app->get('/{event_id}/badges/{context_code}/addons', \CM3_Lib\Action\Public\ListAllApplicationAddons::class);
 
             //Questions, retrieves the associated form questions for a badge
             $app->get('/{event_id}/questions/{context_code}', \CM3_Lib\Action\Public\ListAllQuestions::class);
