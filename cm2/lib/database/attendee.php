@@ -1195,8 +1195,8 @@ class cm_attendee_db {
 			$normalized_phone_number
 		);
 		while ($stmt->fetch()) {
-			$real_name = trim(trim($first_name) . ' ' . trim($last_name));
-			$reversed_name = trim(trim($last_name) . ' ' . trim($first_name));
+			$real_name = trim(trim($first_name ?? '') . ' ' . trim($last_name ?? ''));
+			$reversed_name = trim(trim($last_name ?? '') . ' ' . trim($first_name ?? ''));
 			$blacklist[] = array(
 				'id' => $id,
 				'first-name' => $first_name,
