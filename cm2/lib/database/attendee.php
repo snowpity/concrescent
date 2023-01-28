@@ -841,7 +841,7 @@ class cm_attendee_db {
 		if (!$attendee_id) return false;
 		$stmt = $this->cm_db->connection->prepare(
 			'UPDATE '.$this->cm_db->table_name('attendee_addon_purchases').' SET '.
-			'`payment_date` = case when  `payment_status` = \'Completed\' then `payment_date` when `payment_status` != \'Completed\' and ? = \'Completed\' then UTC_TIMESTAMP() else  `payment_status` end ,'.
+			'`payment_date` = case when `payment_status` = \'Completed\' then `payment_date` when `payment_status` != \'Completed\' and ? = \'Completed\' then UTC_TIMESTAMP() else NULL end,'.
 			'`payment_status` = ?, `payment_type` = ?, '.
 			'`payment_details` = ?'.
 			' WHERE `attendee_id` = ? and `payment_txn_id` = ?'
