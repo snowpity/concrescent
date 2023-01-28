@@ -1628,10 +1628,11 @@ class cm_attendee_db {
 			);
 			$stmt->close();
 			$addons = $this->list_addon_purchases($id, $name_map);
+			$result['addons'] = array();
+			$result['addon-ids'] = array();
+			$result['addon-names'] = array();
 			if ($addons) {
 				$result['addons'] = $addons;
-				$result['addon-ids'] = array();
-				$result['addon-names'] = array();
 				foreach ($addons as $addon) {
 					$result['addon-ids'][] = $addon['addon-id'];
 					if (isset($addon['name'])) {
