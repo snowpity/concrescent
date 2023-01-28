@@ -5,7 +5,7 @@ FROM trafex/php-nginx:latest
 USER root
 RUN apk update
 # Install the missing php modules
-RUN apk add php81-gd php81-mysqli
+RUN apk add php81-gd php81-mysqli php81-exif
 # Install a mail transfer agent
 RUN apk add msmtp && \
     echo 'sendmail_path = "/usr/bin/msmtp -t"' >> /etc/php81/php.ini;
