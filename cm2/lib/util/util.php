@@ -226,7 +226,7 @@ function mail_merge_html($text, $fields) {
 	$r = array();
 	foreach ($fields as $k => $v) {
 		$s[] = '[[' . htmlspecialchars($k) . ']]';
-		$r[] = htmlspecialchars(is_array($v) ? print_r($v, true) : $v);
+		$r[] = htmlspecialchars(is_array($v) ? print_r($v, true) : ($v ?? ''));
 	}
 	return str_replace($s, $r, $text);
 }
