@@ -19,8 +19,8 @@ if (!$_GET) {
 		$staff_ids[] = $item['id'];
 	}
 
+	$group_uuid = $db->uuid();
 	if ($total_price <= 0) {
-		$group_uuid = $db->uuid();
 		$payment_date = $db->now();
 		foreach ($staff_ids as $id) {
 			$sdb->update_payment_status($id, 'Completed', 'Free Ride', $group_uuid, $total_price, $payment_date, 'Free Ride');
@@ -51,7 +51,7 @@ if (!$_GET) {
 			$items[] = $paypal->create_item($badge_type_name, $item['payment-badge-price']);
 		}
 		$total = $paypal->create_total($total_price);
-		$txn = $paypal->create_transaction($items, $total);
+		$txn = $paypal->create_transaction($items, $total, $group_uuid."::".$db->uuid());
 
 		$payment = $paypal->create_payment_pp(
 			$site_url.'/staff/checkout.php?return',

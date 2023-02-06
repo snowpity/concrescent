@@ -78,8 +78,8 @@ if (!$_GET) {
 	$item = cm_reg_post_edit_get();
 	$total_price = cm_reg_post_edit_total();
 
+	$group_uuid = $db->uuid();
 	if ($total_price <= 0) {
-		$group_uuid = $db->uuid();
 		$payment_date = $db->now();
 
 		$attendee = $atdb->get_attendee($item['id'], false, $name_map, $fdb);
@@ -110,7 +110,7 @@ if (!$_GET) {
 
 		$items = create_post_purchase_paypal_items($paypal, $item);
 		$total = $paypal->create_total($total_price);
-		$txn = $paypal->create_transaction($items, $total);
+		$txn = $paypal->create_transaction($items, $total, $group_uuid."::".$db->uuid());
 
 		$payment = $paypal->create_payment_pp(
 			$site_url.'/register/post-purchase-checkout.php?return',

@@ -23,8 +23,8 @@ if (count($_GET) == 1) {
 		}
 	}
 
+	$group_uuid = $db->uuid();
 	if ($total_price <= 0) {
-		$group_uuid = $db->uuid();
 		$payment_date = $db->now();
 		foreach ($app_id_map as $id => $payment_price) {
 			$apdb->update_payment_status($id, 'Completed', 'Free Ride', $group_uuid, $payment_price, $payment_date, 'Free Ride');
@@ -55,7 +55,7 @@ if (count($_GET) == 1) {
 			$items[] = $paypal->create_item($item['name'].' - '.$item['details'], $item['price']);
 		}
 		$total = $paypal->create_total($total_price);
-		$txn = $paypal->create_transaction($items, $total);
+		$txn = $paypal->create_transaction($items, $total, $group_uuid."::".$db->uuid());
 
 		$payment = $paypal->create_payment_pp(
 			$site_url.'/apply/checkout.php?c='.$ctx_lc.'&return',
