@@ -35,6 +35,7 @@
 		editor.find('.ea-values').val((question['values'] || []).join('\n'));
 		editor.find('.ea-active').prop('checked', !!question['active']);
 		editor.find('.ea-listed').prop('checked', !!question['listed']);
+		editor.find('.ea-exposed').prop('checked', !!question['exposed']);
 		/* Visible */
 		if (question['visible'] && question['visible'].indexOf('*') >= 0) {
 			editor.find('.ea-visible').prop('checked', true);
@@ -85,6 +86,7 @@
 		question['values'] = values;
 		question['active'] = editor.find('.ea-active').is(':checked');
 		question['listed'] = editor.find('.ea-listed').is(':checked');
+		question['exposed'] = editor.find('.ea-exposed').is(':checked');
 		/* Visible */
 		if (editor.find('.ea-visible').is(':checked')) {
 			question['visible'] = ['*'];
@@ -172,6 +174,9 @@
 			if (onChange) onChange(editor, 'active', $(this).is(':checked'));
 		});
 		editor.find('.ea-listed').bind('click', function() {
+			if (onChange) onChange(editor, 'listed', $(this).is(':checked'));
+		});
+		editor.find('.ea-exposed').bind('click', function() {
 			if (onChange) onChange(editor, 'listed', $(this).is(':checked'));
 		});
 		/* Visible */

@@ -301,6 +301,10 @@ function cm_form_edit_dynamic_section(&$form_def) {
 			echo '<td><label><input type="checkbox" class="ea-listed">Answers appear in a column on Review and Edit list pages.</label></td>';
 		echo '</tr>';
 		echo '<tr class="cm-form-editor-row-editor-row">';
+			echo '<th><label>Exposed</label></th>';
+			echo '<td><label><input type="checkbox" class="ea-exposed">Answers are exposed in the schedule API</label></td>';
+		echo '</tr>';
+		echo '<tr class="cm-form-editor-row-editor-row">';
 			echo '<th><label>Visible</label></th>';
 			echo '<td><label><input type="checkbox" checked class="ea-visible">Question appears on Register and Apply pages.</label> <a href="#" class="ea-visible-advanced">Advanced...</a></td>';
 		echo '</tr>';
