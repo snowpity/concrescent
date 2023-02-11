@@ -17,7 +17,8 @@ $formQuestions = $fdb->list_questions();
 $formAnswers = array();
 foreach ($assignments as &$assignment)
     foreach ($formQuestions as $question)
-        $assignment[$question["title"]] = $fdb->get_answer($assignment["context-id"], $question["question-id"]);
+        if ($question["exposed"])
+            $assignment[$question["title"]] = $fdb->get_answer($assignment["context-id"], $question["question-id"]);
 $response = ["ok" => true, "assignments" => $assignments];
 header("Content-Type: application/json; charset=utf-8", true, 200);
 echo json_encode($response);

@@ -30,6 +30,7 @@ class cm_forms_db {
 			'`values` TEXT NULL,'.
 			'`active` BOOLEAN NOT NULL,'.
 			'`listed` BOOLEAN NOT NULL,'.
+			'`exposed` BOOLEAN NOT NULL,'.
 			'`visible` TEXT NOT NULL,'.
 			'`required` TEXT NOT NULL'
 		));
@@ -112,7 +113,7 @@ class cm_forms_db {
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT `question_id`, `context`, `order`,'.
 			' `title`, `text`, `type`, `values`,'.
-			' `active`, `listed`, `visible`, `required`'.
+			' `active`, `listed`, `exposed`, `visible`, `required`'.
 			' FROM '.$this->cm_db->table_name('form_questions').
 			' WHERE `question_id` = ? AND `context` = ? LIMIT 1'
 		);
@@ -121,7 +122,7 @@ class cm_forms_db {
 		$stmt->bind_result(
 			$question_id, $context, $order,
 			$title, $text, $type, $values,
-			$active, $listed, $visible, $required
+			$active, $listed, $exposed, $visible, $required
 		);
 		if ($stmt->fetch()) {
 			$result = array(
@@ -134,6 +135,7 @@ class cm_forms_db {
 				'values' => ($values ? explode("\n", $values) : array()),
 				'active' => !!$active,
 				'listed' => !!$listed,
+				'exposed' => !!$exposed,
 				'visible' => ($visible ? explode(',', $visible) : array()),
 				'required' => ($required ? explode(',', $required) : array())
 			);
@@ -149,7 +151,7 @@ class cm_forms_db {
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT `question_id`, `context`, `order`,'.
 			' `title`, `text`, `type`, `values`,'.
-			' `active`, `listed`, `visible`, `required`'.
+			' `active`, `listed`, `exposed`, `visible`, `required`'.
 			' FROM '.$this->cm_db->table_name('form_questions').
 			' WHERE `context` = ? ORDER BY `order`'
 		);
@@ -158,7 +160,7 @@ class cm_forms_db {
 		$stmt->bind_result(
 			$question_id, $context, $order,
 			$title, $text, $type, $values,
-			$active, $listed, $visible, $required
+			$active, $listed, $exposed, $visible, $required
 		);
 		while ($stmt->fetch()) {
 			$questions[] = array(
@@ -171,6 +173,7 @@ class cm_forms_db {
 				'values' => ($values ? explode("\n", $values) : array()),
 				'active' => !!$active,
 				'listed' => !!$listed,
+				'exposed' => !!$exposed,
 				'visible' => ($visible ? explode(',', $visible) : array()),
 				'required' => ($required ? explode(',', $required) : array())
 			);
@@ -198,19 +201,20 @@ class cm_forms_db {
 		$values = (isset($question['values']) ? implode("\n", $question['values']) : '');
 		$active = (isset($question['active']) ? ($question['active'] ? 1 : 0) : 1);
 		$listed = (isset($question['listed']) ? ($question['listed'] ? 1 : 0) : 0);
+		$exposed = (isset($question['exposed']) ? ($question['exposed'] ? 1 : 0) : 0);
 		$visible = (isset($question['visible']) ? implode(',', $question['visible']) : '*');
 		$required = (isset($question['required']) ? implode(',', $question['required']) : '');
 		$stmt = $this->cm_db->connection->prepare(
 			'INSERT INTO '.$this->cm_db->table_name('form_questions').' SET '.
 			'`context` = ?, `order` = ?, '.
 			'`title` = ?, `text` = ?, `type` = ?, `values` = ?, '.
-			'`active` = ?, `listed` = ?, `visible` = ?, `required` = ?'
+			'`active` = ?, `listed` = ?, `exposed` = ?, `visible` = ?, `required` = ?'
 		);
 		$stmt->bind_param(
-			'sissssiiss',
+			'sissssiiiss',
 			$this->context, $order,
 			$title, $text, $type, $values,
-			$active, $listed, $visible, $required
+			$active, $listed, $exposed, $visible, $required
 		);
 		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
 		$stmt->close();
@@ -226,18 +230,19 @@ class cm_forms_db {
 		$values = (isset($question['values']) ? implode("\n", $question['values']) : '');
 		$active = (isset($question['active']) ? ($question['active'] ? 1 : 0) : 1);
 		$listed = (isset($question['listed']) ? ($question['listed'] ? 1 : 0) : 0);
+		$exposed = (isset($question['exposed']) ? ($question['exposed'] ? 1 : 0) : 0);
 		$visible = (isset($question['visible']) ? implode(',', $question['visible']) : '*');
 		$required = (isset($question['required']) ? implode(',', $question['required']) : '');
 		$stmt = $this->cm_db->connection->prepare(
 			'UPDATE '.$this->cm_db->table_name('form_questions').' SET '.
 			'`title` = ?, `text` = ?, `type` = ?, `values` = ?, '.
-			'`active` = ?, `listed` = ?, `visible` = ?, `required` = ?'.
+			'`active` = ?, `listed` = ?, `exposed` = ?, `visible` = ?, `required` = ?'.
 			' WHERE `question_id` = ? AND `context` = ? LIMIT 1'
 		);
 		$stmt->bind_param(
-			'ssssiissis',
+			'ssssiiissis',
 			$title, $text, $type, $values,
-			$active, $listed, $visible, $required,
+			$active, $listed, $exposed, $visible, $required,
 			$question['question-id'],
 			$this->context
 		);
