@@ -199,13 +199,9 @@ export default {
                 errorCb(response.response.data);
             });
     },
-    checkoutCartUUID(token, cartUUID, payment_system, cb, errorCb) {
-        axios.post(global.config.apiHostURL + `account/cart/-1/checkout`, {
+    checkoutCartUUID(cartUUID, cb, errorCb) {
+        axios.post(global.config.apiHostURL + `public/checkoutcartuuid`, {
                 uuid: cartUUID
-            }, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
             })
             .then(function(response) {
                 cb(response.data);
@@ -277,11 +273,12 @@ export default {
                 errorCb(error.response.data);
             })
     },
-    sentEmailRetrieveBadges(email, cb, errorCb) {
-
-        axios.post(global.config.apiHostURL + "public/requestmagic", {
-                email_address: email
-            })
+    sentEmailRetrieveBadges(email_data, cb, errorCb) {
+        if (typeof email_data == 'string')
+            email_data = {
+                email_address: email_data
+            };
+        axios.post(global.config.apiHostURL + "public/requestmagic", email_data)
             .then(function(response) {
                 cb(response.data);
             })

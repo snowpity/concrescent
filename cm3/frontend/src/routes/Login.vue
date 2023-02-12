@@ -157,7 +157,9 @@ export default {
             if (currentRoute.params != undefined && currentRoute.params.returnTo != undefined)
                 return currentRoute.params.returnTo;
 
-            return this.isAdmin ? '/' : '/myBadges';
+            if (this.isAdmin) return '/';
+
+            return '/';
         }
     },
     methods: {
@@ -168,7 +170,10 @@ export default {
         ]),
         SendMagicLink() {
             this.loading = true;
-            this.sendRetrieveBadgeEmail(this.email).then(() => {
+            this.sendRetrieveBadgeEmail({
+                    email_address: this.email,
+                    returnTo: this.returnTo
+                }).then(() => {
                     this.state = 2;
                     this.loading = false;
                 })

@@ -266,8 +266,7 @@ const actions = {
         rootState
     }, uuid) {
         commit('setCheckoutStatus', null);
-        shop.buyProducts(
-            rootState.mydata.token,
+        shop.checkoutCartUUID(
             uuid,
             (data) => {
                 commit('setCheckoutStatus', data);
@@ -329,7 +328,6 @@ const actions = {
         rootState,
     }, badge) {
         commit('setCheckoutStatus', null);
-
         const badgeContext = rootState.products.badges[badge.context_code];
         const product = (badgeContext ?? []).find((product) => product.id == badge.badge_type_id);
         // if product not found, and we don't have any, assume loading

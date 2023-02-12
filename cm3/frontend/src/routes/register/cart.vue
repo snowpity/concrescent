@@ -307,13 +307,18 @@
             <v-card-text>
                 <div class="text-h5 pa-4">{{cartLocked}}</div>
             </v-card-text>
-            <v-card-actions>
+            <v-card-actions v-if="isLoggedIn">
                 <v-btn color="red"
                        v-show="products.length"
                        @click="confirmClearCart">Reset cart?</v-btn>
                 <v-spacer />
                 <v-btn color="primary"
                        @click="checkout(products)">Retry Checkout</v-btn>
+            </v-card-actions>
+            <v-card-actions v-else>
+                <v-spacer />
+                <v-btn color="primary"
+                       @click="cartLocked=''">Close</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -438,7 +443,7 @@ export default {
             'ready': 'Directing to Merchant...',
             'AwaitingApproval': 'Confirming submission',
             'refused': 'Payment has been refused. That\'s all we know.',
-            'confirm': 'Confirming payment...'
+            'confirm': 'Confirming payment...',
         },
         cartStateColor: {
             'NotReady': 'purple',
@@ -611,12 +616,6 @@ export default {
             this.removeBadge = -1;
             this.saveCart();
         },
-        createNew: async function() {
-            this.$store.commit('cart/setcartId', null);
-            await this.clearCart();
-            this.cartIdSelected = null;
-            document.activeElement.blur();
-        },
         showclearCartDialog: function(cartid) {
             this.clearCartDialog = true;
             this.cartIdSelected = cartid;
@@ -635,13 +634,14 @@ export default {
             })
         },
         async checkout(cartid) {
+            console.log('aerhaerg?', this)
             this.processingCheckoutDialog = true;
-            await this.loadCart(cartid);
-            var _this = this;
+            if (cartid != undefined)
+                await this.loadCart(cartid);
+            this.processingCheckoutDialog = true;
             //Fancy delays
-            setTimeout(function() {
-                _this.checkoutCart();
-            }, 1000);
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            this.checkoutCart();
         },
         closepromo: function() {
             this.promoAppliedDialog = false;
@@ -695,8 +695,14 @@ export default {
                             _this.processingCheckoutDialog = false;
                         }, 15000);
                         //TODO: This is a hack!
-                        if (newstatus.paymentURL != undefined)
+                        if (newstatus.paymentURL != undefined) {
+                            console.log('Will redirect to', newstatus.paymentURL);
                             window.location.href = newstatus.paymentURL;
+                        } else if (!this.isLoggedIn) {
+                            //Not able to complete and no redirect. Display message?
+                            this.cartLocked = 'Still awaiting payment.'
+                            this.processingCheckoutDialog = false;
+                        }
                         break;
                     case 'AwaitingApproval':
                         var _this = this;
@@ -705,13 +711,19 @@ export default {
                                 _this.processingCheckoutDialog = false;
                                 _this.AwaitingApprovalDialog = true;
                             }
+                            if (_this.isLoggedIn)
+                                _this.$store.dispatch('mydata/fetchCarts', false)
                         }, 1500);
                         break;
                     case 'Completed':
+                        //Determine if this was a normal Attendee or a group application
+                        var path = (this.products[0].context_code == 'A' || this.products[0].context_code == 'S') ?
+                            '/myBadges' : '/myApplications';
+
                         //Clear the cart and send them to retrieve their badges
-                        this.clearCart();
+                        this.loadCart(null);
                         this.$router.push({
-                            path: '/myBadges',
+                            path: path,
                             query: {
                                 refresh: true
                             }
@@ -724,8 +736,9 @@ export default {
                         this.promocodeDialog = false;
                         this.processingCheckoutDialog = false;
                 }
-            //Always refresh the cart list
-            this.$store.dispatch('mydata/fetchCarts', false)
+            //Always refresh the cart list if we're logged in
+            if (this.isLoggedIn)
+                this.$store.dispatch('mydata/fetchCarts', false)
         },
         'cartIdSelected': async function(newId) {
             console.log('showing cart because selected', this.cartIdSelected);
@@ -754,55 +767,58 @@ export default {
     },
     async created() {
         var query = this.$route.query;
-        if (query.checkout != undefined) {
-            if (query.checkout == "confirm") {
-                this.processingCheckoutDialog = true;
-                this.cartState = query.checkout;
-                //Un-pop the dialog after a few seconds
-                var _this = this;
-                setTimeout(async function() {
-                    //Check if we should switch ID due to UUID being specified
-                    if (query.uuid != undefined) {
-                        var uuidcart = this.activeCarts.find(cart => cart.uuid == query.uuid);
-                        if (uuidcart != undefined) {
-                            await _this.loadCart(uuidcart.id);
+        var attemptCheckout = query.checkout != undefined && query.checkout == "confirm";
+        var cart_id = query.id;
+        var cart_uuid = query.cart_uuid;
 
-                            _this.checkoutCart();
-                        } else {
-                            //Huh. Not one of ours? Well, do it manually then...
-                            _this.checkoutCartByUUID(query.uuid);
-                        }
+        if (this.isLoggedIn) {
 
-                    } else {
-                        //... not sure how they got here, just close the processing dialog
-                        _this.processingCheckoutDialog = false;
+            await this.$store.dispatch('mydata/fetchCarts', false);
+            var wantedCart = this.activeCarts.find(cart => cart.uuid == cart_uuid || cart.id == cart_id);
+            console.log('carts loaded', this.activeCarts.length)
+            if (wantedCart != undefined) {
+                console.log('selecting found cart', wantedCart)
+                await this.loadCart(wantedCart.id);
+                if (attemptCheckout) {
+                    console.log('Attempting checkout')
+                    this.processingCheckoutDialog = true;
+                    this.cartState = 'confirm';
+                    this.checkout();
+                }
+            } else if (cart_uuid != undefined) {
+                //Huh. Not one of ours? Well, do it manually then...
+                if (attemptCheckout) {
+                    console.log('Cart may be someone else\'s or we\'re not logged in. Trying anonymously for UUID', cart_uuid)
+                    this.processingCheckoutDialog = true;
+                    this.cartState = 'confirm';
+                    this.checkoutCartByUUID(cart_uuid);
+                }
+            } else if (this.needsave)
+                await this.saveCart();
+            this.cartIdSelected = this.currentCartId;
+        } else {
+
+            //Couldn't do that.If they're not logged in, redirect to get a magic link!
+            if (query.id)
+                this.$router.push({
+                    name: 'login',
+                    params: {
+                        returnTo: this.$route.fullPath,
+                        message: 'You need to be logged in to do that.'
                     }
-                }, 2000);
-
+                })
+            if (cart_uuid != undefined) {
+                //Huh. Not one of ours? Well, do it manually then...
+                if (attemptCheckout) {
+                    console.log('we\'re not logged in. Trying to check out anonymously for UUID', cart_uuid)
+                    this.processingCheckoutDialog = true;
+                    this.cartState = 'confirm';
+                    this.checkoutCartByUUID(cart_uuid);
+                }
             }
-            this.$router.replace({
-                ...this.$router.currentRoute,
-                query: {}
-            })
         }
-        if (query.id)
-            await this.loadCart(query.id);
 
-        this.$store.dispatch('mydata/fetchCarts', false).then(() => {
-                console.log('carts should be loaded, selecting cart', this.currentCartId)
-                this.cartIdSelected = this.currentCartId;
-            })
-            .catch((error) => {
-                //Couldn't do that.If they're not logged in, redirect to get a magic link!
-                if (query.id)
-                    this.$router.push({
-                        name: 'login',
-                        params: {
-                            returnTo: this.$route.fullPath,
-                            message: 'You need to be logged in to do that.'
-                        }
-                    })
-            })
+
         if (this.needsave && this.cartIdSelected != null) {
             console.log('Saving cart because we need to and we have it selected')
             this.saveCart()

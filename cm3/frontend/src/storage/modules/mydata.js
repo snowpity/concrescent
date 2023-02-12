@@ -138,6 +138,7 @@ const actions = {
                     commit('setPermissions', data.permissions);
                     commit('setUsername', data.username);
                     commit('setPreferences', data.preferences);
+                    commit('setAdminMode', data.permissions != undefined)
                     dispatch('products/selectEventId', data.event_id, {
                         root: true
                     });
@@ -306,10 +307,10 @@ const actions = {
 
     sendRetrieveBadgeEmail({
         commit
-    }, email) {
+    }, email_data) {
         return new Promise((resolve, reject) => {
             commit('setBadgeRetrievalStatus', true)
-            shop.sentEmailRetrieveBadges(email, (result) => {
+            shop.sentEmailRetrieveBadges(email_data, (result) => {
                     commit('setBadgeRetrievalStatus', false);
                     resolve(result);
                 },

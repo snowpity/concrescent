@@ -37,8 +37,12 @@ class FrontendUrlTranslator
         //Dafuq we have a badge that has no payment_id?
         return '';
     }
-    public function GetLoginConfirm(string $authString)
+    public function GetLoginConfirm(string $authString, string $returnTo = null)
     {
-        return $this->routedURL('login?token=' . $authString);
+        $result = $this->routedURL('login?token=' . $authString);
+        if (!empty($returnTo)) {
+            $result .= '&returnTo=' .urlencode($returnTo);
+        }
+        return $result;
     }
 }

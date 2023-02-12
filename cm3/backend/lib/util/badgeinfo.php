@@ -710,9 +710,9 @@ final class badgeinfo
         $s_data = (($context ?? 'S') == 'S') ? $this->s_badge->Search($s_bv, $s_terms, $order, $limit, $offset, $trG, 'b') : array();
         //$this->g_badge->debugThrowBeforeSelect = true;
         //Sub badges do not have queestion responses, so filder out possible form responses
-        $orderNoFormResponses = array_filter($order, function ($colname) {
+        $orderNoFormResponses = is_array($order) ? array_filter($order, function ($colname) {
             return !str_starts_with($colname, 'form_responses');
-        }, ARRAY_FILTER_USE_KEY);
+        }, ARRAY_FILTER_USE_KEY) : null;
         $g_data = $this->g_badge->Search($g_bv, $g_terms, $orderNoFormResponses, $limit, $offset, $trS, 'b');
         $totalRows =  $trA + $trG + $trS;
 

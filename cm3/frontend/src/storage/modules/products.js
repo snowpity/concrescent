@@ -1,9 +1,11 @@
 import shop from '../../api/shop'
+import admin from '../../api/admin'
 import Vue from 'vue'
 
 // initial state
 const state = {
     eventinfo: [],
+    adminContextToken: '',
     selectedEventId: null,
     selectedEvent: null,
     override_code: '',
@@ -130,7 +132,6 @@ const actions = {
             //Check that the desired context exists
             if (state.badgecontextselected == undefined)
                 return reject('Context Code not found:' + context_code);
-            //Fetch all the things!
             //Fetch all the things(if needed)!
             await dispatch('getContextBadges', state.badgecontextselected.context_code);
             await dispatch('getContextQuestions', state.badgecontextselected.context_code);
@@ -292,8 +293,6 @@ const mutations = {
         context_code
     }) {
         const product = state.badges[context_code].find(product => product.id === id)
-        if (product.quantity > 0) {
-            product.quantity--
         if (product.quantity_remaining > 0) {
             product.quantity_remaining--
         }

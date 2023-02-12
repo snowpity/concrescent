@@ -358,7 +358,7 @@ final class PaymentBuilder
 
             foreach ($this->cart_items as $key => &$item) {
                 $this->badgepromoapplicator->TryApplyCode($item, $item['payment_promo_code'] ?? '');
-                $cart_payment_txn_amt += max(0, $item['payment_promo_price'] ?? $item['payment_badge_price']);
+                $cart_payment_txn_amt += max(0, $item['payment_promo_price'] ?? $item['payment_badge_price'] ?? 99999);
                 //Check for addons
                 if (isset($item['addons'])) {
                     $existingAddons = array_column(

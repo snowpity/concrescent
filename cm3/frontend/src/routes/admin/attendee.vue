@@ -128,6 +128,41 @@
         </v-dialog>
     </v-tab-item>
 
+    <v-tab-item value="4">
+
+        <simpleList apiPath="Attendee/Addon"
+                    :isEditingItem="dEdit"
+                    :AddHeaders="dAddHeaders"
+                    :actions="btActions"
+                    :footerActions="btFooterActions"
+                    @edit="editPromoCode"
+                    @create="createPromoCode">
+
+            <template v-slot:[`item.discount`]="{ item }">
+                {{item.is_percentage ? "":"$"}}
+                {{item.discount}}
+                {{item.is_percentage ? "%":""}}
+            </template>
+        </simpleList>
+        <v-dialog v-model="dEdit"
+                  scrollable>
+
+            <v-card>
+                <v-card-title class="headline">Edit Addon</v-card-title>
+                <v-card-text>
+                    <promoCodeForm v-model="pSelected"
+                                   :badge_types="contextBadges" />
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="default"
+                           @click="pEdit = false">Cancel</v-btn>
+                    <v-btn color="primary"
+                           @click="savePromoCode">Save</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+    </v-tab-item>
     <v-dialog v-model="loading"
               width="200"
               height="200"
@@ -225,6 +260,24 @@ export default {
         }],
         pSelected: {},
         pEdit: false,
+        dAddHeaders: [{
+            text: 'Name',
+            value: 'name'
+        }, {
+            text: 'Dates Available',
+            value: 'dates_available'
+        }, {
+            text: 'Total Available',
+            value: 'quantity'
+        }, {
+            text: 'Price',
+            value: 'price'
+        }, {
+            text: 'Active',
+            value: 'active'
+        }],
+        dSelected: {},
+        dEdit: false,
         loading: false,
         bModified: false,
 
@@ -400,6 +453,11 @@ export default {
             },
             {
                 key: '4',
+                text: 'Addons',
+                title: 'Addons'
+            },
+            {
+                key: '5',
                 text: 'Notifications',
                 title: 'Notifications'
             }

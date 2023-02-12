@@ -410,8 +410,18 @@ export default {
                 var end = new Date(item["end_date"]);
                 if (end < new Date('2000-01-01'))
                     end.setYear(2099);
-                var disabled = new Date(item["end_date"]) < now || new Date(item["start_date"]) > now || item.quantity_remaining === 0;
+                var disabled =
+                    (end < now) ||
+                    (start > now) ||
+                    (item.quantity_remaining === 0);
                 badges[i].disabled = disabled;
+                // console.log("Badge disable?", {
+                //     start: start,
+                //     end: end,
+                //     quantity_remaining: item.quantity_remaining,
+                //     disabled: disabled,
+                //     name: item.name
+                // })
             });
 
 
@@ -469,7 +479,7 @@ export default {
         badgeOk() {
             return this.validGenInfo &&
                 this.validBadgeType &&
-                this.validContactInfo &&
+                (this.validContactInfo || this.isLoggedIn) &&
                 this.validAdditionalInfo &&
                 this.reachedStep >= (this.hasSubBadges ? 5 : 4)
         },
@@ -558,7 +568,12 @@ export default {
             this.checkBadge();
         },
         selectedBadge_ix(val) {
-            this.badge_type_id = typeof this.badges[val] === 'undefined' ? this.badge_type_id : this.badges[val].id;
+            if (typeof this.badges[val] !== 'undefined')
+                this.badge_type_id = this.badges[val].id;
+            console.log('Changed badge index', {
+                selectedBadge_ix: val,
+                badge_type_id: this.badge_type_id
+            })
         },
         compiledBadge() {
             this.autoSaveBadge();
@@ -610,7 +625,10 @@ export default {
         },
         SendMagicLink() {
             this.sendingmagicemail = true;
-            this.sendRetrieveBadgeEmail(this.newAccountData.email_address).then(() => {
+            this.sendRetrieveBadgeEmail({
+                email_address: this.newAccountData.email_address,
+                returnTo: this.$route.fullPath
+            }).then(() => {
                 this.sentmagicmail = true;
                 this.sendingmagicemail = false;
             });
@@ -711,6 +729,8 @@ export default {
                     }
                     //Also select any selected addons
                     _this.addonsSelected = addons.map(addon => addon['addon_id']);
+                    //Touch the real name so it re-validates
+                    this.real_name = this.real_name;
 
                 }, 200);
             }
@@ -779,6 +799,7 @@ export default {
             return this.editBadgePriorAddons.indexOf(addonid) != -1;
         },
         setValidGenInfo(isValid) {
+            console.log('setValidGenInfo', isValid);
             this.validGenInfo = isValid;
         },
         setValidBadgeType(isValid) {
