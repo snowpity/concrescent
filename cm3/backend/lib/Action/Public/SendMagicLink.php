@@ -74,7 +74,7 @@ class SendMagicLink
             $contact["login_url"] = $this->FrontendUrlTranslator->GetLoginConfirm($this->TokenGenerator->forLoginOnly(
                 $contact["id"],
                 $data["event_id"]
-            ));
+            ), $data['returnTo']??null);
 
             if (
                 $this->Mail->SendTemplate(
