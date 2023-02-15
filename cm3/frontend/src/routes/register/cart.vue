@@ -77,7 +77,8 @@
                                     <v-icon>mdi-account</v-icon>
                                     <div class="text-truncate">
                                         {{subbadge | badgeDisplayName(false)}}
-                                    </div>
+                                    </div>&nbsp;|&nbsp;
+                                    <span>{{ (subbadge.payment_price ? subbadge.payment_price: "Loading" ) | currency }}&nbsp;</span>
 
                                 </v-card-actions>
                             </v-card>
@@ -686,7 +687,7 @@ export default {
     watch: {
         'checkoutStatus': function(newstatus) {
             this.cartState = newstatus ? newstatus.state : 'undefined';
-            if (newstatus)
+            if (newstatus) {
                 switch (newstatus.state) {
                     case 'Incomplete':
                         //Direct to the checkout URL
@@ -731,14 +732,18 @@ export default {
                         this.processingCheckoutDialog = false;
                         break;
                     default:
-                        this.promocode = "";
-                        this.promoCodeProcessing = false;
-                        this.promocodeDialog = false;
-                        this.processingCheckoutDialog = false;
+                        if (this.promoCodeProcessing) {
+
+                            this.promoCodeProcessing = false;
+                            this.promocode = "";
+                            this.promocodeDialog = false;
+                            this.processingCheckoutDialog = false;
+                        }
                 }
-            //Always refresh the cart list if we're logged in
-            if (this.isLoggedIn)
-                this.$store.dispatch('mydata/fetchCarts', false)
+                //Always refresh the cart list if we're logged in
+                // if (this.isLoggedIn)
+                //     this.$store.dispatch('mydata/fetchCarts', false);
+            }
         },
         'cartIdSelected': async function(newId) {
             console.log('showing cart because selected', this.cartIdSelected);
@@ -748,6 +753,7 @@ export default {
                 if (this.cartsExpanded.find(x => x == cartIx) == undefined)
                     this.cartsExpanded.push(cartIx);
             }
+            await this.loadCart(newId);
         },
         'cartsExpanded': async function(newcarts) {
 

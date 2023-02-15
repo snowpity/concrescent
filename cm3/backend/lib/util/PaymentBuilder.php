@@ -354,31 +354,7 @@ final class PaymentBuilder
     public function getCartTotal(bool $refresh = true)
     {
         if ($refresh) {
-            $cart_payment_txn_amt = 0;
-
-            foreach ($this->cart_items as $key => &$item) {
-                $this->badgepromoapplicator->TryApplyCode($item, $item['payment_promo_code'] ?? '');
-                $cart_payment_txn_amt += max(0, $item['payment_promo_price'] ?? $item['payment_badge_price'] ?? 99999);
-                //Check for addons
-                if (isset($item['addons'])) {
-                    $existingAddons = array_column(
-                        $this->badgeinfo->GetAddons($item['id'], $item['context_code']),
-                        'payment_status',
-                        'addon_id'
-                    );
-                    $availableaddons = array_column($this->badgeinfo->GetAddonsAvailable($item['badge_type_id'], $item['context_code']), null, 'id');
-                    foreach ($item['addons'] as $addon) {
-                        if (isset($existingAddons[$addon['addon_id']]) && $existingAddons[$addon['addon_id']] == 'Completed') {
-                            continue;
-                        }
-
-                        //Prep Sanity check the cart's amount...
-                        $cart_payment_txn_amt += max(0, $addon['payment_promo_price'] ?? $addon['payment_price']);
-                    }
-                }
-            }
-            $this->cart['payment_txn_amt'] = $cart_payment_txn_amt;
-            $this->saveCart();
+            $this->stageItems();
         }
 
         return $this->cart['payment_txn_amt'];
@@ -450,6 +426,197 @@ final class PaymentBuilder
         }
         if ($this->cart['payment_status'] == 'NotStarted') {
             $this->cart['payment_status'] = count($this->cart_errors) ? 'NotStarted' : 'NotReady';
+        }
+    }
+
+    private function stageItems()
+    {
+        //Reset the staged items
+        $this->stagedItems = [];
+        $this->cart_payment_txn_amt = 0;
+        //TODO: craete the checked versions and use them instead of blind faith
+
+        foreach ($this->cart_items as $key => &$cartitem) {
+            $this->badgepromoapplicator->TryApplyCode($cartitem, $cartitem['payment_promo_code'] ?? '');
+
+            $bt = $this->badgeinfo->getBadgetType($cartitem['context_code'], $cartitem['badge_type_id']);
+            $saveFormResponses = true;
+            $badgeFreebies = 0;
+            //If it's not an application, wire up the processor normally
+            if ($cartitem['context_code'] == 'A' || $cartitem['context_code'] == 'S') {
+
+                //Only add this as a line item if we're a new badge or upgrading (hence needing payment)
+                if (!isset($cartitem['existing']) || 0 < $cartitem['payment_promo_price']) {
+                    $this->stagedItems[] = array(
+                    $bt['name'] . ' Badge',
+                    $bt['price'],
+                    1,
+                    $bt['description'],
+                    $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':' . $cartitem['badge_type_id'],
+                    max(0, $bt['price'] - ($cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price'])),
+                    $cartitem['payment_promo_code'] ?? null
+                );
+                }
+            } else {
+                //Group applications are special
+
+                //Base application price
+                if (!isset($cartitem['existing']) || 0 < $cartitem['payment_promo_price']) {
+                    $this->stagedItems[] = array(
+                    $bt['name'],
+                    $bt['price'],
+                    1,
+                    'Application fee for ' . $bt['name'],
+                    $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':S' . $cartitem['badge_type_id'],
+                    max(0, $bt['price'] - ($cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price'])),
+                    null
+                );
+                }
+
+                for ($assignSpace=0; $assignSpace < ($cartitem['assignment_count'] ?? 0); $assignSpace++) {
+                    //Assignment space price
+                    if ($cartitem['assignment_count']??0 > 0 && (!isset($cartitem['existing']) || 0 < $cartitem['payment_promo_price'])) {
+                        $this->stagedItems[] = array(
+                        $bt['name'] . ' Assignment fee',
+                        $bt['base_assignment_count']> $assignSpace ? 0 : $bt['price_per_assignment'],
+                        1,
+                        'Assignment fee for ' . $bt['name'],
+                        $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':T' . $cartitem['badge_type_id'],
+                        0, //Assignments can never be on promotion
+                        null
+                    );
+                    }
+                }
+
+                //Sort the subbadges to have the Created ones last
+                usort($cartitem['subbadges'], function ($a, $b) {
+                    return ($a['created'] ?? 0)- ($b['created'] ?? 0);
+                });
+                $sbadgeCount = 0;
+                foreach ($cartitem['subbadges'] as &$badge) {
+                    $badge_fee = ($bt['base_applicant_count']> $sbadgeCount && !($badge['created']?? false)) ? 0 : $bt['price_per_applicant'];
+                    if ($badge_fee > 0) {
+                        $this->stagedItems[] = array(
+                            $bt['name'] . ' Badge fee',
+                            $badge_fee,
+                            1,
+                            'Badge fee for ' . $bt['name'],
+                            $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':B' . $cartitem['badge_type_id'],
+                            0, //(this type of) badge can never be on promotion
+                            null
+                        );
+                        $this->cart_payment_txn_amt += $badge_fee;
+                    }
+                    $badge['payment_price'] =''. $badge_fee;
+
+                    $sbadgeCount++;
+                }
+            }
+
+            //Prep Sanity check the cart's amount...
+            $this->cart_payment_txn_amt += max(0, $cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price']);
+
+            //Check for addons
+            if (isset($cartitem['addons'])) {
+                $existingAddons = array_column(
+                    $this->badgeinfo->GetAddons($cartitem['id'], $cartitem['context_code']),
+                    'payment_status',
+                    'addon_id'
+                );
+                $availableaddons = array_column($this->badgeinfo->GetAddonsAvailable($cartitem['badge_type_id'], $cartitem['context_code']), null, 'id');
+                foreach ($cartitem['addons'] as $addon) {
+                    if (isset($existingAddons[$addon['addon_id']]) && $existingAddons[$addon['addon_id']] == 'Completed') {
+                        continue;
+                    }
+
+                    //Add it to the payment
+                    $faddon = $availableaddons[$addon['addon_id']];
+
+                    $this->stagedItems[] = array(
+                        $faddon['name'],
+                        $faddon['price'],
+                        1,
+                        $faddon['description'],
+                        $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ',a:' . $addon['addon_id'],
+                        max(0, $faddon['price'] - ($addon['payment_promo_price'] ?? $addon['payment_price'])),
+                        $addon['payment_promo_code'] ?? null
+                    );
+
+                    //Prep Sanity check the cart's amount...
+                    $this->cart_payment_txn_amt += max(0, $addon['payment_promo_price'] ?? $addon['payment_price']);
+                }
+            }
+        }
+        $this->cart['payment_txn_amt'] = $this->cart_payment_txn_amt;
+        $this->saveCart();
+    }
+
+    private function applyInFlightChanges()
+    {
+
+        //TODO: craete the checked versions and use them instead of blind faith
+
+        foreach ($this->cart_items as $key => &$cartitem) {
+            //Create/Update the badge
+            $cartitem['payment_id'] = $this->cart['id'];
+            $cartitem['payment_status'] = 'Incomplete';
+
+            $badge_items = [];
+
+            $bt = $this->badgeinfo->getBadgetType($cartitem['context_code'], $cartitem['badge_type_id']);
+            $saveFormResponses = true;
+            $badgeFreebies = 0;
+            //If it's not an application, wire up the processor normally
+            if ($cartitem['context_code'] == 'A' || $cartitem['context_code'] == 'S') {
+                $badgeItems = [&$cartitem];
+
+
+                //Check for bans
+                if ($this->banlist->is_banlisted($cartitem)) {
+                    $banlisted = true;
+                    $canPay = false;
+                    //TODO: Bubble a notify event
+                    $errors[] = 'Banned:'.$key;
+                }
+                $this->createUpdateBadgeEntry($cartitem);
+
+                //Save the form responses
+                if (isset($cartitem['form_responses'])) {
+                    $this->badgeinfo->SetFormResponses($cartitem['id'], $cartitem['context_code'], $cartitem['form_responses']);
+                }
+            } else {
+                //Grou applications are special
+                //Create/update the application submission
+                $this->createUpdateApplicationSubmission($cartitem, $bt);
+
+                $saveFormResponses = false;
+                //Save the form responses
+                if (isset($cartitem['form_responses'])) {
+                    $this->badgeinfo->SetFormResponses($cartitem['id'], $cartitem['context_code'], $cartitem['form_responses']);
+                }
+            }
+
+
+            //Check for addons
+            if (isset($cartitem['addons'])) {
+                $existingAddons = array_column(
+                    $this->badgeinfo->GetAddons($cartitem['id'], $cartitem['context_code']),
+                    'payment_status',
+                    'addon_id'
+                );
+                $availableaddons = array_column($this->badgeinfo->GetAddonsAvailable($cartitem['badge_type_id'], $cartitem['context_code']), null, 'id');
+                foreach ($cartitem['addons'] as $addon) {
+                    if (isset($existingAddons[$addon['addon_id']]) && $existingAddons[$addon['addon_id']] == 'Completed') {
+                        continue;
+                    }
+                    $addon[($cartitem['context_code'] == 'A' || $cartitem['context_code'] == 'S') ? 'attendee_id' : 'application_id'] = $cartitem['id'];
+                    $addon['context_code'] = $cartitem['context_code'];
+                    $addon['payment_id'] = $this->cart['id'];
+                    $addon['payment_status'] = 'Incomplete';
+
+                    $this->badgeinfo->AddUpdateBadgeAddonUnchecked($addon, $cartitem['context_code']);
+                }
+            }
         }
     }
 
@@ -529,150 +696,9 @@ final class PaymentBuilder
         $banlisted = false;
         $errors = array();
         $this->refreshCartMeta();
-        //Reset the staged items
-        $this->stagedItems = [];
+        $this->stageItems();
 
-        //TODO: craete the checked versions and use them instead of blind faith
-
-        foreach ($this->cart_items as $key => &$cartitem) {
-            //Create/Update the badge
-            $cartitem['payment_id'] = $this->cart['id'];
-            $cartitem['payment_status'] = 'Incomplete';
-
-            $badge_items = [];
-
-            $bt = $this->badgeinfo->getBadgetType($cartitem['context_code'], $cartitem['badge_type_id']);
-            $saveFormResponses = true;
-            $badgeFreebies = 0;
-            //If it's not an application, wire up the processor normally
-            if ($cartitem['context_code'] == 'A' || $cartitem['context_code'] == 'S') {
-                $badgeItems = [&$cartitem];
-
-
-                //Check for bans
-                if ($this->banlist->is_banlisted($cartitem)) {
-                    $banlisted = true;
-                    $canPay = false;
-                    //TODO: Bubble a notify event
-                    $errors[] = 'Banned:'.$key;
-                }
-                $this->createUpdateBadgeEntry($cartitem);
-
-                //Save the form responses
-                if (isset($cartitem['form_responses'])) {
-                    $this->badgeinfo->SetFormResponses($cartitem['id'], $cartitem['context_code'], $cartitem['form_responses']);
-                }
-
-                //Only add this as a line item if we're a new badge or upgrading (hence needing payment)
-                if (!isset($cartitem['existing']) || 0 < $cartitem['payment_promo_price']) {
-                    $this->stagedItems[] = array(
-                    $bt['name'] . ' Badge',
-                    $bt['price'],
-                    1,
-                    $bt['description'],
-                    $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':' . $cartitem['badge_type_id'],
-                    max(0, $bt['price'] - ($cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price'])),
-                    $cartitem['payment_promo_code'] ?? null
-                );
-                }
-            } else {
-                //Grou applications are special
-                //Create/update the application submission
-                $this->createUpdateApplicationSubmission($cartitem, $bt);
-
-                $saveFormResponses = false;
-                //Save the form responses
-                if (isset($cartitem['form_responses'])) {
-                    $this->badgeinfo->SetFormResponses($cartitem['id'], $cartitem['context_code'], $cartitem['form_responses']);
-                }
-
-                //Base application price
-                if (!isset($cartitem['existing']) || 0 < $cartitem['payment_promo_price']) {
-                    $this->stagedItems[] = array(
-                    $bt['name'],
-                    $bt['price'],
-                    1,
-                    'Application fee for ' . $bt['name'],
-                    $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':S' . $cartitem['badge_type_id'],
-                    max(0, $bt['price'] - ($cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price'])),
-                    null
-                );
-                }
-
-                for ($assignSpace=0; $assignSpace < ($cartitem['assignment_count'] ?? 0); $assignSpace++) {
-                    //Assignment space price
-                    if ($cartitem['assignment_count']??0 > 0 && (!isset($cartitem['existing']) || 0 < $cartitem['payment_promo_price'])) {
-                        $this->stagedItems[] = array(
-                        $bt['name'] . ' Assignment fee',
-                        $bt['base_assignment_count']> $assignSpace ? 0 : $bt['price_per_assignment'],
-                        1,
-                        'Assignment fee for ' . $bt['name'],
-                        $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':T' . $cartitem['badge_type_id'],
-                        0, //Assignments can never be on promotion
-                        null
-                    );
-                    }
-                }
-
-                //Sort the subbadges to have the Created ones last
-                usort($cartitem['subbadges'], function ($a, $b) {
-                    return ($a['created'] ?? 0)- ($b['created'] ?? 0);
-                });
-                $sbadgeCount = 0;
-                foreach ($cartitem['subbadges'] as $badge) {
-                    $this->stagedItems[] = array(
-                        $bt['name'] . ' Badge fee',
-                        ($bt['base_applicant_count']> $sbadgeCount || !($badge['created']?? false)) ? 0 : $bt['price_per_applicant'],
-                        1,
-                        'Badge fee for ' . $bt['name'],
-                        $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':B' . $cartitem['badge_type_id'],
-                        0, //(this type of) badge can never be on promotion
-                        null
-                    );
-                    $sbadgeCount++;
-                }
-            }
-
-            //Prep Sanity check the cart's amount...
-            $this->cart_payment_txn_amt += max(0, $cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price']);
-
-            //Check for addons
-            if (isset($cartitem['addons'])) {
-                $existingAddons = array_column(
-                    $this->badgeinfo->GetAddons($cartitem['id'], $cartitem['context_code']),
-                    'payment_status',
-                    'addon_id'
-                );
-                $availableaddons = array_column($this->badgeinfo->GetAddonsAvailable($cartitem['badge_type_id'], $cartitem['context_code']), null, 'id');
-                foreach ($cartitem['addons'] as $addon) {
-                    if (isset($existingAddons[$addon['addon_id']]) && $existingAddons[$addon['addon_id']] == 'Completed') {
-                        continue;
-                    }
-                    $addon[($cartitem['context_code'] == 'A' || $cartitem['context_code'] == 'S') ? 'attendee_id' : 'application_id'] = $cartitem['id'];
-                    $addon['context_code'] = $cartitem['context_code'];
-                    $addon['payment_id'] = $this->cart['id'];
-                    $addon['payment_status'] = 'Incomplete';
-
-                    $this->badgeinfo->AddUpdateBadgeAddonUnchecked($addon, $cartitem['context_code']);
-
-                    //Add it to the payment
-                    $faddon = $availableaddons[$addon['addon_id']];
-
-                    $this->stagedItems[] = array(
-                        $faddon['name'],
-                        $faddon['price'],
-                        1,
-                        $faddon['description'],
-                        $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ',a:' . $addon['addon_id'],
-                        max(0, $faddon['price'] - ($addon['payment_promo_price'] ?? $addon['payment_price'])),
-                        $addon['payment_promo_code'] ?? null
-                    );
-
-                    //Prep Sanity check the cart's amount...
-                    $this->cart_payment_txn_amt += max(0, $addon['payment_promo_price'] ?? $addon['payment_price']);
-                }
-            }
-        }
+        $this->applyInFlightChanges();
 
         $this->getPayProcessor();
         // make sure the order is reset
