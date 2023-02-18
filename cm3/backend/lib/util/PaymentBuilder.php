@@ -439,7 +439,7 @@ final class PaymentBuilder
         foreach ($this->cart_items as $key => &$cartitem) {
             $this->badgepromoapplicator->TryApplyCode($cartitem, $cartitem['payment_promo_code'] ?? '');
 
-            $bt = $this->badgeinfo->getBadgetType($cartitem['context_code'], $cartitem['badge_type_id']);
+            $bt = $this->badgeinfo->getBadgetType($cartitem['context_code'], $cartitem['badge_type_id']||0);
             $saveFormResponses = true;
             $badgeFreebies = 0;
             //If it's not an application, wire up the processor normally
@@ -456,6 +456,8 @@ final class PaymentBuilder
                     max(0, $bt['price'] - ($cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price'])),
                     $cartitem['payment_promo_code'] ?? null
                 );
+                    //Add to the cart's amount...
+                    $this->cart_payment_txn_amt += max(0, $cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price']);
                 }
             } else {
                 //Group applications are special
@@ -471,6 +473,8 @@ final class PaymentBuilder
                     max(0, $bt['price'] - ($cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price'])),
                     null
                 );
+                    //Add to the cart's amount...
+                    $this->cart_payment_txn_amt += max(0, $cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price']);
                 }
 
                 for ($assignSpace=0; $assignSpace < ($cartitem['assignment_count'] ?? 0); $assignSpace++) {
@@ -485,6 +489,9 @@ final class PaymentBuilder
                         0, //Assignments can never be on promotion
                         null
                     );
+
+                        //Add to the cart's amount...
+                        $this->cart_payment_txn_amt += max(0, $bt['base_assignment_count']> $assignSpace ? 0 : $bt['price_per_assignment']);
                     }
                 }
 
@@ -513,8 +520,6 @@ final class PaymentBuilder
                 }
             }
 
-            //Prep Sanity check the cart's amount...
-            $this->cart_payment_txn_amt += max(0, $cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price']);
 
             //Check for addons
             if (isset($cartitem['addons'])) {

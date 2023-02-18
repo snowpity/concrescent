@@ -1285,6 +1285,8 @@ final class badgeinfo
                new SelectColumn('application_status'),
                new SelectColumn('badge_type_id'),
                new SelectColumn('payment_status'),
+               new SelectColumn('payment_promo_price'),
+               new SelectColumn('payment_badge_price'),
                new SelectColumn('payment_id'),
                new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ'),
                new SelectColumn('payable_onsite', Alias:'badge_type_payable_onsite', JoinedTableAlias:'typ'),
