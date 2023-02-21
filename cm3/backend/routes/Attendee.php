@@ -74,6 +74,8 @@ return function (App $app, $container) {
             ->add($atManage);
             $app->delete('/{addon_id}/Badge/{badge_type_id}', \CM3_Lib\Action\Attendee\AddonMap\Delete::class)
             ->add($atManage);
+            $app->get('/{addon_id}/Purchase', \CM3_Lib\Action\Attendee\AddonPurchase\Search::class)
+            ->add($attendeePerm);
         },
         '/Badge/{attendee_id}/AddonPurchase' =>
         function (RouteCollectorProxy $app) use ($attendeePerm) {

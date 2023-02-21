@@ -3,12 +3,15 @@
 namespace CM3_Lib\Action\Application\AddonPurchase;
 
 use CM3_Lib\models\application\addonpurchase;
-use CM3_Lib\models\application\badge;
-use CM3_Lib\models\application\badgetype;
+use CM3_Lib\models\application\addon;
+use CM3_Lib\models\application\submission;
 
+use CM3_Lib\database\SelectColumn;
 use CM3_Lib\database\SearchTerm;
 use CM3_Lib\database\View;
 use CM3_Lib\database\Join;
+
+use CM3_Lib\util\badgeinfo;
 
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
@@ -28,8 +31,13 @@ final class Search
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private addonpurchase $addonpurchase, private badge $badge, private badgetype $badgetype)
-    {
+    public function __construct(
+        private Responder $responder,
+        private addonpurchase $addonpurchase,
+        private addon $addon,
+        private submission $submission,
+        private badgeinfo $badgeinfo
+    ) {
     }
 
     /**
@@ -46,34 +54,56 @@ final class Search
         $data = (array)$request->getParsedBody();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
-        //Confirm permission to delete this badge applicant
-        $badgeinfo = $this->badge->GetByID($params['application_id'], new View(
-            array('id'),
-            array(
-                new Join($this->badgetype, array('id'=>'badge_type_id', new SearchTerm('event_id', $params['event_id'])))
-            )
-        ));
+        //Confirm permission to access this addon
 
-        if ($badgeinfo === false) {
-            throw new HttpBadRequestException($request, 'Invalid badge specified');
+        $addon = $this->addon->GetByID($params['addon_id'], ['event_id']);
+
+        if ($addon === false) {
+            throw new HttpBadRequestException($request, 'Addon not found');
+        }
+        if ($addon['event_id'] != $request->getAttribute('event_id')) {
+            throw new HttpBadRequestException($request, 'Addon not found.');
         }
 
 
         $whereParts = array(
-          new SearchTerm('application_id', $params['application_id'])
+          new SearchTerm('addon_id', $params['addon_id'])
         );
 
-        $order = array('id' => false);
+        $qp = $request->getQueryParams();
+        $find = $qp['find'] ?? '';
+        //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
-        $page      = ($request->getQueryParams()['page']?? 0 > 0) ? $request->getQueryParams()['page'] : 1;
-        $limit     = $request->getQueryParams()['itemsPerPage']?? -1; // Number of posts on one page
-        $offset      = ($page - 1) * $limit;
-        if ($offset < 0) {
-            $offset = 0;
-        }
+        $pg = $this->badgeinfo->parseQueryParamsPagination($qp, 'application_id', defaultSortDesc:true);
+        $totalRows = 0;
+
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->addonpurchase->Search(array(), $whereParts, $order, $limit, $offset);
+        $data = $this->addonpurchase->Search(new View(
+            array(
+                'application_id',
+                'payment_status',
+                'payment_id',
+                new SelectColumn('contact_id', JoinedTableAlias: 'sub'),
+                new SelectColumn('display_id', JoinedTableAlias: 'sub'),
+                new SelectColumn('real_name', JoinedTableAlias: 'sub'),
+                new SelectColumn('fandom_name', JoinedTableAlias: 'sub'),
+                new SelectColumn('name_on_badge', JoinedTableAlias: 'sub'),
+                new SelectColumn('application_status', JoinedTableAlias: 'sub'),
+            ),
+            array(
+                new Join(
+                    $this->submission,
+                    array(
+                'id' => 'application_id'
+            ),
+                    'left',
+                    alias:'sub'
+                )
+            )
+        ), $whereParts, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
+
+        $response = $response->withHeader('X-Total-Rows', (string)$totalRows);
 
         // Build the HTTP response
         return $this->responder

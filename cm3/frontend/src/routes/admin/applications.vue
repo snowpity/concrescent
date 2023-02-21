@@ -17,7 +17,18 @@
                          :RemoveHeaders="listRemoveHeaders"
                          :isEditingItem="sEdit"
                          :actions="listActions"
-                         @edit="editSubmission" />
+                         @edit="editSubmission">
+            <template v-slot:[`item.id`]="{ item }">
+                <v-tooltip right>
+                    <template v-slot:activator="{ on, attrs }">
+                        <span v-bind="attrs"
+                              v-on="on">
+                            [{{item.context_code}}{{item.display_id}}]</span>
+                    </template>
+                    {{item.id}}
+                </v-tooltip>
+            </template>
+        </badgeSearchList>
 
         <v-dialog v-model="sEdit"
                   fullscreen
@@ -88,7 +99,7 @@
 
     <v-tab-item value="1">
         <badgeSearchList v-if="context_id>0"
-                         :apiPath="'Application/' + context_code +'/Submission'"
+                         :apiPath="'Application/' + context_code +'/Applicant'"
                          :context_code="context_code"
                          :headerFirst="{
                        text: currentContext.application_name1,

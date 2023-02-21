@@ -265,6 +265,8 @@ final class badgeinfo
 
     public function setNextDisplayIDSpecificBadge($id, $context_code)
     {
+        //Note that this is way unsafe in terms of concurrency.
+        //Hopefully not a lot of people will be simultaneously creating IDs...
         $result = false;
         //Slide in the ID
         $data = array('id' => $id);
@@ -323,24 +325,16 @@ final class badgeinfo
                 break;
             default:
             //TODO: Fix
-                $next = $this->g_badge->Search(
+                $next = $this->g_badge_submission->Search(
                     new View(
                         array(
                             'display_id'
                          ),
                         array(
                            new Join(
-                               $this->g_badge_submission,
-                               array(
-                                 'id' => 'application_id',
-                               ),
-                               alias:'bs'
-                           ),
-
-                           new Join(
                                $this->g_badge_type,
                                array(
-                                 'id' =>new SearchTerm('badge_type_id', null, JoinedTableAlias: 'bs'),
+                                 'id' =>new SearchTerm('badge_type_id', null),
                                ),
                                alias:'typ'
                            ),
@@ -361,13 +355,63 @@ final class badgeinfo
                     array('display_id'=>true),
                     1
                 );
+                $data['display_id'] = (count($next) > 0) ? $next[0]['display_id'] + 1 : 1;
 
-
-                $result =  $this->g_badge->Update($data);
+                $result =  $this->g_badge_submission->Update($data);
         }
         return $result;
     }
 
+    public function setNextDisplayIDSpecificSubBadge($id, $context_code)
+    {
+        //Note that this is way unsafe in terms of concurrency.
+        //Hopefully not a lot of people will be simultaneously creating IDs...
+        $result = false;
+        //Slide in the ID
+        $data = array('id' => $id);
+        $next = $this->g_badge->Search(
+            new View(
+                array(
+                    'display_id'
+                 ),
+                array(
+                   new Join(
+                       $this->g_badge_submission,
+                       array(
+                         'id' => 'application_id',
+                       ),
+                       alias:'bs'
+                   ),
+
+                   new Join(
+                       $this->g_badge_type,
+                       array(
+                         'id' =>new SearchTerm('badge_type_id', null, JoinedTableAlias: 'bs'),
+                       ),
+                       alias:'typ'
+                   ),
+                  new Join(
+                      $this->g_group,
+                      array(
+                        'id' => new SearchTerm('group_id', null, JoinedTableAlias: 'typ'),
+                        new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId()),
+                        new SearchTerm('context_code', $context_code)
+                      ),
+                      alias:'grp'
+                  )
+                 )
+            ),
+            array(
+                        new SearchTerm('display_id', '', 'IS NOT')
+                    ),
+            array('display_id'=>true),
+            1
+        );
+
+        $data['display_id'] = (count($next) > 0) ? $next[0]['display_id'] + 1 : 1;
+
+        $result =  $this->g_badge->Update($data);
+    }
     public function GetFormResponses($id, $context_code, $question_ids = null)
     {
         $data = $this->f_response->Search(
@@ -1448,6 +1492,13 @@ final class badgeinfo
     }
     public function updateSupplementaryBadgeData(&$result)
     {
+        //If we're accepted or otherwise complete but still do not have a display ID, fix that
+        if ($result['display_id']==null && in_array(
+            $result['application_status']??'',
+            ['PendingAcceptance','Accepted','Onboarding','Active']
+        )) {
+            $this->setNextDisplayIDSpecificBadge($result['id'], $result['context_code']);
+        }
         switch ($result['context_code']) {
             case 'A':
                 //$result =  $this->a_badge->Create($data);
@@ -1506,7 +1557,13 @@ final class badgeinfo
                     //Tag this badge as new...?
                     $newSubbadge['created'] = true;
 
-                    //TODO: If completed payment and accepted add display ID
+                    //If completed payment and accepted add display ID
+                    if ($newSubbadge['display_id'] ??null==null && in_array(
+                        $result['application_status']??'',
+                        ['PendingAcceptance','Accepted','Onboarding','Active']
+                    )) {
+                        $newSubbadge['display_id'] = $this->setNextDisplayIDSpecificSubBadge($newSubbadge['id'], $result['context_code']);
+                    }
                     //Save back to the subbadges
                     $setSubbadges[$curIx] = $newSubbadge;
                 }
@@ -1517,9 +1574,19 @@ final class badgeinfo
                 }
                 //Process modifications
                 foreach (array_uintersect($setSubbadges, $currentSubbadges, array($this,'compareID')) as $existingSubbadge) {
+                    $curIx = array_search($existingSubbadge, $setSubbadges, true);
                     $existingSubbadge['application_id'] = $result['id'];
                     $this->g_badge->Update($existingSubbadge);
-                    //TODO: Check if this badge needs a display ID
+
+                    //If completed payment and accepted add display ID
+                    if ($existingSubbadge['display_id'] ??null==null && in_array(
+                        $result['application_status']??'',
+                        ['PendingAcceptance','Accepted','Onboarding','Active']
+                    )) {
+                        $existingSubbadge['display_id'] = $this->setNextDisplayIDSpecificSubBadge($existingSubbadge['id'], $result['context_code']);
+                    }
+                    //Save back to the subbadges
+                    $setSubbadges[$curIx] = $newSubbadge;
                 }
             }
         }

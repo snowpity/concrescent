@@ -104,7 +104,14 @@
         </v-container>
     </template>
     <template v-slot:[`item.id`]="{ item }">
-        {{item.context_code}}{{item.display_id}}
+        <v-tooltip right>
+            <template v-slot:activator="{ on, attrs }">
+                <span v-bind="attrs"
+                      v-on="on">
+                    {{item.context_code}}{{item.display_id}}</span>
+            </template>
+            {{item.id}}
+        </v-tooltip>
     </template>
     <template v-slot:[`item.time_printed`]="{ item }">
         <v-tooltip left>

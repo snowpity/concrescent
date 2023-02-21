@@ -44,6 +44,6 @@ class addonpurchase extends \CM3_Lib\database\Table
             ), 'primary key')
         );
         $this->PrimaryKeys = array('application_id'=>false,'addon_id'=>false);
-        $this->DefaultSearchColumns = array('id','application_id','addon_id','payment_status','dates_available');
+        $this->DefaultSearchColumns = array('application_id','addon_id','payment_id','payment_status');
     }
 }

@@ -113,6 +113,8 @@ return function (App $app, $container) {
             ->add($gtmanage);
             $app->delete('/{addon_id}/Badge/{badge_type_id}', \CM3_Lib\Action\Application\AddonMap\Delete::class)
             ->add($gtmanage);
+            $app->get('/{addon_id}/Purchase', \CM3_Lib\Action\Application\AddonPurchase\Search::class)
+            ->add($groupPerm);
         },
         '/Submission/{application_id}/AddonPurchase' =>
         function (RouteCollectorProxy $app) use ($groupPerm) {
