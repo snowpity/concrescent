@@ -189,8 +189,16 @@ final class badgepromoapplicator
         if ($final_price > $badge_price) {
             $final_price = $badge_price;
         }
-
-
+        //Last chance if something bizarre happened
+        //Empty promo codes mean there is no discount!
+        if (empty($code) &&$badge_price != $final_price) {
+            // die(print_r([
+            //     'code'=> $code,
+            //     'badge_price'=> $badge_price,
+            //     'final_price'=> $final_price,
+            // ], true));
+            $final_price = $badge_price;
+        }
         //Only apply promo if it actually results in a price reduction or equality
         if ((isset($item['payment_promo_price']) && $item['payment_promo_price'] >= $final_price) || !isset($item['payment_promo_price'])) {
             $item['payment_promo_code'] = $code;

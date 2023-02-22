@@ -290,7 +290,7 @@ final class PaymentBuilder
                     'can_transfer',
                     'contact_id'
                 ));
-                array_walk($allowed, function ($col) use ($item, $bi) {
+                array_walk($disallowed, function ($col) use ($item, $bi) {
                     if (isset($bi[$col])) {
                         $item[$col] = $bi[$col];
                     } else {
@@ -439,7 +439,7 @@ final class PaymentBuilder
         foreach ($this->cart_items as $key => &$cartitem) {
             $this->badgepromoapplicator->TryApplyCode($cartitem, $cartitem['payment_promo_code'] ?? '');
 
-            $bt = $this->badgeinfo->getBadgetType($cartitem['context_code'], $cartitem['badge_type_id']||0);
+            $bt = $this->badgeinfo->getBadgetType($cartitem['context_code'], $cartitem['badge_type_id'] ?? 0);
             $saveFormResponses = true;
             $badgeFreebies = 0;
             //If it's not an application, wire up the processor normally

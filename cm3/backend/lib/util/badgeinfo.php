@@ -1493,7 +1493,7 @@ final class badgeinfo
     public function updateSupplementaryBadgeData(&$result)
     {
         //If we're accepted or otherwise complete but still do not have a display ID, fix that
-        if ($result['display_id']==null && in_array(
+        if (isset($result['display_id']) && $result['display_id']==null && in_array(
             $result['application_status']??'',
             ['PendingAcceptance','Accepted','Onboarding','Active']
         )) {
