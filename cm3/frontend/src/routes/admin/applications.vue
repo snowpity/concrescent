@@ -384,6 +384,9 @@ export default {
         bSavedDetails: {},
         bPrint: false,
         btAddHeaders: [{
+            text: 'Name',
+            value: 'name'
+        }, {
             text: 'Dates Available',
             value: 'dates_available'
         }, {

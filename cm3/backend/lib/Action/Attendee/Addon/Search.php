@@ -2,6 +2,8 @@
 
 namespace CM3_Lib\Action\Attendee\Addon;
 
+use CM3_Lib\util\badgeinfo;
+
 use CM3_Lib\database\SearchTerm;
 use CM3_Lib\models\attendee\addon;
 use CM3_Lib\Responder\Responder;
@@ -20,8 +22,11 @@ final class Search
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private addon $addon)
-    {
+    public function __construct(
+        private Responder $responder,
+        private addon $addon,
+        private badgeinfo $badgeinfo
+    ) {
     }
 
     /**
@@ -42,17 +47,18 @@ final class Search
           new SearchTerm('event_id', $request->getAttribute('event_id'))
         );
 
-        $order = array('id' => false);
 
-        $page      = ($request->getQueryParams()['page']?? 0 > 0) ? $request->getQueryParams()['page'] : 1;
-        $limit     = $request->getQueryParams()['itemsPerPage']?? -1; // Number of posts on one page
-        $offset      = ($page - 1) * $limit;
-        if ($offset < 0) {
-            $offset = 0;
-        }
+        $qp = $request->getQueryParams();
+        $find = $qp['find'] ?? '';
+        //TODO: Actually do something with submitted data. Also, provide some sane defaults
+
+        $pg = $this->badgeinfo->parseQueryParamsPagination($qp, 'id', defaultSortDesc:true);
+        $totalRows = 0;
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->addon->Search(array(), $whereParts, $order, $limit, $offset);
+        $data = $this->addon->Search(array(), $whereParts, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
+
+        $response = $response->withHeader('X-Total-Rows', (string)$totalRows);
 
         // Build the HTTP response
         return $this->responder
