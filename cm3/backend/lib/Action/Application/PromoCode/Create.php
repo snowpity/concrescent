@@ -1,8 +1,8 @@
 <?php
 
-namespace CM3_Lib\Action\Attendee\PromoCode;
+namespace CM3_Lib\Action\Application\PromoCode;
 
-use CM3_Lib\models\attendee\promocode;
+use CM3_Lib\models\application\promocode;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -11,7 +11,7 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * Action.
  */
-final class Update
+final class Create
 {
     /**
      * The constructor.
@@ -36,13 +36,10 @@ final class Update
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
 
-        if (!$this->promocode->verifyPromoCodeBelongsToEvent($params['id'], $request->getAttribute('event_id'))) {
-            throw new HttpBadRequestException($request, 'Badge does not belong to current event');
-        }
-
-        //Ensure consistency with the enpoint being posted to
-        $data['id'] = $params['id'];
-        unset($data['event_id']);
+        //Ensure we're making a badge type with the associated event
+        $data['event_id'] = $request->getAttribute('event_id');
+        //Make sure we don't have an ID, date_created, date_modified
+        unset($data['id']);
         unset($data['date_created']);
         unset($data['date_modified']);
         unset($data['dates_available']);
@@ -54,9 +51,8 @@ final class Update
             $data['end_date'] = null;
         }
 
-
         // Invoke the Domain with inputs and retain the result
-        $data = $this->promocode->Update($data);
+        $data = $this->promocode->Create($data);
 
         // Build the HTTP response
         return $this->responder

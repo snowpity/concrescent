@@ -440,6 +440,10 @@ final class PaymentBuilder
             $this->badgepromoapplicator->TryApplyCode($cartitem, $cartitem['payment_promo_code'] ?? '');
 
             $bt = $this->badgeinfo->getBadgetType($cartitem['context_code'], $cartitem['badge_type_id'] ?? 0);
+            if ($bt === false) {
+                $this->AllowPay = false;
+                continue;
+            }
             $saveFormResponses = true;
             $badgeFreebies = 0;
             //If it's not an application, wire up the processor normally
@@ -995,6 +999,8 @@ final class PaymentBuilder
         $this->getPayProcessor()->CancelOrder();
         $this->cart['payment_details'] = '';
         unset($this->pp);
+        $this->cart['payment_status'] = 'Cancelled';
+        $this->saveCart();
     }
 
     public function SendStatusEmail()

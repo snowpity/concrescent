@@ -7,6 +7,7 @@
               :items="tableResults"
               item-key="id"
               class="elevation-1 fill-height"
+              :show-expand='showExpand'
               :search="searchText">
 
     <template v-slot:top="">
@@ -50,7 +51,39 @@ import {
 } from '@/plugins/debounce';
 export default {
     components: {},
-    props: ['apiPath', 'orderColumnName', 'actions', 'AddHeaders', 'RemoveHeaders', 'footerActions', 'isEditingItem'],
+    props: {
+        'apiPath': {
+            type: String
+        },
+        'actions': {
+            type: Array
+        },
+        'headerKey': {
+            type: Object,
+            default () {
+                return {
+                    text: 'ID',
+                    align: 'start',
+                    value: 'id',
+                };
+            }
+        },
+        'AddHeaders': {
+            type: Array
+        },
+        'RemoveHeaders': {
+            type: Array
+        },
+        'footerActions': {
+            type: Array
+        },
+        'isEditingItem': {
+            type: Boolean
+        },
+        'showExpand': {
+            type: Boolean
+        },
+    },
     data: () => ({
 
         searchText: "",
@@ -58,21 +91,16 @@ export default {
         tableOptions: {},
         tableResults: [],
         totalResults: 0,
-        defHeaders: [{
-            text: 'ID',
-            align: 'start',
-            value: 'id',
-        }, {
-            text: 'Actions',
-            value: 'actions',
-        }, ]
     }),
     computed: {
         authToken: function() {
             return this.$store.getters['mydata/getAuthToken'];
         },
         headers() {
-            var result = this.defHeaders || [];
+            var result = [this.headerKey, {
+                text: 'Actions',
+                value: 'actions',
+            }];
             var rmv = this.RemoveHeaders || [];
             var inc = this.AddHeaders || [];
             var that = this;

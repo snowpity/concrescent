@@ -1,8 +1,8 @@
 <?php
 
-namespace CM3_Lib\Action\Attendee\PromoCode;
+namespace CM3_Lib\Action\Application\PromoCode;
 
-use CM3_Lib\models\attendee\promocode;
+use CM3_Lib\models\application\promocode;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;

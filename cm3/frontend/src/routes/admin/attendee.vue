@@ -10,56 +10,56 @@
                          :actions="listActions"
                          @edit="editBadge" />
 
-        <v-dialog v-model="bEdit"
-                  fullscreen
-                  scrollable
-                  hide-overlay>
-            <v-card tile>
-                <v-card-title class="pa-0">
-                    <v-toolbar dark
-                               flat
-                               color="primary">
-                        <v-btn icon
-                               dark
-                               @click="bEdit = false">
-                            <v-icon>mdi-close</v-icon>
-                        </v-btn>
-                        <v-toolbar-title>Edit Badge</v-toolbar-title>
-                        <v-spacer></v-spacer>
-                        <v-toolbar-items>
-                            <v-menu offset-y
-                                    open-on-hover>
-                                <template v-slot:activator="{ on, attrs }">
-                                    <v-btn :color="bModified ? 'green' : 'primary'"
-                                           dark
-                                           v-bind="attrs"
-                                           v-on="on">
-                                        <v-icon>mdi-content-save</v-icon>
-                                    </v-btn>
-                                </template>
-                                <v-list>
-                                    <v-list-item @click="saveBadge(true)">
-                                        <v-list-item-title>
-                                            Save and send status email
-                                        </v-list-item-title>
-                                    </v-list-item>
-                                    <v-list-item @click="saveBadge(false)">
-                                        <v-list-item-title>
-                                            Save only
-                                        </v-list-item-title>
-                                    </v-list-item>
-                                </v-list>
-                            </v-menu>
-                        </v-toolbar-items>
-                    </v-toolbar>
-
-                </v-card-title>
-                <v-card-text class="pa-0">
-                    <editBadgeAdmin v-model="bSelected" />
-                </v-card-text>
-            </v-card>
-        </v-dialog>
     </v-tab-item>
+    <v-dialog v-model="bEdit"
+              fullscreen
+              scrollable
+              hide-overlay>
+        <v-card tile>
+            <v-card-title class="pa-0">
+                <v-toolbar dark
+                           flat
+                           color="primary">
+                    <v-btn icon
+                           dark
+                           @click="bEdit = false">
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                    <v-toolbar-title>Edit Badge</v-toolbar-title>
+                    <v-spacer></v-spacer>
+                    <v-toolbar-items>
+                        <v-menu offset-y
+                                open-on-hover>
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn :color="bModified ? 'green' : 'primary'"
+                                       dark
+                                       v-bind="attrs"
+                                       v-on="on">
+                                    <v-icon>mdi-content-save</v-icon>
+                                </v-btn>
+                            </template>
+                            <v-list>
+                                <v-list-item @click="saveBadge(true)">
+                                    <v-list-item-title>
+                                        Save and send status email
+                                    </v-list-item-title>
+                                </v-list-item>
+                                <v-list-item @click="saveBadge(false)">
+                                    <v-list-item-title>
+                                        Save only
+                                    </v-list-item-title>
+                                </v-list-item>
+                            </v-list>
+                        </v-menu>
+                    </v-toolbar-items>
+                </v-toolbar>
+
+            </v-card-title>
+            <v-card-text class="pa-0">
+                <editBadgeAdmin v-model="bSelected" />
+            </v-card-text>
+        </v-card>
+    </v-dialog>
     <v-tab-item value="1">
         <orderableList apiPath="Attendee/BadgeType"
                        :AddHeaders="btAddHeaders"
@@ -135,6 +135,7 @@
                     :AddHeaders="dAddHeaders"
                     :actions="btActions"
                     :footerActions="btFooterActions"
+                    show-expand
                     @edit="editPromoCode"
                     @create="createPromoCode">
 
@@ -142,6 +143,23 @@
                 {{item.is_percentage ? "":"$"}}
                 {{item.discount}}
                 {{item.is_percentage ? "%":""}}
+            </template>
+            <template v-slot:expanded-item="{ headers, item }">
+                <td :colspan="headers.length">
+                    <v-container flex>
+                        <simpleList :apiPath="'Attendee/Addon/'+ item.id + '/Purchase'"
+                                    :headerKey="{
+                                        text: 'ID',
+                                        align: 'start',
+                                        value: 'attendee_id',
+                                    }"
+                                    :AddHeaders="asAddHeaders"
+                                    :RemoveHeaders="asRemoveHeaders"
+                                    :actions="asActions"
+                                    @edit="editBadgeFromAddon">
+                        </simpleList>
+                    </v-container>
+                </td>
             </template>
         </simpleList>
         <v-dialog v-model="dEdit"
@@ -278,6 +296,20 @@ export default {
         }],
         dSelected: {},
         dEdit: false,
+
+        asAddHeaders: [{
+            text: 'Real Name',
+            value: 'real_name',
+        }, {
+            text: 'Fandom Name',
+            value: 'fandom_name',
+        }, ],
+        asRemoveHeaders: [
+            'badge_type_name',
+            'time_printed',
+            'time_checked_in'
+        ],
+
         loading: false,
         bModified: false,
 
@@ -323,7 +355,16 @@ export default {
                 icon: 'plus'
             });
             return result;
-        }
+        },
+        asActions: function() {
+            var result = [];
+            result.push({
+                name: 'edit',
+                text: 'Edit badge',
+                icon: 'edit-pencil'
+            });
+            return result;
+        },
     },
     methods: {
         checkPermission() {
@@ -421,6 +462,19 @@ export default {
         createPromoCode: function() {
             this.pEdit = true;
             this.pSelected = {};
+        },
+        editBadgeFromAddon: function(selectedBadge) {
+            console.log(selectedBadge);
+            let that = this;
+            that.loading = false;
+            admin.genericGet(this.authToken, 'Attendee/Badge/' + selectedBadge.attendee_id, null, function(editBadge) {
+                console.log('loaded badge', editBadge)
+                that.bSelected = editBadge;
+                that.loading = false;
+                that.bEdit = true;
+            }, function() {
+                that.loading = false;
+            })
         },
     },
     watch: {

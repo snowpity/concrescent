@@ -1,8 +1,9 @@
 <?php
 
-namespace CM3_Lib\Action\Attendee\PromoCode;
+namespace CM3_Lib\Action\Application\PromoCode;
 
-use CM3_Lib\models\attendee\promocode;
+use CM3_Lib\database\SearchTerm;
+use CM3_Lib\models\application\promocode;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -11,7 +12,7 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * Action.
  */
-final class Update
+final class Read
 {
     /**
      * The constructor.
@@ -35,31 +36,23 @@ final class Update
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
-
-        if (!$this->promocode->verifyPromoCodeBelongsToEvent($params['id'], $request->getAttribute('event_id'))) {
-            throw new HttpBadRequestException($request, 'Badge does not belong to current event');
-        }
-
-        //Ensure consistency with the enpoint being posted to
-        $data['id'] = $params['id'];
-        unset($data['event_id']);
-        unset($data['date_created']);
-        unset($data['date_modified']);
-        unset($data['dates_available']);
-
-        if (empty($data['start_date'])) {
-            $data['start_date'] = null;
-        }
-        if (empty($data['end_date'])) {
-            $data['end_date'] = null;
-        }
+        //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->promocode->Update($data);
+        $result = $this->promocode->GetByID($params['id'], '*');
+
+        //Confirm badge belongs to a promocode in this event
+        if ($result === false) {
+            throw new HttpNotFoundException($request);
+        }
+
+        if (!$result['event_id'] == $request->getAttribute('event_id')) {
+            throw new HttpBadRequestException($request, 'PromoCode does not belong to current event');
+        }
 
         // Build the HTTP response
         return $this->responder
-            ->withJson($response, $data);
+            ->withJson($response, $result);
     }
 }

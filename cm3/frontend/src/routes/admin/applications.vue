@@ -29,73 +29,73 @@
                 </v-tooltip>
             </template>
         </badgeSearchList>
-
-        <v-dialog v-model="sEdit"
-                  fullscreen
-                  scrollable
-                  hide-overlay>
-            <v-card>
-                <v-card-title class="pa-0">
-                    <v-toolbar dark
-                               flat
-                               color="primary">
-                        <v-btn icon
-                               dark
-                               @click="sEdit = false">
-                            <v-icon>mdi-close</v-icon>
-                        </v-btn>
-                        <v-toolbar-title>Edit Submission</v-toolbar-title>
-                        <v-spacer></v-spacer>
-                        <v-toolbar-items>
-                            <v-menu offset-y
-                                    open-on-hover>
-                                <template v-slot:activator="{ on, attrs }">
-                                    <v-btn :color="sModified ? 'green' : 'primary'"
-                                           dark
-                                           v-bind="attrs"
-                                           v-on="on">
-                                        <v-icon>mdi-content-save</v-icon>
-                                    </v-btn>
-                                </template>
-                                <v-list>
-                                    <v-list-item @click="saveSubmission(true)">
-                                        <v-list-item-title>
-                                            Save and send status email
-                                        </v-list-item-title>
-                                    </v-list-item>
-                                    <v-list-item @click="saveSubmission(false)">
-                                        <v-list-item-title>
-                                            Save only
-                                        </v-list-item-title>
-                                    </v-list-item>
-                                </v-list>
-                            </v-menu>
-                        </v-toolbar-items>
-                    </v-toolbar>
-                </v-card-title>
-                <v-card-text class="pa-0">
-                    <editBadgeAdmin v-model="sSelected"
-                                    @save="saveSubmission" />
-                </v-card-text>
-            </v-card>
-        </v-dialog>
-
-        <v-dialog v-model="sSaved">
-
-            <v-card>
-                <v-card-title class="headline">Saved</v-card-title>
-                <v-card-text>
-                    Successfully saved.
-
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="primary"
-                           @click="sSaved = false">Ok</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
     </v-tab-item>
+
+    <v-dialog v-model="sEdit"
+              fullscreen
+              scrollable
+              hide-overlay>
+        <v-card>
+            <v-card-title class="pa-0">
+                <v-toolbar dark
+                           flat
+                           color="primary">
+                    <v-btn icon
+                           dark
+                           @click="sEdit = false">
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                    <v-toolbar-title>Edit Submission</v-toolbar-title>
+                    <v-spacer></v-spacer>
+                    <v-toolbar-items>
+                        <v-menu offset-y
+                                open-on-hover>
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn :color="sModified ? 'green' : 'primary'"
+                                       dark
+                                       v-bind="attrs"
+                                       v-on="on">
+                                    <v-icon>mdi-content-save</v-icon>
+                                </v-btn>
+                            </template>
+                            <v-list>
+                                <v-list-item @click="saveSubmission(true)">
+                                    <v-list-item-title>
+                                        Save and send status email
+                                    </v-list-item-title>
+                                </v-list-item>
+                                <v-list-item @click="saveSubmission(false)">
+                                    <v-list-item-title>
+                                        Save only
+                                    </v-list-item-title>
+                                </v-list-item>
+                            </v-list>
+                        </v-menu>
+                    </v-toolbar-items>
+                </v-toolbar>
+            </v-card-title>
+            <v-card-text class="pa-0">
+                <editBadgeAdmin v-model="sSelected"
+                                @save="saveSubmission" />
+            </v-card-text>
+        </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="sSaved">
+
+        <v-card>
+            <v-card-title class="headline">Saved</v-card-title>
+            <v-card-text>
+                Successfully saved.
+
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="primary"
+                       @click="sSaved = false">Ok</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 
     <v-tab-item value="1">
         <badgeSearchList v-if="context_id>0"
@@ -213,6 +213,106 @@
     <v-tab-item value="3">
         <formQuestionEditList :context_code="context_code" />
     </v-tab-item>
+    <v-tab-item value="4">
+
+        <simpleList v-if="context_id>0"
+                    :apiPath="'Application/' + context_code +'/PromoCode'"
+                    :isEditingItem="pEdit"
+                    :AddHeaders="pAddHeaders"
+                    :actions="btActions"
+                    :footerActions="btFooterActions"
+                    @edit="editPromoCode"
+                    @create="createPromoCode">
+
+            <template v-slot:[`item.discount`]="{ item }">
+                {{item.is_percentage ? "":"$"}}
+                {{item.discount}}
+                {{item.is_percentage ? "%":""}}
+            </template>
+        </simpleList>
+        <v-dialog v-model="pEdit"
+                  scrollable>
+
+            <v-card>
+                <v-card-title class="headline">Edit Promo Code</v-card-title>
+                <v-card-text>
+                    <promoCodeForm v-model="pSelected"
+                                   :badge_types="contextBadges" />
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="default"
+                           @click="pEdit = false">Cancel</v-btn>
+                    <v-btn color="primary"
+                           @click="savePromoCode">Save</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+    </v-tab-item>
+
+    <v-tab-item value="5">
+
+        <simpleList :apiPath="'Application/' + context_code +'/Addon'"
+                    :isEditingItem="aEdit"
+                    :AddHeaders="aAddHeaders"
+                    :actions="btActions"
+                    :footerActions="btFooterActions"
+                    show-expand
+                    @edit="editPromoCode"
+                    @create="createPromoCode">
+
+            <template v-slot:[`item.discount`]="{ item }">
+                {{item.is_percentage ? "":"$"}}
+                {{item.discount}}
+                {{item.is_percentage ? "%":""}}
+            </template>
+
+            <template v-slot:expanded-item="{ headers, item }">
+                <td :colspan="headers.length">
+                    <v-container flex>
+                        <simpleList :apiPath="'Application/' + context_code +'/Addon/'+ item.id + '/Purchase'"
+                                    :headerKey="{
+                                        text: 'ID',
+                                        align: 'start',
+                                        value: 'application_id',
+                                    }"
+                                    :AddHeaders="asAddHeaders"
+                                    :actions="asActions"
+                                    @edit="editSubmissionFromAddon">
+                            <template v-slot:[`item.application_id`]="{ item }">
+                                <v-tooltip right>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <span v-bind="attrs"
+                                              v-on="on">
+                                            [{{context_code}}{{item.display_id}}]</span>
+                                    </template>
+                                    {{item.application_id}}
+                                </v-tooltip>
+                            </template>
+                        </simpleList>
+                    </v-container>
+                </td>
+            </template>
+        </simpleList>
+        <v-dialog v-model="aEdit"
+                  scrollable>
+
+            <v-card>
+                <v-card-title class="headline">Edit Addon</v-card-title>
+                <v-card-text>
+                    <promoCodeForm v-model="aSelected"
+                                   :badge_types="contextBadges" />
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="default"
+                           @click="aEdit = false">Cancel</v-btn>
+                    <v-btn color="primary"
+                           @click="savePromoCode">Save</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+    </v-tab-item>
 
     <v-dialog v-model="loading"
               width="200"
@@ -247,7 +347,9 @@ import {
 } from '@/plugins/debounce';
 import badgeSearchList from '@/components/badgeSearchList.vue';
 import orderableList from '@/components/orderableList.vue';
+import simpleList from '@/components/simpleList.vue';
 import badgeTypeForm from '@/components/badgeTypeForm.vue';
+import promoCodeForm from '@/components/promoCodeForm.vue';
 import formQuestionEditList from '@/components/formQuestionEditList.vue';
 import editBadgeAdmin from '@/components/editBadgeAdmin.vue';
 
@@ -255,7 +357,9 @@ export default {
     components: {
         badgeSearchList,
         orderableList,
+        simpleList,
         badgeTypeForm,
+        promoCodeForm,
         formQuestionEditList,
         editBadgeAdmin,
     },
@@ -291,6 +395,24 @@ export default {
         }],
         btSelected: {},
         btDialog: false,
+        pAddHeaders: [{
+            text: 'Code',
+            value: 'code'
+        }, {
+            text: 'Dates Available',
+            value: 'dates_available'
+        }, {
+            text: 'Total Available',
+            value: 'quantity'
+        }, {
+            text: 'Discount',
+            value: 'discount'
+        }, {
+            text: 'Active',
+            value: 'active'
+        }],
+        pSelected: {},
+        pEdit: false,
 
         dAddHeaders: [{
             text: 'Name',
@@ -304,6 +426,32 @@ export default {
         }],
         dDialog: false,
         dSelected: {},
+        aAddHeaders: [{
+            text: 'Name',
+            value: 'name'
+        }, {
+            text: 'Dates Available',
+            value: 'dates_available'
+        }, {
+            text: 'Total Available',
+            value: 'quantity'
+        }, {
+            text: 'Price',
+            value: 'price'
+        }, {
+            text: 'Active',
+            value: 'active'
+        }],
+        aSelected: {},
+        aEdit: false,
+
+        asAddHeaders: [{
+            text: 'Real Name',
+            value: 'real_name',
+        }, {
+            text: 'Fandom Name',
+            value: 'fandom_name',
+        }, ],
 
         loading: false,
         createError: '',
@@ -311,6 +459,7 @@ export default {
     computed: {
         ...mapGetters('products', {
             currentContext: 'selectedbadgecontext',
+            contextBadges: 'contextBadges',
         }),
         authToken: function() {
             return this.$store.getters['mydata/getAuthToken'];
@@ -352,6 +501,15 @@ export default {
                 name: 'create',
                 text: 'Add',
                 icon: 'plus'
+            });
+            return result;
+        },
+        asActions: function() {
+            var result = [];
+            result.push({
+                name: 'edit',
+                text: 'Edit submission',
+                icon: 'edit-pencil'
             });
             return result;
         },
@@ -500,6 +658,54 @@ export default {
                 that.loading = false;
             })
         },
+        editPromoCode: function(selectedPromoCode) {
+            console.log(selectedPromoCode);
+            let that = this;
+            that.loading = false;
+            admin.genericGet(this.authToken, 'Application/' + this.context_code + '/PromoCode/' + selectedPromoCode.id, null, function(editPromoCode) {
+                console.log('loaded PromoCode', editPromoCode)
+                that.pSelected = editPromoCode;
+                that.loading = false;
+                that.pEdit = true;
+            }, function() {
+                that.loading = false;
+            })
+        },
+        savePromoCode: function() {
+            var url = 'Application/' + this.context_code + '/PromoCode';
+            if (this.pSelected.id != undefined)
+                url = url + '/' + this.pSelected.id;
+            console.log("Saving Promo Code", this.pSelected)
+            var that = this;
+            admin.genericPost(this.authToken, url, this.pSelected, function(editPC) {
+
+                that.pSelected = editPC;
+                that.loading = false;
+                that.pEdit = false;
+            }, function() {
+                that.loading = false;
+            })
+        },
+        createPromoCode: function() {
+            this.pEdit = true;
+            this.pSelected = {};
+        },
+        editSubmissionFromAddon: function(selectedSubmission) {
+            console.log('edit submission from addon grid', selectedSubmission);
+            let that = this;
+            that.loading = true;
+            admin.genericGet(this.authToken, 'Application/' + this.context_code + '/Submission/' + selectedSubmission.application_id, null, function(editSubmission) {
+                that.sSelected = editSubmission;
+                that.loading = false;
+                that.sEdit = true;
+                that.$nextTick(() => {
+                    that.sModified = false;
+                })
+
+            }, function() {
+                that.loading = false;
+            })
+        },
     },
     watch: {
         async $route() {
@@ -539,8 +745,13 @@ export default {
             },
             {
                 key: '4',
-                text: 'Notifications',
-                title: 'Notifications'
+                text: 'Promos',
+                title: 'Promos'
+            },
+            {
+                key: '5',
+                text: 'Addons',
+                title: 'Addons'
             }
 
         ]);

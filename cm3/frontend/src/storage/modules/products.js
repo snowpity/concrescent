@@ -105,7 +105,7 @@ const actions = {
         state
     }) {
 
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             if (state.selectedEventId == null)
                 return reject('Unable to get context if the event ID is not known');
             //Load only if necessary

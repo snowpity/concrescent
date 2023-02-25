@@ -7,6 +7,7 @@
               :items="tableResults"
               item-key="uuid"
               class="elevation-1 fill-height"
+              :show-expand='showExpand'
               :search="searchText">
 
     <template v-slot:top="">
@@ -139,6 +140,13 @@
                :key="action.name"
                @click="doEmit(action.name, item)">{{action.text}}</v-btn>
     </template>
+    <template v-slot:[`footer.prepend`]>
+        <v-btn v-for="action in footerActions"
+               :key="action.name"
+               :color="action.color"
+               @click="doEmit(action.name)"
+               class="ma-2">{{action.text}}</v-btn>
+    </template>
     <!--courtesy https://gist.github.com/loilo/73c55ed04917ecf5d682ec70a2a1b8e2 -->
     <slot v-for="(_, name) in $slots"
           :name="name"
@@ -203,7 +211,13 @@ export default {
         'RemoveHeaders': {
             type: Array
         },
+        'footerActions': {
+            type: Array
+        },
         'isEditingItem': {
+            type: Boolean
+        },
+        'showExpand': {
             type: Boolean
         },
     },

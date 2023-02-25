@@ -440,7 +440,13 @@ export default {
             document.title = this.appTitle;
         },
         'subTabIx': function(newSubTab) {
-            console.log('Switching subtab to ' + newSubTab, this.subTabs[this.subTabIx].key);
+            if (this.subTabs[this.subTabIx]) {
+
+                console.log('Switching subtab to ' + newSubTab, this.subTabs[this.subTabIx].key);
+            } else {
+                console.log('Switching subtab to un-keyed index ' + this.subTabIx);
+
+            }
         }
     },
     created() {

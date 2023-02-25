@@ -191,7 +191,7 @@ final class badgepromoapplicator
         }
         //Last chance if something bizarre happened
         //Empty promo codes mean there is no discount!
-        if (empty($code) &&$badge_price != $final_price) {
+        if (empty($code) && !isset($item['existing']) &&$badge_price != $final_price) {
             // die(print_r([
             //     'code'=> $code,
             //     'badge_price'=> $badge_price,

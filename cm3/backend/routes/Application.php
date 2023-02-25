@@ -145,6 +145,19 @@ return function (App $app, $container) {
                 PermGroup::Submission_Refund()
             )));
         },
+        '/PromoCode' => function (RouteCollectorProxy $app) use ($groupPerm) {
+            $gtmanage = $groupPerm->withAllowedPerm(PermGroup::Badge_Manage());
+            $app->get('', \CM3_Lib\Action\Application\PromoCode\Search::class)
+            ->add($groupPerm);
+            $app->post('', \CM3_Lib\Action\Application\PromoCode\Create::class)
+            ->add($gtmanage);
+            $app->get('/{id}', \CM3_Lib\Action\Application\PromoCode\Read::class)
+            ->add($groupPerm);
+            $app->post('/{id}', \CM3_Lib\Action\Application\PromoCode\Update::class)
+            ->add($gtmanage);
+            $app->delete('/{id}', \CM3_Lib\Action\Application\PromoCode\Delete::class)
+            ->add($gtmanage);
+        },
     );
 
     $app->group(

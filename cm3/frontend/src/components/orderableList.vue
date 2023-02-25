@@ -17,7 +17,7 @@
                       @click:append-outer="doSearch"
                       class="mx-4"></v-text-field>
     </template>
-    <template v-slot:[`item.uuid`]="{ item }">
+    <template v-slot:[`item.actions`]="{ item }">
         <i v-if="!isSorting">
             <v-btn class="ml-2">
                 <v-icon>mdi-arrow-up</v-icon>
@@ -58,7 +58,42 @@ import {
 } from '@/plugins/debounce';
 export default {
     components: {},
-    props: ['apiPath', 'apiMoveCommand', 'orderColumnName', 'actions', 'AddHeaders', 'RemoveHeaders', 'footerActions', 'isEditingItem'],
+    props: {
+        'apiPath': {
+            type: String
+        },
+        'apiMoveCommand': {
+            type: String
+        },
+        'actions': {
+            type: Array
+        },
+        'headerKey': {
+            type: Object,
+            default () {
+                return {
+                    text: 'ID',
+                    align: 'start',
+                    value: 'id',
+                };
+            }
+        },
+        'AddHeaders': {
+            type: Array
+        },
+        'RemoveHeaders': {
+            type: Array
+        },
+        'footerActions': {
+            type: Array
+        },
+        'isEditingItem': {
+            type: Boolean
+        },
+        'showExpand': {
+            type: Boolean
+        },
+    },
     data: () => ({
 
         searchText: "",
@@ -66,33 +101,22 @@ export default {
         tableOptions: {},
         tableResults: [],
         totalResults: 0,
-        defHeaders: [{
-                text: 'ID',
-                align: 'start',
-                value: 'id',
-            },
-            {
-                text: 'Name',
-                value: 'name',
-            },
-            {
-                text: 'Actions',
-                value: 'uuid',
-            },
-        ]
     }),
     computed: {
         authToken: function() {
             return this.$store.getters['mydata/getAuthToken'];
         },
         headers() {
-            var result = this.defHeaders || [];
+            var result = [this.headerKey, {
+                text: 'Actions',
+                value: 'actions',
+            }];
             var rmv = this.RemoveHeaders || [];
             var inc = this.AddHeaders || [];
             var that = this;
             result = result.filter(item => !rmv.includes(item.value)).concat(inc);
             //Ensure the "Actions" header is last
-            var actionsIx = result.findIndex(item => item.value == 'uuid');
+            var actionsIx = result.findIndex(item => item.value == 'actions');
             if (actionsIx > -1)
                 result.push(result.splice(actionsIx, 1)[0]);
             return result;
