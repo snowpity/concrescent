@@ -75,7 +75,9 @@ final class ListApplicationBadges
                   new SelectColumn('date_start', EncapsulationFunction: 'date_sub(?, INTERVAL `min_age` YEAR)', Alias: 'max_birthdate', JoinedTableAlias: 'event'),
                   new SelectColumn('date_start', EncapsulationFunction: 'date_sub(?, INTERVAL `max_age` YEAR)', Alias: 'min_birthdate', JoinedTableAlias: 'event'),
                   'dates_available',
-                  new SelectColumn('quantity_sold', EncapsulationFunction: 'ifnull(?,0)', Alias: 'quantity_sold', JoinedTableAlias: 'q')
+
+                  new SelectColumn('quantity_sold', EncapsulationFunction: 'ifnull(?,0)', Alias: 'quantity_sold', JoinedTableAlias: 'q'),
+                  new SelectColumn('quantity_sold', EncapsulationFunction: 'quantity - ifnull(?,0)', Alias: 'quantity_remaining', JoinedTableAlias: 'q')
 
               ),
             array(
@@ -91,8 +93,7 @@ final class ListApplicationBadges
                     new SelectColumn('id', false, 'count(?)', 'quantity_sold')
                 ),
                   array(
-                   new SearchTerm('payment_status', 'Cancelled', "<>"),
-                   new SearchTerm('payment_status', 'Rejected', "<>"),
+                   new SearchTerm('application_status', ['PendingAcceptance','Accepted'], "IN"),
                  )
               ),
               new Join(

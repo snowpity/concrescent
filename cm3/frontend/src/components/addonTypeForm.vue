@@ -8,6 +8,7 @@
                    md="6">
                 <v-text-field label="Name"
                               v-model="model.name"
+                              counter="255"
                               :rules="RulesRequired">
                 </v-text-field>
             </v-col>
@@ -58,17 +59,6 @@
                     </template>
                 </v-checkbox>
             </v-col>
-            <v-col cols="12"
-                   sm="6"
-                   md="3">
-                <v-checkbox dense
-                            hide-details
-                            v-model="model.payment_deferred">
-                    <template v-slot:label>
-                        Require acceptance
-                    </template>
-                </v-checkbox>
-            </v-col>
         </v-row>
         <v-row>
             <v-col>
@@ -82,42 +72,17 @@
                              v-model="model.rewards" />
             </v-col>
         </v-row>
-        <v-row v-if="isGroup">
-            <v-col>
-                <v-text-field label="Included Applicant Badges"
-                              v-model="model.base_applicant_count" />
-            </v-col>
-            <v-col>
-                <v-text-field label="Max Applicant Badges"
-                              v-model="model.max_applicant_count" />
-            </v-col>
-            <v-col>
-                <v-text-field label="Badge Price"
-                              v-model="model.price_per_applicant" />
-            </v-col>
-        </v-row>
-        <v-row v-if="isGroup">
-            <v-col>
-                <v-text-field label="Included Assignments"
-                              v-model="model.base_assignment_count" />
-            </v-col>
-            <v-col>
-                <v-text-field label="Max Assignments"
-                              v-model="model.max_assignment_count" />
-            </v-col>
-            <v-col>
-                <v-text-field label="Assignment Price"
-                              v-model="model.price_per_assignment" />
-            </v-col>
-        </v-row>
         <v-row>
             <v-col>
-                <v-text-field label="Min applicable age"
-                              v-model="model.min_age" />
-            </v-col>
-            <v-col>
-                <v-text-field label="Max applicable age"
-                              v-model="model.max_age" />
+                <v-select label="Applies to"
+                          v-model="model.valid_badge_type_ids"
+                          :items="badge_types"
+                          item-text="name"
+                          item-value="id"
+                          chips
+                          multiple
+                          persistent-hint
+                          hint="Select which badges can have this addon added to them" />
             </v-col>
         </v-row>
         <v-row>
@@ -132,10 +97,9 @@
                         min-width="290px">
                     <template v-slot:activator="{ on }">
                         <v-text-field v-model="model.start_date"
+                                      type="date"
                                       clearable
                                       label="Available starting"
-                                      placeholder="No start date"
-                                      persistent-placeholder
                                       v-on="on"></v-text-field>
                     </template>
                     <!--TODO: Set this based on event end! :max="new Date().toISOString().substr(0, 10)"saveStartDate -->
@@ -155,9 +119,8 @@
                         min-width="290px">
                     <template v-slot:activator="{ on }">
                         <v-text-field v-model="model.end_date"
+                                      type="date"
                                       clearable
-                                      placeholder="No end date"
-                                      persistent-placeholder
                                       label="Unavailable after"
                                       v-on="on"></v-text-field>
                     </template>
@@ -215,6 +178,9 @@ export default {
         },
         'isGroup': {
             type: Boolean
+        },
+        'badge_types': {
+            type: Array
         }
     },
     data() {
@@ -224,6 +190,7 @@ export default {
             validbadgeTypeInfo: false,
             model: {
                 id: this.value?.id || null,
+                valid_badge_type_ids: (this.value?.valid_badge_type_ids || '').split(',').map(Number) || [],
                 active: this.value?.active == 1,
                 display_order: this.value?.display_order || null,
                 name: this.value?.name || "",
@@ -239,7 +206,7 @@ export default {
                 active_override_code: this.value?.active_override_code || "",
                 date_created: this.value?.date_created || "",
                 date_modified: this.value?.date_modified || "",
-                notes: this.value?.notes || "",
+                notes: this.value?.notes || ""
             },
             menuStartDate: false,
             menuEndDate: false,
@@ -255,8 +222,15 @@ export default {
             'isLoggedIn': 'getIsLoggedIn',
         }),
         result() {
+            if (this.model == undefined) return undefined;
+            var vbs = this.model.valid_badge_type_ids || '';
+            if (typeof vbs == 'object')
+                vbs = vbs.join();
+            if (vbs.length == 0)
+                vbs = null;
             var result = {
                 id: this.model.id || null,
+                valid_badge_type_ids: vbs,
                 active: this.model.active == 1,
                 display_order: this.model.display_order || 0,
                 name: this.model.name || "",
@@ -274,37 +248,21 @@ export default {
                 date_modified: this.model.date_modified || "",
                 notes: this.model.notes || "",
             };
-            if (this.isGroup) {
-                return {
-                    ...result,
-                    payment_deferred: this.model.payment_deferred == 1,
-                    max_applicant_count: ZeroIfEmpty(this.model.max_applicant_count),
-                    max_assignment_count: ZeroIfEmpty(this.model.max_assignment_count),
-                    base_applicant_count: ZeroIfEmpty(this.model.base_applicant_count),
-                    base_assignment_count: ZeroIfEmpty(this.model.base_assignment_count),
-                    price_per_applicant: ZeroIfEmpty(this.model.price_per_applicant),
-                    price_per_assignment: ZeroIfEmpty(this.model.price_per_assignment),
-                    display_order: nullIfEmptyOrZero(this.model.display_order),
-
-                }
-            } else {
-                return result;
-            }
+            return result;
         },
     },
     methods: {
+        copyOverrideLink() {
 
+        },
         saveStartDate(date) {
             this.$refs.menuStartDate.save(date);
             this.model.start_date = this.model.start_date;
         },
         saveEndDate(date) {
             this.$refs.menuEndDate.save(date);
-            this.model.end_date = this.model.end_date || "";
+            this.model.end_date = this.model.end_date;
         },
-        copyOverrideLink() {
-
-        }
     },
     watch: {
         result(newData) {
@@ -318,9 +276,24 @@ export default {
             //Splat the input into the form
             this.skipEmitOnce = true;
             this.model = {
-                ...newValue,
+                id: newValue?.id || null,
+                valid_badge_type_ids: (newValue?.valid_badge_type_ids || '').split(',').map(Number) || [],
+                active: newValue?.active == 1,
+                display_order: newValue?.display_order || null,
+                name: newValue?.name || "",
+                description: newValue?.description || "",
+                rewards: newValue?.rewards || "",
+                price: newValue?.price || "",
+                payable_onsite: newValue?.payable_onsite == 1,
+                quantity: newValue?.quantity || "",
                 start_date: newValue?.start_date || "",
                 end_date: newValue?.end_date || "",
+                min_age: newValue?.min_age || "",
+                max_age: newValue?.max_age || "",
+                active_override_code: newValue?.active_override_code || "",
+                date_created: newValue?.date_created || "",
+                date_modified: newValue?.date_modified || "",
+                notes: newValue?.notes || ""
             };
             this.result.quantity + 1;
         }

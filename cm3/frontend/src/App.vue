@@ -452,6 +452,7 @@ export default {
     created() {
         document.title = this.appTitle;
 
+        console.log('getting event info');
         this.$store.dispatch('products/getEventInfo').then(() => {
             if (this.isLoggedIn) {
                 console.log('refreshing token, event id ' + this.productselectedEventId)

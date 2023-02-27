@@ -258,8 +258,8 @@
                     :actions="btActions"
                     :footerActions="btFooterActions"
                     show-expand
-                    @edit="editPromoCode"
-                    @create="createPromoCode">
+                    @edit="editAddon"
+                    @create="createAddon">
 
             <template v-slot:[`item.discount`]="{ item }">
                 {{item.is_percentage ? "":"$"}}
@@ -300,7 +300,7 @@
             <v-card>
                 <v-card-title class="headline">Edit Addon</v-card-title>
                 <v-card-text>
-                    <promoCodeForm v-model="aSelected"
+                    <addonTypeForm v-model="aSelected"
                                    :badge_types="contextBadges" />
                 </v-card-text>
                 <v-card-actions>
@@ -308,7 +308,7 @@
                     <v-btn color="default"
                            @click="aEdit = false">Cancel</v-btn>
                     <v-btn color="primary"
-                           @click="savePromoCode">Save</v-btn>
+                           @click="saveAddon">Save</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -350,6 +350,7 @@ import orderableList from '@/components/orderableList.vue';
 import simpleList from '@/components/simpleList.vue';
 import badgeTypeForm from '@/components/badgeTypeForm.vue';
 import promoCodeForm from '@/components/promoCodeForm.vue';
+import addonTypeForm from '@/components/addonTypeForm.vue';
 import formQuestionEditList from '@/components/formQuestionEditList.vue';
 import editBadgeAdmin from '@/components/editBadgeAdmin.vue';
 
@@ -360,6 +361,7 @@ export default {
         simpleList,
         badgeTypeForm,
         promoCodeForm,
+        addonTypeForm,
         formQuestionEditList,
         editBadgeAdmin,
     },
@@ -693,6 +695,39 @@ export default {
             this.pEdit = true;
             this.pSelected = {};
         },
+
+        editAddon: function(selectedAddon) {
+            console.log(selectedAddon);
+            let that = this;
+            that.loading = false;
+            admin.genericGet(this.authToken, 'Application/' + this.context_code + '/Addon/' + selectedAddon.id, null, function(editAddon) {
+                console.log('loaded Addon', editAddon)
+                that.aSelected = editAddon;
+                that.loading = false;
+                that.aEdit = true;
+            }, function() {
+                that.loading = false;
+            })
+        },
+        saveAddon: function() {
+            var url = 'Application/' + this.context_code + '/Addon';
+            if (this.aSelected.id != undefined)
+                url = url + '/' + this.aSelected.id;
+            console.log("Saving Addon", this.aSelected)
+            var that = this;
+            admin.genericPost(this.authToken, url, this.aSelected, function(editA) {
+
+                that.aSelected = editA;
+                that.loading = false;
+                that.aEdit = false;
+            }, function() {
+                that.loading = false;
+            })
+        },
+        createAddon: function() {
+            this.aEdit = true;
+            this.aSelected = {};
+        },
         editSubmissionFromAddon: function(selectedSubmission) {
             console.log('edit submission from addon grid', selectedSubmission);
             let that = this;
@@ -723,7 +758,25 @@ export default {
     },
     async created() {
         console.log('Context!', this.context_code)
+        this.loading = true;
+        //Wait until we have context info
+        await new Promise((resolve, reject) => {
+            var triesLeft = 10;
+            const interval = setInterval(async () => {
+                if (this.$store.getters['products/gotBadgeContexts']) {
+                    console.log('contexts are loaded for application')
+                    resolve();
+                    clearInterval(interval);
+                } else if (triesLeft <= 1) {
+                    resolve();
+                    clearInterval(interval);
+                }
+                triesLeft--;
+            }, 200);
+        })
+
         await this.$store.dispatch('products/selectContext', this.context_code);
+        this.loading = false;
         this.checkPermission();
         //this.doSearch();
         this.$emit('updateSubTabs', [{

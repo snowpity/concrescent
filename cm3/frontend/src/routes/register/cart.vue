@@ -799,8 +799,10 @@ export default {
                     this.cartState = 'confirm';
                     this.checkoutCartByUUID(cart_uuid);
                 }
-            } else if (this.needsave)
-                await this.saveCart();
+            } else if (this.needsave) {
+                var setId = await this.saveCart();
+                await this.loadCart(setId);
+            }
             this.cartIdSelected = this.currentCartId;
         } else {
 

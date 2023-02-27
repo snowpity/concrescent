@@ -3,6 +3,7 @@
 namespace CM3_Lib\Action\Attendee\Addon;
 
 use CM3_Lib\models\attendee\addon;
+use CM3_Lib\models\attendee\addonmap;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -19,8 +20,11 @@ final class Create
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private addon $addon)
-    {
+    public function __construct(
+        private Responder $responder,
+        private addon $addon,
+        private addonmap $addonmap
+    ) {
     }
 
     /**
@@ -38,6 +42,7 @@ final class Create
 
         //Ensure we're making a addon with the associated event
         $data['event_id'] = $request->getAttribute('event_id');
+        unset($data['id']);
         unset($data['date_created']);
         unset($data['date_modified']);
         unset($data['dates_available']);
@@ -49,8 +54,19 @@ final class Create
             unset($data['end_date']);
         }
 
+        if (isset($data['valid_badge_type_ids'])) {
+            $btIDs = $data['valid_badge_type_ids'];
+            if (is_string($btIDs)) {
+                $btIDs = explode(',', $btIDs);
+            }
+        }
         // Invoke the Domain with inputs and retain the result
         $data = $this->addon->Create($data);
+
+
+        if (isset($btIDs)) {
+            $this->addonmap->setBadgeTypesForAddon($data['id'], $btIDs);
+        }
 
         // Build the HTTP response
         return $this->responder

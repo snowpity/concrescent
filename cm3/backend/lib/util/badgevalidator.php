@@ -261,7 +261,6 @@ final class badgevalidator
                 )
             ),
             array(
-                    $this->CurrentUserInfo->EventIdSearchTerm()
                 )
         );
     }

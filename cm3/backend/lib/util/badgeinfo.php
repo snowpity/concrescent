@@ -578,7 +578,6 @@ final class badgeinfo
             )
             ),
             array(
-                $this->CurrentUserInfo->EventIdSearchTerm()
             )
         );
     }

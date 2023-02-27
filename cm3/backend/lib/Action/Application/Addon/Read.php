@@ -4,6 +4,7 @@ namespace CM3_Lib\Action\Application\Addon;
 
 use CM3_Lib\database\SearchTerm;
 use CM3_Lib\models\application\addon;
+use CM3_Lib\models\application\addonmap;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -20,8 +21,11 @@ final class Read
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private addon $addon)
-    {
+    public function __construct(
+        private Responder $responder,
+        private addon $addon,
+        private addonmap $addonmap
+    ) {
     }
 
     /**
@@ -47,9 +51,13 @@ final class Read
             throw new HttpNotFoundException($request);
         }
 
-        if (!$result['event_id'] == $request->getAttribute('event_id')) {
+        if (!$result['group_id'] == $request->getAttribute('group_id')) {
             throw new HttpBadRequestException($request, 'Addon does not belong to current event');
         }
+
+        //Retrieve any mapped badges
+        $result['valid_badge_type_ids'] =
+            $this->addonmap->getBadgeTypesForAddon($result['id']);
 
         // Build the HTTP response
         return $this->responder

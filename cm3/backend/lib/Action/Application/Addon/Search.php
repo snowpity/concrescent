@@ -26,8 +26,7 @@ final class Search
         private Responder $responder,
         private addon $addon,
         private badgeinfo $badgeinfo
-    )
-    {
+    ) {
     }
 
     /**
@@ -45,7 +44,7 @@ final class Search
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
         $whereParts = array(
-          new SearchTerm('event_id', $request->getAttribute('event_id'))
+          new SearchTerm('group_id', $request->getAttribute('group_id'))
         );
 
         $qp = $request->getQueryParams();

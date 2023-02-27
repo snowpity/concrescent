@@ -136,8 +136,8 @@
                     :actions="btActions"
                     :footerActions="btFooterActions"
                     show-expand
-                    @edit="editPromoCode"
-                    @create="createPromoCode">
+                    @edit="editAddon"
+                    @create="createAddon">
 
             <template v-slot:[`item.discount`]="{ item }">
                 {{item.is_percentage ? "":"$"}}
@@ -168,15 +168,15 @@
             <v-card>
                 <v-card-title class="headline">Edit Addon</v-card-title>
                 <v-card-text>
-                    <promoCodeForm v-model="pSelected"
+                    <addonTypeForm v-model="dSelected"
                                    :badge_types="contextBadges" />
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="default"
-                           @click="pEdit = false">Cancel</v-btn>
+                           @click="dEdit = false">Cancel</v-btn>
                     <v-btn color="primary"
-                           @click="savePromoCode">Save</v-btn>
+                           @click="saveAddon">Save</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -217,6 +217,7 @@ import orderableList from '@/components/orderableList.vue';
 import simpleList from '@/components/simpleList.vue';
 import badgeTypeForm from '@/components/badgeTypeForm.vue';
 import promoCodeForm from '@/components/promoCodeForm.vue';
+import addonTypeForm from '@/components/addonTypeForm.vue';
 import formQuestionEditList from '@/components/formQuestionEditList.vue';
 import editBadgeAdmin from '@/components/editBadgeAdmin.vue';
 
@@ -227,6 +228,7 @@ export default {
         simpleList,
         badgeTypeForm,
         promoCodeForm,
+        addonTypeForm,
         formQuestionEditList,
         editBadgeAdmin
     },
@@ -246,6 +248,9 @@ export default {
         bEdit: false,
         bPrint: false,
         btAddHeaders: [{
+            text: 'Name',
+            value: 'name'
+        }, {
             text: 'Dates Available',
             value: 'dates_available'
         }, {
@@ -462,6 +467,39 @@ export default {
         createPromoCode: function() {
             this.pEdit = true;
             this.pSelected = {};
+        },
+
+        editAddon: function(selectedAddon) {
+            console.log(selectedAddon);
+            let that = this;
+            that.loading = false;
+            admin.genericGet(this.authToken, 'Attendee/Addon/' + selectedAddon.id, null, function(editAddon) {
+                console.log('loaded Addon', editAddon)
+                that.dSelected = editAddon;
+                that.loading = false;
+                that.dEdit = true;
+            }, function() {
+                that.loading = false;
+            })
+        },
+        saveAddon: function() {
+            var url = 'Attendee/Addon';
+            if (this.dSelected.id != undefined)
+                url = url + '/' + this.dSelected.id;
+            console.log("Saving Addon", this.dSelected)
+            var that = this;
+            admin.genericPost(this.authToken, url, this.dSelected, function(editA) {
+
+                that.dSelected = editA;
+                that.loading = false;
+                that.dEdit = false;
+            }, function() {
+                that.loading = false;
+            })
+        },
+        createAddon: function() {
+            this.dEdit = true;
+            this.dSelected = {};
         },
         editBadgeFromAddon: function(selectedBadge) {
             console.log(selectedBadge);

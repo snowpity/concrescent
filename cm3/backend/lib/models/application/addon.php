@@ -11,7 +11,7 @@ class addon extends \CM3_Lib\database\Table
         $this->TableName = 'Application_Addons';
         $this->ColumnDefs = array(
             'id' 			=> new cm_Column('INT', null, false, true, false, true, null, true),
-            'event_id'		=> new cm_Column('INT', null, false, false, false, true),
+            'group_id'      => new cm_Column('INT', null, false),
             'active'        => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
             'display_order' => new cm_Column('INT', null, false),
             'name'          => new cm_Column('VARCHAR', '255', false),
@@ -37,13 +37,13 @@ class addon extends \CM3_Lib\database\Table
         $this->DefaultSearchColumns = array('id','name','price','quantity','dates_available','active');
     }
 
-    public function verifyAddonBelongsToEvent(int $id, int $event_id)
+    public function verifyAddonBelongsToGroup(int $id, int $group_id)
     {
-        $bt = $this->GetByID($id, array('event_id'));
+        $bt = $this->GetByID($id, array('group_id'));
         if ($bt === false) {
             return false;
         }
-        if ($bt['event_id'] != $event_id) {
+        if ($bt['group_id'] != $group_id) {
             return false;
         }
         return true;

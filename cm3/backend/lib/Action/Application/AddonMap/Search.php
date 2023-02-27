@@ -37,10 +37,10 @@ final class Search
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
-        $event_id = $request->getAttribute('event_id');
+        $group_id = $request->getAttribute('group_id');
 
         //Confirm the given addon_id belongs to the given event_id
-        if (!$this->addon->verifyAddonBelongsToEvent($params['addon_id'], $event_id)) {
+        if (!$this->addon->verifyAddonBelongsToGroup($params['addon_id'], $group_id)) {
             throw new HttpBadRequestException($request, 'Invalid addon_id specified');
         }
 

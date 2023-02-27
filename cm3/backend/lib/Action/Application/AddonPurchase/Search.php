@@ -56,12 +56,12 @@ final class Search
 
         //Confirm permission to access this addon
 
-        $addon = $this->addon->GetByID($params['addon_id'], ['event_id']);
+        $addon = $this->addon->GetByID($params['addon_id'], ['group_id']);
 
         if ($addon === false) {
             throw new HttpBadRequestException($request, 'Addon not found');
         }
-        if ($addon['event_id'] != $request->getAttribute('event_id')) {
+        if ($addon['group_id'] != $request->getAttribute('group_id')) {
             throw new HttpBadRequestException($request, 'Addon not found.');
         }
 

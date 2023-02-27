@@ -3,6 +3,7 @@
 namespace CM3_Lib\Action\Application\Addon;
 
 use CM3_Lib\models\application\addon;
+use CM3_Lib\models\application\addonmap;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -19,8 +20,11 @@ final class Update
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private addon $addon)
-    {
+    public function __construct(
+        private Responder $responder,
+        private addon $addon,
+        private addonmap $addonmap
+    ) {
     }
 
     /**
@@ -36,13 +40,13 @@ final class Update
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
 
-        if (!$this->addon->verifyAddonBelongsToEvent($params['id'], $request->getAttribute('event_id'))) {
+        if (!$this->addon->verifyAddonBelongsToGroup($params['id'], $request->getAttribute('group_id'))) {
             throw new HttpBadRequestException($request, 'Addon does not belong to current event');
         }
 
         //Ensure consistency with the enpoint being posted to
         $data['id'] = $params['id'];
-        unset($data['event_id']);
+        unset($data['group_id']);
         unset($data['date_created']);
         unset($data['date_modified']);
         unset($data['dates_available']);
@@ -54,9 +58,19 @@ final class Update
             unset($data['end_date']);
         }
 
+        if (isset($data['valid_badge_type_ids'])) {
+            $btIDs = $data['valid_badge_type_ids'];
+            if (is_string($btIDs)) {
+                $btIDs = explode(',', $btIDs);
+            }
+        }
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->addon->Update($data);
+
+        if (isset($btIDs)) {
+            $this->addonmap->setBadgeTypesForAddon($data['id'], $btIDs);
+        }
 
         // Build the HTTP response
         return $this->responder

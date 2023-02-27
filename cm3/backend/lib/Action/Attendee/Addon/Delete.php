@@ -3,6 +3,7 @@
 namespace CM3_Lib\Action\Attendee\Addon;
 
 use CM3_Lib\models\attendee\addon;
+use CM3_Lib\models\attendee\addonmap;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -19,8 +20,11 @@ final class Update
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private addon $addon)
-    {
+    public function __construct(
+        private Responder $responder,
+        private addon $addon,
+        private addonmap $addonmap
+    ) {
     }
 
     /**
@@ -43,6 +47,7 @@ final class Update
         }
 
         $data = $this->addon->Update(array('id'=>$params['id'],'active'=>0));
+        $this->addonmap->setBadgeTypesForAddon($params['id'], []);
 
         // We don't delete, just deactivate
         //$data = $this->printjob->Delete(array('id'=>$params['id']));

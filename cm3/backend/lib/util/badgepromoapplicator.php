@@ -179,7 +179,7 @@ final class badgepromoapplicator
             // if ($existingBadge !== false && $item['uuid'] == $existingBadge['uuid']) {
             //     $badge_price = max(0, $badge_price- $existingBadge['payment_badge_price']);
             // }
-            if (isset($item['existing']['payment_badge_price'])) {
+            if (isset($item['existing']['payment_badge_price']) && $item['existing']['payment_status']=='Completed') {
                 $final_price = max(0, $final_price- (float)$item['existing']['payment_badge_price']);
             }
         }

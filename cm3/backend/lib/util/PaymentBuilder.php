@@ -801,9 +801,8 @@ final class PaymentBuilder
             //Ensure their application Status is "Submitted" if they're not allowed to pay yet
             //and not already accepted
             if ($bi === false) {
-                if ($item['context_code'] != 'A' && !empty($bt['payment_deferred']) && $bt['payment_deferred']
-                &&  !$this->is_submitted_status($item['application_status'])) {
-                    $item['application_status'] = 'Submitted';
+                if ($item['context_code'] != 'A' && !$this->is_submitted_status($item['application_status'])) {
+                    $item['application_status'] = (!empty($bt['payment_deferred']) && $bt['payment_deferred']) ? 'Submitted' : 'PendingAcceptance';
                 }
 
 

@@ -32,12 +32,12 @@
                         {{ product.name | subname(true)}}&nbsp;
                     </v-card-text>
                     <v-card-actions>&nbsp;
+                        <h4 v-if="product.quantity_remaining != null && product.quantity_remaining < 1">Sold out!</h4>
                         <h4 text
-                            v-if="product.quantity_remaining">Only
+                            v-else-if="product.quantity_remaining">Only
                             {{product.quantity_remaining}}
                             left!
                         </h4>
-                        <h4 v-else-if="product.quantity_remaining == 0">Sold out!</h4>
                         <v-spacer></v-spacer>
                         <v-btn color="green"
                                dark>{{product.price | currency}}</v-btn>
@@ -67,12 +67,12 @@
                         {{ item.name | subname(true)}}&nbsp;
                     </v-card-text>
                     <v-card-actions>&nbsp;
+                        <h4 v-if="item.quantity_remaining != null && item.quantity_remaining < 1">Sold out!</h4>
                         <h4 text
-                            v-if="item.quantity_remaining">Only
+                            v-else-if="item.quantity_remaining">Only
                             {{item.quantity_remaining}}
                             left!
                         </h4>
-                        <h4 v-else-if="item.quantity_remaining == 0">Sold out!</h4>
                         <v-spacer></v-spacer>
                         <v-btn color="green"
                                dark>{{item.price | currency}}</v-btn>

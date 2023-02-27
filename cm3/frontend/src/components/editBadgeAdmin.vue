@@ -345,103 +345,6 @@ export default {
             ],
 
             addonDisplayState: [],
-
-            applicationStatusMap: {
-                'InProgress': {
-                    value: 'InProgress',
-                    color: 'indigo',
-                    text: 'Draft',
-                    actionText: 'Revert to Draft',
-                    nextStatus: [
-                        'Submitted',
-                        'Cancelled',
-                        'Rejected',
-                        'PendingAcceptance',
-                        'Waitlisted',
-                        'Onboarding',
-                        'Active',
-                        'Terminated',
-                    ]
-                },
-                'Submitted': {
-                    value: 'Submitted',
-                    color: 'purple accent-2',
-                    text: 'Newly submitted',
-                    actionText: 'Revert to Submitted',
-                    nextStatus: [
-                        'Cancelled',
-                        'Rejected',
-                        'Waitlisted',
-                        'PendingAcceptance',
-                    ]
-                },
-                'Cancelled': {
-                    value: 'Cancelled',
-                    color: 'red',
-                    text: 'Applicant self-cancelled',
-                    actionText: 'Cancel',
-                    nextStatus: [
-                        'Submitted',
-                    ]
-                },
-                'Rejected': {
-                    value: 'Rejected',
-                    color: 'red',
-                    text: 'Rejected',
-                    actionText: 'Reject',
-                    nextStatus: [
-                        'Submitted',
-                    ]
-                },
-                'PendingAcceptance': {
-                    value: 'PendingAcceptance',
-                    color: 'yellow',
-                    text: 'Accepted, waiting for them to confirm',
-                    actionText: 'Accept',
-                    nextStatus: [
-                        'Cancelled',
-                        'Waitlisted',
-                        'Onboarding',
-                    ]
-                },
-                'Waitlisted': {
-                    value: 'Waitlisted',
-                    color: 'gray',
-                    text: 'Waitlisted for consideration',
-                    actionText: 'Waitlist',
-                    nextStatus: [
-                        'Rejected',
-                        'PendingAcceptance',
-                    ]
-                },
-                'Onboarding': {
-                    value: 'Onboarding',
-                    color: 'blue',
-                    text: 'Accepted, onboarding in progress',
-                    actionText: 'Begin Onboarding',
-                    nextStatus: [
-                        'Rejected',
-                        'Terminated',
-                        'Active',
-                    ]
-                },
-                'Active': {
-                    value: 'Active',
-                    color: 'green',
-                    text: 'Accepted, active staff',
-                    actionText: 'Mark Active',
-                    nextStatus: [
-                        'Terminated',
-                    ]
-                },
-                'Terminated': {
-                    value: 'Terminated',
-                    color: 'black',
-                    text: 'No longer welcome here',
-                    actionText: 'Terminate',
-                    nextStatus: []
-                },
-            },
         };
     },
     computed: {
@@ -590,6 +493,176 @@ export default {
             // Sort it out
             result.sort((a, b) => a.order - b.order);
             return result;
+        },
+        applicationStatusMap() {
+            if (this.isGroupApp) {
+                return {
+                    'InProgress': {
+                        value: 'InProgress',
+                        color: 'indigo',
+                        text: 'Draft',
+                        actionText: 'Revert to Draft',
+                        nextStatus: [
+                            'Submitted',
+                            'Cancelled',
+                            'Rejected',
+                            'PendingAcceptance',
+                            'Accepted',
+                            'Waitlisted',
+                        ]
+                    },
+                    'Submitted': {
+                        value: 'Submitted',
+                        color: 'purple accent-2',
+                        text: 'Newly submitted',
+                        actionText: 'Revert to Submitted',
+                        nextStatus: [
+                            'Cancelled',
+                            'Rejected',
+                            'Waitlisted',
+                            'PendingAcceptance',
+                        ]
+                    },
+                    'Cancelled': {
+                        value: 'Cancelled',
+                        color: 'red',
+                        text: 'Applicant self-cancelled',
+                        actionText: 'Cancel',
+                        nextStatus: [
+                            'Submitted',
+                        ]
+                    },
+                    'Rejected': {
+                        value: 'Rejected',
+                        color: 'red',
+                        text: 'Rejected',
+                        actionText: 'Reject',
+                        nextStatus: [
+                            'Submitted',
+                        ]
+                    },
+                    'PendingAcceptance': {
+                        value: 'PendingAcceptance',
+                        color: 'yellow',
+                        text: 'Accepted, waiting for them to confirm',
+                        actionText: 'Accept',
+                        nextStatus: [
+                            'Cancelled',
+                            'Waitlisted',
+                            'Accepted',
+                        ]
+                    },
+                    'Waitlisted': {
+                        value: 'Waitlisted',
+                        color: 'gray',
+                        text: 'Waitlisted for consideration',
+                        actionText: 'Waitlist',
+                        nextStatus: [
+                            'Rejected',
+                            'PendingAcceptance',
+                        ]
+                    },
+                }
+
+            } else {
+
+                return {
+                    'InProgress': {
+                        value: 'InProgress',
+                        color: 'indigo',
+                        text: 'Draft',
+                        actionText: 'Revert to Draft',
+                        nextStatus: [
+                            'Submitted',
+                            'Cancelled',
+                            'Rejected',
+                            'PendingAcceptance',
+                            'Waitlisted',
+                            'Onboarding',
+                            'Active',
+                            'Terminated',
+                        ]
+                    },
+                    'Submitted': {
+                        value: 'Submitted',
+                        color: 'purple accent-2',
+                        text: 'Newly submitted',
+                        actionText: 'Revert to Submitted',
+                        nextStatus: [
+                            'Cancelled',
+                            'Rejected',
+                            'Waitlisted',
+                            'PendingAcceptance',
+                        ]
+                    },
+                    'Cancelled': {
+                        value: 'Cancelled',
+                        color: 'red',
+                        text: 'Applicant self-cancelled',
+                        actionText: 'Cancel',
+                        nextStatus: [
+                            'Submitted',
+                        ]
+                    },
+                    'Rejected': {
+                        value: 'Rejected',
+                        color: 'red',
+                        text: 'Rejected',
+                        actionText: 'Reject',
+                        nextStatus: [
+                            'Submitted',
+                        ]
+                    },
+                    'PendingAcceptance': {
+                        value: 'PendingAcceptance',
+                        color: 'yellow',
+                        text: 'Accepted, waiting for them to confirm',
+                        actionText: 'Accept',
+                        nextStatus: [
+                            'Cancelled',
+                            'Waitlisted',
+                            'Onboarding',
+                        ]
+                    },
+                    'Waitlisted': {
+                        value: 'Waitlisted',
+                        color: 'gray',
+                        text: 'Waitlisted for consideration',
+                        actionText: 'Waitlist',
+                        nextStatus: [
+                            'Rejected',
+                            'PendingAcceptance',
+                        ]
+                    },
+                    'Onboarding': {
+                        value: 'Onboarding',
+                        color: 'blue',
+                        text: 'Accepted, onboarding in progress',
+                        actionText: 'Begin Onboarding',
+                        nextStatus: [
+                            'Rejected',
+                            'Terminated',
+                            'Active',
+                        ]
+                    },
+                    'Active': {
+                        value: 'Active',
+                        color: 'green',
+                        text: 'Accepted, active staff',
+                        actionText: 'Mark Active',
+                        nextStatus: [
+                            'Terminated',
+                        ]
+                    },
+                    'Terminated': {
+                        value: 'Terminated',
+                        color: 'black',
+                        text: 'No longer welcome here',
+                        actionText: 'Terminate',
+                        nextStatus: []
+                    },
+                }
+            }
         },
         applicationStatusList() {
             return Object.values(this.applicationStatusMap);

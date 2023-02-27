@@ -44,6 +44,7 @@ final class Delete
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         $event_id = $request->getAttribute('event_id');
+        $group_id = $request->getAttribute('group_id');
         // Extract the form data from the request
         $data = array(
             'badge_type_id' => $params['badge_type_id'],
@@ -51,7 +52,7 @@ final class Delete
         );
 
         //Confirm the given addon_id belongs to the given event_id
-        if (!$this->addon->verifyAddonBelongsToEvent($data['addon_id'], $event_id)) {
+        if (!$this->addon->verifyAddonBelongsToGroup($data['addon_id'], $group_id)) {
             throw new HttpBadRequestException($request, 'Invalid addon_id specified');
         }
 

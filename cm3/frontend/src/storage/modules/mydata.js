@@ -295,16 +295,6 @@ const actions = {
             resolve(error.error.message);
         });
     },
-    clearCart({
-        commit
-    }) {
-
-        commit('setCheckoutStatus', null)
-        commit('setCartItems', {
-            items: []
-        })
-    },
-
     sendRetrieveBadgeEmail({
         commit
     }, email_data) {
