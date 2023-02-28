@@ -1585,7 +1585,7 @@ final class badgeinfo
                         $existingSubbadge['display_id'] = $this->setNextDisplayIDSpecificSubBadge($existingSubbadge['id'], $result['context_code']);
                     }
                     //Save back to the subbadges
-                    $setSubbadges[$curIx] = $newSubbadge;
+                    $setSubbadges[$curIx] = $existingSubbadge;
                 }
             }
         }
