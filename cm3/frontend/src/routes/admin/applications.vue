@@ -456,6 +456,9 @@ export default {
         }, {
             text: 'Fandom Name',
             value: 'fandom_name',
+        }, {
+            text: 'Payment Status',
+            value: 'payment_status',
         }, ],
 
         loading: false,

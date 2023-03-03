@@ -84,6 +84,7 @@ class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
     }
     public function CancelOrder(): bool
     {
+        return true;
     }
     public function RetrievePaymentRedirectURL(): string
     {

@@ -801,7 +801,7 @@ export default {
                 }
             } else if (this.needsave) {
                 var setId = await this.saveCart();
-                await this.loadCart(setId);
+                this.$store.dispatch('mydata/fetchCarts', false)
             }
             this.cartIdSelected = this.currentCartId;
         } else {
@@ -825,18 +825,18 @@ export default {
                 }
             }
         }
-
-
-        if (this.needsave && this.cartIdSelected != null) {
-            console.log('Saving cart because we need to and we have it selected')
-            this.saveCart()
-                .then((cartId) => {
-                    this.cartIdSelected = cartId;
-                })
-                .catch((error) => {
-                    this.cartLocked = error.error.message;
-                });
-        }
+        //
+        //
+        // if (this.needsave && this.cartIdSelected != null) {
+        //     console.log('Saving cart because we need to and we have it selected')
+        //     this.saveCart()
+        //         .then((cartId) => {
+        //             this.cartIdSelected = cartId;
+        //         })
+        //         .catch((error) => {
+        //             this.cartLocked = error.error.message;
+        //         });
+        // }
     }
 }
 </script>
