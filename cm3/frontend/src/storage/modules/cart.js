@@ -114,7 +114,9 @@ const actions = {
                         errors: [],
                         state: "NotReady"
                     });
-                    commit('setCartItems', []);
+                    commit('setCartItems', {
+                        items: []
+                    });
                     commit('clearDirty');
                     commit('setCanPay', false);
                     resolve();
