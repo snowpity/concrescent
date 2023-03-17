@@ -66,13 +66,13 @@ const result = [{
         },
         component: () => import( /* webpackChunkName: "admin_system" */ './routes/admin/system.vue'),
     },
-    // {
-    //   path: '/Printing',
-    //   name: 'Printing',
-    //   meta: {
-    //     title: 'Printing',
-    //   },
-    //   component: () => import(/* webpackChunkName: "login" */ './routes/admin/printing.vue'),
-    // },
+    {
+        path: 'Printing',
+        name: 'Printing',
+        meta: {
+            title: 'Badge Printing',
+        },
+        component: () => import( /* webpackChunkName: "badgeprinting" */ './routes/admin/badgeprinting.vue'),
+    },
 ];
 export default result;

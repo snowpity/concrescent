@@ -45,6 +45,7 @@ final class Update
             throw new HttpBadRequestException($request, 'Badge Format does not belong to the current event!');
         }
 
+        $data['layout'] = json_encode($data['layout']);
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->format->Update($data);

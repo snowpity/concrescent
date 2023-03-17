@@ -330,6 +330,7 @@ const actions = {
         rootState,
     }, badge) {
         commit('setCheckoutStatus', null);
+        console.log('addProductToCart', badge)
         const badgeContext = rootState.products.badges[badge.context_code];
         const product = (badgeContext ?? []).find((product) => product.id == badge.badge_type_id);
         // if product not found, and we don't have any, assume loading
@@ -338,6 +339,7 @@ const actions = {
         }
         const cartItem = state.items.find((item) => item.cartIx === badge.cartIx && item.cartIx != null);
         if (!cartItem) {
+            console.log('cartItem not exist')
             badge.cartIx = Math.max.apply(this, state.items.map((l) => l.cartIx)) + 1;
             if (badge.cartIx == -Infinity) {
                 badge.cartIx = 0;
@@ -354,6 +356,7 @@ const actions = {
                 });
             }
         } else {
+            console.log('cartItem in cart')
             // Item already in cart, just update it
             commit('updateProductInCart', badge);
         }
@@ -423,6 +426,9 @@ const mutations = {
     }) {
         if (Array.isArray(items))
             state.items = items;
+        else {
+            console.log('Tried to set cart but items was not Array?', items);
+        }
     },
     setCanPay(state, canPay) {
         state.canPay = canPay;

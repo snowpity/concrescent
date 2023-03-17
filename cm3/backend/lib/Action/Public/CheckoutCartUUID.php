@@ -5,8 +5,8 @@ namespace CM3_Lib\Action\Public;
 use CM3_Lib\database\SearchTerm;
 use CM3_Lib\Factory\PaymentModuleFactory;
 use CM3_Lib\util\PaymentBuilder;
+use CM3_Lib\util\CurrentUserInfo;
 
-use CM3_Lib\models\payment;
 
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
@@ -27,7 +27,7 @@ class CheckoutCartUUID
     public function __construct(
         private Responder $responder,
         private PaymentBuilder $PaymentBuilder,
-        private payment $payment
+        private CurrentUserInfo $CurrentUserInfo
     ) {
     }
 
@@ -68,6 +68,7 @@ class CheckoutCartUUID
 
         if ($this->PaymentBuilder->getCartStatus() == 'Incomplete') {
             //Hrm, they've already initiated the payment request. Check if it's completed
+            $this->CurrentUserInfo->SetEventId($this->PaymentBuilder->getCartEventId());
 
             if ($this->PaymentBuilder->CompletePayment($data)) {
                 $this->PaymentBuilder->SendStatusEmail();

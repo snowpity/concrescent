@@ -1012,16 +1012,33 @@ final class badgeinfo
             $g_addons = $this->g_addonpurchase->Search(array(
             'addon_id',
             'payment_status'
-        ), array(
+            ), array(
 
-            new SearchTerm('application_id', $id)
-        ));
+                new SearchTerm('application_id', $id)
+            ));
             foreach ($g_addons as $addon) {
                 $result['addons'][] = array(
                 'addon_id' => $addon['addon_id'],
                 'addon_payment_status' => $addon['payment_status']
             );
             }
+
+            $result['subbadges'] = $this->g_badge->Search(array(
+                'id',
+                'display_id',
+                'real_name',
+                'fandom_name',
+                'name_on_badge',
+                'date_of_birth',
+                'notify_email',
+                'can_transfer',
+                'ice_name',
+                'ice_relationship',
+                'ice_email_address',
+                'ice_phone_number',
+            ), array(
+                new SearchTerm('application_id', $id)
+            ));
         }
 
 

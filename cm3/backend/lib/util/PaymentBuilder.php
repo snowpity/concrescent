@@ -258,7 +258,7 @@ final class PaymentBuilder
             if ($item['context_code'] == 'A' || $item['context_code'] == 'S') {
                 $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code']);
             } else {
-                $bi = $this->badgeinfo->getASpecificGroupApplication($item['id'] ?? 0, $item['context_code']);
+                $bi = $this->badgeinfo->getASpecificGroupApplication($item['id'] ?? 0, $item['context_code'], true);
             }
             //TODO: Determine if this badge is already in an active cart and abort
             //Preserve the current badge state, but only if it hasn't been preserved already
@@ -304,6 +304,19 @@ final class PaymentBuilder
             }
         } else {
             $item['contact_id'] = $this->cart['contact_id'];
+        }
+
+        //Check if there are subbadges
+        if (isset($item['subbadges'])) {
+            $existingids = [];
+            if (isset($item['existing']['subbadges'])) {
+                $existingids = array_column($item['existing'] ['subbadges'], 'id');
+            }
+            foreach ($item['subbadges'] as &$subbadge) {
+                if (!in_array($subbadge['id']??0, $existingids)) {
+                    $subbadge['created'] = true;
+                }
+            }
         }
 
         //If we're not an attendee, we'll need an Application Status field.
@@ -392,7 +405,7 @@ final class PaymentBuilder
                     $bi = $this->badgeinfo->getASpecificGroupApplication($item['id'] ?? 0, $item['context_code']);
                 }
 
-                if ($bi != null) {
+                if ($bi != null && isset($bi['application_status'])) {
                     //Check if it's currently in an approved state
                     switch ($bi['application_status']) {
                         case 'Onboarding':
@@ -505,7 +518,7 @@ final class PaymentBuilder
                 });
                 $sbadgeCount = 0;
                 foreach ($cartitem['subbadges'] as &$badge) {
-                    $badge_fee = ($bt['base_applicant_count']> $sbadgeCount && !($badge['created']?? false)) ? 0 : $bt['price_per_applicant'];
+                    $badge_fee = (($badge['created'] ?? false) && $bt['base_applicant_count'] <= $sbadgeCount) ? $bt['price_per_applicant'] : 0;
                     if ($badge_fee > 0) {
                         $this->stagedItems[] = array(
                             $bt['name'] . ' Badge fee',
@@ -528,7 +541,7 @@ final class PaymentBuilder
             //Check for addons
             if (isset($cartitem['addons'])) {
                 $existingAddons = array_column(
-                    $this->badgeinfo->GetAddons($cartitem['id'], $cartitem['context_code']),
+                    $this->badgeinfo->GetAddons($cartitem['id']??0, $cartitem['context_code']),
                     'payment_status',
                     'addon_id'
                 );
@@ -802,7 +815,7 @@ final class PaymentBuilder
             //and not already accepted
             if ($bi === false) {
                 if ($item['context_code'] != 'A' && !$this->is_submitted_status($item['application_status'])) {
-                    $item['application_status'] = (!empty($bt['payment_deferred']) && !$bt['payment_deferred']) ? 'Submitted' : 'PendingAcceptance';
+                    $item['application_status'] = ($item['context_code'] == 'S'  || !(!$bt['payment_deferred']??false)) ? 'Submitted' : 'PendingAcceptance';
                 }
 
 

@@ -50,6 +50,11 @@ Vue.use(JsonEditorVue, {
     // global props & attrs (one-way data flow)
 })
 
+//interact components
+import VueInteractJs from "vue-interactjs";
+Vue.use(VueInteractJs);
+
+
 
 Vue.config.productionTip = false
 Vue.filter('currency', currency)

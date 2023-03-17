@@ -46,6 +46,9 @@ final class Read
             throw new HttpBadRequestException($request, 'Badge Format does not belong to the current event!');
         }
 
+        //Convert layout to array
+        $result['layout_raw'] = $result['layout'];
+        $result['layout'] = json_decode($result['layout']);
 
         // Build the HTTP response
         return $this->responder
