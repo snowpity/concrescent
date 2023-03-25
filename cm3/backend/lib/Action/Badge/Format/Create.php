@@ -39,6 +39,7 @@ final class Create
         //Ensure we're only attempting to create a format for the current Event
         $data['event_id'] = $request->getAttribute('event_id');
 
+        $data['layout'] = json_encode($data['layout']);
         // Invoke the Domain with inputs and retain the result
         $data = $this->format->Create($data);
 

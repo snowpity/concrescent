@@ -212,6 +212,8 @@ final class badgeinfo
         if ($result === false || !$full) {
             return $result;
         }
+        //add badge type info
+        $result['badge_info'] = $this->getBadgetType($context_code, $result['badge_type_id']);
         //Add in form responses
         $result['form_responses'] = $this->GetFormResponses($id, $context_code);
         //Add in supplementary
@@ -1418,6 +1420,7 @@ final class badgeinfo
                     'active',
                     'name',
                     'description',
+                    'rewards',
                     'price',
                     'payable_onsite'
                 ],

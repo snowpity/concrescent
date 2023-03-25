@@ -3,9 +3,8 @@
 
     <fieldPositioner v-for="(item,ix) in model.layout"
                      :key="ix"
-                     :format="format.layout[ix]"
+                     :format="item"
                      :value="badge"
-                     :edit="ix == fieldSelectedIx"
                      :order="ix"
                      readOnly />
 
@@ -13,18 +12,33 @@
 </template>
 
 <script>
+import fieldPositioner from '@/components/formatpieces/fieldPositioner.vue';
 export default {
-    components: {},
+    components: {
+        fieldPositioner
+    },
     props: ['badge', 'format'],
-    data: () => ({}),
+    data: function() {
+        let v = this.format;
+        return {
+            model: {
+                name: v.name || 'New Badge Format',
+                customSize: v.customSize || '5in*3in',
+                bgImageID: v.bgImageID,
+                layoutPosition: v.layoutPosition || null,
+                layout: v.layout || []
+            },
+        }
+    },
     computed: {
         sSizeArray() {
             //TODO: Retrieve default size somewhere else and inject it here?
-            return (this.format.customSize || '').split('*');
+            return (this.model.customSize || '').split('*');
         },
         sWidth() {
-            if (this.sSizeArray.length > 0)
+            if (this.sSizeArray.length > 0) {
                 return this.sSizeArray[0];
+            }
             return '5in';
         },
         sHeight() {
@@ -41,5 +55,21 @@ export default {
             return v;
         },
     },
+    watch: {
+
+        format(newformat) {
+            //Splat the input into the form
+            // console.log('format received', newformat)
+            this.model = {
+                ...newformat,
+            };
+        }
+    }
 };
 </script>
+
+<style scoped>
+
+
+
+</style>

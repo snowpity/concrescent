@@ -252,9 +252,18 @@ export default {
             //console.log('got new positioner format', newformat);
             this.skipEmitOnce = true;
             this.model = {
+                type: 'debug',
+                text: "",
+                left: 0.4,
+                top: 0.4,
+                width: 0.2,
+                height: 0.2,
+                fit: 'contain', //used like img object-fit css style
+                style: {},
                 ...newformat,
             };
-            this.templateText = this.format.text;
+            if (this.format)
+                this.templateText = this.format.text;
         },
     },
     computed: {
@@ -270,9 +279,12 @@ export default {
         },
         applySize: {
             get() {
-                var a = this.format.style['font-size'];
-                console.log('looking for size, which is', a)
-                return a
+                let a = this.format;
+                if (a == undefined) return undefined;
+                if (a.style == undefined) return undefined;
+                let b = a.style['font-size'];
+                //console.log('looking for size, which is', a)
+                return b;
             },
             set(newSize) {
                 console.log('setting size to', newSize);
@@ -298,7 +310,11 @@ export default {
         },
         applyStyles: {
             get() {
-                var a = this.style_toggles.map((t, ix) => this.format.style[t.name] == t.on ? ix : false).filter(x => x !== false);
+                var a = this.style_toggles.map((t, ix) => {
+                    if (this.format.style == undefined) return false;
+                    if (this.format.style[t.name] == undefined) return false;
+                    return this.format.style[t.name] == t.on ? ix : false;
+                }).filter(x => x !== false);
                 //console.log('looking for align, which is ix', a)
                 return a
             },

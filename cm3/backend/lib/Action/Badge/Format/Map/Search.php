@@ -2,7 +2,11 @@
 
 namespace CM3_Lib\Action\Badge\Format\Map;
 
+use CM3_Lib\database\SelectColumn;
 use CM3_Lib\database\SearchTerm;
+use CM3_Lib\database\View;
+use CM3_Lib\database\Join;
+
 use CM3_Lib\models\badge\format;
 use CM3_Lib\models\badge\formatmap;
 use CM3_Lib\Responder\Responder;
@@ -37,29 +41,54 @@ final class Search
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
-        $event_id = $request->getAttribute('event_id');
-
-        //Confirm the given format_id belongs to the given event_id
-        if (!$this->format->verifyFormatBelongsToEvent($params['format_id'], $event_id)) {
-            throw new HttpBadRequestException($request, 'Invalid format_id specified');
-        }
-
-        $whereParts = array(
-            new SearchTerm('format_id', $params['format_id'])
-          //new SearchTerm('active', 1)
+        $qp = $request->getQueryParams();
+        $viewData = new View(
+            array(
+            "id",
+            "name",
+            "bgImageID",
+            "customSize",
+            "layoutPosition",
+            isset($qp['full']) && $qp['full'] == 'true' ?
+                "layout" : null,
+            ),
+            array(
+            new Join(
+                $this->formatmap,
+                array(
+                  'format_id'=>'id',
+                ),
+                'INNER',
+                'f',
+                array(
+                      'format_id',
+                  ),
+                array(
+                  new SearchTerm('context_code', $params['context_code']),
+                  new SearchTerm('badge_type_id', $params['badge_type_id']),
+               )
+            ),
+          )
         );
 
-        $order = array('category' => false,'badge_type_id'=>false);
+        $whereParts = array(
+            new SearchTerm('event_id', $request->getAttribute('event_id'))
+        );
 
-        $page      = ($request->getQueryParams()['page']?? 0 > 0) ? $request->getQueryParams()['page'] : 1;
-        $limit     = $request->getQueryParams()['itemsPerPage']?? -1; // Number of posts on one page
-        $offset      = ($page - 1) * $limit;
-        if ($offset < 0) {
-            $offset = 0;
-        }
+        $order = array('id' => false);
+
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->formatmap->Search(array('category','badge_type_id'), $whereParts, $order, $limit, $offset);
+        $data = $this->format->Search($viewData, $whereParts, $order);
+
+        foreach ($data as &$value) {
+            //Move into raw for safe-keeping
+            $value['layout_raw'] = $value['layout'];
+            $value['layout'] = json_decode($value['layout']);
+            if (0==json_last_error()) {
+                unset($value['layout_raw']);
+            }
+        }
 
         // Build the HTTP response
         return $this->responder

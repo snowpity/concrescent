@@ -35,6 +35,17 @@ return function (App $app, $container) {
             ->add($accessPerm);
         }
     );
+    $app->group(
+        '/Badge/FormatMap/{context_code}',
+        function (RouteCollectorProxy $app) use ($accessPerm) {
+            $app->get('', \CM3_Lib\Action\Badge\Format\Map\SearchAll::class);
+            $app->get('/{badge_type_id}', \CM3_Lib\Action\Badge\Format\Map\Search::class);
+            $app->post('/badge_type_id/{format_id}', \CM3_Lib\Action\Badge\Format\Map\Create::class)
+            ->add($accessPerm);
+            $app->delete('/badge_type_id/{format_id}', \CM3_Lib\Action\Badge\Format\Map\Delete::class)
+            ->add($accessPerm);
+        }
+    );
 
     $app->group(
         '/Badge/Format/{format_id}/PrintJob',

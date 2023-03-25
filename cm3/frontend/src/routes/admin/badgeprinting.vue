@@ -5,7 +5,7 @@
         <simpleList apiPath="Badge/Format"
                     :AddHeaders="listAddHeaders"
                     :RemoveHeaders="listRemoveHeaders"
-                    :isEditingItem="bEdit || bPrint"
+                    :isEditingItem="fEdit"
                     :actions="listActions"
                     :footerActions="btFooterActions"
                     @edit="editBadgeFormat"
@@ -269,9 +269,12 @@ export default {
         },
         saveBadgeFormat: function() {
             console.log('saving badge', this.fSelected);
+            var url = 'Badge/Format';
+            if (this.fSelected.id != undefined)
+                url = url + '/' + this.fSelected.id;
             let that = this;
             that.loading = true;
-            admin.genericPost(this.authToken, 'Badge/Format/' + this.fSelected.id, this.fSelected, function(SavedDetails) {
+            admin.genericPost(this.authToken, url, this.fSelected, function(SavedDetails) {
                 that.fSelected = {};
                 that.loading = false;
                 that.fEdit = false;

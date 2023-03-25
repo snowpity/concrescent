@@ -1,16 +1,14 @@
 <template>
 <v-container fluid
              class="pa-0">
-    <v-toolbar :color="'blue'">
-        <v-app-bar-nav-icon></v-app-bar-nav-icon>
+    <v-toolbar :color="'blue'"
+               dark
+               style="position: sticky; top: 0; z-index: 1;">
+        <v-app-bar-nav-icon @click.stop="mainPropsForm = !mainPropsForm" />
         <v-toolbar-title>{{model.name}}</v-toolbar-title>
         <v-spacer></v-spacer>
 
         <template v-if="!fieldIsSelected">
-            <v-btn color="primary"
-                   @click="preview = !preview">
-                <v-icon>mdi-file-find</v-icon>
-            </v-btn>
             <v-menu offset-y>
                 <template v-slot:activator="{ on, attrs }">
                     <v-btn color="primary"
@@ -38,7 +36,7 @@
         </template>
     </v-toolbar>
     <v-sheet color="white"
-             class="mx-auto mt-3"
+             class="mx-auto ma-3"
              elevation="4"
              :style="sStyle">
         <fieldPositioner v-for="(item,ix) in model.layout"
@@ -51,29 +49,113 @@
                          @click="toggleSelected(ix)"
                          @move="selectField(ix)" />
     </v-sheet>
+    <v-navigation-drawer v-model="mainPropsForm"
+                         absolute
+                         width="400"
+                         temporary>
+        <formatPropEditForm v-model="model"
+                            @selectLayout="selectField" />
+
+    </v-navigation-drawer>
+    <v-speed-dial v-model="fab"
+                  bottom
+                  right
+                  style="position:absolute;">
+        <template v-slot:activator>
+            <v-btn v-model="fab"
+                   color="blue darken-2"
+                   dark
+                   fab>
+                <v-icon v-if="fab">
+                    mdi-close
+                </v-icon>
+                <v-icon v-else>
+                    mdi-magnify
+                </v-icon>
+            </v-btn>
+        </template>
+        <div @click.stop=""
+             style="width:350px; align-self: end;">
+            <v-card>
+                <v-tooltip top>
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn color="primary"
+                               v-bind="attrs"
+                               v-on="on"
+                               :outlined="preview"
+                               @click="preview = !preview">
+                            <v-icon>mdi-file-find</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Preview</span>
+                </v-tooltip>
+                <v-tooltip top>
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn color="primary"
+                               v-bind="attrs"
+                               v-on="on"
+                               :outlined="preview"
+                               @click="editBadgeData">
+                            <v-icon>mdi-script-text</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Preview Data editor</span>
+                </v-tooltip>
+            </v-card>
+        </div>
+    </v-speed-dial>
+
+    <v-dialog v-model="editBadgeDataDialog"
+              scrollable>
+        <v-card>
+            <v-card-title>Edit Preview Data</v-card-title>
+            <v-divider></v-divider>
+            <v-card-text>
+                <JsonEditorVue v-model="badgeData" />
+
+            </v-card-text>
+            <v-divider></v-divider>
+            <v-card-actions>
+                <v-spacer />
+                <v-btn color="blue darken-1"
+                       @click="editBadgeDataDialog = false">
+                    Close
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 </v-container>
 </template>
 
 <script >
 import Vue from "vue";
 import interact from "interactjs";
+import formatPropEditForm from '@/components/formatpieces/formatPropEditForm.vue';
 import fieldPositioner from '@/components/formatpieces/fieldPositioner.vue';
 import fieldEditToolbar from '@/components/formatpieces/fieldEditToolbar.vue';
+import scaleToParent from '@/components/formatpieces/scaleToParent.vue';
 export default Vue.extend({
     components: {
+        formatPropEditForm,
         fieldPositioner,
-        fieldEditToolbar
+        fieldEditToolbar,
+        //scaleToParent
     },
     props: ['value'],
     data: function() {
         var v = this.value || {};
         return {
             preview: false,
+            mainPropsForm: false,
+            fab: false,
+            editBadgeDataDialog: false,
+            zoom: 1,
             model: {
+                id: v.id,
                 name: v.name || 'New Badge Format',
                 customSize: v.customSize || '5in*3in',
                 bgImageID: v.bgImageID,
-                layoutPosition: null,
+                layoutPosition: v.layoutPosition || null,
                 layout: v.layout || []
             },
             fieldTypes: [{
@@ -158,7 +240,8 @@ export default Vue.extend({
             var v = {
                 height: this.sHeight,
                 width: this.sWidth,
-                position: 'relative'
+                position: 'relative',
+                'z-index': 0,
             };
             return v;
         },
@@ -166,10 +249,11 @@ export default Vue.extend({
             return this.fieldSelectedIx > -1;
         },
         badge() {
+            let bd = this.badgeData;
             if (this.preview) {
 
-                console.log('previewing, badge data', this.badgeData)
-                return this.badgeData;
+                console.log('previewing, badge data', bd)
+                return bd;
             } else {
                 console.log('not previewing');
                 return null;
@@ -191,21 +275,34 @@ export default Vue.extend({
         },
         toggleSelected(ix) {
             if (this.fieldSelectedIx == ix && !this.fieldSelectedFromMove) {
-                console.log('deselecting field', ix)
+                console.log('toggle: deselecting field', ix)
                 this.fieldSelectedIx = -1;
                 return;
             }
             this.fieldSelectedFromMove = false;
-            console.log('selecting field', ix)
+            console.log('toggle: selecting field', ix)
             this.fieldSelectedIx = ix;
         },
         selectField(ix) {
             this.fieldSelectedFromMove = true;
             if (this.fieldSelectedIx == ix)
                 return;
-            console.log('selecting field', ix)
+            console.log('direct: selecting field', {
+                new: ix,
+                prior: this.fieldSelectedIx
+            })
             this.fieldSelectedIx = ix;
-        }
+            this.mainPropsForm = false;
+        },
+        editBadgeData() {
+            this.editBadgeDataDialog = true;
+        },
+        zoomIn() {
+
+        },
+        zoomOut() {
+
+        },
     },
     watch: {
         model(newData) {
@@ -213,16 +310,22 @@ export default Vue.extend({
                 this.skipEmitOnce = false;
                 return;
             }
-            this.$emit('input', model);
+            this.$emit('input', newData);
         },
         value(newValue) {
             //Splat the input into the form
             this.skipEmitOnce = true;
-            this.fieldSelectedIx = -1,
-                this.model = {
-                    ...newValue,
-                };
-        }
+            if (!newValue)
+                this.fieldSelectedIx = -1;
+            this.model = {
+                name: 'New Badge Format',
+                customSize: '5in*3in',
+                bgImageID: null,
+                layoutPosition: null,
+                layout: [],
+                ...newValue,
+            };
+        },
     },
 });
 </script>

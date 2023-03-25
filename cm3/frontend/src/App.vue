@@ -465,3 +465,54 @@ export default {
     }
 };
 </script>
+
+<style>
+@media print {
+    :root {
+        --printing-visibility: visible;
+        --printing-height: initial;
+        --printing-display: unset;
+    }
+
+    :root:has(.printing) {
+        --printing-visibility: hidden;
+        --printing-height: 0;
+        --printing-display: none
+    }
+
+    body *:where(:not(.printing)) {
+        visibility: var(--printing-visibility);
+        /* display: var(--printing-display); */
+        height: var(--printing-height);
+        background: none;
+    }
+
+    .printing,
+    .printing * {
+        visibility: visible !important;
+        height: auto;
+        /* overflow: visible !important; */
+    }
+
+    .printing {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+
+    #app {
+        background: none;
+    }
+
+    .appbar {
+        position: absolute !important;
+        visibility: visible;
+    }
+
+    .appbar * {
+        visibility: visible;
+        height: revert;
+    }
+
+}
+</style>

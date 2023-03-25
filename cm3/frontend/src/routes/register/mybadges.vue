@@ -1,5 +1,5 @@
 <template>
-<v-container class="pa-2"
+<v-container :class="{'pa-2':true,'printing':!printingBadge}"
              fluid>
     <v-row>
         <p>
@@ -52,10 +52,11 @@
     <v-dialog v-model="displayBadgeModal"
               max-width="600"
               persistent
+              scrollable
               :hide-overlay="printingBadge"
               :fullscreen="printingBadge">
-        <v-card>
-            <v-card-actions class="d-print-none">
+        <v-card :class="{'printing':printingBadge}">
+            <v-card-title class="d-print-none">
                 <v-btn color="red lighten-1"
                        @click="removeBadge">
                     <v-icon>mdi-delete</v-icon>
@@ -69,9 +70,9 @@
                        @click="displayBadge = -1">
                     <v-icon>mdi-close</v-icon>
                 </v-btn>
-            </v-card-actions>
-            <v-card-title class="headline">Badge Info</v-card-title>
+            </v-card-title>
             <v-card-text>
+                <p class="headline">Badge Info</p>
                 <p class="text-center">
                     <v-btn height=266
                            width=266
@@ -104,6 +105,9 @@
                                           :rewardlist="getAddonByID(displayBadgeData.badge_type_id, addon['addon_id']).rewards"></badgePerksRender>
                     </v-card-text>
                 </v-card>
+                <p v-if="displayBadgeProduct && displayBadgeData.addons != undefined && displayBadgeData.addons.length == 0">
+                    No addons purchased
+                </p>
             </v-card-text>
         </v-card>
     </v-dialog>
@@ -224,7 +228,11 @@ export default {
         },
         getAddonByID(badge_type_id, id) {
             if (undefined == this.addons[badge_type_id])
-                return undefined;
+                return {
+                    name: '!!Unloaded:' + id,
+                    description: "",
+                    rewards: {}
+                };
             return this.addons[badge_type_id].find(addon => addon.id == id);
         }
     },

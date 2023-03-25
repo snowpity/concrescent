@@ -470,11 +470,11 @@ final class PaymentBuilder
                     1,
                     $bt['description'],
                     $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ':' . $cartitem['badge_type_id'],
-                    max(0, $bt['price'] - ($cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price'])),
+                    max(0, $bt['price'] - ($cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price'] ?? 99999)),
                     $cartitem['payment_promo_code'] ?? null
                 );
                     //Add to the cart's amount...
-                    $this->cart_payment_txn_amt += max(0, $cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price']);
+                    $this->cart_payment_txn_amt += max(0, $cartitem['payment_promo_price'] ?? $cartitem['payment_badge_price'] ?? 99999);
                 }
             } else {
                 //Group applications are special

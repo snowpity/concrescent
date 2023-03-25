@@ -10,16 +10,16 @@ class formatmap extends \CM3_Lib\database\Table
     {
         $this->TableName  = 'Badge_Format_Maps';
         $this->ColumnDefs = array(
+            'context_code'	=> new cm_Column('VARCHAR', '3', false),
             'format_id' 		=> new cm_Column('SMALLINT', null, false),
             'badge_type_id'	=> new cm_Column('INT', null, false),
-            'category'   => new cm_Column('ENUM', array('Attendee','Assignment','Staff'), false, defaultValue: '''Assignment'''),
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array(
-            'format_id'=>false,
+            'context_code'=>false,
             'badge_type_id'=>false,
-            'category'=>false,
+            'format_id'=>false,
         );
-        $this->DefaultSearchColumns = array('format_id','badge_type_id','category');
+        $this->DefaultSearchColumns = array('context_code','badge_type_id','format_id');
     }
 }

@@ -42,7 +42,8 @@ function isObject(o) {
 
 //Adapted from https://stackoverflow.com/a/63108491
 function expandTpl(template, templateData) { // s0 is the link_template_input
-    const r = /\[\[([^()]*)\]\]/gm;
+    //TODO: Fix this regex so it allows [index]-style?
+    const r = /\[\[([^\[\]]*)\]\]/gm;
     let s = '';
     let idx = 0
     for (let a;
@@ -51,7 +52,8 @@ function expandTpl(template, templateData) { // s0 is the link_template_input
         var v = getValueByPath(templateData, a[1]);
         if (v == undefined) {
             console.log('object did not have this property', a[0])
-            v = a[0];
+            //v = a[0];
+            v = '';
         }
         s += (template.substring(idx, r.lastIndex - a[0].length) + v)
         idx = r.lastIndex

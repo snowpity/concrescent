@@ -28,6 +28,9 @@
 </template>
 
 <script>
+import {
+    debounce
+} from '@/plugins/debounce';
 import interact from "interactjs";
 import fieldRender from './fieldRender';
 const minmax = (num, min, max) => Math.min(Math.max(num, min), max)
@@ -65,14 +68,16 @@ export default {
 
         return {
             domParentEl: null,
+            domParentResizeWatcher: null,
+            updatingTransforms: false,
             pos_px: {
-                x: 10,
-                y: 10,
-                w: 10,
-                h: 10,
+                x: 10.1234,
+                y: 10.1234,
+                w: 10.1234,
+                h: 10.1234,
             },
             containedStyle: {
-                width: 'initial',
+                width: 'unset',
                 height: 'unset',
                 transform: `scale(1, 1)`,
             },
@@ -157,39 +162,55 @@ export default {
             };
             //TODO: Make sure it's in-bounds?
             //console.log('pos_px is now', this.pos_px);
-            this.$nextTick(() => {
-                this.updateRenderScale();
-            });
+            this.updateRenderScale();
+            // this.$nextTick(() => {
+            // });
 
         },
         savePct() {
-            this.model.left = this.toPct(this.pos_px.x, false, 10);
-            this.model.top = this.toPct(this.pos_px.y, true, 10);
-            this.model.width = this.toPct(this.pos_px.w, false, 10);
-            this.model.height = this.toPct(this.pos_px.h, true, 10);
+            this.model.left = this.toPct(this.pos_px.x, false, 10.1234);
+            this.model.top = this.toPct(this.pos_px.y, true, 10.1234);
+            this.model.width = this.toPct(this.pos_px.w, false, 10.1234);
+            this.model.height = this.toPct(this.pos_px.h, true, 10.1234);
         },
         async updateRenderScale() {
             //Adapted from https://stackoverflow.com/a/61543105
-            console.log('updateRenderScale');
-            if (this.$refs.contained == undefined) return;
+            if (this.$refs.contained == undefined) {
+                console.log('updateRenderScale cancelled because contained was undefined')
+                return;
+            }
+            if (this.updatingTransforms) return;
+            this.updatingTransforms = true;
             let scaledContent = this.$refs['contained'].$el;
             if (scaledContent == undefined) return '?';
+            // console.log('updateRenderScale', {
+            //     e: this.$el,
+            //     text: this.$el.innerText,
+            //     updatingTransforms: this.updatingTransforms,
+            //     parent: {
+            //         cw: this.parent.clientWidth,
+            //         ch: this.parent.clientHeight
+            //     },
+            //     parent2: {
+            //         width: scaledContent.getBoundingClientRect().width,
+            //         height: scaledContent.getBoundingClientRect().height
+            //     },
+            //     currentContained: JSON.parse(JSON.stringify(this.containedStyle)),
+            //     pos: JSON.parse(JSON.stringify(this.pos_px))
+            // });
             // Get the scaled content, and reset its scaling for an instant
             this.containedStyle = {
                 width: 'unset',
                 height: 'unset',
                 transform: `scale(1,1)`,
             }
-            await this.$nextTick();
+            // await this.$nextTick();
+            await new Promise(requestAnimationFrame);
 
             let {
                 width: cw,
                 height: ch
             } = scaledContent.getBoundingClientRect();
-            let {
-                width: ww,
-                height: wh
-            } = this.style;
 
             //Initial new scale representing "fill"
             let scaleAmtX = this.pos_px.w / cw;
@@ -214,11 +235,27 @@ export default {
                 height: (100 / scaleAmtY) + '%',
                 transform: `scale(${scaleAmtX}, ${scaleAmtY})`,
             }
-        }
+            // await this.$nextTick();
+            // console.log('updateRenderScale done', {
+            //     e: this.$el,
+            //     text: this.$el.innerText,
+            //     newContained: JSON.parse(JSON.stringify(this.containedStyle))
+            // });
+            this.updatingTransforms = false;
+        },
+        parentResized() {
+            if (this.parent.clientWidth * this.parent.clientHeight < 1) return;
+            // console.log('positioner detected parent resized, rerender', this.parent.clientWidth)
+            this.$nextTick(() => {
+                this.updatePx();
+
+            });
+        },
     },
     watch: {
         'pos_px': {
             handler: function() {
+                if (this.readOnly) return;
                 //Don't save if we're with unreasonable size
                 if (this.pos_px.w == 0 && this.pos_px.h == 0) {
                     return;
@@ -229,6 +266,7 @@ export default {
         },
         model: {
             handler: function(newData) {
+                if (this.readOnly) return;
                 if (this.skipEmitOnce == true) {
                     this.skipEmitOnce = false;
                     return;
@@ -248,15 +286,17 @@ export default {
             this.updatePx();
         },
         value() {
+            if (this.$refs.contained == undefined) return;
             this.$nextTick(() => {
                 this.updateRenderScale();
             });
-        }
+        },
     },
     computed: {
         parent() {
             if (this.domParentEl == undefined) {
                 //This is undefined at fist go, give some bogus values
+                console.log('could not provide parent, giving dummy')
                 return {
                     height: 2000,
                     width: 4000
@@ -285,10 +325,27 @@ export default {
         },
     },
     mounted() {
+        //console.log('field positioner mounted')
         this.domParentEl = this.$el.parentElement;
-        setTimeout(() => {
-            this.updatePx()
-        }, 500); //Animation messes with element calculations. :(
+        this.domParentResizeWatcher = new ResizeObserver(() => this.parentResized());
+        this.domParentResizeWatcher.observe(this.domParentEl);
+        //Try to determine if we're animated in a dialog?
+        let di = this.domParentEl.closest('.v-dialog');
+        if (di) {
+            // console.log('bind to animation end', di)
+            di.addEventListener('resize', () => {
+                console.log('dialog animationended')
+                this.parentResized()
+            });
+            setTimeout(() => {
+                this.updatePx()
+            }, 250); //Animation messes with element calculations. :( Call it once with a guess for the end time
+        }
+
+    },
+    beforeDestroy: function() {
+        // console.log('I am unmounted')
+        this.domParentResizeWatcher.unobserve(this.domParentEl);
     },
 
 };

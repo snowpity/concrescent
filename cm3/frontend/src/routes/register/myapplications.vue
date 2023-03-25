@@ -1,5 +1,5 @@
 <template>
-<v-container class="pa-2"
+<v-container :class="{'pa-2':true,'printing':!printingBadge}"
              fluid>
     <v-row>
         <p>
@@ -117,6 +117,9 @@
                                           :rewardlist="getAddonByID(displayBadgeData.context_code,displayBadgeData.badge_type_id,addon['addon_id']).rewards"></badgePerksRender>
                     </v-card-text>
                 </v-card>
+                <p v-if="displayBadgeProduct && displayBadgeData.addons != undefined && displayBadgeData.addons.length == 0">
+                    No addons purchased
+                </p>
             </v-card-text>
         </v-card>
     </v-dialog>

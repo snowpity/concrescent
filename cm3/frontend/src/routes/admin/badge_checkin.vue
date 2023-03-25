@@ -114,15 +114,43 @@
                 </v-row>
             </v-stepper-content>
             <v-stepper-content step="4">
-                <badgeFullRender :badge="selectedBadge" />
-
+                <v-select v-model="selectedBadgeFormat"
+                          :items="selectedBadgeFormats"
+                          item-text="name"
+                          item-value="id"
+                          return-object
+                          label="Label format"
+                          outlined></v-select>
+                <v-row>
+                    <v-col>
+                        <div style="height:25vh;">
+                            <v-spacer />
+                            <scaleToParent>
+                                <v-sheet color="white"
+                                         class="mx-auto mt-3"
+                                         elevation="4">
+                                    <badgeFullRender :format="selectedBadgeFormat"
+                                                     :badge="selectedBadge" />
+                                </v-sheet>
+                            </scaleToParent>
+                            <v-spacer />
+                        </div>
+                    </v-col>
+                </v-row>
                 <v-btn color="green"
                        :disabled="printing"
                        :loading="printing"
                        @click="ExecutePrint">
                     {{selectedBadge.time_printed != null ? "(Re)" : ""}}Print Badge
                 </v-btn>
-
+                <v-dialog v-model="printPanel"
+                          fullscreen
+                          transition="none">
+                    <v-card :class="{'printing':printPanel}">
+                        <badgeFullRender :format="selectedBadgeFormat"
+                                         :badge="selectedBadge" />
+                    </v-card>
+                </v-dialog>
                 <v-row>
                     <v-col>
                         <v-card-actions>
@@ -287,16 +315,20 @@ import {
 import badgeSampleRender from '@/components/badgeSampleRender.vue';
 import badgeFullRender from '@/components/badgeFullRender.vue';
 import badgeSearchList from '@/components/badgeSearchList.vue';
+import scaleToParent from '@/components/formatpieces/scaleToParent.vue';
 
 export default {
     components: {
         badgeSampleRender,
         badgeFullRender,
-        badgeSearchList
+        badgeSearchList,
+        scaleToParent
     },
     data: () => ({
         checkinStage: 1,
         selectedBadge: {},
+        selectedBadgeFormats: [],
+        selectedBadgeFormat: {},
         alreadyCheckedInDialog: false,
         editingBadge: false,
         edit_real_name: '',
@@ -313,6 +345,7 @@ export default {
         paying: false,
         loadpaying: false,
         printing: false,
+        printPanel: false,
         finishing: false,
 
         SmartHealthData: "",
@@ -438,8 +471,18 @@ export default {
         loadSelectedBadge: async function() {
             if (this.selectedBadge.id == undefined) return;
             await this.$store.dispatch('products/selectContext', this.selectedBadge.context_code);
-            admin.badgeCheckinFetch(this.authToken, this.selectedBadge.context_code, this.selectedBadge.id, (results) => {
+            admin.badgeCheckinFetch(this.authToken, this.selectedBadge.context_code, this.selectedBadge.id, async (results) => {
                 this.selectedBadge = results;
+                admin.genericGet(this.authToken, 'Badge/FormatMap/' + this.selectedBadge.context_code + '/' + this.selectedBadge.badge_type_id + '?full=true', null, (selectedBadgeFormats) => {
+                    console.log('Received format map', selectedBadgeFormats)
+                    this.selectedBadgeFormats = selectedBadgeFormats;
+                    //Select the first one, if there is at least one
+                    if (selectedBadgeFormats.length > 0)
+                        this.selectedBadgeFormat = selectedBadgeFormats[0];
+                    else this.selectedBadgeFormat = null;
+                }, function() {
+                    console.log('Could not load badge formats')
+                })
             })
         },
         updateSelectedBadge: function() {
@@ -487,9 +530,27 @@ export default {
                 this.paying = false;
             })
         },
-        ExecutePrint: function() {
+        ExecutePrint: async function() {
             if (this.selectedBadge.id == undefined) return;
-            this.printing = true;
+            //this.printing = true;
+            this.printPanel = true;
+
+            //Print and close
+            (function(app) {
+                setTimeout(() => {
+                    window.print();
+                }, 130);
+            }(this));
+        },
+        printLocalStart: function() {
+            console.log('Prep printing')
+            this.printPanel = true;
+
+        },
+        printLocalEnd: function() {
+            console.log('Done printing')
+            this.printPanel = false;
+
         },
         FinishCheckIn: function() {
             if (this.selectedBadge.id == undefined) return;
@@ -551,6 +612,16 @@ export default {
                     //Fetch the current payment for this badge
                     this.RefreshPayment();
                 }
+            }
+            if (stage == 4) {
+                //Hook the printing events
+                window.addEventListener('beforeprint', this.printLocalStart);
+                window.addEventListener('afterprint', this.printLocalEnd);
+
+            } else {
+                //Un-hook the printing events
+                window.removeEventListener('beforeprint', this.printLocalStart);
+                window.removeEventListener('afterprint', this.printLocalEnd);
             }
         },
         menuBDay(val) {
