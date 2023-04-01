@@ -102,7 +102,7 @@
 
     <v-dialog v-model="templateTextDialog"
               scrollable>
-        <v-card>
+        <v-card v-if="format">
             <v-card-title>Edit field template</v-card-title>
             <v-divider></v-divider>
             <v-card-text>
@@ -296,6 +296,7 @@ export default {
         },
         applyAlign: {
             get() {
+                if (this.format == undefined) return false;
                 var a = this.alignments.findIndex(a => a == this.format.style['text-align']);
                 //console.log('looking for align, which is ix', a)
                 return a
@@ -311,6 +312,7 @@ export default {
         applyStyles: {
             get() {
                 var a = this.style_toggles.map((t, ix) => {
+                    if (this.format == undefined) return false;
                     if (this.format.style == undefined) return false;
                     if (this.format.style[t.name] == undefined) return false;
                     return this.format.style[t.name] == t.on ? ix : false;

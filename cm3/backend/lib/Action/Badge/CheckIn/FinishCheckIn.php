@@ -69,9 +69,7 @@ final class FinishCheckIn
         $didUpdate = $this->badgeinfo->UpdateSpecificBadgeUnchecked(
             $bid,
             $cx,
-            array(
-                'time_checked_in'=>$result['time_checked_in']
-            )
+            $result
         );
 
         // Build the HTTP response

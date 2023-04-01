@@ -296,6 +296,10 @@ export default {
                         return this.hasEventPerm(['GlobalAdmin', 'EventAdmin']);
                     }
                 }, {
+                    route: "/Config",
+                    icon: "mdi-cog-box",
+                    label: "Station Config",
+                }, {
                     route: "/Admin/System",
                     icon: "mdi-cog",
                     label: "System Setup",

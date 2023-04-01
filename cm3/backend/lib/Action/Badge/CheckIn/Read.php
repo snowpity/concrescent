@@ -48,7 +48,9 @@ final class Read
         $qp = $request->getQueryParams();
 
         $result = $this->badgeinfo->GetSpecificBadge($params['badge_id'], $params['context_code'], true);
-
+        if ($result === false) {
+            throw new HttpNotFoundException($request);
+        }
         // Build the HTTP response
         return $this->responder
             ->withJson($response, $result);

@@ -159,7 +159,7 @@ final class badgevalidator
         //         return $i['quantity_remaining'] !== 0;
         //     }
         // ), 'id');
-        if ($badgetypeData['quantity_remaining'] === 0) {
+        if ($badgetypeData['quantity_remaining'] === 0 && $item['badge_type_id'] != ($item['existing']['badge_type_id']??0)) {
             $v->addColumnValidator('badge_type_id', v::alwaysInvalid(), true);
         }
 

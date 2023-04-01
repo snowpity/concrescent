@@ -33,7 +33,7 @@
                                 :key="addon['addon_id']">
                     <v-icon>mdi-plus</v-icon>
                     <div class="text-truncate">
-                        {{addon['name']}}
+                        {{getAddonByID(badge.context_code,badge.badge_type_id, addon['addon_id']).name}}
                     </div>
                 </v-card-actions>
             </v-card>
@@ -98,11 +98,11 @@
                 <v-card v-for="addon in (displayBadgeProduct ? displayBadgeData.addons : null)"
                         v-bind:key="addon['id']">
                     <v-card-title>
-                        <h3 class="black--text">{{getAddonByID(displayBadgeData.badge_type_id, addon['addon_id']).name}}</h3>
+                        <h3 class="black--text">{{getAddonByID(displayBadgeData.context_code,displayBadgeData.badge_type_id, addon['addon_id']).name}}</h3>
                     </v-card-title>
                     <v-card-text>
-                        <badgePerksRender :description="getAddonByID(displayBadgeData.badge_type_id, addon['addon_id']).description"
-                                          :rewardlist="getAddonByID(displayBadgeData.badge_type_id, addon['addon_id']).rewards"></badgePerksRender>
+                        <badgePerksRender :description="getAddonByID(displayBadgeData.context_code,displayBadgeData.badge_type_id, addon['addon_id']).description"
+                                          :rewardlist="getAddonByID(displayBadgeData.context_code,displayBadgeData.badge_type_id, addon['addon_id']).rewards"></badgePerksRender>
                     </v-card-text>
                 </v-card>
                 <p v-if="displayBadgeProduct && displayBadgeData.addons != undefined && displayBadgeData.addons.length == 0">
@@ -226,14 +226,29 @@ export default {
             }
 
         },
-        getAddonByID(badge_type_id, id) {
-            if (undefined == this.addons[badge_type_id])
-                return {
-                    name: '!!Unloaded:' + id,
-                    description: "",
-                    rewards: {}
-                };
-            return this.addons[badge_type_id].find(addon => addon.id == id);
+        getAddonByID(context_code, badge_type_id, id) {
+            var result = {
+                "id": 0,
+                "display_order": 0,
+                "name": "[Awaiting load...]",
+                "description": "Loading description, please wait",
+                "rewards": null,
+                "price": "",
+                "payable_onsite": 0,
+                "quantity": null,
+                "start_date": null,
+                "end_date": null,
+                "min_age": null,
+                "max_age": null,
+                "dates_available": "forever to forever",
+                "quantity_sold": 0,
+                "quantity_remaining": null
+            }
+            if (undefined == this.addons[context_code])
+                return result;
+            if (undefined == this.addons[context_code][badge_type_id])
+                return result;
+            return this.addons[context_code][badge_type_id].find(addon => addon.id == id) || result;
         }
     },
     watch: {
@@ -243,6 +258,7 @@ export default {
                 this.getContextBadges(this.displayBadgeData.context_code);
                 this.getContextQuestions(this.displayBadgeData.context_code);
                 this.getContextAddons(this.displayBadgeData.context_code);
+                console.log('displaying', this.displayBadgeData)
             }
         }
     },

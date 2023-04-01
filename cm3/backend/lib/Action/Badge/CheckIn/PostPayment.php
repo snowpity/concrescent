@@ -5,6 +5,7 @@ namespace CM3_Lib\Action\Badge\CheckIn;
 use CM3_Lib\database\SearchTerm;
 use CM3_Lib\Factory\PaymentModuleFactory;
 use CM3_Lib\util\PaymentBuilder;
+use CM3_Lib\util\badgeinfo;
 use CM3_Lib\util\CurrentUserInfo;
 
 use CM3_Lib\models\payment;
@@ -28,6 +29,7 @@ class PostPayment
     public function __construct(
         private Responder $responder,
         private PaymentBuilder $PaymentBuilder,
+        private badgeinfo $badgeinfo,
         private CurrentUserInfo $CurrentUserInfo,
     ) {
     }
@@ -57,7 +59,8 @@ class PostPayment
                 // Build the HTTP response
                 return $this->responder
                 ->withJson($response, array(
-                    'state' => $this->PaymentBuilder->getCartStatus()
+                    'state' => $this->PaymentBuilder->getCartStatus(),
+                    'updated' => $this->badgeinfo->getSpecificBadge($params['badge_id'], $params['context_code'], true)
                 ));
             } else {
                 //Nope. Let us fall through and reset it
@@ -68,11 +71,12 @@ class PostPayment
         }
 
         //if (isset($data['payment_system'])) {
-        $this->PaymentBuilder->setRequestedBy($this->CurrentUserInfo->GetContactName());
+        // $this->PaymentBuilder->setRequestedBy($this->CurrentUserInfo->GetContactName());
         $this->PaymentBuilder->setPayProcessor($data['payment_system']);
         // } elseif (empty($this->PaymentBuilder->getPayProcessorName())) {
         //     throw new \Exception('payment_system not specified!');
         // }
+        $this->PaymentBuilder->setNotes($data['notes']);
 
         //Build the payment
         $errors = $this->PaymentBuilder->prepPayment();
@@ -80,6 +84,7 @@ class PostPayment
         if (count($errors) > 0) {
             throw new \Exception('Errors! ' . var_dump($errors));
         }
+        $data['handler_id'] = $this->CurrentUserInfo->GetContactId();
         //Finish the prep
         if ($this->PaymentBuilder->confirmPrep()) {
             //We assume they're instantly paid because they're at the checkin path
@@ -88,7 +93,8 @@ class PostPayment
                 // Build the HTTP response
                 return $this->responder
                     ->withJson($response, array(
-                        'state' => $this->PaymentBuilder->getCartStatus()
+                        'state' => $this->PaymentBuilder->getCartStatus(),
+                        'updated' => $this->badgeinfo->getSpecificBadge($params['badge_id'], $params['context_code'], true)
                     ));
             } else {
                 //Something went wrong, let the screen know the next step
@@ -99,6 +105,7 @@ class PostPayment
                 ));
             }
         }
+
         // Build the HTTP response
         return $this->responder
             ->withJson($response, $result);

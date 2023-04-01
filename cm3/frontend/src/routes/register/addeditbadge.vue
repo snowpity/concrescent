@@ -806,8 +806,13 @@ export default {
             const oldBadge = this.badges.find((badge) => badge.id == this.editBadgePriorBadgeId);
 
             var alreadyHaveBadge = typeof oldBadge !== 'undefined' &&
-                oldBadge.badge_type_id == this.selectedBadge.badge_type_id;
-
+                oldBadge.id == this.selectedBadge.id;
+            console.log('setValidBadgeType result', {
+                isValid,
+                alreadyHaveBadge,
+                oldBadge: oldBadge.id,
+                selectedBadge: this.selectedBadge.id
+            })
             this.validBadgeType = isValid || alreadyHaveBadge;
         }
     },

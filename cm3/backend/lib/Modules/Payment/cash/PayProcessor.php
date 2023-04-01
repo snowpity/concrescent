@@ -6,8 +6,13 @@ use CM3_Lib\util\CurrentUserInfo;
 
 class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
 {
+    public function __construct(
+        //private CurrentUserInfo $CurrentUserInfo,
+    ) {
+    }
     private $orderData = array();
     private bool $isDisabled = false;
+
     public function Init(array $config)
     {
         $this->resetOrderData();
@@ -80,10 +85,12 @@ class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
     }
     public function ConfirmOrder(): bool
     {
+        $this->orderData['stage'] = 'APPROVED';
         return true;
     }
     public function CancelOrder(): bool
     {
+        $this->orderData['stage'] = 'CANCELLED';
         return true;
     }
     public function RetrievePaymentRedirectURL(): string
@@ -93,6 +100,9 @@ class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
     public function CompleteOrder($data): bool
     {
         //We assume that physical cash has been handled.
+        //TODO: Fix dependency injection?
+        $this->orderData['handler_id'] = $data['handler_id'];//$this->CurrentUserInfo->GetContactId();
+        $this->orderData['stage'] = 'COMPLETED';
         return true;
     }
     public function GetOrderStatus(): string

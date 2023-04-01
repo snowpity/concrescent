@@ -93,6 +93,12 @@
                         color="grey lighten-1"
                         height="200px">Payment required:
                     <h2>{{edit_selectedBadgePayment.total | currency}}</h2>
+
+                    <v-col>
+                        <v-textarea label="Notes"
+                                    rows="3"
+                                    v-model="edit_selectedBadgePayment.notes"></v-textarea>
+                    </v-col>
                 </v-card>
 
                 <v-row>
@@ -102,9 +108,13 @@
                                    @click="selectedBadge = {}">
                                 Cancel
                             </v-btn>
+                            <v-btn text
+                                   @click="checkinStage = 2">
+                                Back
+                            </v-btn>
                             <v-spacer></v-spacer>
                             <v-btn color="primary"
-                                   :disabled="paying"
+                                   :disabled="paying || !edit_selectedBadgePayment.canPay"
                                    :loading="paying"
                                    @click="ConfirmPayment">
                                 Paid
@@ -157,6 +167,10 @@
                             <v-btn text
                                    @click="selectedBadge = {}">
                                 Cancel
+                            </v-btn>
+                            <v-btn text
+                                   @click="checkinStage = 2">
+                                Back
                             </v-btn>
                             <v-spacer></v-spacer>
                             <v-btn color="primary"
@@ -521,10 +535,17 @@ export default {
             if (this.selectedBadge.id == undefined) return;
             this.paying = true;
             admin.badgeCheckinConfirmPayment(this.authToken, this.selectedBadge.context_code, this.selectedBadge.id, {
-                payment_system: 'Cash'
+                payment_system: 'Cash',
+                notes: this.edit_selectedBadgePayment.notes
             }, (results) => {
-                this.checkinStage = 4;
-                this.paying = false;
+                if (results['state'] == 'Completed') {
+                    if (results['updated']) {
+                        this.selectedBadge = results['updated'];
+                    }
+                    this.checkinStage = 4;
+                    this.payment_notes = "";
+                    this.paying = false;
+                }
 
             }, (error) => {
                 this.paying = false;

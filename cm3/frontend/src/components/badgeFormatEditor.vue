@@ -101,10 +101,62 @@
                     </template>
                     <span>Preview Data editor</span>
                 </v-tooltip>
+                <v-tooltip top>
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn color="primary"
+                               v-bind="attrs"
+                               v-on="on"
+                               :outlined="preview"
+                               @click="loadBadgeDataDialog = true">
+                            <v-icon>mdi-briefcase-upload</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Load Preview Data</span>
+                </v-tooltip>
             </v-card>
         </div>
     </v-speed-dial>
 
+    <v-dialog v-model="loadBadgeDataDialog">
+        <v-card>
+            <v-card-title>Load Preview Data</v-card-title>
+            <v-divider></v-divider>
+            <v-card-text>
+
+                <v-row>
+                    <v-col cols="12"
+                           sm="6"
+                           md="3">
+
+                        <v-select :items="badgeContexts"
+                                  item-text="name"
+                                  item-value="context_code"
+                                  label="Context"
+                                  outlined
+                                  v-model="loadBadgeDataContext"></v-select>
+                    </v-col>
+                    <v-col cols="12"
+                           sm="6"
+                           md="3">
+                        <v-text-field label="ID"
+                                      v-model="loadBadgeDataID"></v-text-field>
+                    </v-col>
+                </v-row>
+            </v-card-text>
+            <v-divider></v-divider>
+            <v-card-actions>
+                <v-spacer />
+                <v-btn color="blue darken-1"
+                       @click="loadBadgeDataDialog = false">
+                    Cancel
+                </v-btn>
+                <v-btn color="blue darken-1"
+                       @click="loadBadgeData">
+                    Load
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
     <v-dialog v-model="editBadgeDataDialog"
               scrollable>
         <v-card>
@@ -128,12 +180,16 @@
 </template>
 
 <script >
+import admin from '../api/admin';
 import Vue from "vue";
 import interact from "interactjs";
 import formatPropEditForm from '@/components/formatpieces/formatPropEditForm.vue';
 import fieldPositioner from '@/components/formatpieces/fieldPositioner.vue';
 import fieldEditToolbar from '@/components/formatpieces/fieldEditToolbar.vue';
 import scaleToParent from '@/components/formatpieces/scaleToParent.vue';
+import {
+    mapGetters
+} from 'vuex'
 export default Vue.extend({
     components: {
         formatPropEditForm,
@@ -149,6 +205,9 @@ export default Vue.extend({
             mainPropsForm: false,
             fab: false,
             editBadgeDataDialog: false,
+            loadBadgeDataDialog: false,
+            loadBadgeDataContext: 'A',
+            loadBadgeDataID: 0,
             zoom: 1,
             model: {
                 id: v.id,
@@ -222,6 +281,13 @@ export default Vue.extend({
         };
     },
     computed: {
+        ...mapGetters('mydata', {
+            'isLoggedIn': 'getIsLoggedIn',
+            'authToken': 'getAuthToken',
+        }),
+        ...mapGetters('products', {
+            'badgeContexts': 'badgeContexts',
+        }),
         sSizeArray() {
             //TODO: Retrieve default size somewhere else and inject it here?
             return (this.model.customSize || '5in*3in').split('*');
@@ -296,6 +362,16 @@ export default Vue.extend({
         },
         editBadgeData() {
             this.editBadgeDataDialog = true;
+        },
+        loadBadgeData() {
+
+            admin.genericGet(this.authToken, 'Badge/CheckIn/' + this.loadBadgeDataContext + '/' + this.loadBadgeDataID, null, (badgeData) => {
+
+                this.badgeData = badgeData;
+                this.loadBadgeDataDialog = false;
+            }, function() {
+                //Whoops
+            })
         },
         zoomIn() {
 

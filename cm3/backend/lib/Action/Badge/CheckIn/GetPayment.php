@@ -56,7 +56,9 @@ class GetPayment
         $result['items']= $this->PaymentBuilder->getCartItems();
         $result['errors']= $this->PaymentBuilder->getCartErrors();
         $result['state']= $this->PaymentBuilder->getCartStatus();
+        $result['canPay']= $this->PaymentBuilder->getCanPay();
         $result['total']= $this->PaymentBuilder->getCartTotal();
+        $result['notes']= $this->PaymentBuilder->getNotes();
 
 
         // Build the HTTP response

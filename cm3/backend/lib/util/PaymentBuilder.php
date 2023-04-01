@@ -59,7 +59,7 @@ final class PaymentBuilder
         $createdcart = $this->payment->Create($template);
         $this->cart = array_merge($template, $createdcart, $this->payment->GetByID($createdcart['id'], array(
             'uuid','payment_details',
-            'date_created' ,'date_modified' ,
+            'date_created' ,'date_modified' ,'notes'
         )));
         $this->cart_items = array();
         $cart_payment_txn_amt = 0;
@@ -86,7 +86,7 @@ final class PaymentBuilder
             'id', 'uuid', 'event_id','contact_id',
             'payment_status','payment_system','payment_txn_amt',
             'items','payment_details','requested_by' ,
-            'date_created' ,'date_modified' ,
+            'date_created' ,'date_modified' ,'notes'
         ));
         return $this->loadCartFromPayment($cart, $expectedEventId, $expectedContactId);
     }
@@ -177,6 +177,14 @@ final class PaymentBuilder
         }
         return $this->AllowPay;
     }
+    public function getNotes()
+    {
+        return $this->cart['notes']??'';
+    }
+    public function setNotes(?string $notes)
+    {
+        $this->cart['notes'] = $notes;
+    }
     public function getCanPay()
     {
         return $this->CanPay;
@@ -218,6 +226,7 @@ final class PaymentBuilder
             'payment_txn_amt' =>$this->cart['payment_txn_amt'],
             'date_created' => $this->cart['date_created'],
             'date_modified' => $this->cart['date_modified'],
+            'notes' => $this->cart['notes'] ??'',
         );
     }
     public function setRequestedBy(string $name)
@@ -450,6 +459,9 @@ final class PaymentBuilder
         //TODO: craete the checked versions and use them instead of blind faith
 
         foreach ($this->cart_items as $key => &$cartitem) {
+            if (!isset($cartitem['context_code'])) {
+                $cartitem['context_code']='A'; //Frowny face
+            }
             $this->badgepromoapplicator->TryApplyCode($cartitem, $cartitem['payment_promo_code'] ?? '');
 
             $bt = $this->badgeinfo->getBadgetType($cartitem['context_code'], $cartitem['badge_type_id'] ?? 0);
@@ -547,6 +559,9 @@ final class PaymentBuilder
                 );
                 $availableaddons = array_column($this->badgeinfo->GetAddonsAvailable($cartitem['badge_type_id'], $cartitem['context_code']), null, 'id');
                 foreach ($cartitem['addons'] as $addon) {
+                    if (!isset($addon['addon_id'])) {
+                        continue;
+                    }
                     if (isset($existingAddons[$addon['addon_id']]) && $existingAddons[$addon['addon_id']] == 'Completed') {
                         continue;
                     }
