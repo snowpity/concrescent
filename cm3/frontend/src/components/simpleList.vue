@@ -5,7 +5,7 @@
               :headers="headers"
               multi-sort
               :items="tableResults"
-              item-key="id"
+              :item-key="internalKey"
               class="elevation-1 fill-height"
               :show-expand='showExpand'
               :search="searchText">
@@ -57,6 +57,12 @@ export default {
         },
         'actions': {
             type: Array
+        },
+        'internalKey': {
+            type: String,
+            default () {
+                return 'id';
+            }
         },
         'headerKey': {
             type: Object,

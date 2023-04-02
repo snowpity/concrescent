@@ -9,6 +9,9 @@ use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+use Slim\Exception\HttpBadRequestException;
+use Slim\Exception\HttpNotFoundException;
+
 /**
  * Action.
  */

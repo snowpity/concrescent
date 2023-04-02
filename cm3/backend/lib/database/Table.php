@@ -479,7 +479,7 @@ abstract class Table
 
                     //Do we have any terms?
                     if ($join->subQSearchTerms != null && count($join->subQSearchTerms)) {
-                        $sqlBody .= 'WHERE ' . $join->Table->_WhereBuilder($join->subQSearchTerms, $whereCodes, $whereData, $initialTableAlias);
+                        $sqlBody .= 'WHERE ' . $join->Table->_WhereBuilder($join->subQSearchTerms, $whereCodes, $whereData);
                     }
 
                     //Are we grouping?
@@ -768,7 +768,7 @@ abstract class Table
         return $result;
     }
 
-    protected function _WhereBuilder(array $terms, string &$whereCodes, array &$whereData, $initialTableAlias= nujll)
+    protected function _WhereBuilder(array $terms, string &$whereCodes, array &$whereData, $initialTableAlias= null)
     {
         $result = '(';
         $firstInGroup = true;

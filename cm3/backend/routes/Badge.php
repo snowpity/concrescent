@@ -36,6 +36,16 @@ return function (App $app, $container) {
         }
     );
     $app->group(
+        '/Badge/Format/{format_id}/Badges',
+        function (RouteCollectorProxy $app) use ($accessPerm) {
+            $printPerm = $accessPerm->withAllowedPerm(PermEvent::Badge_Print());
+            $app->get('', \CM3_Lib\Action\Badge\Format\Badges\Search::class)
+            ->add($printPerm);
+            $app->post('/{context_code}/{badge_id}', \CM3_Lib\Action\Badge\Format\Badges\Create::class)
+            ->add($printPerm);
+        }
+    );
+    $app->group(
         '/Badge/FormatMap/{context_code}',
         function (RouteCollectorProxy $app) use ($accessPerm) {
             $app->get('', \CM3_Lib\Action\Badge\Format\Map\SearchAll::class);

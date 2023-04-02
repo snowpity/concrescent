@@ -42,65 +42,46 @@
             </v-card>
         </v-dialog>
     </v-tab-item>
-    <v-tab-item value="1">
-        <orderableList apiPath="Staff/BadgeType"
-                       :AddHeaders="btAddHeaders"
-                       :actions="btActions"
-                       :footerActions="btFooterActions"
-                       :isEditingItem="btDialog"
-                       @edit="editBadgeType"
-                       @create="createBadgeType" />
+    <v-tab-item value="Print">
 
-        <v-dialog v-model="btDialog"
-                  scrollable
-                  persistent>
+        <v-stepper v-model="printStage">
+            <v-stepper-header>
+                <v-stepper-step step="1">
+                    Select format
+                </v-stepper-step>
 
-            <v-card>
-                <v-card-title class="headline">Edit Badge Type</v-card-title>
-                <v-card-text>
+                <v-divider></v-divider>
 
-                    <badgeTypeForm v-model="btSelected" />
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="default"
-                           @click="btDialog = false">Cancel</v-btn>
-                    <v-btn color="primary"
-                           @click="saveBadgeType">Save</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
-    </v-tab-item>
-    <v-tab-item value="2">
-        <formQuestionEditList context_code="S" />
-    </v-tab-item>
-    <v-tab-item value="3">
-        <treeList apiPath="Staff/Department"
-                  :AddHeaders="dAddHeaders"
-                  :actions="btActions"
-                  :footerActions="btFooterActions"
-                  :isEditingItem="dDialog"
-                  @edit="editDepartment"
-                  @create="createDepartment" />
-        <v-dialog v-model="dDialog"
-                  scrollable
-                  persistent>
+                <v-stepper-step step="2">
+                    Select badges
+                </v-stepper-step>
 
-            <v-card>
-                <v-card-title class="headline">Edit Department</v-card-title>
-                <v-card-text>
+                <v-divider></v-divider>
 
-                    <editDepartment v-model="dSelected" />
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="default"
-                           @click="dDialog = false">Cancel</v-btn>
-                    <v-btn color="primary"
-                           @click="saveDepartment">Save</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
+                <v-stepper-step step="3">
+                    Print
+                </v-stepper-step>
+            </v-stepper-header>
+
+            <v-stepper-items>
+                <v-stepper-content step="1">
+                    <simpleList apiPath="Badge/Format"
+                                :AddHeaders="listAddHeaders"
+                                :RemoveHeaders="listRemoveHeaders"
+                                :actions="printActions"
+                                @select="selectBadgeFormat" />
+                </v-stepper-content>
+                <v-stepper-content step="2">
+                    <simpleList :apiPath="'Badge/Format/' + fSelected.id + '/Badges'"
+                                internalKey="uuid"
+                                :AddHeaders="listAddHeaders"
+                                :RemoveHeaders="listRemoveHeaders"
+                                :actions="ptActions"
+                                :footerActions="ptFooterActions"
+                                @select="selectBadgeFormat" />
+                </v-stepper-content>
+            </v-stepper-items>
+        </v-stepper>
     </v-tab-item>
 
     <v-dialog v-model="loading"
@@ -145,11 +126,11 @@ export default {
     components: {
         simpleList,
         badgeFormatEditor,
-        badgeTypeForm,
-        formQuestionEditList,
-        treeList,
+        // badgeTypeForm,
+        // formQuestionEditList,
+        // treeList,
         //editBadgeAdmin,
-        editDepartment
+        // editDepartment
     },
     props: [
         'subTabIx'
@@ -171,37 +152,9 @@ export default {
         fSelected: {},
         fEdit: false,
 
-        bSelected: {},
-        bEdit: false,
-        bModified: false,
-        bSaved: false,
-        bSavedDetails: {},
-        bPrint: false,
-        btAddHeaders: [{
-            text: 'Dates Available',
-            value: 'dates_available'
-        }, {
-            text: 'Price',
-            value: 'price'
-        }, {
-            text: 'Active',
-            value: 'active'
-        }],
-        btSelected: {},
-        btDialog: false,
-
-        dAddHeaders: [{
-            text: 'Name',
-            value: 'name'
-        }, {
-            text: 'Email',
-            value: 'email_primary'
-        }, {
-            text: 'Active',
-            value: 'active'
-        }],
-        dDialog: false,
-        dSelected: {},
+        printStage: 1,
+        printTypes: [],
+        printQueue: [],
 
         loading: false,
         createError: '',
@@ -244,6 +197,37 @@ export default {
             set(newval) {
                 this.createError = newval ? "???" : "";
             }
+        },
+        printActions: function() {
+            var result = [];
+            //TODO: Detect permissions
+            result.push({
+                name: "select",
+                text: "Select"
+            });
+            return result;
+        },
+        ptActions: function() {
+            var result = [];
+            //TODO: Detect permissions
+            result.push({
+                name: "addOne",
+                text: "Enqueue"
+            });
+            return result;
+        },
+        ptFooterActions: function() {
+            var result = [];
+            result.push({
+                name: 'addAll',
+                text: 'Add All',
+                icon: 'select-all'
+            }, {
+                name: 'addUnprinted',
+                text: 'Add All Unprinted',
+                icon: 'selection-multiple'
+            });
+            return result;
         },
     },
     methods: {
@@ -292,76 +276,31 @@ export default {
             this.fEdit = true;
             this.fSelected = {};
         },
-        createBadgeType: function() {
-            this.btDialog = true;
-            this.btSelected = {};
-        },
-        editBadgeType: function(selectedBadgeType) {
+
+        selectBadgeFormat: function(selectedFormat) {
+            console.log('selected badge for print from grid', selectedFormat);
             this.loading = true;
-            this.btDialog = true;
-            var that = this;
-            admin.genericGet(this.authToken, 'Staff/BadgeType/' + selectedBadgeType.id, null, function(editBt) {
+            this.fSelected = null;
+            console.log('fetching format', selectedFormat)
+            admin.genericGet(this.authToken, 'Badge/Format/' + selectedFormat.id, null, (editFormat) => {
+                this.fSelected = editFormat;
+                this.loading = false;
+                this.printStage = 2;
 
-                that.btSelected = editBt;
-                that.loading = false;
             }, function() {
-                that.loading = false;
+                this.loading = false;
             })
         },
-        saveBadgeType: function() {
-            var url = 'Staff/BadgeType';
-            if (this.btSelected.id != undefined)
-                url = url + '/' + this.btSelected.id;
-            console.log("Saving badge type", this.btSelected)
-            var that = this;
-            admin.genericPost(this.authToken, url, this.btSelected, function(editBt) {
 
-                that.btSelected = editBt;
-                that.loading = false;
-                that.btDialog = false;
-            }, function() {
-                that.loading = false;
-            })
-        },
-        createDepartment: function() {
-            this.dDialog = true;
-            this.dSelected = {};
-        },
-        editDepartment: function(selectedDepartment) {
-            this.loading = true;
-            var that = this;
-            admin.genericGet(this.authToken, 'Staff/Department/' + selectedDepartment.id, null, function(editBt) {
 
-                that.dSelected = editBt;
-                that.dDialog = true;
-                that.loading = false;
-            }, function() {
-                that.loading = false;
-            })
-        },
-        saveDepartment: function() {
-            var url = 'Staff/Department';
-            if (this.dSelected.id != undefined)
-                url = url + '/' + this.dSelected.id;
-            console.log("Saving badge type", this.dSelected)
-            var that = this;
-            admin.genericPost(this.authToken, url, this.dSelected, function(editBt) {
 
-                //that.dSelected = editBt;
-                that.loading = false;
-                that.dDialog = false;
-            }, function() {
-                that.loading = false;
-            })
-        },
+
     },
     watch: {
         $route() {
             this.$nextTick(this.checkPermission);
         },
-        bSelected(newBadgeData) {
-            this.bModified = true;
-        },
+
     },
     created() {
         this.checkPermission();

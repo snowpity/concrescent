@@ -24,6 +24,7 @@ use CM3_Lib\models\staff\badge as s_badge;
 use CM3_Lib\models\forms\question as f_question;
 use CM3_Lib\models\forms\response as f_response;
 use CM3_Lib\models\contact as contact;
+use CM3_Lib\models\eventinfo as eventinfo;
 use CM3_Lib\util\CurrentUserInfo;
 use CM3_Lib\util\barcode;
 use CM3_Lib\util\FrontendUrlTranslator;
@@ -61,6 +62,7 @@ final class badgeinfo
         private s_department $s_department,
         private s_position $s_position,
         private contact $contact,
+        private eventinfo $eventinfo,
     ) {
 
 
@@ -700,6 +702,15 @@ final class badgeinfo
                     new SearchTerm('ice_email_address', '%' . $searchText . '%', 'LIKE', 'OR'),
                 )
             ));
+        //If it looks like they specified a badge ID, add that to the search term
+        preg_match_all('/(?\'context_code\'[a-zA-Z]{0,3})(?\'display_id\'\d+)/m', $searchText, $badgeMatches, PREG_SET_ORDER, 0);
+        foreach ($badgeMatches as $exactSearch) {
+            $whereParts[]= new SearchTerm('', '', TermType:'OR', subSearch: array(
+                    new SearchTerm('context_code', $exactSearch['context_code'], JoinedTableAlias:'grp'),
+                    new SearchTerm('display_id', $exactSearch['display_id'], )
+                ));
+        }
+
         $result = $this->SearchBadges($context, $whereParts, $order, $limit, $offset, $totalRows, false, $includeFormQuestions);
         //If we got nothing, switch to a simpler search
         if (count($result) == 0) {
@@ -749,10 +760,12 @@ final class badgeinfo
         $s_terms = $this->AdjustSearchTerms($terms, $s_bv);
         $g_terms = $this->AdjustSearchTerms($terms, $g_bv);
         //Add to the group search if context specified
-        $g_terms[] = new SearchTerm('context_code', $context, is_null($context) ? 'IS' : '=', JoinedTableAlias:'grp');
+        if ($context !== false) {
+            $g_terms[] = new SearchTerm('context_code', $context, is_null($context) ? 'IS' : '=', JoinedTableAlias:'grp');
+        }
 
-        $a_data = (($context ?? 'A') == 'A') ? $this->a_badge->Search($a_bv, $a_terms, $order, $limit, $offset, $trA, 'b') : array();
-        $s_data = (($context ?? 'S') == 'S') ? $this->s_badge->Search($s_bv, $s_terms, $order, $limit, $offset, $trG, 'b') : array();
+        $a_data = ($context === false || ($context ?? 'A') == 'A') ? $this->a_badge->Search($a_bv, $a_terms, $order, $limit, $offset, $trA, 'b') : array();
+        $s_data = ($context === false || ($context ?? 'S') == 'S') ? $this->s_badge->Search($s_bv, $s_terms, $order, $limit, $offset, $trG, 'b') : array();
         //$this->g_badge->debugThrowBeforeSelect = true;
         //Sub badges do not have queestion responses, so filder out possible form responses
         $orderNoFormResponses = is_array($order) ? array_filter($order, function ($colname) {
@@ -1139,7 +1152,8 @@ final class badgeinfo
             array_merge(
                 $this->selectColumns,
                 array(
-               new SelectColumn('context_code', EncapsulationFunction: "'".$contextCode."'", Alias:'context_code'),
+               //new SelectColumn('context_code', EncapsulationFunction: "'".$contextCode."'", Alias:'context_code'),
+               new SelectColumn('context_code', JoinedTableAlias:'grp'),
                new SelectColumn('application_status', EncapsulationFunction: "''", Alias:'application_status'),
                'badge_type_id',
                'payment_status',
@@ -1158,7 +1172,18 @@ final class badgeinfo
                      new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
                    ),
                    alias:'typ'
-               )
+               ),
+               new Join(
+                   $this->eventinfo,
+                   array(
+                     'context_code' => new SearchTerm('', '', Raw: '1=1 '),
+                   ),
+                   'LEFT',
+                   'grp',
+                   array(new SelectColumn('context_code', EncapsulationFunction: "'".$contextCode."'", Alias:'context_code'),),
+                   array(
+                   new SearchTerm('id', $this->CurrentUserInfo->GetEventId())),
+               ),
              )
         );
 
@@ -1200,7 +1225,8 @@ final class badgeinfo
             array_merge(
                 $this->selectColumns,
                 array(
-               new SelectColumn('context_code', EncapsulationFunction: "'".$contextCode."'", Alias:'context_code'),
+               //new SelectColumn('context_code', EncapsulationFunction: "'".$contextCode."'", Alias:'context_code'),
+               new SelectColumn('context_code', JoinedTableAlias:'grp'),
                'application_status',
                'badge_type_id',
                'payment_status',
@@ -1219,7 +1245,18 @@ final class badgeinfo
                      new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
                    ),
                    alias:'typ'
-               )
+               ),
+               new Join(
+                   $this->eventinfo,
+                   array(
+                     'context_code' => new SearchTerm('', '', Raw: '1=1 '),
+                   ),
+                   'LEFT',
+                   'grp',
+                   array(new SelectColumn('context_code', EncapsulationFunction: "'".$contextCode."'", Alias:'context_code'),),
+                   array(
+                   new SearchTerm('id', $this->CurrentUserInfo->GetEventId())),
+               ),
              )
         );
 
