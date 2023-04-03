@@ -71,6 +71,18 @@ return function (App $app, $container) {
         }
     );
 
+    $app->group(
+        '/Badge/PrintJob',
+        function (RouteCollectorProxy $app) use ($accessPerm) {
+            $printPerm = $accessPerm->withAllowedPerm(PermEvent::Badge_Print());
+            $app->get('', \CM3_Lib\Action\Badge\PrintJob\Search::class)
+            ->add($printPerm);
+            $app->get('/{id}', \CM3_Lib\Action\Badge\PrintJob\Read::class)
+            ->add($printPerm);
+            $app->post('/{id}', \CM3_Lib\Action\Badge\PrintJob\Update::class)
+            ->add($printPerm);
+        }
+    );
 
     $app->group(
         '/Badge/CheckIn',
@@ -85,6 +97,10 @@ return function (App $app, $container) {
             $app->get('/{context_code}/{badge_id}/GetPayment', \CM3_Lib\Action\Badge\CheckIn\GetPayment::class)
             ->add($checkinPerm);
             $app->post('/{context_code}/{badge_id}/PostPayment', \CM3_Lib\Action\Badge\CheckIn\PostPayment::class)
+            ->add($checkinPerm);
+            $app->post('/{context_code}/{badge_id}/Print', \CM3_Lib\Action\Badge\CheckIn\PostPrint::class)
+            ->add($checkinPerm);
+            $app->get('/{context_code}/{badge_id}/Print/{job_id}', \CM3_Lib\Action\Badge\CheckIn\GetPrint::class)
             ->add($checkinPerm);
             $app->post('/{context_code}/{badge_id}/Finish', \CM3_Lib\Action\Badge\CheckIn\FinishCheckIn::class)
             ->add($checkinPerm);

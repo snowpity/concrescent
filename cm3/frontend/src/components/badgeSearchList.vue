@@ -114,6 +114,18 @@
             {{item.id}}
         </v-tooltip>
     </template>
+    <template v-slot:[`item.payment_status`]="{ item }">
+        <v-tooltip left>
+            <template v-slot:activator="{ on, attrs }">
+                <v-icon v-bind="attrs"
+                        v-on="on"
+                        :color="paymentStatusColor[item.payment_status]"
+                        v-if="paymentStatusIcon[item.payment_status] != undefined">mdi-{{paymentStatusIcon[item.payment_status]}}</v-icon>
+                <div v-else>{{item.payment_status}}</div>
+            </template>
+            <span>{{item.payment_status}}</span>
+        </v-tooltip>
+    </template>
     <template v-slot:[`item.time_printed`]="{ item }">
         <v-tooltip left>
             <template v-slot:activator="{ on, attrs }">
@@ -170,6 +182,12 @@ export default {
     props: {
         'apiPath': {
             type: String
+        },
+        'search': {
+            type: String,
+            default () {
+                return '';
+            }
         },
         'context_code': {
             type: String
@@ -229,14 +247,38 @@ export default {
     },
     data() {
         return {
-            searchText: "",
+            searchText: this.search,
             loading: false,
             showConfig: false,
             tableOptions: {},
             tableResults: [],
             totalResults: 0,
             questions: [],
-            displayedQuestions: []
+            displayedQuestions: [],
+
+            //TEMP: Until Payment_Status is in its own component
+            paymentStatusIcon: {
+                'NotReady': 'alert',
+                'AwaitingApproval': 'clock-alert',
+                'NotStarted': 'progress-question',
+                'Incomplete': 'alert',
+                'Cancelled': 'close-octagon',
+                'Rejected': 'alert',
+                'Completed': 'check-circle',
+                'Refunded': 'close-octagon',
+                'RefundedInPart': 'check-circle',
+            },
+            paymentStatusColor: {
+                'NotReady': 'grey',
+                'AwaitingApproval': '',
+                'NotStarted': 'amber',
+                'Incomplete': 'amber',
+                'Cancelled': 'red',
+                'Rejected': 'red',
+                'Completed': 'green',
+                'Refunded': 'red',
+                'RefundedInPart': 'lime',
+            },
         }
     },
     computed: {
@@ -251,6 +293,10 @@ export default {
                 {
                     text: 'Badge Type',
                     value: 'badge_type_name',
+                },
+                {
+                    text: 'Contact Email',
+                    value: 'contact_email_address',
                 },
                 {
                     text: 'Application Status',
@@ -309,12 +355,25 @@ export default {
                 this.tableResults = results;
                 this.totalResults = total;
                 this.loading = false;
+
+                //If this looks like a badge scan, and we had exactly one result, emit it
+                if (results.length == 1) {
+                    let r = results[0];
+                    let resultQR = 'CM*' + r.context_code + r.display_id + '*' + r.uuid;
+                    console.log('Looking for code', resultQR)
+                    if (this.searchText == resultQR) {
+                        console.log('QR code match', r)
+                        this.$emit('qrmatch', r);
+                    }
+                }
+
             })
         },
         doEmit: function(eventName, item) {
             this.$emit(eventName, item);
         },
         doRefreshQuestions: function() {
+            if (this.context_code == undefined) return;
             console.log('bsl refreshing questions', this.context_code);
             admin.genericGetList(this.authToken, 'Form/Question/' + this.context_code, null, (results, total) => {
                 this.questions = results;
@@ -326,9 +385,12 @@ export default {
         }
     },
     watch: {
-
+        search: function(newSearch) {
+            this.searchText = newSearch;
+        },
         searchText: debounce(function(newSearch) {
             this.doSearch();
+            this.$emit('update:search', newSearch);
         }, 500),
         displayedQuestions: debounce(function(newSearch) {
             this.doSearch();

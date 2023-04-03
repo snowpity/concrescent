@@ -25,7 +25,7 @@
 
             setTimeout(() =>
             {
-                 window.location.replace(window.location.pathname + (window.location.hash || '?') + '&attemptedReload' );
+                 window.location.replace(window.location.pathname + (window.location.hash || '?') + '?attemptedReload' );
                  window.location.reload();
             }, 5000);
         } else {

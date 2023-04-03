@@ -700,6 +700,7 @@ final class badgeinfo
                     new SearchTerm('notify_email', '%' . $searchText . '%', 'LIKE', 'OR'),
                     new SearchTerm('ice_name', '%' . $searchText . '%', 'LIKE', 'OR'),
                     new SearchTerm('ice_email_address', '%' . $searchText . '%', 'LIKE', 'OR'),
+                    new SearchTerm('email_address', '%' . $searchText . '%', 'LIKE', 'OR', JoinedTableAlias:'con'),
                 )
             ));
         //If it looks like they specified a badge ID, add that to the search term
@@ -746,8 +747,8 @@ final class badgeinfo
     {
         // Invoke the Domain with inputs and retain the result
         $trA = 0;
-        $trG = 0;
         $trS = 0;
+        $trG = 0;
         $a_bv = $this->badgeView($this->a_badge_type, 'A', $includeFormQuestions);
         $s_bv = $this->staffBadgeView($this->s_badge_type, 'S', $includeFormQuestions);
         $g_bv = $this->groupBadgeView();
@@ -765,14 +766,14 @@ final class badgeinfo
         }
 
         $a_data = ($context === false || ($context ?? 'A') == 'A') ? $this->a_badge->Search($a_bv, $a_terms, $order, $limit, $offset, $trA, 'b') : array();
-        $s_data = ($context === false || ($context ?? 'S') == 'S') ? $this->s_badge->Search($s_bv, $s_terms, $order, $limit, $offset, $trG, 'b') : array();
+        $s_data = ($context === false || ($context ?? 'S') == 'S') ? $this->s_badge->Search($s_bv, $s_terms, $order, $limit, $offset, $trS, 'b') : array();
         //$this->g_badge->debugThrowBeforeSelect = true;
         //Sub badges do not have queestion responses, so filder out possible form responses
         $orderNoFormResponses = is_array($order) ? array_filter($order, function ($colname) {
             return !str_starts_with($colname, 'form_responses');
         }, ARRAY_FILTER_USE_KEY) : null;
-        $g_data = $this->g_badge->Search($g_bv, $g_terms, $orderNoFormResponses, $limit, $offset, $trS, 'b');
-        $totalRows =  $trA + $trG + $trS;
+        $g_data = $this->g_badge->Search($g_bv, $g_terms, $orderNoFormResponses, $limit, $offset, $trG, 'b');
+        $totalRows =  $trA + $trS + $trG;
 
 
         //Add in any addons
@@ -1161,6 +1162,7 @@ final class badgeinfo
                'payment_badge_price',
                new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ'),
                new SelectColumn('payable_onsite', Alias:'badge_type_payable_onsite', JoinedTableAlias:'typ'),
+               new SelectColumn('email_address', Alias:'contact_email_address', JoinedTableAlias:'con'),
              )
             ),
             array(
@@ -1184,6 +1186,13 @@ final class badgeinfo
                    array(
                    new SearchTerm('id', $this->CurrentUserInfo->GetEventId())),
                ),
+              new Join(
+                  $this->contact,
+                  array(
+                    'id' => 'contact_id'
+                  ),
+                  alias:'con'
+              ),
              )
         );
 
@@ -1234,6 +1243,7 @@ final class badgeinfo
                'payment_badge_price',
                new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ'),
                new SelectColumn('payable_onsite', Alias:'badge_type_payable_onsite', JoinedTableAlias:'typ'),
+               new SelectColumn('email_address', Alias:'contact_email_address', JoinedTableAlias:'con'),
              )
             ),
             array(
@@ -1257,6 +1267,13 @@ final class badgeinfo
                    array(
                    new SearchTerm('id', $this->CurrentUserInfo->GetEventId())),
                ),
+              new Join(
+                  $this->contact,
+                  array(
+                    'id' => 'contact_id'
+                  ),
+                  alias:'con'
+              ),
              )
         );
 
@@ -1328,7 +1345,8 @@ final class badgeinfo
                    new SelectColumn('payment_id', JoinedTableAlias:'bs'),
                    new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ'),
                    new SelectColumn('payable_onsite', Alias:'badge_type_payable_onsite', JoinedTableAlias:'typ'),
-                   new SelectColumn('payment_deferred', Alias:'badge_type_payment_deferred', JoinedTableAlias:'typ')
+                   new SelectColumn('payment_deferred', Alias:'badge_type_payment_deferred', JoinedTableAlias:'typ'),
+                   new SelectColumn('email_address', Alias:'contact_email_address', JoinedTableAlias:'con'),
                  )
             ),
             array(
@@ -1354,7 +1372,14 @@ final class badgeinfo
                         new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
                       ),
                       alias:'grp'
-                  )
+                  ),
+                 new Join(
+                     $this->contact,
+                     array(
+                       'id' => 'contact_id'
+                     ),
+                     alias:'con'
+                 ),
                  )
         );
     }
@@ -1389,7 +1414,8 @@ final class badgeinfo
                new SelectColumn('payment_id'),
                new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ'),
                new SelectColumn('payable_onsite', Alias:'badge_type_payable_onsite', JoinedTableAlias:'typ'),
-               new SelectColumn('payment_deferred', Alias:'badge_type_payment_deferred', JoinedTableAlias:'typ')
+               new SelectColumn('payment_deferred', Alias:'badge_type_payment_deferred', JoinedTableAlias:'typ'),
+               new SelectColumn('email_address', Alias:'contact_email_address', JoinedTableAlias:'con'),
 
             ),
             array(
@@ -1407,7 +1433,14 @@ final class badgeinfo
                         new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId())
                       ),
                       alias:'grp'
-                  )
+                  ),
+                 new Join(
+                     $this->contact,
+                     array(
+                       'id' => 'contact_id'
+                     ),
+                     alias:'con'
+                 ),
                  )
         );
 
@@ -1549,13 +1582,13 @@ final class badgeinfo
     public function updateSupplementaryBadgeData(&$result)
     {
         //If we're accepted or otherwise complete but still do not have a display ID, fix that
-        if (isset($result['display_id']) && $result['display_id']==null && in_array(
+        if (array_key_exists('display_id', $result) && $result['display_id']==null && in_array(
             $result['application_status']??'',
             ['PendingAcceptance','Accepted','Onboarding','Active']
         )) {
             $this->setNextDisplayIDSpecificBadge($result['id'], $result['context_code']);
         }
-        switch ($result['context_code']) {
+        switch ($result['context_code']??'A') {
             case 'A':
                 //$result =  $this->a_badge->Create($data);
                 break;
@@ -1594,7 +1627,7 @@ final class badgeinfo
                 $setSubbadges = &$result['subbadges'];
                 $currentSubbadges = $this->g_badge->Search(
                     array(
-                            'id'
+                            'id','display_id'
                     ),
                     array(
                         new SearchTerm('application_id', $result['id'])
@@ -1635,7 +1668,7 @@ final class badgeinfo
                     $this->g_badge->Update($existingSubbadge);
 
                     //If completed payment and accepted add display ID
-                    if ($existingSubbadge['display_id'] ??null==null && in_array(
+                    if (($existingSubbadge['display_id'] ??null)==null && in_array(
                         $result['application_status']??'',
                         ['PendingAcceptance','Accepted','Onboarding','Active']
                     )) {

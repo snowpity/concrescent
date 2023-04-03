@@ -44,6 +44,9 @@
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
         <v-toolbar-title>{{appHead}}</v-toolbar-title>
         <v-spacer></v-spacer>
+
+        <PrintDaemon v-if="runPrintDaemon" />
+
         <v-menu bottom
                 left>
             <template v-slot:activator="{ on, attrs }">
@@ -120,6 +123,7 @@
 <script>
 const config = require("../customization/config.js");
 import {
+    mapState,
     mapGetters
 } from 'vuex'
 export default {
@@ -129,6 +133,9 @@ export default {
         subTabs: [],
         subTabIx: 0
     }),
+    components: {
+        PrintDaemon: () => import( /* webpackChunkName: "printDaemon" */ '@/components/formatpieces/printDaemon.vue')
+    },
     computed: {
         appTitle: function() {
             var result = [this.AppName];
@@ -417,7 +424,11 @@ export default {
         },
         eventDates: function() {
             return this.productselectedEvent.date_start + "-" + this.productselectedEvent.date_end;
-        }
+        },
+
+        ...mapState({
+            runPrintDaemon: (state) => state.station.serviceRemoteJobs,
+        }),
     },
     methods: {
         updateSubTitle(newSubTitle) {

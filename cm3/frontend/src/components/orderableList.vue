@@ -62,6 +62,12 @@ export default {
         'apiPath': {
             type: String
         },
+        'search': {
+            type: String,
+            default () {
+                return '';
+            }
+        },
         'apiMoveCommand': {
             type: String
         },
@@ -102,7 +108,7 @@ export default {
     },
     data: () => ({
 
-        searchText: "",
+        searchText: this.search,
         loading: false,
         tableOptions: {},
         tableResults: [],
@@ -154,9 +160,12 @@ export default {
         }
     },
     watch: {
-
+        search: function(newSearch) {
+            this.searchText = newSearch;
+        },
         searchText: debounce(function(newSearch) {
             this.doSearch();
+            this.$emit('update:search', newSearch);
         }, 500),
         isEditingItem: debounce(function(newEditing) {
             if (!newEditing)

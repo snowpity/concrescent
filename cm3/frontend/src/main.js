@@ -75,6 +75,8 @@ new Vue({
         this.$store.commit('cart/initialiseCart');
         //Retrieve the users' data
         this.$store.commit('mydata/initialiseData');
+        //Retrieve the station's data
+        this.$store.commit('station/initialiseData');
         //Initiate a call to get the products
         //this.$store.dispatch("products/getAllProducts");
     },
@@ -96,5 +98,9 @@ store.subscribe((mutation, state) => {
     if (mutation.type.startsWith("mydata/")) {
         // Store the state object as a JSON string
         localStorage.setItem('mydata', JSON.stringify(state.mydata));
+    }
+    if (mutation.type.startsWith("station/")) {
+        // Store the state object as a JSON string
+        localStorage.setItem('station', JSON.stringify(state.station));
     }
 });

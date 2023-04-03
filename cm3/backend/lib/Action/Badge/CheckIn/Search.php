@@ -48,7 +48,7 @@ final class Search
         //TODO: Also, provide some sane defaults
         $qp = $request->getQueryParams();
         $find = $qp['find'] ?? '';
-        $context = $qp['context'] ?? null;
+        $context = $qp['context'] ?? false;
 
 
         //First, determine if this is an exact match code, for example from QR code
@@ -62,8 +62,10 @@ final class Search
             $result = $this->badgeinfo->SearchSpecificBadge($uuid, $shortcode, false);
 
             if ($result !== false && $result['display_id'] == $display_id) {
+                $response = $response->withHeader('X-Total-Rows', (string)1);
                 $result = array($result);
             } else {
+                $response = $response->withHeader('X-Total-Rows', (string)0);
                 $result = array();
             }
 

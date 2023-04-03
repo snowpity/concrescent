@@ -32,9 +32,11 @@
         <v-stepper-items>
             <v-stepper-content step="1">
                 <badgeSearchList apiPath="Badge/CheckIn"
+                                 :search.sync="searchText"
                                  :actions="[{name:'select',text:'Select'}]"
                                  :isEditingItem="checkinStage > 1"
-                                 @select="selectBadge" />
+                                 @select="selectBadge"
+                                 @qrmatch="selectBadge" />
             </v-stepper-content>
 
             <v-stepper-content step="2">
@@ -153,6 +155,21 @@
                        @click="ExecutePrint">
                     {{selectedBadge.time_printed != null ? "(Re)" : ""}}Print Badge
                 </v-btn>
+                <v-tooltip top
+                           v-if="printingRemoteJobStatus">
+                    <template v-slot:activator="{ on, attrs }">
+                        <span v-bind="attrs"
+                              v-on="on">
+                            <v-sheet elevation="6"
+                                     class="ma-3 pa-5"
+                                     rounded>
+                                Print status: {{printingRemoteJobStatus}}
+                            </v-sheet>
+                        </span>
+                    </template>
+                    <span>Print Job: {{printingRemoteJobId}}</span>
+                </v-tooltip>
+
                 <v-dialog v-model="printPanel"
                           fullscreen
                           transition="none">
@@ -314,6 +331,23 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
+    <v-dialog v-model="unableToCheckIn"
+              persistent
+              max-width="290">
+        <v-card>
+            <v-card-title class="text-h5">
+                Unable Checked-In!
+            </v-card-title>
+            <v-card-text>This badge has an issue and cannot be checked in.</v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="primary"
+                       @click="selectedBadge = {}">
+                    Cancel
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 </v-container>
 </template>
 <script>
@@ -340,10 +374,12 @@ export default {
     },
     data: () => ({
         checkinStage: 1,
+        searchText: '',
         selectedBadge: {},
         selectedBadgeFormats: [],
         selectedBadgeFormat: {},
         alreadyCheckedInDialog: false,
+        unableToCheckIn: false,
         editingBadge: false,
         edit_real_name: '',
         edit_fandom_name: '',
@@ -359,6 +395,9 @@ export default {
         paying: false,
         loadpaying: false,
         printing: false,
+        printingRemoteJobId: null,
+        printingRemoteJobPollTimer: null,
+        printingRemoteJobStatus: '',
         printPanel: false,
         finishing: false,
 
@@ -377,6 +416,11 @@ export default {
         },
     }),
     computed: {
+        ...mapState({
+            print_remote: (state) => state.station.remotePrinting,
+            print_remoteName: (state) => state.station.preferredRemotePrinter,
+            print_localName: (state) => state.station.servicePrintJobsAs,
+        }),
         headers: () => {
 
             return [{
@@ -479,6 +523,21 @@ export default {
         checkPermission: () => {
             console.log('Hey! Listen!');
         },
+        isAllowedCheckin: function(item) {
+            let badAppStatus = [
+                'InProgress', 'Submitted', 'Cancelled',
+                'Rejected', 'Waitlisted', 'Terminated'
+            ].indexOf(item.application_status);
+            if (badAppStatus > -1) return false;
+
+            let badPayStatus = [
+                'NotReady', 'AwaitingApproval', 'NotStarted',
+                'Cancelled', 'Refunded'
+            ].indexOf(item.application_status);
+            if (badPayStatus > -1) return false;
+
+            return true;
+        },
         selectBadge: function(item) {
             this.selectedBadge = item;
         },
@@ -553,15 +612,21 @@ export default {
         },
         ExecutePrint: async function() {
             if (this.selectedBadge.id == undefined) return;
-            //this.printing = true;
-            this.printPanel = true;
+            this.printing = true;
 
-            //Print and close
-            (function(app) {
-                setTimeout(() => {
-                    window.print();
-                }, 130);
-            }(this));
+            //If we're remote printing, just do that
+            if (!this.print_remote) {
+                this.printPanel = true;
+
+                //Print and close
+                (function(app) {
+                    setTimeout(() => {
+                        window.print();
+                    }, 130);
+                }(this));
+            } else {
+                this.PostPrint(false);
+            }
         },
         printLocalStart: function() {
             console.log('Prep printing')
@@ -571,7 +636,37 @@ export default {
         printLocalEnd: function() {
             console.log('Done printing')
             this.printPanel = false;
+            this.printing = false;
+            this.PostPrint(true);
 
+        },
+        PostPrint: function(completedLocally) {
+
+            admin.genericPost(this.authToken, "Badge/CheckIn/" + this.selectedBadge.context_code + "/" + this.selectedBadge.id + "/Print", {
+                format_id: this.selectedBadgeFormat.id,
+                localPrinted: completedLocally,
+                meta: {
+                    stationName: this.print_remote ? this.print_remoteName : this.print_localName
+                },
+                data: this.selectedBadge
+            }, (printJob) => {
+                console.log('print job result', printJob)
+                this.printingRemoteJobId = printJob.printjob_id;
+                this.printingRemoteJobStatus = printJob.printjob_status;
+            })
+        },
+        RefreshRemotePrintJob: function() {
+            //console.log('Polling print job', this.printingRemoteJobId);
+            admin.genericGet(this.authToken, "Badge/CheckIn/" + this.selectedBadge.context_code + "/" + this.selectedBadge.id + "/Print/" + this.printingRemoteJobId, null, (printJob) => {
+                //console.log('print job status', printJob)
+
+                let donePrinting = -1 < [
+                    'Cancelled', 'Completed'
+                ].indexOf(printJob.state);
+                if (donePrinting)
+                    this.printingRemoteJobId = null;
+                this.printingRemoteJobStatus = printJob.state;
+            })
         },
         FinishCheckIn: function() {
             if (this.selectedBadge.id == undefined) return;
@@ -606,10 +701,16 @@ export default {
                 this.loadSelectedBadge();
                 if (this.selectedBadge.time_checked_in != null)
                     this.alreadyCheckedInDialog = true;
+                if (!this.isAllowedCheckin(sb))
+                    this.unableToCheckIn = true;
             } else if (this.checkinStage > 1 && sb.id == undefined) {
                 this.checkinStage = 1;
                 this.alreadyCheckedInDialog = false;
+                this.unableToCheckIn = false;
                 this.printing = false;
+                this.printingRemoteJobId = null;
+                this.printingRemoteJobStatus = '';
+                this.searchText = '';
             }
         },
         editingBadge: function(isEditing) {
@@ -643,6 +744,14 @@ export default {
                 //Un-hook the printing events
                 window.removeEventListener('beforeprint', this.printLocalStart);
                 window.removeEventListener('afterprint', this.printLocalEnd);
+            }
+        },
+        printingRemoteJobId: function(newJobId) {
+            if (newJobId == null) {
+                clearInterval(this.printingRemoteJobPollTimer);
+                this.printing = false;
+            } else {
+                this.printingRemoteJobPollTimer = setInterval(() => this.RefreshRemotePrintJob(), 3000);
             }
         },
         menuBDay(val) {
