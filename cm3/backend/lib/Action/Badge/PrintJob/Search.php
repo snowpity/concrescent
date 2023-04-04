@@ -3,8 +3,13 @@
 namespace CM3_Lib\Action\Badge\PrintJob;
 
 use CM3_Lib\util\badgeinfo;
-use CM3_Lib\database\SearchTerm;
 use CM3_Lib\models\badge\printjob;
+use CM3_Lib\models\badge\format;
+
+use CM3_Lib\database\View;
+use CM3_Lib\database\Join;
+use CM3_Lib\database\SearchTerm;
+use CM3_Lib\database\SelectColumn;
 
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
@@ -25,8 +30,12 @@ final class Search
      * @param Responder $responder The responder
      * @param eventinfo $eventinfo The service
      */
-    public function __construct(private Responder $responder, private printjob $printjob, private badgeinfo $badgeinfo)
-    {
+    public function __construct(
+        private Responder $responder,
+        private printjob $printjob,
+        private format $format,
+        private badgeinfo $badgeinfo
+    ) {
     }
 
     /**
@@ -47,6 +56,7 @@ final class Search
         $state = $qp['state'] ?? false;
         $stationName = $qp['stationName'] ?? false;
         $full = $qp['full'] ?? 'false';
+        $expandMeta = $qp['expandMeta'] ?? 'false';
 
         if ($state) {
             $whereParts[] = new SearchTerm('state', $state);
@@ -55,14 +65,24 @@ final class Search
             $whereParts[] = new SearchTerm('meta', $stationName, EncapsulationFunction: 'JSON_EXTRACT(?, "$.stationName")', EncapsulationColumnOnly: true);
         }
 
+        //Build the view based on options
+        $view = new View(['id','format_id','state'], []);
+        if ($full == 'true') {
+            $view->Columns[] = 'meta';
+            $view->Columns[] = 'data';
+        }
+        if ($expandMeta == 'true') {
+            $view->Joins[] = new Join($this->format, ['id' => 'format_id'], 'LEFT', alias:'f');
+            $view->Columns[] = new SelectColumn('name', JoinedTableAlias:'f');
+            $view->Columns[] = new SelectColumn('meta', EncapsulationFunction: 'JSON_UNQUOTE(JSON_EXTRACT(?, "$.stationName"))', Alias:'stationName');
+            $view->Columns[] = 'date_created';
+            $view->Columns[] = 'date_modified';
+        }
+
         // Invoke the Domain with inputs and retain the result
         $pg = $this->badgeinfo->parseQueryParamsPagination($qp);
         $totalRows = 0;
-        $data = $this->printjob->Search(array(
-            'id','format_id','state',
-            $full == 'true' ? 'meta' : null,
-            $full == 'true' ? 'data' : null,
-        ), $whereParts, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
+        $data = $this->printjob->Search($view, $whereParts, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
 
         foreach ($data as &$value) {
             if (isset($value['data'])) {

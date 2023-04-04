@@ -15,6 +15,8 @@ export default {
         var qparams = new URLSearchParams({
             ...params
         }).toString();
+        if (qparams.length > 0)
+            qparams = '?' + qparams
         axios.get(global.config.apiHostURL + path + qparams, {
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -75,6 +77,8 @@ export default {
         var qparams = new URLSearchParams({
             ...params
         }).toString();
+        if (qparams.length > 0)
+            qparams = '?' + qparams
         axios.get(global.config.apiHostURL + path + '?' + qparams, {
                 headers: {
                     Authorization: `Bearer ${token}`

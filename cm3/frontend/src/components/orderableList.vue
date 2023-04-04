@@ -62,6 +62,12 @@ export default {
         'apiPath': {
             type: String
         },
+        'apiAddParams': {
+            type: Object,
+            default () {
+                return {};
+            }
+        },
         'search': {
             type: String,
             default () {
@@ -148,7 +154,7 @@ export default {
                 'sortDesc',
                 'page',
                 'itemsPerPage'
-            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), {});
+            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), this.apiAddParams || {});
             if (this.searchText) pageOptions['find'] = this.searchText;
             if (this.context_code) pageOptions['context_code'] = this.context_code;
             admin.genericGetList(this.authToken, this.apiPath, pageOptions, (results, total) => {

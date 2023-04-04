@@ -68,6 +68,28 @@
                 Badges</v-expansion-panel-header>
             <v-expansion-panel-content>
 
+                <v-list v-if="badgeContexts">
+                    <v-list-item v-for="context in badgeContexts"
+                                 :key="context.id">
+                        <v-list-item-avatar>
+                            <v-icon>mdi-{{context.menu_icon}}</v-icon>
+                        </v-list-item-avatar>
+
+                        <v-list-item-content v-if="model.badgeMap">
+                            <v-list-item-title>
+
+                                <v-select v-model="model.badgeMap[context.context_code]"
+                                          placeholder="No permissions"
+                                          :items="availableBadges(context.context_code)"
+                                          item-text="name"
+                                          item-value="id"
+                                          chips
+                                          multiple
+                                          :label="context.name" />
+                            </v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+                </v-list>
             </v-expansion-panel-content>
         </v-expansion-panel>
 
@@ -76,6 +98,10 @@
 </template>
 
 <script>
+import {
+    mapGetters,
+    mapState
+} from 'vuex'
 import scaleToParent from '@/components/formatpieces/scaleToParent.vue';
 import fieldRender from '@/components/formatpieces/fieldRender.vue';
 const minmax = (num, min, max) => Math.min(Math.max(num, min), max)
@@ -93,8 +119,10 @@ export default {
         return {
             dialog: false,
             model: {
+                badgeMap: {},
                 ...this.value
             },
+            badgeMap: {},
             skipEmitOnce: false,
         };
     },
@@ -115,6 +143,13 @@ export default {
         layoutSelect(ix) {
             console.log('Selecting layout', ix)
             this.$emit('selectLayout', ix);
+        },
+        availableBadges(context_code) {
+            if (this.badges == undefined) return [];
+            let a = this.badges[context_code];
+            if (a == undefined)
+                return [];
+            return a;
         },
     },
     watch: {
@@ -149,9 +184,20 @@ export default {
                     ix: ix
                 }
             }).reverse();
-        }
+        },
+        ...mapGetters('products', {
+            'badgeContexts': 'badgeContexts',
+        }),
+        ...mapState('products', {
+            'badges': (state) => state.badges,
+
+        })
     },
     mounted() {
+        //Ensure all context badgess are loaded
+        this.badgeContexts.forEach((item, i) => {
+            this.$store.dispatch('products/getContextBadges', item.context_code);
+        });
 
     },
 

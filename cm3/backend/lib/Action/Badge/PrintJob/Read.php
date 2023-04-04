@@ -39,26 +39,46 @@ final class Read
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         // Extract the form data from the request body
-        $data = (array)$request->getParsedBody();
+        $qp = $request->getQueryParams();
+        $includeFormat = $qp['includeFormat'] ?? 'false';
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
-
-        //Ensure we're only attempting to create a printjob for the current Event
-        $fresult = $this->format->GetByID($params['format_id'], array('event_id'));
-        if ($fresult === false) {
-            throw new HttpNotFoundException($request);
-        }
-        if ($fresult['event_id'] != $request->getAttribute('event_id')) {
-            throw new HttpBadRequestException($request, 'Badge Format does not belong to the current event!');
-        }
 
         $result = $this->printjob->GetByID($params['id'], '*');
         if ($result === false) {
             throw new HttpNotFoundException($request);
         }
-        if ($params['format_id'] != $result['format_id']) {
-            throw new HttpBadRequestException($request, 'PrintJob does not belong to the specified format!');
+        if ($result['event_id'] != $request->getAttribute('event_id')) {
+            throw new HttpBadRequestException($request, 'Print job does not belong to the current event!');
         }
 
+        if (isset($result['data'])) {
+            //Move into raw for safe-keeping
+            $result['data_raw'] = $result['data'];
+            $result['data'] = json_decode($result['data']);
+            if (0==json_last_error()) {
+                unset($result['data_raw']);
+            }
+        }
+        if (isset($result['meta'])) {
+            //Move into raw for safe-keeping
+            $result['meta_raw'] = $result['meta'];
+            $result['meta'] = json_decode($result['meta']);
+            if (0==json_last_error()) {
+                unset($result['meta_raw']);
+            }
+        }
+
+        if ($includeFormat == 'true') {
+            $result['format'] = $this->format->GetByID($result['format_id'], '*');
+            if ($result['format']!==false) {
+                //Convert layout to array
+                $lRaw = $result['format']['layout'];
+                $result['format']['layout'] = json_decode($result['format']['layout']);
+                if (json_last_error()) {
+                    $result['format']['layout_raw'] = $lRaw;
+                }
+            }
+        }
 
         // Build the HTTP response
         return $this->responder

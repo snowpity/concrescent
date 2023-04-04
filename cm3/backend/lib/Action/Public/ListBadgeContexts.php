@@ -60,8 +60,10 @@ final class ListBadgeContexts
          ), $whereParts, $order);
 
         //Append the hard-coded contexts
-        array_unshift($data, array('id'=>-1,'context_code'=>'A', 'name'=>'Attendee'));
-        $data[] = array('id'=>0,'context_code'=>'S', 'name'=>'Staff');
+        array_unshift($data, array('id'=>-1,'context_code'=>'A', 'name'=>'Attendee',
+            'menu_icon' => 'badge-account-horizontal'));
+        $data[] = array('id'=>0,'context_code'=>'S', 'name'=>'Staff',
+            'menu_icon' => 'account-hard-hat');
 
         // Build the HTTP response
         return $this->responder

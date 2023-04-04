@@ -183,6 +183,12 @@ export default {
         'apiPath': {
             type: String
         },
+        'apiAddParams': {
+            type: Object,
+            default () {
+                return {};
+            }
+        },
         'search': {
             type: String,
             default () {
@@ -347,7 +353,7 @@ export default {
                 'sortDesc',
                 'page',
                 'itemsPerPage'
-            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), {});
+            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), this.apiAddParams || {});
             if (this.displayedQuestions.length) pageOptions['questions'] = this.displayedQuestions.map(x => x.id).join(',');
             if (this.searchText) pageOptions['find'] = this.searchText;
             if (this.context_code) pageOptions['context_code'] = this.context_code;

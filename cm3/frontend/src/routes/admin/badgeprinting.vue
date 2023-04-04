@@ -44,21 +44,28 @@
     </v-tab-item>
     <v-tab-item value="Print">
 
-        <v-stepper v-model="printStage">
+        <v-stepper non-linear
+                   v-model="printStage">
             <v-stepper-header>
-                <v-stepper-step step="1">
+                <v-stepper-step step="1"
+                                :complete='fSelected.id != undefined'
+                                edit-icon="$vuetify.icons.complete"
+                                editable>
                     Select format
                 </v-stepper-step>
 
                 <v-divider></v-divider>
 
-                <v-stepper-step step="2">
+                <v-stepper-step step="2"
+                                edit-icon="$vuetify.icons.complete"
+                                :editable='fSelected.id != undefined'>
                     Select badges
                 </v-stepper-step>
 
                 <v-divider></v-divider>
 
-                <v-stepper-step step="3">
+                <v-stepper-step step="3"
+                                editable>
                     Print
                 </v-stepper-step>
             </v-stepper-header>
@@ -72,16 +79,78 @@
                                 @select="selectBadgeFormat" />
                 </v-stepper-content>
                 <v-stepper-content step="2">
-                    <simpleList :apiPath="'Badge/Format/' + fSelected.id + '/Badges'"
-                                internalKey="uuid"
-                                :AddHeaders="listAddHeaders"
-                                :RemoveHeaders="listRemoveHeaders"
-                                :actions="ptActions"
-                                :footerActions="ptFooterActions"
-                                @select="selectBadgeFormat" />
+                    <badgeSearchList v-if="fSelected"
+                                     :apiPath="'Badge/Format/' + fSelected.id + '/Badges'"
+                                     internalKey="uuid"
+                                     :AddHeaders="badgeSelectHeaders"
+                                     :RemoveHeaders="badgeSelectRemoveHeaders"
+                                     :actions="ptActions"
+                                     :footerActions="ptFooterActions"
+                                     @addOne="enqueueBadgeForPrinting" />
                 </v-stepper-content>
             </v-stepper-items>
         </v-stepper>
+    </v-tab-item>
+    <v-tab-item value="Queue">
+        <v-container>
+            <v-row>
+                <v-col>
+                    <v-select v-model="queueStateSearch"
+                              :items="queueStates"
+                              label="Jobs with Status" />
+                </v-col>
+            </v-row>
+        </v-container>
+        <simpleList apiPath="Badge/PrintJob"
+                    :apiAddParams="{expandMeta:true, state:queueStateSearch}"
+                    :AddHeaders="queueAddHeaders"
+                    :RemoveHeaders="queueRemoveHeaders"
+                    :isEditingItem="jEdit"
+                    :actions="listActions"
+                    @edit="editPrintJob" />
+
+        <v-dialog v-model="jEdit"
+                  fullscreen
+                  scrollable
+                  hide-overlay>
+            <v-card v-if="jEdit">
+                <v-card-title class="pa-0">
+                    <v-toolbar dark
+                               flat
+                               color="primary">
+                        <v-btn icon
+                               dark
+                               @click="jEdit = false">
+                            <v-icon>mdi-close</v-icon>
+                        </v-btn>
+                        <v-toolbar-title>Edit Print Job</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-toolbar-items>
+                            <v-btn color="primary"
+                                   dark
+                                   @click="savePrintJob()">
+                                <v-icon>mdi-content-save</v-icon>
+                            </v-btn>
+                        </v-toolbar-items>
+                    </v-toolbar>
+                </v-card-title>
+                <v-card-text class="pa-0">
+                    <v-select v-model="jSelected.state"
+                              :items="jPrintStates"
+                              label="Status" />
+                    <v-card height="200">
+                        <scaleToParent>
+                            <v-sheet color="white"
+                                     class="mx-auto mt-3"
+                                     elevation="4">
+                                <badgeFullRender :format="jSelected.format"
+                                                 :badge="jSelected.data" />
+                            </v-sheet>
+                        </scaleToParent>
+                    </v-card>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
     </v-tab-item>
 
     <v-dialog v-model="loading"
@@ -114,23 +183,19 @@ import admin from '../../api/admin';
 import {
     debounce
 } from '@/plugins/debounce';
+import badgeSearchList from '@/components/badgeSearchList.vue';
 import simpleList from '@/components/simpleList.vue';
 import badgeFormatEditor from '@/components/badgeFormatEditor.vue';
-import badgeTypeForm from '@/components/badgeTypeForm.vue';
-import formQuestionEditList from '@/components/formQuestionEditList.vue';
-import treeList from '@/components/treeList.vue';
-import editBadgeAdmin from '@/components/editBadgeAdmin.vue';
-import editDepartment from '@/components/editDepartment.vue';
+import badgeFullRender from '@/components/badgeFullRender.vue';
+import scaleToParent from '@/components/formatpieces/scaleToParent.vue';
 
 export default {
     components: {
+        badgeSearchList,
         simpleList,
         badgeFormatEditor,
-        // badgeTypeForm,
-        // formQuestionEditList,
-        // treeList,
-        //editBadgeAdmin,
-        // editDepartment
+        badgeFullRender,
+        scaleToParent
     },
     props: [
         'subTabIx'
@@ -153,8 +218,42 @@ export default {
         fEdit: false,
 
         printStage: 1,
+        badgeSelectHeaders: [
+
+        ],
+        badgeSelectRemoveHeaders: [
+            'contact_email_address'
+        ],
         printTypes: [],
         printQueue: [],
+
+
+        queueStateSearch: '',
+        queueRemoveHeaders: [
+            'time_checked_in'
+        ],
+        queueAddHeaders: [{
+            text: 'Format Name',
+            value: 'name'
+        }, {
+            text: 'Station Name',
+            value: 'stationName'
+        }, {
+            text: 'Status',
+            value: 'state'
+        }],
+        jfSelected: {},
+        jEdit: false,
+        jPrintStates: [
+            'Queued',
+            'Held',
+            'Reserved',
+            'InProgress',
+            'Completed',
+            'Batch',
+            'Cancelling',
+            'Cancelled'
+        ],
 
         loading: false,
         createError: '',
@@ -229,6 +328,9 @@ export default {
             });
             return result;
         },
+        queueStates: function() {
+            return ['', ...this.jPrintStates];
+        }
     },
     methods: {
         checkPermission: () => {
@@ -238,7 +340,7 @@ export default {
             console.log('edit badge selected from grid', selectedFormat);
             let that = this;
             that.loading = true;
-            that.fSelected = null;
+            that.fSelected = {};
             admin.genericGet(this.authToken, 'Badge/Format/' + selectedFormat.id, null, function(editFormat) {
                 that.fSelected = editFormat;
                 that.loading = false;
@@ -280,7 +382,7 @@ export default {
         selectBadgeFormat: function(selectedFormat) {
             console.log('selected badge for print from grid', selectedFormat);
             this.loading = true;
-            this.fSelected = null;
+            this.fSelected = {};
             console.log('fetching format', selectedFormat)
             admin.genericGet(this.authToken, 'Badge/Format/' + selectedFormat.id, null, (editFormat) => {
                 this.fSelected = editFormat;
@@ -291,9 +393,52 @@ export default {
                 this.loading = false;
             })
         },
+        enqueueBadgeForPrinting: function(selectedBadge) {
+            console.log('enqueue single badge for batch print from grid', selectedBadge);
+            this.loading = true;
+            admin.genericPost(this.authToken, 'Badge/Format/' + this.fSelected.id + '/Badges/' + selectedBadge.context_code + '/' + selectedBadge.id, {
+                    state: 'Batch',
+                    meta: {
+                        stationName: this.$store.state.station.servicePrintJobsAs || 'Batch'
+                    }
+                },
+                (result) => {
+                    this.loading = false;
+                }, (err) => {
+                    this.loading = false;
+                })
+        },
 
+        editPrintJob: function(selectedFormat) {
+            console.log('edit print job from grid', selectedFormat);
+            this.loading = true;
+            this.jSelected = {};
+            admin.genericGet(this.authToken, 'Badge/PrintJob/' + selectedFormat.id, {
+                includeFormat: true
+            }, (editPrintJob) => {
+                this.jSelected = editPrintJob;
+                this.loading = false;
+                this.jEdit = true;
+            }, () => {
+                this.loading = false;
+            })
+        },
 
-
+        savePrintJob: function() {
+            console.log('saving badge', this.jSelected);
+            var url = 'Badge/PrintJob';
+            if (this.jSelected.id != undefined)
+                url = url + '/' + this.jSelected.id;
+            let that = this;
+            that.loading = true;
+            admin.genericPost(this.authToken, url, this.jSelected, function(SavedDetails) {
+                that.jSelected = {};
+                that.loading = false;
+                that.jEdit = false;
+            }, function() {
+                that.loading = false;
+            })
+        },
 
     },
     watch: {
@@ -312,8 +457,13 @@ export default {
             },
             {
                 key: 'Print',
-                text: 'Printing',
-                title: 'Badge Printing'
+                text: 'Pre-Printing',
+                title: 'Badge Pre-Printing'
+            },
+            {
+                key: 'Queue',
+                text: 'Printing Queue',
+                title: 'Printing Queue'
             },
         ]);
     }

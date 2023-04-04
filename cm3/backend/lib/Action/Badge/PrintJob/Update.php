@@ -49,6 +49,12 @@ final class Update
             throw new HttpBadRequestException($request, 'PrintJob does not belong to the specified event!');
         }
 
+        if (is_array($data['data'])) {
+            $data['data'] = json_encode($data['data']);
+        }
+        if (is_array($data['meta'])) {
+            $data['meta'] = json_encode($data['meta']);
+        }
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->printjob->Update($data);

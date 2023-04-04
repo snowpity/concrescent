@@ -41,7 +41,7 @@ return function (App $app, $container) {
             $printPerm = $accessPerm->withAllowedPerm(PermEvent::Badge_Print());
             $app->get('', \CM3_Lib\Action\Badge\Format\Badges\Search::class)
             ->add($printPerm);
-            $app->post('/{context_code}/{badge_id}', \CM3_Lib\Action\Badge\Format\Badges\Create::class)
+            $app->post('/{context_code}/{badge_id}', \CM3_Lib\Action\Badge\Format\Badges\PostPrint::class)
             ->add($printPerm);
         }
     );

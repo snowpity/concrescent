@@ -43,6 +43,24 @@ final class Create
         // Invoke the Domain with inputs and retain the result
         $data = $this->format->Create($data);
 
+
+        //If supplied with a badgeMap, save the format map
+        if (isset($data['badgeMap'])) {
+            //This one is much simpler than the update since we know the map should not exist
+
+            foreach ($data['badgeMap'] as $context_code => $setBadges) {
+                //Create missing
+                foreach ($setBadges as $newBadge) {
+                    $item = array(
+                        'context_code' => $context_code,
+                        'format_id' => $result['id'],
+                        'badge_type_id' => $newBadge
+                    );
+                    $this->formatmap->create($item);
+                }
+            }
+        }
+
         // Build the HTTP response
         return $this->responder
             ->withJson($response, $data);

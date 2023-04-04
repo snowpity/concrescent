@@ -25,7 +25,10 @@ class printjob extends \CM3_Lib\database\Table
             ), false, defaultValue: "'Queued'"),
             'meta'			=> new cm_Column('VARCHAR', 255, true),
             'data'			=> new cm_Column('TEXT', null, true),
-            'result'			=> new cm_Column('VARCHAR', 255, false, defaultValue: "''")
+            'result'			=> new cm_Column('VARCHAR', 255, false, defaultValue: "''"),
+            'date_created'	=> new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP'),
+            'date_modified'	=> new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP', false, 'ON UPDATE CURRENT_TIMESTAMP'),
+
         );
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
