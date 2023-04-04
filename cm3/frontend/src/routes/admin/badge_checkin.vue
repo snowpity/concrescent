@@ -666,6 +666,10 @@ export default {
                 if (donePrinting)
                     this.printingRemoteJobId = null;
                 this.printingRemoteJobStatus = printJob.state;
+            }, (err) => {
+                //Something went wrong with the poll, just cancel
+                this.printingRemoteJobId = null;
+                this.printingRemoteJobStatus = 'Communication Error';
             })
         },
         FinishCheckIn: function() {

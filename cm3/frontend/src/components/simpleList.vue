@@ -96,14 +96,16 @@ export default {
             type: Boolean
         },
     },
-    data: () => ({
+    data() {
+        return {
 
-        searchText: this.search,
-        loading: false,
-        tableOptions: {},
-        tableResults: [],
-        totalResults: 0,
-    }),
+            searchText: this.search || '',
+            loading: false,
+            tableOptions: {},
+            tableResults: [],
+            totalResults: 0,
+        };
+    },
     computed: {
         authToken: function() {
             return this.$store.getters['mydata/getAuthToken'];
