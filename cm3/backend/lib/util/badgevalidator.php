@@ -136,6 +136,12 @@ final class badgevalidator
     private function AddBadgeValidations(TableValidator &$v, array $badgetypeData, &$item, $groupApp = false)
     {
         //TODO: Test for things like badge upgrades for the start_date and end_date?
+        if (isset($badgetypeData['start_date']) && date_create() < date_create($badgetypeData['start_date'])) {
+            $v->addColumnValidator('badge_type_id', v::alwaysInvalid(), true);
+        }
+        if (isset($badgetypeData['end_date']) && date_create() > date_create($badgetypeData['end_date'])) {
+            $v->addColumnValidator('badge_type_id', v::alwaysInvalid(), true);
+        }
 
         //TODO: This isn't right, need to advance the year in accordance to the event date and today....
         $bday = new v();

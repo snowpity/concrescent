@@ -227,6 +227,7 @@ export default {
 
         },
         getAddonByID(context_code, badge_type_id, id) {
+            this.getContextAddons(context_code);
             var result = {
                 "id": 0,
                 "display_order": 0,

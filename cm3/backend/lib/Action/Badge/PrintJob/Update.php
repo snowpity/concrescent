@@ -49,10 +49,10 @@ final class Update
             throw new HttpBadRequestException($request, 'PrintJob does not belong to the specified event!');
         }
 
-        if (is_array($data['data'])) {
+        if (isset($data['data']) && is_array($data['data'])) {
             $data['data'] = json_encode($data['data']);
         }
-        if (is_array($data['meta'])) {
+        if (isset($data['meta']) && is_array($data['meta'])) {
             $data['meta'] = json_encode($data['meta']);
         }
 

@@ -11,7 +11,7 @@ const state = {
         allowedFormats: [],
         printFull: false, //Whether the background image will print too
         batchMode: false, //Whether to print with multiple "pages" per round
-        cycleDelay: 1000, //ms to delay before attempting to print the next in queue
+        cycleDelay: 300, //ms to delay before attempting to print the next in queue
     }
 }
 

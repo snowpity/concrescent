@@ -574,7 +574,7 @@ export default {
             console.log('edit badge selected from grid', selectedBadge);
             let that = this;
             that.loading = true;
-            admin.genericGet(this.authToken, 'Application/' + this.context_code + '/Submission/' + selectedBadge.id, null, function(editBadge) {
+            admin.genericGet(this.authToken, 'Application/' + this.context_code + '/Submission/' + selectedBadge.application_id, null, function(editBadge) {
                 that.bSelected = editBadge;
                 that.loading = false;
                 that.bEdit = true;

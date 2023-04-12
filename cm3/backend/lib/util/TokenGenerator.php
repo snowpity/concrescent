@@ -48,6 +48,15 @@ class TokenGenerator
             $perms = $eperms->EventPerms[$event_id];
         } else {
             $perms = new EventPermissions();
+            //Check if thery're global admin anywhere
+            if ($eperms->IsGlobalAdmin) {
+                $perms->EventPerms->setGlobalAdmin(true);
+            }
+            foreach ($eperms->EventPerms as $ep) {
+                if ($ep->EventPerms->isGlobalAdmin()) {
+                    $perms->EventPerms->setGlobalAdmin(true);
+                }
+            }
         }
 
         if ($eperms->IsGlobalAdmin) {

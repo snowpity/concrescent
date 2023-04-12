@@ -296,6 +296,23 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
+    <v-dialog v-model="kioskPay"
+              max-width="600">
+        <v-card>
+            <v-toolbar color="primary"
+                       dark>
+                <h1>Order Received!</h1>
+            </v-toolbar>
+            <v-card-text>
+                <v-card-text>Order has been received. Please pay at the registration desk!</v-card-text>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer />
+                <v-btn color="primary"
+                       @click="kioskPay = false">Ok</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 
     <v-dialog v-model="isCartLocked"
               transition="dialog-top-transition"
@@ -459,7 +476,8 @@ export default {
         },
         cartIdSelected: 0,
         cartState: 'undefined',
-        cartLocked: ''
+        cartLocked: '',
+        kioskPay: false,
     }),
     computed: {
         ...mapState({
@@ -467,6 +485,7 @@ export default {
             addons: state => state.products.addons,
             activeCarts: state => state.mydata.activeCarts,
             currentCartId: state => state.cart.cartId,
+            kioskMode: state => state.station.kioskMode,
         }),
         ...mapGetters('mydata', {
             'isLoggedIn': 'getIsLoggedIn',
@@ -521,6 +540,7 @@ export default {
         ...mapActions('mydata', {
             'submitCreateAccount': 'createAccount',
             'sendRetrieveBadgeEmail': 'sendRetrieveBadgeEmail',
+            'logout': 'logout',
         }),
         ...mapActions('products', {
             'selectContext': 'selectContext',
@@ -635,7 +655,6 @@ export default {
             })
         },
         async checkout(cartid) {
-            console.log('aerhaerg?', this)
             this.processingCheckoutDialog = true;
             if (cartid != undefined)
                 await this.loadCart(cartid);
@@ -696,13 +715,20 @@ export default {
                             _this.processingCheckoutDialog = false;
                         }, 15000);
                         //TODO: This is a hack!
-                        if (newstatus.paymentURL != undefined) {
-                            console.log('Will redirect to', newstatus.paymentURL);
-                            window.location.href = newstatus.paymentURL;
-                        } else if (!this.isLoggedIn) {
-                            //Not able to complete and no redirect. Display message?
-                            this.cartLocked = 'Still awaiting payment.'
+                        if (!this.kioskMode) {
+
+                            if (newstatus.paymentURL != undefined) {
+                                console.log('Will redirect to', newstatus.paymentURL);
+                                window.location.href = newstatus.paymentURL;
+                            } else if (!this.isLoggedIn) {
+                                //Not able to complete and no redirect. Display message?
+                                this.cartLocked = 'Still awaiting payment.'
+                                this.processingCheckoutDialog = false;
+                            }
+                        } else {
                             this.processingCheckoutDialog = false;
+                            this.kioskPay = true;
+                            this.logout();
                         }
                         break;
                     case 'AwaitingApproval':

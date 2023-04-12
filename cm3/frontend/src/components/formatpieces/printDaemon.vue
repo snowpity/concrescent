@@ -55,7 +55,7 @@ export default {
         return {
             queue: [],
             queueTotal: 0,
-            //Can be Ready, Polling, Printing, Paused
+            //Can be Ready, Polling, Printing, Paused, Error
             runState: 'Ready',
             PollTimer: null,
             PrintTimer: null,
@@ -77,7 +77,7 @@ export default {
                     full: true,
                     state: 'Queued',
                     stationName: this.printerName,
-                    itemsPerPage: 5
+                    itemsPerPage: 10
                 },
                 (queue, queueTotal) => {
                     this.queue = queue;
@@ -111,9 +111,7 @@ export default {
             //Print and close
             setTimeout(() => {
                 window.print();
-
                 this.PostPrint();
-
             }, 130);
 
         },
@@ -124,10 +122,24 @@ export default {
             }, (printJob) => {
                 this.queue.shift();
                 this.queueTotal--;
+
+                if (this.cJob == undefined) {
+                    this.runState = 'Ready';
+                    this.printPanel = false;
+                    console.log('Daemon: Done printing')
+                    return;
+                } else {
+                    //Set up to go again!
+                    setTimeout(() => {
+                        this.PrintNextJob();
+                    }, this.printConfig.cycleDelay);
+                }
+            }, (err) => {
+
+                this.runState = 'Error';
+                this.printPanel = false;
+                console.log('Daemon: Error printing', err);
             })
-            setTimeout(() => {
-                this.PrintNextJob();
-            }, this.printConfig.cycleDelay);
         },
         FetchFormat: function() {
             if (this.cBadgeFormat != undefined)

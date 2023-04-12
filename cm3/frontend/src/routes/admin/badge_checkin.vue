@@ -33,10 +33,29 @@
             <v-stepper-content step="1">
                 <badgeSearchList apiPath="Badge/CheckIn"
                                  :search.sync="searchText"
+                                 dense
                                  :actions="[{name:'select',text:'Select'}]"
                                  :isEditingItem="checkinStage > 1"
                                  @select="selectBadge"
-                                 @qrmatch="selectBadge" />
+                                 @qrmatch="selectBadge">
+                    <template v-slot:[`item.contact_email_address`]="{ item }">
+                        <v-tooltip right>
+                            <template v-slot:activator="{ on, attrs }">
+                                <span v-bind="attrs"
+                                      v-on="on">
+
+                                    <div class="d-lg-none">
+                                        <v-icon>mdi-email</v-icon>
+                                    </div>
+                                    <div class="d-none d-lg-block">
+                                        {{item.contact_email_address}}
+                                    </div>
+                                </span>
+                            </template>
+                            {{item.contact_email_address}}
+                        </v-tooltip>
+                    </template>
+                </badgeSearchList>
             </v-stepper-content>
 
             <v-stepper-content step="2">
@@ -617,12 +636,12 @@ export default {
             //If we're remote printing, just do that
             if (!this.print_remote) {
                 this.printPanel = true;
-
+                await this.$nextTick();
                 //Print and close
                 (function(app) {
                     setTimeout(() => {
                         window.print();
-                    }, 130);
+                    }, 430);
                 }(this));
             } else {
                 this.PostPrint(false);

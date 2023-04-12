@@ -79,7 +79,7 @@ export default {
         }).toString();
         if (qparams.length > 0)
             qparams = '?' + qparams
-        axios.get(global.config.apiHostURL + path + '?' + qparams, {
+        axios.get(global.config.apiHostURL + path + qparams, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

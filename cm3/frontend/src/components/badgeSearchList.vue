@@ -4,11 +4,11 @@
               :loading="loading"
               :headers="headers"
               multi-sort
+              :dense="dense"
               :items="tableResults"
               :item-key="internalKey"
               class="elevation-1 fill-height"
-              :show-expand='showExpand'
-              :search="searchText">
+              :show-expand='showExpand'>
 
     <template v-slot:top="">
         <v-container fluid>
@@ -114,6 +114,18 @@
             {{item.id}}
         </v-tooltip>
     </template>
+    <template v-slot:[`item.application_status`]="{ item }">
+        <v-tooltip left>
+            <template v-slot:activator="{ on, attrs }">
+                <v-icon v-bind="attrs"
+                        v-on="on"
+                        :color="applicationStatusColor[item.application_status]"
+                        v-if="applicationStatusIcon[item.application_status] != undefined">mdi-{{applicationStatusIcon[item.application_status]}}</v-icon>
+                <div v-else>{{item.application_status}}</div>
+            </template>
+            <span>{{item.application_status}}</span>
+        </v-tooltip>
+    </template>
     <template v-slot:[`item.payment_status`]="{ item }">
         <v-tooltip left>
             <template v-slot:activator="{ on, attrs }">
@@ -149,6 +161,7 @@
     </template>
     <template v-slot:[`item.uuid`]="{ item }">
         <v-btn v-for="action in actions"
+               :small="dense"
                :key="action.name"
                @click="doEmit(action.name, item)">{{action.text}}</v-btn>
     </template>
@@ -250,6 +263,9 @@ export default {
         'showExpand': {
             type: Boolean
         },
+        'dense': {
+            type: Boolean
+        },
     },
     data() {
         return {
@@ -284,6 +300,32 @@ export default {
                 'Completed': 'green',
                 'Refunded': 'red',
                 'RefundedInPart': 'lime',
+            },
+
+            //TEMP: Until application_Status is in its own component
+            applicationStatusIcon: {
+                'InProgress': 'alert',
+                'Submitted': 'clock-alert',
+                'Cancelled': 'alert',
+                'Rejected': 'close-octagon',
+                'Terminated': 'close-octagon',
+                'Waitlisted': 'progress-question',
+                'Accepted': 'check-circle',
+                'Onboarding': 'progress-check',
+                'Active': 'check-circle',
+                'PendingAcceptance': 'progress-check',
+            },
+            applicationStatusColor: {
+                'InProgress': 'grey',
+                'Submitted': '',
+                'Cancelled': 'amber',
+                'Rejected': 'red',
+                'Terminated': 'red',
+                'Waitlisted': 'amber',
+                'Accepted': 'green',
+                'Onboarding': 'green',
+                'Active': 'green',
+                'PendingAcceptance': 'green',
             },
         }
     },
@@ -348,15 +390,17 @@ export default {
 
         doSearch: function() {
             this.loading = true;
+            console.log('doSearch apiAddParams', this.apiAddParams);
             const pageOptions = [
                 'sortBy',
                 'sortDesc',
                 'page',
                 'itemsPerPage'
-            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), this.apiAddParams || {});
+            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), JSON.parse(JSON.stringify(this.apiAddParams || {})));
             if (this.displayedQuestions.length) pageOptions['questions'] = this.displayedQuestions.map(x => x.id).join(',');
             if (this.searchText) pageOptions['find'] = this.searchText;
             if (this.context_code) pageOptions['context_code'] = this.context_code;
+            console.log('doSearch pageOptions', pageOptions);
             admin.genericGetList(this.authToken, this.apiPath, pageOptions, (results, total) => {
                 this.tableResults = results;
                 this.totalResults = total;
@@ -392,11 +436,12 @@ export default {
     },
     watch: {
         search: function(newSearch) {
-            this.searchText = newSearch;
+            //this.searchText = newSearch;
         },
         searchText: debounce(function(newSearch) {
             this.doSearch();
-            this.$emit('update:search', newSearch);
+            console.log('searchText', newSearch)
+            //this.$emit('update:search', newSearch);
         }, 500),
         displayedQuestions: debounce(function(newSearch) {
             this.doSearch();

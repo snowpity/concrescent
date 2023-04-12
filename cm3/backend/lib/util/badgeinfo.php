@@ -1155,6 +1155,7 @@ final class badgeinfo
                 array(
                //new SelectColumn('context_code', EncapsulationFunction: "'".$contextCode."'", Alias:'context_code'),
                new SelectColumn('context_code', JoinedTableAlias:'grp'),
+               new SelectColumn('application_id', EncapsulationFunction: "null", Alias:'application_id'),
                new SelectColumn('application_status', EncapsulationFunction: "''", Alias:'application_status'),
                'badge_type_id',
                'payment_status',
@@ -1236,6 +1237,7 @@ final class badgeinfo
                 array(
                //new SelectColumn('context_code', EncapsulationFunction: "'".$contextCode."'", Alias:'context_code'),
                new SelectColumn('context_code', JoinedTableAlias:'grp'),
+               new SelectColumn('id', Alias:'application_id'),
                'application_status',
                'badge_type_id',
                'payment_status',
@@ -1339,6 +1341,7 @@ final class badgeinfo
                 $this->selectColumns,
                 array(
                    new SelectColumn('context_code', JoinedTableAlias:'grp'),
+                   new SelectColumn('application_id'),
                    new SelectColumn('application_status', JoinedTableAlias:'bs'),
                    new SelectColumn('badge_type_id', JoinedTableAlias:'bs'),
                    new SelectColumn('payment_status', JoinedTableAlias:'bs'),
