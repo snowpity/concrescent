@@ -1,0 +1,9 @@
+{
+  "name": "application-PendingAcceptance",
+  "reply_to": "guest@babscon.com",
+  "from": "guest@babscon.com",
+  "cc": "guest@babscon.com",
+  "subject": "Your [[badge_type_name]] Application for [[event.display_name]]",
+  "format": "Markdown",
+  "body": "Greetings,\n\nThank you for applying for **[[event.display_name]]**.\n\nWe are extremely sorry, but your [[badge_type_name]] application for **[[display_name]]** has been denied. \n\nThank you for applying this year, and we hope to see you apply next year!\n\n\nThanks,\n[[event.display_name]] Registration"
+}

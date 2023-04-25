@@ -1,0 +1,9 @@
+{
+  "name": "application-PendingAcceptance",
+  "reply_to": "guest@babscon.com",
+  "from": "guest@babscon.com",
+  "cc": "guest@babscon.com",
+  "subject": "Your [[badge_type_name]] Application for [[event.display_name]]",
+  "format": "Markdown",
+  "body": "Greetings,\n\nYour application to **[[event.display_name]]**. Your [[badge_type_name]] Application for **[[display_name]]** has been received.\n\nWe will contact you soon!\n\nThanks,\n[[event-name]] Registration"
+}

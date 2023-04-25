@@ -1,0 +1,9 @@
+{
+  "name": "application-PendingAcceptance",
+  "reply_to": "vendors@example.com",
+  "from": "vendors@example.com",
+  "cc": "vendors@example.com",
+  "subject": "Your Vendor registration for [[event.display_name]]",
+  "format": "Markdown",
+  "body": "Greetings,\n\nThank you for applying for **[[event.display_name]]**.\n\nWe are extremely sorry, but due to the limited number of space we have in our vendor hall, and the large number of applications we have received, your [[badge_type_name]] application for **[[display_name]]** has been denied. \n\nThank you for applying this year, and we hope to see you apply next year!\n\n\nThanks,\n[[event.display_name]] Registration"
+}

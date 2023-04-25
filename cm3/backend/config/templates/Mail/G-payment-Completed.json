@@ -1,0 +1,9 @@
+{
+  "name": "panel-payment-completed",
+  "reply_to": "guest@babscon.com",
+  "from": "guest@babscon.com",
+  "cc": "guest@babscon.com",
+  "subject": "Your [[badge_type_name]] registration for [[event.display_name]]",
+  "format": "Markdown",
+  "body": "Greetings,\r\n\r\nThank you for registering for **[[event.display_name]]**. Your [[badge_type_name]] registration for **[[display_name]]** has been completed.\r\n\r\nYour badge will be available for pickup at the event. Please bring a photo ID and a displayable copy of this email message with you.\r\n\r\n![QR Code for [[badge_id_display]]]([[qr_data_uri]])\r\n\r\nYou can review your order at any time at the following link:\r\n\r\n[My Badges]([[retrieve_url]])\r\n\r\nThanks again,\r\n[[event-name]] Registration"
+}

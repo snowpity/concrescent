@@ -1,0 +1,9 @@
+{
+  "name": "attendee-retrieve",
+  "reply_to": "guest@babscon.com",
+  "from": "guest@babscon.com",
+  "cc": "guest@babscon.com",
+  "subject": "Your [[badge_type_name]]  registration for [[event.display_name]]",
+  "format": "Markdown",
+  "body": "Greetings,\n\nThank you for applying for **[[event.display_name]]**. Your [[badge_type_name]] staff registration for **[[display_name]]** has been received.\n\nWe will be contacting you soon regarding your application.\n\nThanks,\n[[event-name]] Registration"
+}

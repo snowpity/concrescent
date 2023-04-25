@@ -1,0 +1,11 @@
+[
+  {
+    "name":"Board",
+    "description":"A default Department automatically created by CONCrescent during installation."
+
+  },
+    {
+      "name":"Chair",
+      "description":"A default Department automatically created by CONCrescent during installation."
+    },
+]

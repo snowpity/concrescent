@@ -1,0 +1,9 @@
+{
+  "name": "application-PendingAcceptance",
+  "reply_to": "vendors@example.com",
+  "from": "vendors@example.com",
+  "cc": "vendors@example.com",
+  "subject": "Your Vendor registration for [[event.display_name]]",
+  "format": "Markdown",
+  "body": "Greetings,\n\nYour application to **[[event.display_name]]**. Your [[badge_type_name]] Application for **[[display_name]]** has been received.\n\nWe will contact you soon!\n\nThanks,\n[[event-name]] Registration"
+}

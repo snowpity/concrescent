@@ -1,0 +1,9 @@
+{
+  "name": "event-PendingAcceptance",
+  "reply_to": "guest@babscon.com",
+  "from": "guest@babscon.com",
+  "cc": "guest@babscon.com",
+  "subject": "Your [[badge_type_name]] registration for [[event.display_name]]",
+  "format": "Markdown",
+  "body": "Congratulations!\r\n\r\nYour application to **[[event.display_name]]**. Your [[badge_type_name]] application for **[[display_name]]** has been **approved**!.\r\n\r\n**Actions required:** \r\n\r\n- Please proceed to confirm your acceptance by [clicking this link]([[cart_url]]) to finish your registration.\r\n\r\nThanks,\r\n[[event-name]] Registration"
+}
