@@ -26,7 +26,8 @@
                            :badges="badges"
                            @valid="setValidBadgeType"
                            :no-data-text="isGroupApp ? 'Applications currently closed!' : 'No Badges available!'"
-                           :editBadgePriorBadgeId="editBadgePriorBadgeId" />
+                           :editBadgePriorBadgeId="editBadgePriorBadgeId"
+                           @click.native="affirmBadgeType" />
         <v-sheet v-if="selectedBadge_ix != null && badges[selectedBadge_ix]"
                  color="grey lighten-4"
                  tile>
@@ -721,7 +722,6 @@ export default {
                 // Special props
                 const _this = this;
 
-                this.checkBadge();
                 setTimeout(() => {
                     const newIndex = _this.badges.findIndex((badge) => badge.id == badge_type_id);
                     if (newIndex > -1) {
@@ -751,6 +751,7 @@ export default {
             } finally {
 
             }
+            this.checkBadge();
 
         },
         resetBadge() {
@@ -770,10 +771,18 @@ export default {
             if (this.badges.length > 0) {
                 const bid = this.badge_type_id;
                 let badge = this.badges.findIndex((badge) => badge.id == bid);
-                if (badge == -1) badge = 0;
+                if (badge == -1) {
+                    console.log("badges are loaded but the type specified wasn't valid?", bid)
+                    badge = 0;
+                }
 
                 this.validBadgeType = true;
                 this.selectedBadge_ix = badge;
+            } else {
+                this.validBadgeType = false;
+                this.reachedStep = 1;
+                this.step = 1;
+
             }
 
             // Ensure only applicable badge addons are selected!
@@ -785,6 +794,10 @@ export default {
                     this.addonsSelected = this.addonsSelected.filter((aid) => undefined != badgeAddons[aid]);
                 }
             }
+        },
+        affirmBadgeType() {
+            this.badge_type_id = this.badges[this.selectedBadge_ix].id;
+            console.log("affirmed badge type", this.badge_type_id)
         },
         addBadgeToCart() {
             this.addProductToCart(this.compiledBadge);
@@ -810,7 +823,7 @@ export default {
             console.log('setValidBadgeType result', {
                 isValid,
                 alreadyHaveBadge,
-                oldBadge: oldBadge.id,
+                oldBadge: oldBadge ? oldBadge.id : null,
                 selectedBadge: this.selectedBadge.id
             })
             this.validBadgeType = isValid || alreadyHaveBadge;

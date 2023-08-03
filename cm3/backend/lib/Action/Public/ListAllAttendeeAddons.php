@@ -42,6 +42,8 @@ final class ListAllAttendeeAddons
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
+        $qp = $request->getQueryParams();
+        $override = $qp['override'] ?? null;
         $viewData = new View(
             array(
                 new SelectColumn('badge_type_id', JoinedTableAlias:'am'),
@@ -101,7 +103,8 @@ final class ListAllAttendeeAddons
         );
 
         $whereParts = array(
-          new SearchTerm('active', 1)
+          new SearchTerm('active', 1),
+          new SearchTerm('active_override_code', $override, TermType:'OR'),
         );
 
         $order = array('display_order' => false);

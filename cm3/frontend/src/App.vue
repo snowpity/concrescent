@@ -406,6 +406,10 @@ export default {
                 if (this.isLoggedIn) {
                     this.$store.dispatch("mydata/RefreshToken");
                 }
+                //Since we don't broadcase that change and it's not properly reactive
+                //Navigate to the Home page
+                if (this.$router.currentRoute.name != 'home')
+                    this.$router.push("/");
             }
         },
         adminMode: {
@@ -464,18 +468,22 @@ export default {
             }
         }
     },
-    created() {
+    async created() {
         document.title = this.appTitle;
 
         console.log('getting event info');
-        this.$store.dispatch('products/getEventInfo').then(() => {
-            if (this.isLoggedIn) {
-                console.log('refreshing token, event id ' + this.productselectedEventId)
-                this.$store.dispatch('mydata/RefreshToken');
-            }
+        if (this.isLoggedIn) {
+            console.log('refreshing token, event id ' + this.productselectedEventId)
+            await this.$store.dispatch('mydata/RefreshToken');
+            //await this.$store.dispatch('products/getBadgeContexts');
+        } else {
+
+        }
+        //console.log('getting initial event info', initialEventID)
+        await this.$store.dispatch('products/getEventInfo').then(async () => {
             console.log('got event info, loading contexts');
             //this.selectedEventId = this.productselectedEventId;
-            this.$store.dispatch('products/getBadgeContexts');
+            await this.$store.dispatch('products/getBadgeContexts');
         });
     }
 };

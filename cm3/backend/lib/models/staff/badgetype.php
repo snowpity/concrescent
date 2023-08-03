@@ -25,6 +25,7 @@ class badgetype extends \CM3_Lib\database\Table
             'end_date'        => new cm_Column('DATE', null, true),
             'min_age'         => new cm_Column('INT', null, true),
             'max_age'         => new cm_Column('INT', null, true),
+            'active_override_code'      => new cm_Column('VARCHAR', '255', true),
             'date_created'    => new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP'),
             'date_modified'   => new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP', false, 'ON UPDATE CURRENT_TIMESTAMP'),
             'notes'           => new cm_Column('TEXT', null, true),

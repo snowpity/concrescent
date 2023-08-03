@@ -41,7 +41,7 @@ class SwitchEvent
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         $data = (array)$request->getParsedBody();
-        $event_id = $data['event_id'] ?? null;
+        $event_id = $data['event_id'] ?? $request->getAttribute('event_id') ?? null;
 
         $result = $this->TokenGenerator->forUser($request->getAttribute('contact_id'), $event_id);
 

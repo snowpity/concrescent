@@ -70,10 +70,12 @@ const getters = {
 // actions
 const actions = {
     selectEventId({
+        dispatch,
         commit
     }, event_id) {
-        return new Promise((resolve) => {
+        return new Promise(async (resolve) => {
             commit('selectEvent', event_id);
+            await dispatch('getBadgeContexts');
             resolve();
         })
     },
@@ -95,7 +97,9 @@ const actions = {
             if (!state.gotEventInfo) {
                 shop.getEventInfo(eventinfo => {
                     commit('setEventInfo', eventinfo);
-                    commit('selectEvent', eventinfo[0].id);
+                    console.log('event stored info id', state.selectedEventId);
+                    if (state.selectedEventId == null)
+                        commit('selectEvent', eventinfo[0].id);
                     resolve();
                 })
             } else {

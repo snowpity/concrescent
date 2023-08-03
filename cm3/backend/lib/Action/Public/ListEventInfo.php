@@ -55,8 +55,30 @@ final class ListEventInfo
         // Invoke the Domain with inputs and retain the result
         $data = $this->eventinfo->Search(array(), $whereParts, $order, $limit, $offset);
 
+        usort($data, array($this,'compareEvents'));
+
         // Build the HTTP response
         return $this->responder
             ->withJson($response, $data);
+    }
+
+    //Courtesy ChatGPT
+    public function compareEvents($a, $b)
+    {
+        $now = date("Y-m-d");
+        $a_start = strtotime($a["date_start"]);
+        $a_end = strtotime($a["date_end"]);
+        $b_start = strtotime($b["date_start"]);
+        $b_end = strtotime($b["date_end"]);
+
+        if ($a_start <= strtotime($now) && $a_end >= strtotime($now)) {
+            return -1; // $a is in progress
+        } elseif ($b_start <= strtotime($now) && $b_end >= strtotime($now)) {
+            return 1; // $b is in progress
+        } elseif ($a_end >= strtotime($now) && $b_end >= strtotime($now)) {
+            return $a_start - $b_start; // both $a and $b are in the future
+        } else {
+            return $b_end - $a_end; // both $a and $b are in the past
+        }
     }
 }

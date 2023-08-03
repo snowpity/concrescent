@@ -45,6 +45,8 @@ final class ListStaffBadges
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
+        $qp = $request->getQueryParams();
+        $override = $qp['override'] ?? null;
         $viewData = new View(
             array(
               'id',
@@ -97,7 +99,8 @@ final class ListStaffBadges
         );
 
         $whereParts = array(
-          new SearchTerm('active', 1)
+          new SearchTerm('active', 1),
+          new SearchTerm('active_override_code', $override, TermType:'OR')
         );
 
         $order = array('display_order' => false);

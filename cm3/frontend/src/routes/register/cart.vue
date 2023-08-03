@@ -827,7 +827,8 @@ export default {
                 }
             } else if (this.needsave) {
                 var setId = await this.saveCart();
-                this.$store.dispatch('mydata/fetchCarts', false)
+                await this.$store.dispatch('mydata/fetchCarts', false);
+                this.cartIdSelected = setId;
             }
             this.cartIdSelected = this.currentCartId;
         } else {

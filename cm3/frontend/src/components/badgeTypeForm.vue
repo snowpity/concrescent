@@ -60,7 +60,8 @@
             </v-col>
             <v-col cols="12"
                    sm="6"
-                   md="3">
+                   md="3"
+                   v-if="isGroup || isStaff">
                 <v-checkbox dense
                             hide-details
                             v-model="model.payment_deferred">
@@ -215,6 +216,9 @@ export default {
         },
         'isGroup': {
             type: Boolean
+        },
+        'isStaff': {
+            type: Boolean
         }
     },
     data() {
@@ -287,6 +291,12 @@ export default {
                     display_order: nullIfEmptyOrZero(this.model.display_order),
 
                 }
+            } else if (this.isStaff) {
+                return {
+                    ...result,
+                    payment_deferred: this.model.payment_deferred == 1,
+                };
+
             } else {
                 return result;
             }

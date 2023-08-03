@@ -49,29 +49,48 @@
         <v-divider v-else></v-divider>
     </template>
     <template v-if="question.type == 'text'">
-        <v-text-field :label="question.title"
-                      :hint="question.text"
+        <v-text-field :hint="question.text"
                       :readonly="readonly"
                       v-model="userResponse"
-                      :rules="question.required ? RulesRequired : undefined "></v-text-field>
+                      :rules="question.required ? RulesRequired : undefined ">
+            <template v-slot:label>
+                {{question.title}}
+                <span v-if="isRequired"
+                      class="red--text"> *</span>
+            </template>
+        </v-text-field>
     </template>
     <template v-if="question.type == 'textarea'">
         <v-textarea :label="question.title"
                     :hint="question.text"
                     :readonly="readonly"
                     v-model="userResponse"
-                    :rules="isRequired ? RulesRequired : undefined "></v-textarea>
+                    :rules="isRequired ? RulesRequired : undefined ">
+            <template v-slot:label>
+                {{question.title}}
+                <span v-if="isRequired"
+                      class="red--text"> *</span>
+            </template>
+        </v-textarea>
     </template>
     <template v-if="question.type == 'url'">
         <v-text-field :label="question.title"
                       :hint="question.text"
                       :readonly="readonly"
                       v-model="userResponse"
-                      :rules="isRequired ? RulesURLRequired : RulesURL "></v-text-field>
+                      :rules="isRequired ? RulesURLRequired : RulesURL ">
+            <template v-slot:label>
+                {{question.title}}
+                <span v-if="isRequired"
+                      class="red--text"> *</span>
+            </template>
+        </v-text-field>
     </template>
     <template v-if="question.type == 'urllist'">
         <p v-if="question.title != ''">
-            <strong>{{question.title}}</strong>
+            <strong>{{question.title}}
+                <span v-if="isRequired"
+                      class="red--text"> *</span></strong>
         </p>
         <v-md-preview v-if="question.text != null && question.text.length > 0"
                       :text="question.text" />
@@ -102,11 +121,19 @@
                       :hint="question.text"
                       :readonly="readonly"
                       v-model="userResponse"
-                      :rules="isRequired ? RulesEmailRequired : RulesEmail "></v-text-field>
+                      :rules="isRequired ? RulesEmailRequired : RulesEmail ">
+            <template v-slot:label>
+                {{question.title}}
+                <span v-if="isRequired"
+                      class="red--text"> *</span>
+            </template>
+        </v-text-field>
     </template>
     <template v-if="question.type == 'radio'">
         <p v-if="question.title != ''">
             <strong>{{question.title}}</strong>
+            <span v-if="isRequired"
+                  class="red--text"> *</span>
         </p>
         <v-radio-group :readonly="readonly"
                        v-model="userResponse"
@@ -124,6 +151,8 @@
     <template v-if="question.type == 'checkbox'">
         <p v-if="question.title != ''">
             <strong>{{question.title}}</strong>
+            <span v-if="isRequired"
+                  class="red--text"> *</span>
         </p>
         <v-md-preview v-if="question.text != null && question.text.length > 0"
                       :text="question.text" />
@@ -148,7 +177,13 @@
                   :items="listItems"
                   :clearable="isRequired"
                   :readonly="readonly"
-                  v-model="userResponse"></v-select>
+                  v-model="userResponse">
+            <template v-slot:label>
+                {{question.title}}
+                <span v-if="isRequired"
+                      class="red--text"> *</span>
+            </template>
+        </v-select>
     </template>
 </v-container>
 </template>
