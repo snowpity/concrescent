@@ -558,6 +558,7 @@ final class PaymentBuilder
                     'addon_id'
                 );
                 $availableaddons = array_column($this->badgeinfo->GetAddonsAvailable($cartitem['badge_type_id'], $cartitem['context_code']), null, 'id');
+                
                 foreach ($cartitem['addons'] as $addon) {
                     if (!isset($addon['addon_id'])) {
                         continue;
@@ -565,22 +566,23 @@ final class PaymentBuilder
                     if (isset($existingAddons[$addon['addon_id']]) && $existingAddons[$addon['addon_id']] == 'Completed') {
                         continue;
                     }
-
-                    //Add it to the payment
-                    $faddon = $availableaddons[$addon['addon_id']];
-
-                    $this->stagedItems[] = array(
-                        $faddon['name'],
-                        $faddon['price'],
-                        1,
-                        $faddon['description'],
-                        $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ',a:' . $addon['addon_id'],
-                        max(0, $faddon['price'] - ($addon['payment_promo_price'] ?? $addon['payment_price'])),
-                        $addon['payment_promo_code'] ?? null
-                    );
-
-                    //Prep Sanity check the cart's amount...
-                    $this->cart_payment_txn_amt += max(0, $addon['payment_promo_price'] ?? $addon['payment_price']);
+                    if (isset($availableaddons[$addon['addon_id']])) {
+                        //Add it to the payment
+                        $faddon = $availableaddons[$addon['addon_id']];
+    
+                        $this->stagedItems[] = array(
+                            $faddon['name'],
+                            $faddon['price'],
+                            1,
+                            $faddon['description'],
+                            $this->CurrentUserInfo->GetEventId() . ':' . $cartitem['context_code'] . ',a:' . $addon['addon_id'],
+                            max(0, $faddon['price'] - ($addon['payment_promo_price'] ?? $addon['payment_price'])),
+                            $addon['payment_promo_code'] ?? null
+                        );
+    
+                        //Prep Sanity check the cart's amount...
+                        $this->cart_payment_txn_amt += max(0, $addon['payment_promo_price'] ?? $addon['payment_price']);
+                    }
                 }
             }
         }
