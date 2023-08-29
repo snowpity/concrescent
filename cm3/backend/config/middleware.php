@@ -4,11 +4,6 @@ use Slim\App;
 use Slim\Middleware\ErrorMiddleware;
 use CM3_Lib\Middleware\GZCompress;
 
-use CM3_Lib\util\EventPermissions;
-use CM3_Lib\util\CurrentUserInfo;
-
-use MessagePack\BufferUnpacker;
-
 return function (App $app, $s_config) {
     $app->setBasePath($s_config['environment']['base_path']);
 
@@ -32,33 +27,15 @@ return function (App $app, $s_config) {
         "secret" => $s_config['environment']['token_secret'],
         "ignore" =>  $s_config['environment']['base_path'] .'/public',
         "before" => function ($request, $arguments) use ($app) {
-            //Load up the unpacker
-            $unpacker = (new BufferUnpacker())
-                ->extendWith(new EventPermissions());
-            $unpacker->reset($arguments["decoded"]);
-
-            //Get the Contact ID first
-            $contact_id = $unpacker->unpack();
-            //And their selected event ID
-            $event_id = $unpacker->unpack();
-
-            $perms = new EventPermissions();
-            //Does this token have permissions?
-            if ($unpacker->hasRemaining()) {
-                //Ooh, has admin permissions! Decode that...
-                $perms = $unpacker->unpack();
-            }
-            //Tell the CurrentUserInfo who it is
+            //Load the CurrentUserInfo with the token data
             $CurrentUserInfo = $app->getContainer()->get(CM3_Lib\util\CurrentUserInfo::class);
-            $CurrentUserInfo->SetEventId($event_id);
-            $CurrentUserInfo->SetContactId($contact_id);
-            $CurrentUserInfo->SetPerms($perms);
+            $CurrentUserInfo->fromToken($arguments['decoded']);
 
             //Throw the result in as attributes
             return $request
-              ->withAttribute("contact_id", $contact_id)
-              ->withAttribute("event_id", $event_id)
-              ->withAttribute("perms", $perms);
+              ->withAttribute("contact_id", $CurrentUserInfo->GetContactId())
+              ->withAttribute("event_id", $CurrentUserInfo->GetEventId())
+              ->withAttribute("perms", $CurrentUserInfo->GetPerms());
         }
     ]));
 

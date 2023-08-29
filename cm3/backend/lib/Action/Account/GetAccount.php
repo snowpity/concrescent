@@ -54,6 +54,25 @@ class GetAccount
           'country',
           'notes',
         ));
+        if($result === false){
+          //This should not happen, but in case it does, output a dummy
+          $result = [            
+              "id"=> 1,
+              "date_created"=> "1970-01-01 00:00:00",
+              "date_modified"=> "1970-01-01 00:00:00",
+              "allow_marketing"=> 0,
+              "email_address"=> "Critical Error",
+              "real_name"=> "Critical Error",
+              "phone_number"=> "123456789",
+              "address_1"=> "",
+              "address_2"=> "",
+              "city"=> "",
+              "state"=> "",
+              "zip_code"=> "",
+              "country"=> "",
+              "notes"=> null          
+          ];
+        }
         // Build the HTTP response
         return $this->responder
             ->withJson($response, $result);
