@@ -984,9 +984,6 @@ final class PaymentBuilder
             }
 
             $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
-            if (!isset($item['existing']) || (isset($item['existing']) && $item['existing']['display_id'] == null)) {
-                $this->badgeinfo->setNextDisplayIDSpecificBadge($item['id'], $item['context_code']);
-            }
         } else {
             throw new \Exception('Badge not found?!?' . $item['context_code'] . $item['id']);
         }
