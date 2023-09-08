@@ -9,7 +9,23 @@
                     :actions="listActions"
                     :footerActions="listFooterActions"
                     @edit="editUser"
-                    @create="createUser" />
+                    @create="createUser" >
+                    
+                    <template v-slot:[`item.username`]="{ item }">
+                        <v-tooltip right>
+                            <template v-slot:activator="{ on, attrs }">
+                                <span v-bind="attrs"
+                                      v-on="on">
+                                    <div :class="{'font-weight-black': item.IsGlobalAdmin, 'font-italic':!item.HasPermsForEvent && !item.IsGlobalAdmin}">
+                                        {{item.username}}
+                                    </div>                                     
+                                </span>
+                            </template>
+                            {{item.IsGlobalAdmin ? 'Global Administrator.' :'' }}
+                            {{!item.HasPermsForEvent && !item.IsGlobalAdmin ?'Doesn\'t have permissions for this event.':'Has permissions for this event.' }}
+                        </v-tooltip>
+                    </template>
+                </simpleList>
 
         <v-dialog v-model="uEdit">
             <v-card tile

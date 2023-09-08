@@ -72,4 +72,12 @@ class EventPermissions implements Extension
             }, $this->GroupPerms)
         );
     }
+    public function hasAnyPerms() : bool 
+    {
+        if(!$this->EventPerms->isNoPermission()) return true;
+        foreach ($this->GroupPerms as $groupPerm) {
+            if(!$groupPerm->isNoPermission()) return true;
+        }
+        return false;
+    }
 }

@@ -4,6 +4,7 @@ namespace CM3_Lib\Action\AdminUser;
 
 use CM3_Lib\models\admin\user;
 use CM3_Lib\Responder\Responder;
+use CM3_Lib\util\PermEvent;
 use CM3_Lib\util\TokenGenerator;
 use CM3_Lib\util\CurrentUserInfo;
 use CM3_Lib\util\UserPermissions;
@@ -49,15 +50,17 @@ final class Update
             $data['password'] =  password_hash($data['password'], PASSWORD_DEFAULT);
         }
 
-        //TODO: Make sure we can't escalate priviliges!
-
+        
         //If given a permissions object, convert it into a permissions string
         if (isset($data['permissions']) && !is_string($data['permissions'])) {
+            //TODO: Make sure we can't escalate priviliges?
+
+            $CurrentPermissions = $this->TokenGenerator->loadPermissions($data['contact_id']);
             //Convert to perms
             $data['permissions'] =
             $this->TokenGenerator->packPermissions(
                 $this->TokenGenerator->mergePermsFromArray(
-                    new UserPermissions(),
+                    $CurrentPermissions,
                     $this->CurrentUserInfo->GetEventId(),
                     $data['permissions'],
                 )
