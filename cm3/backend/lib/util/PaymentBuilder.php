@@ -968,6 +968,7 @@ final class PaymentBuilder
             if ($bi['application_status'] == 'PendingAcceptance') {
                 $item['application_status'] = 'Accepted';
             }
+            $item['display_id'] = $bi['display_id'];
             $this->badgeinfo->UpdateSpecificGroupApplicationUnchecked($item['id'], $item['context_code'], $item);
         } else {
             throw new \Exception('Application not found?!?' . $item['context_code'] . $item['id']);
@@ -982,6 +983,8 @@ final class PaymentBuilder
             if ($bi['application_status'] == 'PendingAcceptance') {
                 $item['application_status'] = 'Onboarding';
             }
+            // die(print_r($item,true));
+            $item['display_id'] = $bi['display_id'];
 
             $this->badgeinfo->UpdateSpecificBadgeUnchecked($item['id'], $item['context_code'], $item);
         } else {
