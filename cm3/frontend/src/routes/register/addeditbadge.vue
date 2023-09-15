@@ -133,6 +133,7 @@
                         </v-toolbar>
                         <v-card-text>
                             <div class="text-h5 pa-4">{{createError}}</div>
+                            <p>If you've registered before here, you should first verify with a Magic Link. This will let you keep your badge history together.</p>
                         </v-card-text>
                         <v-card-actions>
                             <v-btn color="green"
@@ -773,6 +774,8 @@ export default {
                 let badge = this.badges.findIndex((badge) => badge.id == bid);
                 if (badge == -1) {
                     console.log("badges are loaded but the type specified wasn't valid?", bid)
+                    //Fallback to just selecting the first one
+                    this.badge_type_id = this.badges[0].id;
                     badge = 0;
                 }
 
@@ -796,8 +799,11 @@ export default {
             }
         },
         affirmBadgeType() {
-            this.badge_type_id = this.badges[this.selectedBadge_ix].id;
-            console.log("affirmed badge type", this.badge_type_id)
+            if(this.badges[this.selectedBadge_ix]){
+                //Has an index selected that exists, ensure the type ID matches
+                this.badge_type_id = this.badges[this.selectedBadge_ix].id;
+                console.log("affirmed badge type", this.badge_type_id)
+            }
         },
         addBadgeToCart() {
             this.addProductToCart(this.compiledBadge);
