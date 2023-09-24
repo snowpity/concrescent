@@ -725,7 +725,7 @@ final class badgeinfo
         $whereParts =
         empty($searchText) ? null :
         array(
-            new SearchTerm('real_name', $searchText, Raw: 'MATCH(`real_name`, `fandom_name`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
+            new SearchTerm('real_name', $searchText, Raw: 'MATCH('.$this->g_badge_submission->dbTableName().'.`real_name`,'.$this->g_badge_submission->dbTableName().'.`fandom_name`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
         );
         $wherePartsSimpler = array(
             new SearchTerm(
