@@ -1,22 +1,45 @@
 <template>
 <v-stepper v-model="step"
            :vertical="true">
+        <v-stepper-step :editable="reachedStep >= 0"
+                        :complete="reachedStep > 0"
+                        step="0">Context <small>{{ currentContext.name }} {{ forbidContextChange }}</small></v-stepper-step>
+        <v-stepper-content step="0">
+            <v-item-group mandatory 
+                      v-model="context_code">
+                <v-container>
+                <v-row>
+                    <v-col
+                    v-for="context in badgeContexts"
+                    :key="context.context_code"
+                    cols="12"
+                    md="4"
+                    >
+                    <v-item :value="context.context_code" v-slot="{ active, toggle }" 
+                    :disabled="forbidContextChange">
+                        <v-card :elevation="active ? 10 : 1"
+                        :dark="active"
+                                :color="active ? 'primary' : ''" 
+                        @click="toggle">
+                            <v-icon class="ma-8"
+                            :color="active ? 'white' : ''" 
+                                    size=200>mdi-{{ context.menu_icon }}</v-icon>
+                            <v-card-title  class="fill-height align-end">{{ context.name }}</v-card-title>
+
+                        </v-card>
+                            
+                    </v-item>
+                    </v-col>
+                </v-row>
+                </v-container>
+            </v-item-group>
+            <v-btn color="primary"               
+                   @click="step = 1">Continue</v-btn>
+        </v-stepper-content>
     <v-stepper-step :editable="reachedStep >= 1"
                     :complete="reachedStep > 1"
-                    step="1">{{isGroupApp ? "Application" : "Badge"}} Information <small>{{compiledBadge | badgeDisplayName}} &mdash; {{ badges[selectedBadge_ix] ? badges[selectedBadge_ix].name: "Nothing yet!" | subname }}</small></v-stepper-step>
-    <v-stepper-content step="1">
+                    step="1">{{isGroupApp ? "Application" : "Badge"}} Information <small>{{compiledBadge | badgeDisplayName}} &mdash; {{ badges[selectedBadge_ix] ? badges[selectedBadge_ix].name: "Nothing yet!" | subname }}</small></v-stepper-step>    <v-stepper-content step="1">
 
-        <v-select :items="badgeContexts"
-                  :flat="true"
-                  v-model="context_code"
-                  item-text="name"
-                  item-value="context_code"
-                  no-data-text="Loading..."
-                  :readonly="forbidContextChange">
-            <template v-slot:prepend>
-                <h3 class="flex-sm-grow-1 flex-sm-shrink-0 mr-4">{{isGroupApp ? 'Application' : 'Badge'}} Type:</h3>
-            </template>
-        </v-select>
         <badgeGenInfo v-model="badgeGenInfoData"
                       :application_name1="currentContext.application_name1"
                       :application_name2="currentContext.application_name2"
@@ -564,6 +587,9 @@ export default {
     watch: {
         step(newStep) {
             this.reachedStep = Math.max(this.reachedStep, newStep);
+            if(this.step == 1){
+                this.checkBadge();
+            }
             this.autoSaveBadge();
         },
         'badgeGenInfoData.date_of_birth': function() {
@@ -758,7 +784,8 @@ export default {
         resetBadge() {
             Object.assign(this.$data, this.$options.data.apply(this));
             this.$store.commit('cart/setCurrentlyEditingItem', this.compiledBadge);
-            this.step = 1;
+            this.step = 0;
+            this.reachedStep = 0;
         },
         autoSaveBadge() {
             const cartItem = this.compiledBadge;
@@ -776,6 +803,7 @@ export default {
                     console.log("badges are loaded but the type specified wasn't valid?", bid)
                     //Fallback to just selecting the first one
                     this.badge_type_id = this.badges[0].id;
+                    console.log("Setting type to first in list", this.badge_type_id)
                     badge = 0;
                 }
 
@@ -783,8 +811,8 @@ export default {
                 this.selectedBadge_ix = badge;
             } else {
                 this.validBadgeType = false;
-                this.reachedStep = 1;
-                this.step = 1;
+                this.reachedStep = 0;
+                this.step = 0;
 
             }
 
