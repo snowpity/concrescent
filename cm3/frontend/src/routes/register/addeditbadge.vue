@@ -3,7 +3,7 @@
            :vertical="true">
         <v-stepper-step :editable="reachedStep >= 0"
                         :complete="reachedStep > 0"
-                        step="0">Context <small>{{ currentContext.name }} {{ forbidContextChange }}</small></v-stepper-step>
+                        step="0">Context <small>{{ currentContext.name }} {{isGroupApp ? "Application" : "Badge"}}</small></v-stepper-step>
         <v-stepper-content step="0">
             <v-item-group mandatory 
                       v-model="context_code">
@@ -59,7 +59,8 @@
                     {{ badges[selectedBadge_ix] ? badges[selectedBadge_ix].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
                 </v-card-title>
                 <v-card-text class="text--primary">
-                    Availability: {{badges[selectedBadge_ix].dates_available}}
+                    Availability: {{badges[selectedBadge_ix].dates_available}}<br>
+                    Ages:  {{badges[selectedBadge_ix].age_range}}<br>
                     <badgePerksRender :description="badges[selectedBadge_ix] ? badges[selectedBadge_ix].description : '' "
                                       :rewardlist="rewardlist"></badgePerksRender>
                 </v-card-text>
@@ -276,7 +277,7 @@
                     step="5">Applicant Badges</v-stepper-step>
 
     <v-stepper-content step="5">
-
+        <h3>Please provide the people who will need a badge for this application.</h3>
         <subBadgeListEditor v-model="subbadges"
                             v-if="hasSubBadges"
                             :base_applicant_count="selectedBadge.base_applicant_count"
@@ -417,16 +418,7 @@ export default {
             let badges = JSON.parse(JSON.stringify(this.products));
             // First, do we have a date_of_birth?
             const bday = new Date(this.badgeGenInfoData.date_of_birth);
-            if (this.badgeGenInfoData.date_of_birth && bday) {
-                badges = badges.filter((badge) => {
-                    if (!(
-                            (badge['min_birthdate'] != null && bday < new Date(badge['min_birthdate'])) ||
-                            (badge['max_birthdate'] != null && bday > new Date(badge['max_birthdate']))
-                        )) {
-                        return badge;
-                    }
-                });
-            }
+            const shouldCheckBday = !isNaN(bday.getTime());            
 
             //Disable those that are outside the availability
             var now = new Date();
@@ -435,15 +427,38 @@ export default {
                 var end = new Date(item["end_date"]);
                 if (end < new Date('2000-01-01'))
                     end.setYear(2099);
+
+                //Check bday
+                var bdayvalid = true;
+                if(shouldCheckBday){
+                    bdayvalid = !(
+                        (item['min_birthdate'] != null && bday < new Date(item['min_birthdate'])) ||
+                        (item['max_birthdate'] != null && bday > new Date(item['max_birthdate']))
+                        );
+                }
+
+                //Generate age range
+                var age_range = (item['min_age'] != null ? (
+                    item['max_age'] != null ? 'Between ' + item['min_age'] + ' and ' + item['max_age'] + ' years'
+                    : 'At least ' + item['min_age'] + ' years'
+                    ) : (
+                    item['max_age'] != null ? 'Younger than ' + item['max_age'] + ' years'
+                    : 'All ages'
+                    )
+                )
+
                 var disabled =
                     (end < now) ||
                     (start > now) ||
-                    (item.quantity_remaining === 0);
+                    (item.quantity_remaining === 0) ||
+                    !bdayvalid;
                 badges[i].disabled = disabled;
+                badges[i].age_range = age_range;
                 // console.log("Badge disable?", {
                 //     start: start,
                 //     end: end,
                 //     quantity_remaining: item.quantity_remaining,
+                //       bdayvalid:bdayvalid,
                 //     disabled: disabled,
                 //     name: item.name
                 // })
@@ -811,8 +826,9 @@ export default {
                 this.selectedBadge_ix = badge;
             } else {
                 this.validBadgeType = false;
-                this.reachedStep = 0;
-                this.step = 0;
+                this.reachedStep = Math.max(1,this.reachedStep);
+                this.step = Math.max(1,this.step);
+                console.log('No badges for context, go back to step 1', this.context_code)
 
             }
 
