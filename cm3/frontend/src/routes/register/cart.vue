@@ -8,10 +8,10 @@
             <v-expansion-panel-header dense>
                 <v-list-item-content>
                     <v-list-item-title>
-                        {{cart.id}} ->
-                        <span>Requestor: {{ cart.requested_by }}</span>
+                        Cart from {{new Date(cart.date_modified).toLocaleString()}}
                     </v-list-item-title>
-                    <v-list-item-subtitle>Saved: {{new Date(cart.date_modified).toLocaleString()}}</v-list-item-subtitle>
+                    <v-list-item-subtitle>{{cart.id}} ->
+                        <span>Requestor: {{ cart.requested_by }}</span></v-list-item-subtitle>
                 </v-list-item-content>
 
                 <template v-slot:actions>
@@ -103,10 +103,14 @@
                     <v-row>
                         <v-col cols="3"
                                sm="2">
-                            <v-btn color="red"
-                                   @click="showclearCartDialog(cart.id)">
-                                <v-icon>mdi-bomb</v-icon>
-                            </v-btn>
+                            <v-tooltip top>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn color="red" v-bind="attrs" v-on="on" @click="showclearCartDialog(cart.id)">
+                                        <v-icon>mdi-trash-can</v-icon>
+                                    </v-btn>
+                                </template>
+                                Clear cart
+                            </v-tooltip>
                         </v-col>
 
                         <v-col cols="3"
@@ -403,7 +407,7 @@
                        @click="addBadge(null)"
                        left
                        rounded
-                       absolute>Add a badge</v-btn>
+                       absolute>Create new cart and Add a badge</v-btn>
             </v-col>
             <v-spacer></v-spacer>
         </v-row>

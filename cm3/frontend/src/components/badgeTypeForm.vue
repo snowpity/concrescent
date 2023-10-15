@@ -203,6 +203,10 @@ function nullIfEmptyOrZero(inValue) {
     if (inValue == 0 || inValue == '' || inValue == null) return null;
     return inValue;
 }
+function nullIfEmpty(inValue) {
+    if (inValue == 0 || inValue == '' || inValue == null) return null;
+    return inValue;
+}
 
 function ZeroIfEmpty(inValue) {
     if (inValue == 0 || inValue == '' || inValue == null) return 0;
@@ -268,7 +272,7 @@ export default {
                 rewards: this.model.rewards || "",
                 price: this.model.price || "",
                 payable_onsite: this.model.payable_onsite == 1,
-                quantity: nullIfEmptyOrZero(this.model.quantity),
+                quantity: nullIfEmpty(this.model.quantity),
                 start_date: nullIfEmptyOrZero(this.model.start_date),
                 end_date: nullIfEmptyOrZero(this.model.end_date),
                 min_age: nullIfEmptyOrZero(this.model.min_age),

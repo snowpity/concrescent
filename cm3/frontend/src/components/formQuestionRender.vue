@@ -137,7 +137,8 @@
         </p>
         <v-radio-group :readonly="readonly"
                        v-model="userResponse"
-                       :mandatory="false">
+                       :mandatory="false"
+                       :rules="isRequired ? RulesRequired : undefined ">
             <template v-slot:label>
                 <v-md-preview v-if="question.text != null && question.text.length > 0"
                               :text="question.text" />
@@ -177,7 +178,8 @@
                   :items="listItems"
                   :clearable="isRequired"
                   :readonly="readonly"
-                  v-model="userResponse">
+                  v-model="userResponse"
+                  :rules="isRequired ? RulesRequired : undefined ">
             <template v-slot:label>
                 {{question.title}}
                 <span v-if="isRequired"

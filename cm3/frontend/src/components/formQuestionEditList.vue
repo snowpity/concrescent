@@ -26,7 +26,7 @@
                             v-if="!active">
 
                         <formQuestionRender v-if="bQuestionActive(item.id)"
-                                            :question="item" />
+                                            :question="{...item, required : bQuestionRequired(item.id) }" />
                         <p v-else>Hidden: {{item.title}} </p>
                         <v-divider></v-divider>
                     </v-card>
@@ -35,51 +35,102 @@
                                           :preview="eQuestion(item.id).preview" />
                         <v-toolbar v-if="active"
                                    dense>
-                            <v-btn icon
-                                   @click="prepCancelEdit(ix)">
-                                <v-icon>mdi-cancel</v-icon>
-                            </v-btn>
-                            <v-btn icon
-                                   @click="prepDestroyQuestion(ix)">
-                                <v-icon>mdi-delete</v-icon>
-                            </v-btn>
-                            <v-btn icon
-                                   @click="toggleQuestionListed(item.id)">
-                                <v-icon>mdi-table-eye{{bQuestionListed(item.id) ? '' : '-off'}}</v-icon>
-                            </v-btn>
+                            <v-tooltip top>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn v-bind="attrs" v-on="on" icon
+                                        @click="prepCancelEdit(ix)">
+                                     <v-icon>mdi-cancel</v-icon>
+                                    </v-btn>
+                                </template>
+                                Cancel Edit
+                            </v-tooltip>
+                            <v-tooltip top>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn v-bind="attrs" v-on="on" icon
+                                        
+                                        @click="prepDestroyQuestion(ix)">
+                                     <v-icon>mdi-delete</v-icon>
+                                    </v-btn>
+                                </template>
+                                Delete question (not yet functional)
+                            </v-tooltip>
+                            <v-tooltip top>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn v-bind="attrs" v-on="on" icon
+                                        
+                                        @click="toggleQuestionListed(item.id)">
+                                     <v-icon>mdi-table-eye{{bQuestionListed(item.id) ? '' : '-off'}}</v-icon>
+                                    </v-btn>
+                                </template>
+                                Add to badge list by default
+                            </v-tooltip>
                             <v-spacer />
                             <i v-if="selectedBadgeType > 0">
-                                <v-btn icon
-                                       @click="toggleQuestionActive(item.id)">
-                                    <v-icon>mdi-eye{{bQuestionActive(item.id) ? '' : '-off'}}</v-icon>
-                                </v-btn>
-                                <v-btn icon
-                                       :disabled="!bQuestionActive(item.id)"
-                                       @click="toggleQuestionRequired(item.id)"
-                                       :color="bQuestionRequired(item.id) ? 'red' : undefined ">
-                                    <v-icon>mdi-asterisk</v-icon>
-                                </v-btn>
+                                <v-tooltip top>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn v-bind="attrs" v-on="on" icon
+                                        
+                                        @click="toggleQuestionActive(item.id)">
+                                     <v-icon>mdi-eye{{bQuestionActive(item.id) ? '' : '-off'}}</v-icon>
+                                    </v-btn>
+                                </template>
+                                Visible for {{ contextBadgeTypes.find(it=> it.id == selectedBadgeType)?.name || 'Badge Type' }}
+                            </v-tooltip>
+                                <v-tooltip top>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn v-bind="attrs" v-on="on" icon
+                                        
+                                        :disabled="!bQuestionActive(item.id)"
+                                        @click="toggleQuestionRequired(item.id)"
+                                        :color="bQuestionRequired(item.id) ? 'red' : undefined ">
+                                     <v-icon>mdi-asterisk</v-icon>
+                                    </v-btn>
+                                </template>
+                                Question is required
+                            </v-tooltip>
                             </i>
-                            <v-btn icon
-                                   color="primary">
-                                <v-icon>mdi-arrow-up</v-icon>
-                            </v-btn>
-                            <v-btn icon
-                                   color="primary">
-                                <v-icon>mdi-arrow-down</v-icon>
-                            </v-btn>
+                            <v-tooltip top>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn v-bind="attrs" v-on="on" icon
+                                        
+                                        color="primary">
+                                     <v-icon>mdi-arrow-up</v-icon>
+                                    </v-btn>
+                                </template>
+                                Move question up
+                            </v-tooltip>
+                            <v-tooltip top>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn v-bind="attrs" v-on="on" icon
+                                        color="primary">
+                                     <v-icon>mdi-arrow-down</v-icon>
+                                    </v-btn>
+                                </template>
+                                Move question down
+                            </v-tooltip>
                             <v-spacer />
-                            <v-btn icon
-                                   @click="eQuestion(item.id).preview = !eQuestion(item.id).preview">
-                                <v-icon>mdi-magnify{{eQuestion(item.id).preview ? '-close' :''}}</v-icon>
-                            </v-btn>
-                            <v-btn icon
-                                   :disabled="!bQuestionModified(item.id)"
-                                   :loading="eQuestion(item.id).saving"
-                                   @click="saveEdit(item.id)"
-                                   color="primary">
-                                <v-icon>mdi-content-save</v-icon>
-                            </v-btn>
+                            <v-tooltip top>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn v-bind="attrs" v-on="on" icon
+                                        
+                                        @click="eQuestion(item.id).preview = !eQuestion(item.id).preview">
+                                     <v-icon>mdi-magnify{{eQuestion(item.id).preview ? '-close' :''}}</v-icon>
+                                    </v-btn>
+                                </template>
+                                Preview question
+                            </v-tooltip>
+                            <v-tooltip top>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn v-bind="attrs" v-on="on" icon
+                                        :disabled="!bQuestionModified(item.id)"
+                                        :loading="eQuestion(item.id).saving"
+                                        @click="saveEdit(item.id)"
+                                        color="primary">
+                                     <v-icon>mdi-content-save</v-icon>
+                                    </v-btn>
+                                </template>
+                                Save question
+                            </v-tooltip>
                         </v-toolbar>
                         <v-divider></v-divider>
                     </v-card>
@@ -104,22 +155,37 @@
                         <formQuestionEdit v-model="newQuestion"
                                           :preview="newQuestionPreview" />
                         <v-toolbar dense>
-                            <v-btn icon
-                                   @click="cancelNewQuestion()">
-                                <v-icon>mdi-cancel</v-icon>
-                            </v-btn>
+                            <v-tooltip top>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn v-bind="attrs" v-on="on" icon
+                                    @click="cancelNewQuestion()">
+                                 <v-icon>mdi-cancel</v-icon>
+                                    </v-btn>
+                                </template>
+                                Cancel adding question
+                            </v-tooltip>
                             <v-spacer />
-                            <v-btn icon
-                                   @click="newQuestionPreview = !newQuestionPreview">
-                                <v-icon>mdi-magnify{{newQuestionPreview ? '-close' :''}}</v-icon>
-                            </v-btn>
-                            <v-btn icon
-                                   :disabled="newQuestion.title == ''"
-                                   :loading="newQuestionSaving"
-                                   @click="saveNewQuestion"
-                                   color="primary">
-                                <v-icon>mdi-content-save</v-icon>
-                            </v-btn>
+                            <v-tooltip top>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn v-bind="attrs" v-on="on" icon
+                                    @click="newQuestionPreview = !newQuestionPreview">
+                                        <v-icon>mdi-magnify{{newQuestionPreview ? '-close' :''}}</v-icon>
+                                    </v-btn>
+                                </template>
+                                Preview question
+                            </v-tooltip>
+                            <v-tooltip top>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn v-bind="attrs" v-on="on" icon
+                                    :disabled="newQuestion.title == ''"
+                                    :loading="newQuestionSaving"
+                                    @click="saveNewQuestion"
+                                    color="primary">
+                                        <v-icon>mdi-content-save</v-icon>
+                                    </v-btn>
+                                </template>
+                                Save question
+                            </v-tooltip>
                         </v-toolbar>
                         <v-divider></v-divider>
                     </v-card>
@@ -201,7 +267,7 @@ export default {
                     this.$set(this.editedQuestions, id, {
                         preview: false,
                         saving: false,
-                        question: JSON.parse(JSON.stringify(question))
+                        question: {...question, required: this.bQuestionRequired(id) }
                     });
                 }
                 return this.editedQuestions[id];

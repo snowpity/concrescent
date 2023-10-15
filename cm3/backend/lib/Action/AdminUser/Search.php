@@ -10,6 +10,8 @@ use CM3_Lib\database\View;
 use CM3_Lib\models\admin\user;
 use CM3_Lib\models\contact;
 use CM3_Lib\util\badgeinfo;
+use CM3_Lib\util\TokenGenerator;
+use CM3_Lib\util\CurrentUserInfo;
 use CM3_Lib\Responder\Responder;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -30,7 +32,9 @@ final class Search
         private Responder $responder,
         private user $user,
         private contact $contact,
-        private badgeinfo $badgeinfo
+        private badgeinfo $badgeinfo,
+        private TokenGenerator $tokenGenerator,
+        private CurrentUserInfo $CurrentUserInfo
     ) {
     }
 
@@ -44,9 +48,6 @@ final class Search
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        // Extract the form data from the request body
-        $data = (array)$request->getParsedBody();
-        //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
         $whereParts = array(
           new SearchTerm('username', '%' . ($request->getQueryParams()['find']??'') .'%', 'LIKE'),
@@ -59,7 +60,7 @@ final class Search
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->user->Search(new View([
-                    'contact_id','username','active',
+                    'contact_id','username','active','permissions',
                     new SelectColumn('real_name', Alias:'real_name', EncapsulationFunction: 'IFNULL(?,\'Anonymous\')', JoinedTableAlias:'c'),
                     new SelectColumn('email_address', Alias:'email_address', EncapsulationFunction: 'IFNULL(?,\'\')', JoinedTableAlias:'c')
                 ], [
@@ -73,6 +74,17 @@ final class Search
                        alias:'c'
                    )
                ]), $whereParts, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
+        
+        //Sput in permissions details
+        $data = array_map(function($userdata){
+            $uperms = $this->tokenGenerator->decodePermissionsString($userdata['permissions']);
+            $userdata['HasPermsForEvent'] = array_key_exists(strval($this->CurrentUserInfo->GetEventId()),$uperms->EventPerms);
+            $userdata['EventsWithPerms'] = array_keys($uperms->EventPerms);
+            $userdata['IsGlobalAdmin'] = $uperms->IsGlobalAdmin();
+            unset($userdata['permissions']);
+            // $userdata['permissions'] = json_encode($uperms);
+            return $userdata;
+        },$data);
 
         $response = $response->withHeader('X-Total-Rows', (string)$totalRows);
         // Build the HTTP response

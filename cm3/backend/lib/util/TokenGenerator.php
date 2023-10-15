@@ -49,17 +49,12 @@ class TokenGenerator
         } else {
             $perms = new EventPermissions();
             //Check if thery're global admin anywhere
-            if ($eperms->IsGlobalAdmin) {
+            if ($eperms->IsGlobalAdmin()) {
                 $perms->EventPerms->setGlobalAdmin(true);
-            }
-            foreach ($eperms->EventPerms as $ep) {
-                if ($ep->EventPerms->isGlobalAdmin()) {
-                    $perms->EventPerms->setGlobalAdmin(true);
-                }
             }
         }
 
-        if ($eperms->IsGlobalAdmin) {
+        if ($eperms->IsGlobalAdmin()) {
             //Flag them as GlobalAdmin
             $perms->EventPerms->setGlobalAdmin(true);
             //Load groups for the selected event
@@ -140,6 +135,7 @@ class TokenGenerator
         $packer = (new Packer())
                 ->extendWith(new UserPermissions())
                 ->extendWith(new EventPermissions());
+        //TODO:  Should probably implement a demotion mechanic if none of the events has GlobalAdmin permission...
         return $packer->pack($Perms);
     }
 
@@ -163,8 +159,14 @@ class TokenGenerator
                 $newEventPerms->GroupPerms[$groupId] = $gPerm;
             }
         }
-        //Replace the event perms with this one!
-        $initialPerms->EventPerms[$event_id] = $newEventPerms;
+        //Did we end up with permissions at all?
+        if($newEventPerms->hasAnyPerms()){
+            //Replace the event perms with this one!
+            $initialPerms->EventPerms[$event_id] = $newEventPerms;
+        } else {
+            //Remove it if it was there before.
+            unset($initialPerms->EventPerms[$event_id]);
+        }
         return $initialPerms;
     }
 
@@ -177,7 +179,7 @@ class TokenGenerator
             $founduser['permissions'] = $this->packPermissions($newPerms);
             $this->user->Update($founduser);
         } else {
-            throw new Exception('User does not exist');
+            throw new \Exception('User does not exist');
         }
     }
 

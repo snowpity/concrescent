@@ -221,6 +221,7 @@ const actions = {
                         state: result.state
                     });
                     commit('setCartItems', result);
+                    commit('mydata/updateActiveCart',result, {root: true});
                     commit('clearDirty');
                     resolve(result.id);
                 }, (er) => {
