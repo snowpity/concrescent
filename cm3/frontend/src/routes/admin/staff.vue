@@ -85,14 +85,16 @@
                        @create="createBadgeType" />
 
         <v-dialog v-model="btDialog"
-                  persistent>
+                  scrollable>
 
             <v-card>
                 <v-card-title class="headline">Edit Badge Type</v-card-title>
+                <v-divider></v-divider>
                 <v-card-text>
 
                     <badgeTypeForm v-model="btSelected" />
                 </v-card-text>
+                <v-divider></v-divider>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="default"
@@ -115,15 +117,16 @@
                   @edit="editDepartment"
                   @create="createDepartment" />
         <v-dialog v-model="dDialog"
-                  scrollable
-                  persistent>
+                  scrollable>
 
             <v-card>
                 <v-card-title class="headline">Edit Department</v-card-title>
+                <v-divider></v-divider>
                 <v-card-text>
 
                     <editDepartment v-model="dSelected" />
                 </v-card-text>
+                <v-divider></v-divider>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="default"
