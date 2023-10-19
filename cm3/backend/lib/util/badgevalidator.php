@@ -139,7 +139,7 @@ final class badgevalidator
         if (isset($badgetypeData['start_date']) && date_create() < date_create($badgetypeData['start_date'])) {
             $v->addColumnValidator('badge_type_id', v::alwaysInvalid(), true);
         }
-        if (isset($badgetypeData['end_date']) && date_create() > date_create($badgetypeData['end_date'])) {
+        if (isset($badgetypeData['end_date']) && date_create() > date_create($badgetypeData['end_date'])->setTime(23,59,59)) {
             $v->addColumnValidator('badge_type_id', v::alwaysInvalid(), true);
         }
 

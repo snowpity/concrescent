@@ -427,6 +427,11 @@ export default {
                 var end = new Date(item["end_date"]);
                 if (end < new Date('2000-01-01'))
                     end.setYear(2099);
+                //Ensure we're comparing against the end of the day
+                //Does not take account of server's set timezone :O
+                end.setHours(23);
+                end.setMinutes(59);
+                end.setSeconds(59);
 
                 //Check bday
                 var bdayvalid = true;
