@@ -1,6 +1,10 @@
 <?php
 
+require_once dirname(__FILE__).'/../../config/config.php';
+
 function get_domain_url() {
+	global $cm_config;
+	if (isset($cm_config) && isset($cm_config['site-override']) && $cm_config['site-override'] != '') return $cm_config['site-override'];
 	$https = (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on'));
 	$url = ($https ? 'https' : 'http') . '://' . $_SERVER['SERVER_NAME'];
 	if ($_SERVER['SERVER_PORT'] != ($https ? '443' : '80')) {
@@ -222,7 +226,7 @@ function mail_merge_html($text, $fields) {
 	$r = array();
 	foreach ($fields as $k => $v) {
 		$s[] = '[[' . htmlspecialchars($k) . ']]';
-		$r[] = htmlspecialchars(is_array($v) ? print_r($v, true) : $v);
+		$r[] = htmlspecialchars(is_array($v) ? print_r($v, true) : ($v ?? ''));
 	}
 	return str_replace($s, $r, $text);
 }

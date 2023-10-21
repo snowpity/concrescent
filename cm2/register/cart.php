@@ -123,7 +123,7 @@ echo '<div class="card">';
 										echo '<div><b>' . htmlspecialchars($real_name) . '</b></div>';
 										break;
 								}
-								$promo_code = trim($item['payment-promo-code']);
+								$promo_code = trim($item['payment-promo-code'] ?? '');
 								if ($promo_code) {
 									echo '<div><b>Promo Code:</b> ' . htmlspecialchars($promo_code) . '</div>';
 								}

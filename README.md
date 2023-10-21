@@ -33,7 +33,27 @@ CONcrescent provides everything a fandom convention needs in a registration and 
 *   Integration with PayPal for payment
 *   Integration with Slack for notifications
 
-## Installation
+# CONcrescent 2
+CONcrescent 2 is the currently stable and properly functioning version of CONcrescent.
+Usage of this version is recommended and still the default version of the CONcrescent docker-compose setup.
+CONcrescent 2 also has documentation and easier setup than CONcrescent 3.
+
+## Docker Installation
+1.  Install [docker](https://docs.docker.com/engine/install/).
+2.  Copy `docker-concrescent2/concrescent.example.php` to `docker-concrescent2/concrescent.php` and edit the file to fit your config.
+3.  Copy `msmtprc.example` to `msmtprc` and change the settings in this file to reflect your mail server.
+4.  Copy `docker-compose.example.yaml` to `docker-compose.yaml` and edit it to your liking, including potential SSL reverse proxy setups.<br>
+    Specifically make sure that your `concrescent.php` timezone matches your `TZ` environment variable in the SQL container. If you use an external MySQL server, make sure the `concrescent.php` contains the right server timezone.
+5.  Start concrescent with `docker compose up [-d]` and go to `http://localhost:8080/admin/doctor` to verify CONcrescent is set up correctly.
+    All rows should turn green and start with **PASSED**.
+6. Once all issues (if any) have been resolved, `http://localhost:8080/admin/doctor/set_perm.php` to prevent future access to the checks.
+7. Log in to `http://localhost:8080/admin/` with the username and password set in the configuration file in step 2.<br>
+You can now start going through each section in the side nav to set up badge types, form questions, blacklists, email notifications, rooms and tables, departments, badge artwork, admin accounts, etc.
+
+Depending on the way you set up your `docker-compose.yaml` file you might have a different base URL than `http://localhost:8080/`.
+Simply replace that in all the above URLs.
+
+## Manual Installation
 1.  Check out the `cm2` directory.
 2.  Edit `cm2/config/config.php`, replacing the default values with values
     specific to your web server, PayPal account, and event. Also make sure

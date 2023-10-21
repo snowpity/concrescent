@@ -1,3 +1,13 @@
-cm3/backend/.php-cs-fixer.cache
+# Config Files
+concrescent.php
+msmtprc
+docker-compose.yaml
+docker-compose.cm2.yaml
+
+# Data directories
+mysql-data
+
+# Concrescent 3 files
 cm3/backend/logs
 cm3/frontend/.yarn
+cm3/backend/.php-cs-fixer.cache

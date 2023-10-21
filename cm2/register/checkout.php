@@ -100,7 +100,7 @@ if (!$_GET) {
 		}
 		else
 		{
-			$item['payment-type']     = $_SESSION['payment_method'] == 'cash' ? 'Cash'  : $_SESSION['payment_method'] == 'paypal' ? 'PayPal' : null;
+			$item['payment-type']     = $_SESSION['payment_method'] == 'cash' ? 'Cash' : ($_SESSION['payment_method'] == 'paypal' ? 'PayPal' : null);
 			$item['payment-details']  = transaction_details_update("",$transaction_id,array('id' => $transaction_id, 'type' => $item['payment-type'] ));//Empty transaction info
 			//Should we be pre-complete?
 			if($item['payment-promo-price'] <= 0){
