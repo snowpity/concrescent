@@ -51,7 +51,7 @@ final class Search
         $find = $qp['find'] ?? '';
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
-        $pg = $this->badgeinfo->parseQueryParamsPagination($qp, 'id', defaultSortDesc:true);
+        $pg = $this->badgeinfo->parseQueryParamsPagination($qp, 'display_order');
         $totalRows = 0;
 
         // Invoke the Domain with inputs and retain the result

@@ -7,6 +7,7 @@
               :items="tableResults"
               :item-key="internalKey"
               class="elevation-1 fill-height"
+              :show-expand='showExpand'
               :search="searchText">
 
     <template v-slot:top="">
@@ -19,10 +20,10 @@
     </template>
     <template v-slot:[`item.actions`]="{ item }">
         <i v-if="!isSorting">
-            <v-btn class="ml-2">
+            <v-btn class="ml-2" @click="doMove(item,true)">
                 <v-icon>mdi-arrow-up</v-icon>
             </v-btn>
-            <v-btn class="mr-2">
+            <v-btn class="mr-2" @click="doMove(item,false)">
                 <v-icon>mdi-arrow-down</v-icon>
             </v-btn>
         </i>
@@ -77,6 +78,12 @@ export default {
         'apiMoveCommand': {
             type: String
         },
+        'displayOrderKey': {
+            type: String,
+            default () {
+                return 'display_order';
+            }
+        },
         'actions': {
             type: Array
         },
@@ -114,7 +121,6 @@ export default {
     },
     data() {
         return {
-
             searchText: this.search || '',
             loading: false,
             tableOptions: {},
@@ -154,7 +160,7 @@ export default {
                 'sortDesc',
                 'page',
                 'itemsPerPage'
-            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), this.apiAddParams || {});
+            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), {...this.apiAddParams});
             if (this.searchText) pageOptions['find'] = this.searchText;
             if (this.context_code) pageOptions['context_code'] = this.context_code;
             admin.genericGetList(this.authToken, this.apiPath, pageOptions, (results, total) => {
@@ -165,6 +171,31 @@ export default {
         },
         doEmit: function(eventName, item) {
             this.$emit(eventName, item);
+        },
+        doMove: function(item, upwards) {
+            this.loading = true;
+
+            //TODO: Shouldn't we be using the internalKey
+            admin.genericPost(this.authToken, this.apiPath + '/' + item[this.headerKey.value] + '/Move', { direction: upwards }, (results, total) => {
+                this.tableResults = this.tableResults.map(element => {
+                    var updated = results.find(r => r[this.headerKey.value] == element[this.headerKey.value], this);
+                    if (updated != undefined){
+                        //Flag it for later
+                        updated.__foundit = true;
+                    } 
+                    return { ...element, ...updated };
+                }, this).sort((a, b) => a[this.displayOrderKey] - b[this.displayOrderKey]);
+                
+                var allfound = results.reduce(function(last, current) {
+                    return last && current.__foundit
+                }, true);
+                if (!allfound) {
+                    this.doSearch();
+                }
+                else {                    
+                    this.loading = false;
+                }
+            })
         }
     },
     watch: {

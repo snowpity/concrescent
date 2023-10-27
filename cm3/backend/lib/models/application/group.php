@@ -6,6 +6,7 @@ use CM3_Lib\database\Column as cm_Column;
 
 class group extends \CM3_Lib\database\Table
 {
+    use \CM3_Lib\database\orderableTrait;
     protected function setupTableDefinitions(): void
     {
         $this->TableName = 'Application_Groups';
@@ -31,5 +32,9 @@ class group extends \CM3_Lib\database\Table
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
         $this->DefaultSearchColumns = array('id','context_code','name','menu_icon');
+        
+        //OrderableTrait defs
+        $this->orderColumn = 'display_order';
+        $this->orderGroupColumns = ['event_id','context_code'];
     }
 }

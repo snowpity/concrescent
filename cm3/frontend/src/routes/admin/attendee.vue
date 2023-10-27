@@ -134,11 +134,12 @@
 
     <v-tab-item value="4">
 
-        <simpleList apiPath="Attendee/Addon"
+        <orderableList apiPath="Attendee/Addon"
                     :isEditingItem="dEdit"
                     :AddHeaders="dAddHeaders"
                     :actions="btActions"
                     :footerActions="btFooterActions"
+                    internalKey="id"
                     show-expand
                     @edit="editAddon"
                     @create="createAddon">
@@ -165,7 +166,7 @@
                     </v-container>
                 </td>
             </template>
-        </simpleList>
+        </orderableList>
         <v-dialog v-model="dEdit"
                   scrollable>
 

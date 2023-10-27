@@ -83,18 +83,19 @@
                                         :disabled="!bQuestionActive(item.id)"
                                         @click="toggleQuestionRequired(item.id)"
                                         :color="bQuestionRequired(item.id) ? 'red' : undefined ">
-                                     <v-icon>mdi-asterisk</v-icon>
+                                        <v-icon>mdi-asterisk</v-icon>
                                     </v-btn>
                                 </template>
                                 Question is required
                             </v-tooltip>
-                            </i>
-                            <v-tooltip top>
-                                <template v-slot:activator="{ on, attrs }">
-                                    <v-btn v-bind="attrs" v-on="on" icon
-                                        
+                        </i>
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn v-bind="attrs" v-on="on" icon
+                                
+                                        @click="moveQuestion(item.id,true)"
                                         color="primary">
-                                     <v-icon>mdi-arrow-up</v-icon>
+                                        <v-icon>mdi-arrow-up</v-icon>
                                     </v-btn>
                                 </template>
                                 Move question up
@@ -102,6 +103,7 @@
                             <v-tooltip top>
                                 <template v-slot:activator="{ on, attrs }">
                                     <v-btn v-bind="attrs" v-on="on" icon
+                                        @click="moveQuestion(item.id,false)"
                                         color="primary">
                                      <v-icon>mdi-arrow-down</v-icon>
                                     </v-btn>
@@ -374,6 +376,32 @@ export default {
                 //Not active, they can't be required in any case
             }
 
+        },
+        moveQuestion: function(id,upwards) {
+            var q = this.questions.findIndex(item => item.id == id);
+            console.log("move", id, upwards ? 'up':'down');
+            var question = this.questions[q];
+            admin.genericPost(this.authToken, 'Form/Question/' + this.context_code + '/' + id + '/Move', {
+                id: id,
+                direction: upwards
+            }, (results) => {
+                // Re-sort the questions based on the result
+                this.questions = this.questions.map(element => {
+                    var updated = results.find(r => r['id'] == element['id'], this);
+                    if (updated != undefined){
+                        //Flag it for later
+                        updated.__foundit = true;
+                    } 
+                    return { ...element, ...updated };
+                }, this).sort((a, b) => a['order'] - b['order']);
+                //Check if everything that changed is in our view
+                var allfound = results.reduce(function(last, current) {
+                    return last && current.__foundit
+                }, true);
+                if (!allfound) {
+                    console.error('Elements returned that we don\'t know about?', results);
+                }
+            })
         },
         bQuestionModified: function(id) {
             var orig = JSON.stringify(this.questions.find(item => item.id == id));

@@ -366,15 +366,9 @@ abstract class Table
             //A bare string is just the column name
             if (gettype($value) == 'string') {
                 $selectParts .= (
-                    (
-                        isset($value->JoinedTableAlias)
-                ? '`' .$value->JoinedTableAlias.'`'
-                : (
                     !is_null($initialTableAlias)
                     ? '`' .$initialTableAlias.'`'
                     : $this->dbTableName()
-                )
-                    )
                 ) . '.`' . $value .'`, ';
             } elseif ($value instanceof SelectColumn) {
                 $selectParts .= str_replace(
@@ -648,10 +642,24 @@ abstract class Table
         if ($order != null && count($order)) {
             $sqlOrdering .= ' ORDER BY ';
             foreach ($order as $key=>$value) {
+                //TODO: Check column name is correct
+                //A bare string is just the column name
                 if (gettype($value) == 'string') {
-                    $sqlOrdering .= '`' . $value .'`, ';
+                    $sqlOrdering .= (!empty($initialTableAlias) ? '`' . $initialTableAlias .'`' : $this->dbTableName()) .
+                    '.`' . $value .'`, ';
+                } elseif ($value instanceof SelectColumn) {
+                    $sqlOrdering .= str_replace(
+                        '?',
+                        (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`.' 
+                            : (!empty($initialTableAlias) ? '`' . $initialTableAlias .'`' : $this->dbTableName()) .'.'). '`' . $value->ColumnName .'`',
+                        $value->EncapsulationFunction != null ? $value->EncapsulationFunction : '?'
+                    );
+                    $sqlBody .= ', ';
+                } elseif (gettype($key) == 'string') {
+                    $sqlOrdering .=  (!empty($initialTableAlias) ? '`' . $initialTableAlias .'`' : $this->dbTableName()) 
+                    . '.`' . $key .'`' . ($value ? ' DESC' : '') . ', ';
                 } else {
-                    $sqlOrdering .= '`' . $key .'`' . ($value ? ' DESC' : '') . ', ';
+                    $errors[] ="Unable to add order-by column for ".$this->dbTableName().":\n" . print_r($value, true);
                 }
             }
 

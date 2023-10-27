@@ -67,6 +67,16 @@ class DbConnection
         }
     }
 
+    public function transaction_begin(){
+        $this->connection->begin_transaction();
+    }
+    public function transaction_commit(){
+        $this->connection->commit();
+    }
+    public function transaction_rollback(){
+        $this->connection->rollback();
+    }
+
     public function now()
     {
         $result = $this->connection->query('SELECT NOW()');

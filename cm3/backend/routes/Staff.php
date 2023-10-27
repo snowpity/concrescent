@@ -50,6 +50,8 @@ return function (App $app, $container) {
             ->add($staffView);
             $app->post('/{id}', \CM3_Lib\Action\Staff\BadgeType\Update::class)
             ->add($staffPerm);
+            $app->post('/{id}/Move', \CM3_Lib\Action\Staff\BadgeType\Move::class)
+            ->add($staffPerm);
             $app->delete('/{id}', \CM3_Lib\Action\Staff\BadgeType\Delete::class)
             ->add($staffPerm);
         },
@@ -61,6 +63,8 @@ return function (App $app, $container) {
             $app->get('/{id}', \CM3_Lib\Action\Staff\Department\Read::class)
             ->add($staffView);
             $app->post('/{id}', \CM3_Lib\Action\Staff\Department\Update::class)
+            ->add($staffPerm);
+            $app->post('/{id}/Move', \CM3_Lib\Action\Staff\Department\Move::class)
             ->add($staffPerm);
             $app->delete('/{id}', \CM3_Lib\Action\Staff\Department\Delete::class)
             ->add($staffPerm);

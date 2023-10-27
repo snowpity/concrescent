@@ -49,7 +49,7 @@ final class Search
         $data = (array)$request->getParsedBody();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
-        $order = array('id' => false);
+        $order = array('display_order' => false);
 
         $page      = ($request->getQueryParams()['page']?? 0 > 0) ? $request->getQueryParams()['page'] : 1;
         $limit     = $request->getQueryParams()['itemsPerPage']?? -1; // Number of posts on one page

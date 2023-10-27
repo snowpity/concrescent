@@ -6,6 +6,7 @@ use CM3_Lib\database\Column as cm_Column;
 
 class addon extends \CM3_Lib\database\Table
 {
+    use \CM3_Lib\database\orderableTrait;
     protected function setupTableDefinitions(): void
     {
         $this->TableName = 'Attendee_Addons';
@@ -35,6 +36,10 @@ class addon extends \CM3_Lib\database\Table
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
         $this->DefaultSearchColumns = array('id','name','price','quantity','dates_available');
+        
+        //OrderableTrait defs
+        $this->orderColumn = 'display_order';
+        $this->orderGroupColumns = ['event_id'];
     }
 
     public function verifyAddonBelongsToEvent(int $id, int $event_id)

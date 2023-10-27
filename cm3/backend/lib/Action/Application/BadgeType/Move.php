@@ -1,8 +1,8 @@
 <?php
 
-namespace CM3_Lib\Action\Attendee\BadgeType;
+namespace CM3_Lib\Action\Application\BadgeType;
 
-use CM3_Lib\models\attendee\badgetype;
+use CM3_Lib\models\application\badgetype;
 use CM3_Lib\Responder\Responder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -12,7 +12,7 @@ use Slim\Exception\HttpNotFoundException;
 /**
  * Action.
  */
-final class Read
+final class Move
 {
     /**
      * The constructor.
@@ -35,21 +35,38 @@ final class Read
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         // Extract the form data from the request body
-        $data = (array)$request->getParsedBody();
+        $data = (array) $request->getParsedBody();
         //TODO: Actually do something with submitted data. Also, provide some sane defaults
 
 
         // Invoke the Domain with inputs and retain the result
-        $result = $this->badgetype->GetByID($params['id'], '*');
+        $check = $this->badgetype->GetByID($params['id'], ['id', 'group_id']);
 
-        //Confirm badge belongs to a badgetype in this event
-        if ($result === false) {
+        //Confirm badge belongs to a addon in this event
+        if ($check === false)
+        {
             throw new HttpNotFoundException($request);
         }
 
-        if (!$result['event_id'] == $request->getAttribute('event_id')) {
-            throw new HttpBadRequestException($request, 'Badge does not belong to current event');
+        if (!$check['group_id'] == $request->getAttribute('group_id'))
+        {
+            throw new HttpBadRequestException($request, 'Addon does not belong to current event');
         }
+
+        //Determine parameters
+        $upwards = false;
+        switch ($data['direction'])
+        {
+            case 'up':
+            case true:
+            case 'true':
+            case '1':
+            case 1:
+                $upwards = true;
+        }
+        $positions = $data['positions'] ?? 1;
+
+        $result = $this->badgetype->orderMove($params['id'], $upwards, $positions);
 
         // Build the HTTP response
         return $this->responder
