@@ -389,7 +389,7 @@ export default {
         editDepartment: function(selectedDepartment) {
             this.loading = true;
             var that = this;
-            admin.genericGet(this.authToken, 'Staff/Department/' + selectedDepartment.id , null, function(results) {
+            admin.genericGet(this.authToken, 'Staff/Department/' + selectedDepartment.id , null, function(editBt) {
 
                 that.dSelected = editBt;
                 that.dDialog = true;
