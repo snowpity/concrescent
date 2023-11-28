@@ -2,6 +2,7 @@
 
 namespace CM3_Lib\util;
 
+use Respect\Validation\Validatable;
 use Respect\Validation\Validator as v;
 use CM3_Lib\database\TableValidator;
 use CM3_Lib\database\View;
@@ -21,6 +22,8 @@ use CM3_Lib\models\attendee\addon as a_addon;
 use CM3_Lib\models\attendee\addonmap as a_addonmap;
 use CM3_Lib\models\application\addon as g_addon;
 use CM3_Lib\models\application\addonmap as g_addonmap;
+use CM3_Lib\models\forms\question as f_question;
+use CM3_Lib\models\forms\questionmap as f_questionmap;
 
 use CM3_Lib\util\CurrentUserInfo;
 
@@ -39,6 +42,8 @@ final class badgevalidator
         private g_addon $g_addon,
         private g_addonmap $g_addonmap,
         private g_badge_submission $g_badge_submission,
+        private f_question $f_question,
+        private f_questionmap $f_questionmap,
         private badgepromoapplicator $badgepromoapplicator,
         private CurrentUserInfo $CurrentUserInfo
     ) {
@@ -136,11 +141,13 @@ final class badgevalidator
     private function AddBadgeValidations(TableValidator &$v, array $badgetypeData, &$item, $groupApp = false)
     {
         //TODO: Test for things like badge upgrades for the start_date and end_date?
-        if (isset($badgetypeData['start_date']) && date_create() < date_create($badgetypeData['start_date'])) {
-            $v->addColumnValidator('badge_type_id', v::alwaysInvalid(), true);
-        }
-        if (isset($badgetypeData['end_date']) && date_create() > date_create($badgetypeData['end_date'])->setTime(23,59,59)) {
-            $v->addColumnValidator('badge_type_id', v::alwaysInvalid(), true);
+        if(!in_array($item['application_status']??'NotStarted',['Accepted','PendingAcceptance'] )){
+            if (isset($badgetypeData['start_date']) && date_create() < date_create($badgetypeData['start_date'])) {
+                $v->addColumnValidator('badge_type_id', v::alwaysInvalid()->setTemplate('badge_type_id not yet available'), true);
+            }
+            if (isset($badgetypeData['end_date']) && date_create() > date_create($badgetypeData['end_date'])->setTime(23,59,59)) {
+                $v->addColumnValidator('badge_type_id', v::alwaysInvalid()->setTemplate('badge_type_id no longer available'), true);
+            }
         }
 
         //TODO: This isn't right, need to advance the year in accordance to the event date and today....
@@ -149,7 +156,7 @@ final class badgevalidator
             $bday = $bday->MinAge($badgetypeData['min_age']);
         }
         if (!empty($badgetypeData['max_age'])) {
-            $bday = $bday->MaxAge($badgetypeData['max_age']);
+            $bday = $bday->MaxAge(1+$badgetypeData['max_age']);
         }
         if (!$groupApp) {
             $v->addColumnValidator('date_of_birth', $bday);
@@ -166,7 +173,7 @@ final class badgevalidator
         //     }
         // ), 'id');
         if ($badgetypeData['quantity_remaining'] === 0 && $item['badge_type_id'] != ($item['existing']['badge_type_id']??0)) {
-            $v->addColumnValidator('badge_type_id', v::alwaysInvalid(), true);
+            $v->addColumnValidator('badge_type_id', v::alwaysInvalid()->setTemplate('badge_type_id available quantity exhausted'), true);
         }
 
 
@@ -197,6 +204,18 @@ final class badgevalidator
         }
 
         //TODO: Validate form questions?
+        $questions = $this->GetFormQuestions($item['badge_type_id'], $item['context_code']);
+        
+        $v->addColumnValidator('form_responses',v::AllOf(...array_map(function($question){
+            return v::Key($question['id'], $this->genFormQuestionRule($question) ,$question['required']);
+        }, $questions)),true);
+
+    }
+
+    function genFormQuestionRule($question) :Validatable
+    {
+        
+        return $question['required'] ? v::notEmpty() : v::AlwaysValid();
     }
 
     //Copied from badgeinfo
@@ -261,6 +280,34 @@ final class badgevalidator
                        array(
                          'addon_id' => 'id',
                          new SearchTerm('badge_type_id', $badge_type_id)
+                       ),
+                       alias:'map'
+                   )
+                )
+            ),
+            array(
+                )
+        );
+    }
+    
+    public function GetFormQuestions($badge_type_id, $context_code)
+    {
+        return $this->f_question->Search(
+            new View(
+                array(
+                    'id',
+                    'type',
+                    'values',
+                    new SelectColumn('required',JoinedTableAlias:'map')
+                ),
+                array(
+
+                   new Join(
+                       $this->f_questionmap,
+                       array(
+                         'question_id' => 'id',
+                         new SearchTerm('badge_type_id', $badge_type_id),
+                         new SearchTerm('context_code', $context_code)
                        ),
                        alias:'map'
                    )
