@@ -101,6 +101,7 @@
                 <v-list-item-content>
                     <v-text-field v-model="multiSelectResponse[i]"
                                   append-outer-icon="mdi-close"
+                                  :readonly="readonly"
                                   :rules="isRequired ? RulesURLRequired : RulesURL "
                                   @click:append-outer="removeValue(i)"
                                   @keyup="listValueChanged" />

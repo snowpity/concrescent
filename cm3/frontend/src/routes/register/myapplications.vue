@@ -120,6 +120,8 @@
                 <p v-if="displayBadgeProduct && displayBadgeData.addons != undefined && displayBadgeData.addons.length == 0">
                     No addons purchased
                 </p>
+                <v-card-title>Question responses:</v-card-title>
+                <formQuestionViewList :questions="displayBadgeQuestions" :responses="displayBadgeData.form_responses" />
             </v-card-text>
         </v-card>
     </v-dialog>
@@ -146,12 +148,14 @@ import {
 import VueQRCodeComponent from 'vue-qrcode-component';
 import badgePerksRender from '@/components/badgePerksRender.vue';
 import badgeSampleRender from '@/components/badgeSampleRender.vue';
+import formQuestionViewList from '@/components/formQuestionViewList.vue';
 
 export default {
     components: {
         'qr-code': VueQRCodeComponent,
         badgePerksRender,
         badgeSampleRender,
+        formQuestionViewList
     },
     data: () => ({
         promocodeDialog: false,
@@ -192,6 +196,16 @@ export default {
             let result = this.badges[this.displayBadgeData.context_code].find((item) => {
                 return item.id == badgeId
             });
+            return result;
+        },
+        displayBadgeQuestions() {
+            if (!this.displayBadgeModal) return null;
+            let badgeId = this.displayBadgeData.badge_type_id;
+            if (this.questions[this.displayBadgeData.context_code] == undefined) {
+
+                return null;
+            }
+            let result = this.questions[this.displayBadgeData.context_code][badgeId]
             return result;
         },
         displayImportResult() {
