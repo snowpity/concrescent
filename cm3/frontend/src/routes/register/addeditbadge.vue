@@ -51,10 +51,10 @@
                            :no-data-text="isGroupApp ? 'Applications currently closed!' : 'No Badges available!'"
                            :editBadgePriorBadgeId="editBadgePriorBadgeId"
                            @click.native="affirmBadgeType" />
-        <v-sheet v-if="selectedBadge_ix != null && badges[selectedBadge_ix]"
+        <v-sheet
                  color="grey lighten-4"
                  tile>
-            <v-card>
+            <v-card  v-if="selectedBadge_ix != null && badges[selectedBadge_ix]">
                 <v-card-title class="title">Selected:
                     {{ badges[selectedBadge_ix] ? badges[selectedBadge_ix].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
                 </v-card-title>
