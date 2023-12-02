@@ -307,7 +307,7 @@ final class PaymentBuilder
                     }
                 });
                 //And set the contact_id
-                $item['contact_id'] = $bi['contact_id'];
+                $item['contact_id'] = $bi['contact_id'] ?? $this->cart['contact_id'];
             } else {
                 $item['contact_id'] = $this->cart['contact_id'];
             }
