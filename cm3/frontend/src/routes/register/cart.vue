@@ -115,8 +115,7 @@
 
                         <v-col cols="3"
                                sm="2">
-                            <v-btn v-show="products.length"
-                                   :disabled="!cart.canEdit"
+                            <v-btn :disabled="!cart.canEdit"
                                    color="green"
                                    dark
                                    @click="showpromocodeDialog(cart.id)">
