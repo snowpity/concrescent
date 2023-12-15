@@ -1,25 +1,22 @@
-version: '2'
+version: '3.8'
 services:
   concrescent:
     build:
       context: .
-      dockerfile: docker-concrescent2/Dockerfile
+      dockerfile: Dockerfile
+      target: prod
     restart: unless-stopped
     ports:
-      - 8080:8080
+      - "80:8080"
     depends_on:
       mysql:
         condition: service_healthy
     volumes:
       - ./msmtprc:/etc/msmtprc:ro
-      - ./docker-concrescent2/concrescent.php:/var/www/html/config/config.php:ro
-    networks:
-      - ccrscnt
+      - ./concrescent.php:/var/www/html/config/config.php:ro
   mysql:
     image: mysql:8
     restart: unless-stopped
-    expose:
-      - "3306"
     volumes:
       - ./mysql-data:/var/lib/mysql
     environment:
@@ -27,14 +24,9 @@ services:
       - MYSQL_PASSWORD=concrescent
       - MYSQL_USER=concrescent
       - MYSQL_DATABASE=concrescent
-      - TZ=America/Los_Angeles
+      - TZ=Europe/Paris
     healthcheck:
       test: "/usr/bin/mysql --user=root --password=rootpasswd --execute \"SHOW DATABASES;\""
       interval: 2s
       timeout: 20s
       retries: 10
-    networks:
-      - ccrscnt
-
-networks:
-  ccrscnt:
