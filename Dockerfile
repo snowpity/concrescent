@@ -10,16 +10,25 @@ RUN apk add php82-gd php82-mysqli php82-exif
 RUN apk add msmtp && echo 'sendmail_path = "/usr/bin/msmtp -t"' >> /etc/php82/php.ini;
 
 # Create nginx config directory and increase upload size for files via entity-size.conf and php-upload-size.ini
-RUN mkdir -p /etc/nginx/conf.d
 
-COPY --chown=root:root ./entity-size.conf /etc/nginx/conf.d/entity-size.conf
-COPY --chown=root:root ./php-upload-size.ini /etc/php82/conf.d/php-upload-size.ini
+COPY --chown=root:root ./config/entity-size.conf /etc/nginx/conf.d/
+COPY --chown=root:root ./config/php-upload-size.ini /etc/php82/conf.d/
 
 # Return privileges to unprivileged user after all packages have been installed
 USER nobody
-WORKDIR /var/www/html
 
 FROM base as dev
+
+# Temporary switch to root
+USER root
+# Install xdebug
+RUN apk add --no-cache php82-pecl-xdebug
+# Add configuration
+COPY --chown=root:root ./config/xdebug.ini /etc/php82/conf.d/
+COPY --chown=root:root ./config/php-dev.ini /etc/php82/conf.d/
+
+# Switch back to non-root user
+USER nobody
 
 VOLUME /var/www/html
 VOLUME /srv/host/config.php
