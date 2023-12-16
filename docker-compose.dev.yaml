@@ -13,6 +13,7 @@ services:
         condition: service_healthy
     volumes:
       - ./cm2:/var/www/html:ro
+      - ./vendor:/var/www/vendor:ro
       - ./msmtprc:/etc/msmtprc:ro
       - ./concrescent.php:/srv/host/config.php:ro
     environment:
