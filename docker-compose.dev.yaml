@@ -14,6 +14,7 @@ services:
     volumes:
       - ./cm2:/var/www/html:ro
       - ./vendor:/var/www/vendor:ro
+      - ./templates:/var/www/templates:ro
       - ./msmtprc:/etc/msmtprc:ro
       - ./concrescent.php:/srv/host/config.php:ro
     environment:
