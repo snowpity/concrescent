@@ -1,13 +1,11 @@
 cm3/backend/.php-cs-fixer.cache
 
 # Config Files
-/docker-concrescent2/init-db/concrescent-reg.sql
-/docker-concrescent2/concrescent.php
-/docker-concrescent2/msmtprc
-/docker-concrescent2/.env
-/docker-compose.cm3.yaml
-/docker-concrescent3/backend.php
-/docker-concrescent3/frontend.js
+/init-db/concrescent-reg.sql
+/concrescent.php
+/msmtprc
+/.env
+vendor
 
 # Data directories
 mysql-data

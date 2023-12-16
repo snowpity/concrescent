@@ -12,8 +12,8 @@ RUN apk add msmtp && echo 'sendmail_path = "/usr/bin/msmtp -t"' >> /etc/php82/ph
 # Create nginx config directory and increase upload size for files via entity-size.conf and php-upload-size.ini
 RUN mkdir -p /etc/nginx/conf.d
 
-COPY --chown=root:root ./docker-concrescent2/entity-size.conf /etc/nginx/conf.d/entity-size.conf
-COPY --chown=root:root ./docker-concrescent2/php-upload-size.ini /etc/php82/conf.d/php-upload-size.ini
+COPY --chown=root:root ./entity-size.conf /etc/nginx/conf.d/entity-size.conf
+COPY --chown=root:root ./php-upload-size.ini /etc/php82/conf.d/php-upload-size.ini
 
 # Return privileges to unprivileged user after all packages have been installed
 USER nobody
