@@ -2,6 +2,12 @@
 
 require_once dirname(__FILE__).'/../../config/config.php';
 require_once dirname(__FILE__).'/util.php';
+require_once __DIR__.'/../../../vendor/autoload.php';
+
+$twig = new \Twig\Environment(
+	new \Twig\Loader\FilesystemLoader(__DIR__.'/../../../templates'),
+	['debug' => true]
+);
 
 function config_file_path($file) {
 	return realpath(dirname(__FILE__) . '/../../config') . '/' . $file;

@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  concrescent:
+    build:
+      dockerfile: Dockerfile
+      target: dev
+    restart: unless-stopped
+    ports:
+      - "80:8080"
+    user: nobody
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./cm2:/var/www/html:ro
+      - ./vendor:/var/www/vendor:ro
+      - ./templates:/var/www/templates:ro
+      - ./msmtprc:/etc/msmtprc:ro
+      - ./concrescent.php:/srv/host/config.php:ro
+    environment:
+      - TZ=${TZ}
+  mysql:
+    image: mysql:8.2
+    restart: unless-stopped
+    ports:
+    - "3306:3306"
+    volumes:
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+      - ./mysql-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpasswd
+      - MYSQL_PASSWORD=concrescent
+      - MYSQL_USER=concrescent
+      - MYSQL_DATABASE=concrescent
+      - TZ=${TZ}
+    healthcheck:
+      test: "/usr/bin/mysql --user=root --password=rootpasswd --execute \"SHOW DATABASES;\""
+      interval: 2s
+      timeout: 20s
+      retries: 10

@@ -1,5 +1,12 @@
 <?php
 
+# Fail silently if the config file isn't available on the mounting point.
+include('/srv/host/config.php');
+
+if(isset($cm_config)) {
+    return;
+}
+
 /* PHP error reporting. In production, this should be 0. In testing, this may be -1. */
 error_reporting(0);
 

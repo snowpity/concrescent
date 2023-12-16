@@ -34,37 +34,13 @@ CONcrescent provides everything a fandom convention needs in a registration and 
 *   Integration with Slack for notifications
 
 # CONcrescent 2
-CONcrescent 2 is the currently stable and properly functioning version of CONcrescent.
-Usage of this version is recommended and still the default version of the CONcrescent docker-compose setup.
-CONcrescent 2 also has documentation and easier setup than CONcrescent 3.
 
-## Docker Installation
+## Installation
 1.  Install [docker](https://docs.docker.com/engine/install/).
-2.  Copy `docker-concrescent2/concrescent.example.php` to `docker-concrescent2/concrescent.php` and edit the file to fit your config.
-3.  Copy `msmtprc.example` to `msmtprc` and change the settings in this file to reflect your mail server.
-4.  Copy `docker-compose.example.yaml` to `docker-compose.yaml` and edit it to your liking, including potential SSL reverse proxy setups.<br>
-    Specifically make sure that your `concrescent.php` timezone matches your `TZ` environment variable in the SQL container. If you use an external MySQL server, make sure the `concrescent.php` contains the right server timezone.
-5.  Start concrescent with `docker compose up [-d]` and go to `http://localhost:8080/admin/doctor` to verify CONcrescent is set up correctly.
-    All rows should turn green and start with **PASSED**.
-6. Once all issues (if any) have been resolved, `http://localhost:8080/admin/doctor/set_perm.php` to prevent future access to the checks.
-7. Log in to `http://localhost:8080/admin/` with the username and password set in the configuration file in step 2.<br>
-You can now start going through each section in the side nav to set up badge types, form questions, blacklists, email notifications, rooms and tables, departments, badge artwork, admin accounts, etc.
-
-Depending on the way you set up your `docker-compose.yaml` file you might have a different base URL than `http://localhost:8080/`.
-Simply replace that in all the above URLs.
-
-## Manual Installation
-1.  Check out the `cm2` directory.
-2.  Edit `cm2/config/config.php`, replacing the default values with values
-    specific to your web server, PayPal account, and event. Also make sure
-    to add a default admin username and password.
-3.  Upload the `cm2` directory to your web server.
-4.  Navigate to `cm2/admin/doctor/` to verify CONcrescent is set up correctly.
-    All rows should turn green and start with **PASSED**.
-5.  Once all issues (if any) have been resolved, `chmod a-x cm2/admin/doctor`.
-6.  Log in to `cm2/admin/` with the username and password set in the configuration file in step 2.
-7.  Go through each section in the side nav to set up badge types, form questions, blacklists,
-    email notifications, rooms and tables, departments, badge artwork, admin accounts, etc.
+2.  Clone this repository.
+3.  Copy `concrescent-reg.sql` into `init-db` and `concrescent.php` into the root directory and edit the file to fit your config.
+4.  Run `./tasks/initialize-runtime-dev.sh`.
+5.  Log in to `https://localhost/admin` with the username and password admin/admin.
 
 You may rename the `cm2` directory to anything you like, move it to a subdirectory,
 or even move the contents of the `cm2` directory into the root of your web server.
@@ -75,12 +51,6 @@ without needing to be told.
 Once set up, CONcrescent should work without issues under most web hosting configurations.
 If you encounter any issues, `chmod a+x cm2/admin/doctor` and run `cm2/admin/doctor/` again
 and/or check the following.
-
-### The application is completely broken or I can't log in.
-*   Make sure you're running PHP 5 or later (5.5 or later recommended). CONcrescent will not run under PHP 4.
-*   Make sure the configuration file is syntactically correct and contains the correct values.
-*   Make sure the database section of the configuration file is correct.
-*   Make sure the default admin password is set.
 
 ### There is a blank screen or the error message "500 Internal Server Error" or "Communication Failure" when registering, submitting an application, or accepting an application.
 *   Make sure the cURL extension for PHP is installed.
@@ -109,26 +79,3 @@ Press Ctrl-Shift-8 on the check-in page to enable check-in with QR codes. When a
 
 ### I'm not using a QR code scanner to check people in.
 Press Ctrl-Shift-9 on the check-in page to disable check-in with QR codes.
-
-# CONcrescent 3
-CONcrescent 3 is the next generation of convention registration system with a nicer UI and a backend that runs independent of the frontend. It is still heavily in development and setup after initializing the back- and frontend is tedious and not well documented as of now.
-
-You are welcome to try out and set up an instance of CONcrescent 3 to test, but you will be on your own.
-
-## Docker Installation
-1.  Install [docker](https://docs.docker.com/engine/install/).
-2.  Copy `docker-concrescent3/backend.example.php` to `docker-concrescent3/backend.php` and edit the file to fit your config. Make sure the `frontend_host` is properly set.
-3.  Copy `docker-concrescent3/frontend.example.js` to `docker-concrescent3/frontend.js` and edit the file to fit your config. Make sure the `apiHostURL` is properly set.
-4.  Copy `msmtprc.example` to `msmtprc` and change the settings in this file to reflect your mail server. This is only necessary if you use `Sendmail` or `Mail` in your `backend.php`
-5.  Copy `docker-compose.cm3.example.yaml` to `docker-compose.cm3.yaml` and edit it to your liking, including potential SSL reverse proxy setups.<br>
-    Specifically make sure that your `backend.php` timezone matches your `TZ` environment variable in the SQL container. If you use an external MySQL server, make sure the `backend.php` contains the right server timezone.
-6.  Start concrescent with `docker compose -f docker-compose.cm3.yaml up [-d]` and go to `http://localhost:8081/` to verify CONcrescent's frontend is set up correctly.
-7. The backend is available under `http://localhost:8080/` by default, you can check if things work by trying to access `http://localhost:8080/public` and should get a JSON response from the API.
-
-Depending on the way you set up your `docker-compose.cm3.yaml` file you might have a different base URL than `http://localhost:8081/` or `http://localhost:8080/`.
-Simply replace that in all the above URLs.
-
-# Manual Installation
-TODO: Properly write manual installation instructions for back- and frontend.
-
-For now, you can read `cm3/frontend/README.md` and `cm3/backend/README.md` for installation instructions and requirements.
