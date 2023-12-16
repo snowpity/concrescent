@@ -39,8 +39,9 @@ CONcrescent provides everything a fandom convention needs in a registration and 
 1.  Install [docker](https://docs.docker.com/engine/install/).
 2.  Clone this repository.
 3.  Copy `concrescent-reg.sql` into `init-db` and `concrescent.php` into the root directory and edit the file to fit your config.
-4.  Run `./tasks/initialize-runtime-dev.sh`.
-5.  Log in to `https://localhost/admin` with the username and password admin/admin.
+4.  Install composer packages with `chmod +x composer` and `./composer install` (might need to sudo).
+5.  Run `./tasks/initialize-runtime-dev.sh`.
+6.  Log in to `https://localhost/admin` with the username and password admin/admin.
 
 You may rename the `cm2` directory to anything you like, move it to a subdirectory,
 or even move the contents of the `cm2` directory into the root of your web server.
