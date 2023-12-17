@@ -117,8 +117,8 @@ function cm_reg_item_update_from_post(&$item, $post)
 	}
 
 	//If they're editing their badge...
-	$item['editing-badge'] = (int)$post['editing-badge'];
-	$item['uuid'] = trim($post['uuid']);
+	$item['editing-badge'] = (int)($post['editing-badge'] ?? 0);
+	$item['uuid'] = trim($post['uuid'] ?? '');
 	if($item['editing-badge'] > 0 )
 	{
 		//First, find them in the attendees table
