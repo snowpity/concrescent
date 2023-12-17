@@ -4,10 +4,10 @@ require_once __DIR__ .'/database.php';
 
 class cm_lists_db {
 
-	public $index_table_name;
-	public $cm_db;
+	public string $index_table_name;
+	public cm_db $cm_db;
 
-	public function __construct($cm_db, $index_table_name) {
+	public function __construct(cm_db $cm_db, string $index_table_name) {
 		$this->index_table_name = $index_table_name;
 		$this->cm_db = $cm_db;
 		$this->cm_db->table_def($this->index_table_name, (
@@ -89,7 +89,7 @@ class cm_lists_db {
 		);
 	}
 
-	private $sql_expr_id = 0;
+	private int $sql_expr_id = 0;
 
 	public function list_query_op_to_sql($key, $op, $value) {
 		$exid = 'e' . $this->sql_expr_id++;

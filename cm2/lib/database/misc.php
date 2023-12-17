@@ -4,9 +4,9 @@ require_once __DIR__ .'/database.php';
 
 class cm_misc_db {
 
-	public $cm_db;
+	public cm_db $cm_db;
 
-	public function __construct($cm_db) {
+	public function __construct(cm_db $cm_db) {
 		$this->cm_db = $cm_db;
 		$this->cm_db->table_def('config_misc', (
 			'`key` VARCHAR(255) NOT NULL PRIMARY KEY,'.

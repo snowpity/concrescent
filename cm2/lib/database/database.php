@@ -4,9 +4,9 @@ require_once __DIR__ .'/../../config/config.php';
 
 class cm_db {
 
-	public $table_prefix;
-	public $connection;
-	public $known_tables;
+	public mixed $table_prefix;
+	public mysqli $connection;
+	public array $known_tables;
 
 	public function __construct() {
 		/* Load configuration */

@@ -6,7 +6,7 @@ require_once __DIR__ .'/database.php';
 
 class cm_payment_db {
 
-	public $payment_statuses = array(
+	public array $payment_statuses = array(
 		'Incomplete',
 		'Cancelled',
 		'Rejected',
@@ -14,9 +14,9 @@ class cm_payment_db {
 		'Refunded'
 	);
 
-	public $cm_db;
+	public cm_db $cm_db;
 
-	public function __construct($cm_db) {
+	public function __construct(cm_db $cm_db) {
 		$this->cm_db = $cm_db;
 		$this->cm_db->table_def('payments', (
 			'`id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,'.

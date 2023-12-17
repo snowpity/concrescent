@@ -9,42 +9,42 @@ require_once __DIR__ .'/forms.php';
 
 class cm_application_db {
 
-	public $max_prereg_discounts = array(
+	public array $max_prereg_discounts = array(
 		'No Discount',
 		'Price per Applicant',
 		'Price per Assignment',
 		'Total Price'
 	);
-	public $application_statuses = array(
+	public array $application_statuses = array(
 		'Submitted',
 		'Cancelled',
 		'Accepted',
 		'Waitlisted',
 		'Rejected'
 	);
-	public $payment_statuses = array(
+	public array $payment_statuses = array(
 		'Incomplete',
 		'Cancelled',
 		'Rejected',
 		'Completed',
 		'Refunded'
 	);
-	public $names_on_badge = array(
+	public array $names_on_badge = array(
 		'Fandom Name Large, Real Name Small',
 		'Real Name Large, Fandom Name Small',
 		'Fandom Name Only',
 		'Real Name Only'
 	);
 
-	public $event_info;
-	public $cm_db;
-	public $ctx_uc;
-	public $ctx_lc;
-	public $ctx_info;
-	public $cm_anldb;
-	public $cm_atldb;
+	public mixed $event_info;
+	public cm_db $cm_db;
+	public ?string $ctx_uc;
+	public ?string $ctx_lc;
+	public mixed $ctx_info;
+	public ?cm_lists_db $cm_anldb;
+	public ?cm_lists_db $cm_atldb;
 
-	public function __construct($cm_db, $context) {
+	public function __construct(cm_db $cm_db, $context) {
 		$this->event_info = $GLOBALS['cm_config']['event'];
 		$this->cm_db = $cm_db;
 		$this->cm_db->table_def('rooms_and_tables', (

@@ -4,7 +4,7 @@ require_once __DIR__ .'/database.php';
 
 class cm_badge_artwork_db {
 
-	public $field_keys = array(
+	public array $field_keys = array(
 		'only-name' => 'Only Name',
 		'large-name' => 'Large Name',
 		'small-name' => 'Small Name',
@@ -26,9 +26,9 @@ class cm_badge_artwork_db {
 		'display-name' => 'Display Name'
 	);
 
-	public $cm_db;
+	public cm_db $cm_db;
 
-	public function __construct($cm_db) {
+	public function __construct(cm_db $cm_db) {
 		$this->cm_db = $cm_db;
 		$this->cm_db->table_def('badge_artwork_files', (
 			'`file_name` VARCHAR(255) NOT NULL PRIMARY KEY,'.

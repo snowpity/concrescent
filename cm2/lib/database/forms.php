@@ -4,10 +4,10 @@ require_once __DIR__ .'/database.php';
 
 class cm_forms_db {
 
-	public $context;
-	public $cm_db;
+	public string $context;
+	public cm_db $cm_db;
 
-	public function __construct($cm_db, $context) {
+	public function __construct(cm_db $cm_db, string $context) {
 		$this->context = $context;
 		$this->cm_db = $cm_db;
 		$this->cm_db->table_def('form_custom_text', (

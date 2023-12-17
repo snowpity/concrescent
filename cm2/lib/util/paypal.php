@@ -4,12 +4,12 @@ require_once __DIR__ .'/../../config/config.php';
 
 class cm_paypal {
 
-	private $event_name;
-	private $api_url;
-	private $client_id;
-	private $secret;
-	private $currency;
-	private $token;
+	private mixed $event_name;
+	private mixed $api_url;
+	private mixed $client_id;
+	private mixed $secret;
+	private mixed $currency;
+	private mixed $token;
 
 	public function __construct($token = null) {
 		$config = $GLOBALS['cm_config']['event'];

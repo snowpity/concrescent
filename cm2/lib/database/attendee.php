@@ -9,13 +9,13 @@ require_once __DIR__ .'/forms.php';
 
 class cm_attendee_db {
 
-	public $names_on_badge = array(
+	public array $names_on_badge = array(
 		'Fandom Name Large, Real Name Small',
 		'Real Name Large, Fandom Name Small',
 		'Fandom Name Only',
 		'Real Name Only'
 	);
-	public $payment_statuses = array(
+	public array $payment_statuses = array(
 		'Incomplete',
 		'Cancelled',
 		'Rejected',
@@ -23,11 +23,11 @@ class cm_attendee_db {
 		'Refunded'
 	);
 
-	public $event_info;
-	public $cm_db;
-	public $cm_ldb;
+	public mixed $event_info;
+	public cm_db $cm_db;
+	public cm_lists_db $cm_ldb;
 
-	public function __construct($cm_db) {
+	public function __construct(cm_db $cm_db) {
 		$this->event_info = $GLOBALS['cm_config']['event'];
 		$this->cm_db = $cm_db;
 		$this->cm_db->table_def('attendee_badge_types', (

@@ -6,10 +6,10 @@ require_once __DIR__ .'/database.php';
 
 class cm_mail_db {
 
-	public $event_info;
-	public $cm_db;
+	public mixed $event_info;
+	public cm_db $cm_db;
 
-	public function __construct($cm_db) {
+	public function __construct(cm_db $cm_db) {
 		$this->event_info = $GLOBALS['cm_config']['event'];
 		$this->cm_db = $cm_db;
 		$this->cm_db->table_def('mail_templates', (

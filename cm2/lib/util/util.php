@@ -179,13 +179,13 @@ function cm_email_subbed($subbed, $email) {
 	return $subbed_span;
 }
 
-function cm_status_label($status) {
+function cm_status_label(string $status) {
 	$label_class = strtolower(preg_replace('/[^A-Za-z0-9]+/', '', $status));
 	$label = '<span class="cm-status-label cm-status-' . $label_class . '">';
 	return $label . htmlspecialchars($status) . '</span>';
 }
 
-function calculate_age($today, $birthdate) {
+function calculate_age(string $today, string $birthdate) {
 	if (!$today || !$birthdate) return null;
 	$date1 = new DateTime($today);
 	$date2 = new DateTime($birthdate);
