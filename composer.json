@@ -8,6 +8,9 @@
         "ext-gd": "*",
         "ext-mysqli": "*"
     },
+    "require-dev": {
+        "roave/security-advisories": "dev-latest"
+    },
     "config": {
         "platform": {
             "php": "8.2.10",
