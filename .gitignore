@@ -1,14 +1,14 @@
 cm3/backend/.php-cs-fixer.cache
 
 # Config Files
-/init-db/concrescent-reg.sql
+/init/concrescent-reg.sql
 /concrescent.php
 /msmtprc
 /.env
-vendor
+/vendor
 
 # Data directories
-mysql-data
+/var
 
 #CM3 logs directory
 logs/

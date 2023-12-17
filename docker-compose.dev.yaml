@@ -17,24 +17,23 @@ services:
       - ./templates:/var/www/templates:ro
       - ./msmtprc:/etc/msmtprc:ro
       - ./concrescent.php:/srv/host/config.php:ro
-    environment:
-      - TZ=${TZ}
+    env_file:
+      - .env.dev
+      - .env
   mysql:
     image: mysql:8.2
     restart: unless-stopped
     ports:
     - "3306:3306"
     volumes:
-      - ./init-db:/docker-entrypoint-initdb.d:ro
-      - ./mysql-data:/var/lib/mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=rootpasswd
-      - MYSQL_PASSWORD=concrescent
-      - MYSQL_USER=concrescent
-      - MYSQL_DATABASE=concrescent
-      - TZ=${TZ}
+      - ./init:/docker-entrypoint-initdb.d:ro
+      - ./var/mysql-data:/var/lib/mysql
+    env_file:
+    - .env.dev
+    - .env
     healthcheck:
-      test: "/usr/bin/mysql --user=root --password=rootpasswd --execute \"SHOW DATABASES;\""
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
       interval: 2s
-      timeout: 20s
-      retries: 10
+      timeout: 10s
+      retries: 5
+      start_period: 5s

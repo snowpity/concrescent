@@ -31,13 +31,26 @@ COPY --chown=root:root ./config/php-dev.ini /etc/php82/conf.d/
 USER nobody
 
 VOLUME /var/www/html
+VOLUME /var/www/vendor
+VOLUME /var/www/templates
 VOLUME /srv/host/config.php
+
+EXPOSE 80
 
 FROM base as prod
 
-# Copy concrescent over to the image
-COPY --chown=nobody:nobody ./cm2 /var/www/html
+USER nobody
+
+COPY composer /var/www/
+COPY composer.json /var/www/
+COPY composer.lock /var/www/
+RUN composer install --no-dev
+
+# Copy concrescent over to the image so the image is standalone.
+COPY ./cm2 /var/www/html
+COPY ./vendor /var/www/vendor
+COPY ./templates /var/www/templates
 
 VOLUME /var/www/html/config/config.php
 
-EXPOSE 8080
+EXPOSE 80
