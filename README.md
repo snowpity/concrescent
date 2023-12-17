@@ -36,17 +36,12 @@ CONcrescent provides everything a fandom convention needs in a registration and 
 # CONcrescent 2
 
 ## Installation
-1.  Install [docker](https://docs.docker.com/engine/install/).
-2.  Clone this repository.
-3.  Copy `concrescent-reg.sql` into `init-db` and `concrescent.php` into the root directory and edit the file to fit your config.
-4.  Install composer packages with `chmod +x composer` and `./composer install` (might need to sudo).
-5.  Run `./tasks/initialize-runtime-dev.sh`.
-6.  Log in to `https://localhost/admin` with the username and password admin/admin.
-
-You may rename the `cm2` directory to anything you like, move it to a subdirectory,
-or even move the contents of the `cm2` directory into the root of your web server.
-CONcrescent will figure out where it is installed and generate appropriate URLs
-without needing to be told.
+1. Install [docker](https://docs.docker.com/engine/install/).
+2. Clone this repository.
+3. You can insert a `concrescent-reg.sql` in the `/init` if you prefer another database instead of the default.
+4. Run `./prepare` in a shell at the root of the project. Default settings should get the app working.
+5. You can customise the app by configuring `concrescent.php`.
+6. Log in to `https://localhost/admin` with the username and password admin/admin.
 
 ## Troubleshooting
 Once set up, CONcrescent should work without issues under most web hosting configurations.

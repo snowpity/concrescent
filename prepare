@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+./tasks/install-env.sh
+
+docker compose down
+
+composer install
+
+docker compose build --no-cache
