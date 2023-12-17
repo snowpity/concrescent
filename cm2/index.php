@@ -7,4 +7,4 @@ if(!isLegacy())
 	if(readfile('index.html')) exit(0);
 	setLegacyMode(true);
 }
-header('Location: register/');
+header('Location: /register');

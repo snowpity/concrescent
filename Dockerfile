@@ -35,22 +35,27 @@ VOLUME /var/www/vendor
 VOLUME /var/www/templates
 VOLUME /srv/host/config.php
 
-EXPOSE 80
+EXPOSE 8080
 
 FROM base as prod
 
+USER root
+
+RUN mkdir /var/www/vendor
+RUN chown nobody /var/www/vendor
+COPY --chown=nobody composer /usr/bin/
+
 USER nobody
 
-COPY composer /var/www/
-COPY composer.json /var/www/
-COPY composer.lock /var/www/
-RUN composer install --no-dev
+COPY --chown=nobody composer.json /var/www/
+COPY --chown=nobody composer.lock /var/www/
+RUN cd /var/www && composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
 # Copy concrescent over to the image so the image is standalone.
-COPY ./cm2 /var/www/html
-COPY ./vendor /var/www/vendor
-COPY ./templates /var/www/templates
+COPY --chown=nobody ./vendor /var/www/vendor
+COPY --chown=nobody ./templates /var/www/templates
+COPY --chown=nobody ./cm2 /var/www/html
 
 VOLUME /var/www/html/config/config.php
 
-EXPOSE 80
+EXPOSE 8080
