@@ -339,7 +339,8 @@ class barcode_generator {
 			$x = floor($x + $w / 2);
 		}
 		foreach ($code['b'] as $block) {
-			if (isset($block['l'])) {
+			$hasLabel = isset($block['l']);
+			if ($hasLabel) {
 				$label = $block['l'][0];
 				$ly = (isset($block['l'][1]) ? (float)$block['l'][1] : 1);
 				$lx = (isset($block['l'][2]) ? (float)$block['l'][2] : 0.5);
@@ -357,7 +358,7 @@ class barcode_generator {
 				imagefilledrectangle($image, $mx, $y, $mw - 1, $my - 1, $mc);
 				$mx = $mw;
 			}
-			if (!is_null($label)) {
+			if ($hasLabel) {
 				$lx = ($x + ($mx - $x) * $lx);
 				$lw = imagefontwidth($textsize) * strlen($label);
 				$lx = round($lx - $lw / 2);
@@ -395,7 +396,8 @@ class barcode_generator {
 		$svg = '<g transform="' . htmlspecialchars($tx) . '">';
 		$x = 0;
 		foreach ($code['b'] as $block) {
-			if (isset($block['l'])) {
+			$hasLabel = isset($block['l']);
+			if ($hasLabel) {
 				$label = $block['l'][0];
 				$ly = (isset($block['l'][1]) ? (float)$block['l'][1] : 1);
 				$lx = (isset($block['l'][2]) ? (float)$block['l'][2] : 0.5);
@@ -419,7 +421,7 @@ class barcode_generator {
 				}
 				$mx += $mw;
 			}
-			if (!is_null($label)) {
+			if ($hasLabel) {
 				$lx = ($x + ($mx - $x) * $lx);
 				$svg .= '<text';
 				$svg .= ' x="' . $lx . '" y="' . $ly . '"';
