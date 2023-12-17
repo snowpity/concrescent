@@ -13,7 +13,7 @@ function print_success() {
 	}
 }
 
-register_shutdown_function('print_success');
+register_shutdown_function(print_success(...));
 
 $image = @imagecreate(200, 200);
 if (!$image) exit(0);

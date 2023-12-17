@@ -13,7 +13,7 @@ function print_success() {
 	}
 }
 
-register_shutdown_function('print_success');
+register_shutdown_function(print_success(...));
 
 @require_once __DIR__ .'/../../lib/util/paypal.php';
 $paypal = @new cm_paypal();
