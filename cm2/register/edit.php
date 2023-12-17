@@ -1,8 +1,8 @@
 <?php
 
-require_once dirname(__FILE__).'/../lib/util/util.php';
-require_once dirname(__FILE__).'/../lib/util/cmforms.php';
-require_once dirname(__FILE__).'/register.php';
+require_once __DIR__ .'/../lib/util/util.php';
+require_once __DIR__ .'/../lib/util/cmforms.php';
+require_once __DIR__ .'/register.php';
 
 $onsite_only = isset($_COOKIE['onsite_only']) && $_COOKIE['onsite_only'];
 $override_code = $_GET['override_code'] ?? ($_POST['override_code'] ?? '');

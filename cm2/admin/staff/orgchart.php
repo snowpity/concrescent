@@ -1,8 +1,8 @@
 <?php
 
-require_once dirname(__FILE__).'/../../lib/database/staff.php';
-require_once dirname(__FILE__).'/../../lib/util/util.php';
-require_once dirname(__FILE__).'/../admin.php';
+require_once __DIR__ .'/../../lib/database/staff.php';
+require_once __DIR__ .'/../../lib/util/util.php';
+require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('staff-orgchart', 'staff-orgchart');
 $can_edit = $adb->user_has_permission($admin_user, 'staff-edit');

@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__).'/../config/config.php';
+require_once __DIR__ .'/../config/config.php';
 
 $context = (isset($_GET['c']) ? trim($_GET['c']) : null);
 if (!$context) {
@@ -22,12 +22,12 @@ $ctx_name_lc = strtolower($ctx_name);
 session_name('PHPSESSID_CMAPPLYAPP_' . $ctx_uc);
 session_start();
 
-require_once dirname(__FILE__).'/../lib/database/database.php';
-require_once dirname(__FILE__).'/../lib/database/application.php';
-require_once dirname(__FILE__).'/../lib/database/forms.php';
-require_once dirname(__FILE__).'/../lib/database/mail.php';
-require_once dirname(__FILE__).'/../lib/util/res.php';
-require_once dirname(__FILE__).'/../lib/util/util.php';
+require_once __DIR__ .'/../lib/database/database.php';
+require_once __DIR__ .'/../lib/database/application.php';
+require_once __DIR__ .'/../lib/database/forms.php';
+require_once __DIR__ .'/../lib/database/mail.php';
+require_once __DIR__ .'/../lib/util/res.php';
+require_once __DIR__ .'/../lib/util/util.php';
 
 $event_name = $cm_config['event']['name'];
 $db = new cm_db();

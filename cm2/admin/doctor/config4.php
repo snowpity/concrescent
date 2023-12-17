@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__).'/../../config/config.php';
+require_once __DIR__ .'/../../config/config.php';
 error_reporting(0);
 header('Content-Type: text/plain');
 

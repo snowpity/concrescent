@@ -1,8 +1,8 @@
 <?php
 
-require_once dirname(__FILE__).'/../lib/util/util.php';
-require_once dirname(__FILE__).'/../lib/util/paypal.php';
-require_once dirname(__FILE__).'/apply.php';
+require_once __DIR__ .'/../lib/util/util.php';
+require_once __DIR__ .'/../lib/util/paypal.php';
+require_once __DIR__ .'/apply.php';
 
 $site_url = get_site_url(true);
 

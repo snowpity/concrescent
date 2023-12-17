@@ -3,11 +3,11 @@
 session_name('PHPSESSID_CMADMIN');
 session_start();
 
-require_once dirname(__FILE__).'/../lib/database/database.php';
-require_once dirname(__FILE__).'/../lib/database/admin.php';
-require_once dirname(__FILE__).'/../lib/util/util.php';
-require_once dirname(__FILE__).'/../lib/util/res.php';
-require_once dirname(__FILE__).'/admin-nav.php';
+require_once __DIR__ .'/../lib/database/database.php';
+require_once __DIR__ .'/../lib/database/admin.php';
+require_once __DIR__ .'/../lib/util/util.php';
+require_once __DIR__ .'/../lib/util/res.php';
+require_once __DIR__ .'/admin-nav.php';
 
 $db = new cm_db();
 $adb = new cm_admin_db($db);

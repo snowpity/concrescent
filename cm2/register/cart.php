@@ -1,7 +1,7 @@
 <?php
 
-require_once dirname(__FILE__).'/../lib/util/util.php';
-require_once dirname(__FILE__).'/register.php';
+require_once __DIR__ .'/../lib/util/util.php';
+require_once __DIR__ .'/register.php';
 
 
 $all_badge_types = $atdb->list_badge_types();

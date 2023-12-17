@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__).'/lib/util/util.php';
+require_once './lib/util/util.php';
 
 if(!isLegacy())
 {

@@ -11,20 +11,20 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
 
 // Access-Control headers are received during OPTIONS requests
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    
+
     if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']))
         // may also be using PUT, PATCH, HEAD etc
         header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-    
+
     if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']))
         header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
 
     exit(0);
 }
 
-require_once dirname(__FILE__) . "/../config/config.php";
-require_once dirname(__FILE__) . "/../lib/database/application.php";
-require_once dirname(__FILE__) . "/../lib/database/forms.php";
+require_once __DIR__ . "/../config/config.php";
+require_once __DIR__ . "/../lib/database/application.php";
+require_once __DIR__ . "/../lib/database/forms.php";
 
 $context = isset($_GET["c"]) ? trim($_GET["c"]) : null;
 

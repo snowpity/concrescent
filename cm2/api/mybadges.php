@@ -1,7 +1,7 @@
 <?php
-require_once dirname(__FILE__).'/../lib/util/util.php';
-require_once dirname(__FILE__).'/../lib/database/mail.php';
-require_once dirname(__FILE__).'/../register/register.php';
+require_once __DIR__ .'/../lib/util/util.php';
+require_once __DIR__ .'/../lib/database/mail.php';
+require_once __DIR__ .'/../register/register.php';
 
 //Assume we got something
 $json = json_decode(file_get_contents("php://input"), true);

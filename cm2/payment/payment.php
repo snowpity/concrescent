@@ -3,11 +3,11 @@
 session_name('PHPSESSID_CMPAY');
 session_start();
 
-require_once dirname(__FILE__).'/../lib/database/database.php';
-require_once dirname(__FILE__).'/../lib/database/payment.php';
-require_once dirname(__FILE__).'/../lib/database/mail.php';
-require_once dirname(__FILE__).'/../lib/util/res.php';
-require_once dirname(__FILE__).'/../lib/util/util.php';
+require_once __DIR__ .'/../lib/database/database.php';
+require_once __DIR__ .'/../lib/database/payment.php';
+require_once __DIR__ .'/../lib/database/mail.php';
+require_once __DIR__ .'/../lib/util/res.php';
+require_once __DIR__ .'/../lib/util/util.php';
 
 $db = new cm_db();
 $pdb = new cm_payment_db($db);

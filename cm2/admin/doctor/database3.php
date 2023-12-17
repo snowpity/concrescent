@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__).'/../../lib/database/database.php';
+require_once __DIR__ .'/../../lib/database/database.php';
 error_reporting(0);
 header('Content-Type: text/plain');
 

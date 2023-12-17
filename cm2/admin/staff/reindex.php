@@ -3,9 +3,9 @@
 ini_set('max_execution_time', 300);
 ini_set('memory_limit', '1024M');
 
-require_once dirname(__FILE__).'/../../lib/database/staff.php';
-require_once dirname(__FILE__).'/../../lib/util/res.php';
-require_once dirname(__FILE__).'/../admin.php';
+require_once __DIR__ .'/../../lib/database/staff.php';
+require_once __DIR__ .'/../../lib/util/res.php';
+require_once __DIR__ .'/../admin.php';
 
 if (isset($_POST['action'])) {
 	header('Content-type: text/plain');

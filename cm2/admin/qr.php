@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__).'/admin.php';
+require_once __DIR__ .'/admin.php';
 
 cm_admin_head('QR Code Settings');
 ?><script>

@@ -1,9 +1,9 @@
 <?php
 
-require_once dirname(__FILE__).'/../../lib/database/payment.php';
-require_once dirname(__FILE__).'/../../lib/database/mail.php';
-require_once dirname(__FILE__).'/../../lib/util/util.php';
-require_once dirname(__FILE__).'/../admin.php';
+require_once __DIR__ .'/../../lib/database/payment.php';
+require_once __DIR__ .'/../../lib/database/mail.php';
+require_once __DIR__ .'/../../lib/util/util.php';
+require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('payments', array('||', 'payments-view', 'payments-edit'));
 $can_edit = $adb->user_has_permission($admin_user, 'payments-edit') && !isset($_GET['ro']);

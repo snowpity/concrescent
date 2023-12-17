@@ -15,4 +15,4 @@ function print_success() {
 
 register_shutdown_function('print_success');
 
-$success = ((@require_once dirname(__FILE__).'/../../config/config.php') !== false);
+$success = ((@require_once __DIR__ .'/../../config/config.php') !== false);

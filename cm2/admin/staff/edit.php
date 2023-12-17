@@ -1,16 +1,16 @@
 <?php
 
-require_once dirname(__FILE__).'/../../config/config.php';
-require_once dirname(__FILE__).'/../../lib/database/staff.php';
-require_once dirname(__FILE__).'/../../lib/database/forms.php';
-require_once dirname(__FILE__).'/../../lib/database/attendee.php';
-require_once dirname(__FILE__).'/../../lib/database/mail.php';
-require_once dirname(__FILE__).'/../../lib/database/misc.php';
-require_once dirname(__FILE__).'/../../lib/util/util.php';
-require_once dirname(__FILE__).'/../../lib/util/res.php';
-require_once dirname(__FILE__).'/../../lib/util/cmforms.php';
-require_once dirname(__FILE__).'/../../lib/util/slack.php';
-require_once dirname(__FILE__).'/../admin.php';
+require_once __DIR__ .'/../../config/config.php';
+require_once __DIR__ .'/../../lib/database/staff.php';
+require_once __DIR__ .'/../../lib/database/forms.php';
+require_once __DIR__ .'/../../lib/database/attendee.php';
+require_once __DIR__ .'/../../lib/database/mail.php';
+require_once __DIR__ .'/../../lib/database/misc.php';
+require_once __DIR__ .'/../../lib/util/util.php';
+require_once __DIR__ .'/../../lib/util/res.php';
+require_once __DIR__ .'/../../lib/util/cmforms.php';
+require_once __DIR__ .'/../../lib/util/slack.php';
+require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('staff', array('||', 'staff-view', 'staff-review', 'staff-edit'));
 $can_edit = $adb->user_has_permission($admin_user, 'staff-edit') && !isset($_GET['ro']);

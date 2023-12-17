@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__).'/register.php';
+require_once __DIR__ .'/register.php';
 
 $email = isset($_POST['email']) ? trim($_POST['email']) : '';
 $found = $email ? $atdb->unsubscribe_email_address($email) : false;

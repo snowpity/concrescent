@@ -1,10 +1,10 @@
 <?php
 
-require_once dirname(__FILE__).'/../lib/database/attendee.php';
-require_once dirname(__FILE__).'/../lib/util/util.php';
-require_once dirname(__FILE__).'/../lib/util/cmforms.php';
-require_once dirname(__FILE__).'/../lib/util/slack.php';
-require_once dirname(__FILE__).'/staff.php';
+require_once __DIR__ .'/../lib/database/attendee.php';
+require_once __DIR__ .'/../lib/util/util.php';
+require_once __DIR__ .'/../lib/util/cmforms.php';
+require_once __DIR__ .'/../lib/util/slack.php';
+require_once __DIR__ .'/staff.php';
 
 $active_badge_types = $sdb->list_badge_types(true, false);
 $sellable_badge_types = $sdb->list_badge_types(true, true);

@@ -1,9 +1,9 @@
 <?php
 
-require_once dirname(__FILE__).'/../lib/util/util.php';
-require_once dirname(__FILE__).'/../lib/util/cmlists.php';
-require_once dirname(__FILE__).'/admin.php';
-require_once dirname(__FILE__).'/admin-perms.php';
+require_once __DIR__ .'/../lib/util/util.php';
+require_once __DIR__ .'/../lib/util/cmlists.php';
+require_once __DIR__ .'/admin.php';
+require_once __DIR__ .'/admin-perms.php';
 
 cm_admin_check_permission('admin-users', 'admin-users');
 

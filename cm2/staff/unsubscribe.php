@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__).'/staff.php';
+require_once __DIR__ .'/staff.php';
 
 $email = isset($_POST['email']) ? trim($_POST['email']) : '';
 $found = $email ? $sdb->unsubscribe_email_address($email) : false;

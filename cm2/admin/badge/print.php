@@ -1,10 +1,10 @@
 <?php
 
-require_once dirname(__FILE__).'/../../config/config.php';
-require_once dirname(__FILE__).'/../../lib/database/badge-artwork.php';
-require_once dirname(__FILE__).'/../../lib/database/badge-holder.php';
-require_once dirname(__FILE__).'/../../lib/util/res.php';
-require_once dirname(__FILE__).'/../admin.php';
+require_once __DIR__ .'/../../config/config.php';
+require_once __DIR__ .'/../../lib/database/badge-artwork.php';
+require_once __DIR__ .'/../../lib/database/badge-holder.php';
+require_once __DIR__ .'/../../lib/util/res.php';
+require_once __DIR__ .'/../admin.php';
 
 function get_config($p, $g, $c, $k) {
 	if ($p && isset($_POST[$p])) return $_POST[$p];

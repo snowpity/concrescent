@@ -1,7 +1,7 @@
 <?php
 
-require_once dirname(__FILE__).'/res.php';
-require_once dirname(__FILE__).'/util.php';
+require_once __DIR__ .'/res.php';
+require_once __DIR__ .'/util.php';
 
 function cm_form_questions_to_list_columns($questions) {
 	$columns = array();

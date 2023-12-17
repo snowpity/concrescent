@@ -1,8 +1,8 @@
 <?php
 
-require_once dirname(__FILE__).'/../util/util.php';
-require_once dirname(__FILE__).'/../util/res.php';
-require_once dirname(__FILE__).'/database.php';
+require_once __DIR__ .'/../util/util.php';
+require_once __DIR__ .'/../util/res.php';
+require_once __DIR__ .'/database.php';
 
 class cm_payment_db {
 

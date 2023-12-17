@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__).'/../../config/config.php';
+require_once __DIR__ .'/../../config/config.php';
 
 function get_domain_url() {
 	global $cm_config;

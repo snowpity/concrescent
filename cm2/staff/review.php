@@ -1,7 +1,7 @@
 <?php
 
-require_once dirname(__FILE__).'/../lib/util/util.php';
-require_once dirname(__FILE__).'/staff.php';
+require_once __DIR__ .'/../lib/util/util.php';
+require_once __DIR__ .'/staff.php';
 
 $gid = isset($_GET['gid']) ? trim($_GET['gid']) : null;
 $tid = isset($_GET['tid']) ? trim($_GET['tid']) : null;

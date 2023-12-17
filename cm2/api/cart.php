@@ -1,8 +1,8 @@
 <?php
 
-require_once dirname(__FILE__).'/../lib/util/util.php';
-require_once dirname(__FILE__).'/../lib/util/cmforms.php';
-require_once dirname(__FILE__).'/../register/register.php';
+require_once __DIR__ .'/../lib/util/util.php';
+require_once __DIR__ .'/../lib/util/cmforms.php';
+require_once __DIR__ .'/../register/register.php';
 
 //Assume we got something
 $json = json_decode(file_get_contents("php://input"), true);
@@ -84,5 +84,5 @@ if(isset($json['action']))
 switch ($_GET['action']) {
   case 'checkout':
     unset($_GET['action']);
-    require dirname(__FILE__).'/../register/checkout.php';
+    require __DIR__ .'/../register/checkout.php';
 }

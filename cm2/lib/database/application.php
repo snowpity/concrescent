@@ -1,11 +1,11 @@
 <?php
 
-require_once dirname(__FILE__).'/../../config/config.php';
-require_once dirname(__FILE__).'/../util/util.php';
-require_once dirname(__FILE__).'/../util/res.php';
-require_once dirname(__FILE__).'/database.php';
-require_once dirname(__FILE__).'/lists.php';
-require_once dirname(__FILE__).'/forms.php';
+require_once __DIR__ .'/../../config/config.php';
+require_once __DIR__ .'/../util/util.php';
+require_once __DIR__ .'/../util/res.php';
+require_once __DIR__ .'/database.php';
+require_once __DIR__ .'/lists.php';
+require_once __DIR__ .'/forms.php';
 
 class cm_application_db {
 

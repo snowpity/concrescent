@@ -1,12 +1,12 @@
 <?php
 
-require_once dirname(__FILE__).'/../../lib/database/attendee.php';
-require_once dirname(__FILE__).'/../../lib/database/forms.php';
-require_once dirname(__FILE__).'/../../lib/database/mail.php';
-require_once dirname(__FILE__).'/../../lib/util/util.php';
-require_once dirname(__FILE__).'/../../lib/util/res.php';
-require_once dirname(__FILE__).'/../../lib/util/cmforms.php';
-require_once dirname(__FILE__).'/../admin.php';
+require_once __DIR__ .'/../../lib/database/attendee.php';
+require_once __DIR__ .'/../../lib/database/forms.php';
+require_once __DIR__ .'/../../lib/database/mail.php';
+require_once __DIR__ .'/../../lib/util/util.php';
+require_once __DIR__ .'/../../lib/util/res.php';
+require_once __DIR__ .'/../../lib/util/cmforms.php';
+require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('attendees', array('||', 'attendees-view', 'attendees-edit'));
 $can_edit = $adb->user_has_permission($admin_user, 'attendees-edit') && !isset($_GET['ro']);

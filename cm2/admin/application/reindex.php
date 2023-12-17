@@ -3,9 +3,9 @@
 ini_set('max_execution_time', 300);
 ini_set('memory_limit', '1024M');
 
-require_once dirname(__FILE__).'/../../lib/database/application.php';
-require_once dirname(__FILE__).'/../../lib/util/res.php';
-require_once dirname(__FILE__).'/../admin.php';
+require_once __DIR__ .'/../../lib/database/application.php';
+require_once __DIR__ .'/../../lib/util/res.php';
+require_once __DIR__ .'/../admin.php';
 
 $context = (isset($_GET['c']) ? trim($_GET['c']) : null);
 if (!$context) {

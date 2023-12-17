@@ -1,7 +1,7 @@
 <?php
 
-require_once dirname(__FILE__).'/../../config/config.php';
-require_once dirname(__FILE__).'/util.php';
+require_once __DIR__ .'/../../config/config.php';
+require_once __DIR__ .'/util.php';
 require_once __DIR__.'/../../../vendor/autoload.php';
 
 $twig = new \Twig\Environment(
@@ -10,7 +10,7 @@ $twig = new \Twig\Environment(
 );
 
 function config_file_path($file) {
-	return realpath(dirname(__FILE__) . '/../../config') . '/' . $file;
+	return realpath(__DIR__ . '/../../config') . '/' . $file;
 }
 
 function config_file_url($file, $full) {
@@ -18,7 +18,7 @@ function config_file_url($file, $full) {
 }
 
 function resource_file_path($file) {
-	return realpath(dirname(__FILE__) . '/../res') . '/' . $file;
+	return realpath(__DIR__ . '/../res') . '/' . $file;
 }
 
 function resource_file_url($file, $full) {
@@ -34,7 +34,7 @@ function theme_location() {
 }
 
 function theme_file_path($file) {
-	return realpath(dirname(__FILE__) . '/../../' . theme_location()) . '/' . $file;
+	return realpath(__DIR__ . '/../../' . theme_location()) . '/' . $file;
 }
 
 function theme_file_url($file, $full) {

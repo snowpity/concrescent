@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__).'/database.php';
+require_once __DIR__ .'/database.php';
 
 class cm_badge_artwork_db {
 

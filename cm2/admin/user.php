@@ -1,7 +1,7 @@
 <?php
 
-require_once dirname(__FILE__).'/../lib/util/util.php';
-require_once dirname(__FILE__).'/admin.php';
+require_once __DIR__ .'/../lib/util/util.php';
+require_once __DIR__ .'/admin.php';
 
 function is_strong_password($password, $banned_words) {
 	if (strlen($password) < 8) return false;

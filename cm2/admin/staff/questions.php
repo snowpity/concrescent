@@ -1,11 +1,11 @@
 <?php
 
-require_once dirname(__FILE__).'/../../config/config.php';
-require_once dirname(__FILE__).'/../../lib/database/staff.php';
-require_once dirname(__FILE__).'/../../lib/database/forms.php';
-require_once dirname(__FILE__).'/../../lib/util/util.php';
-require_once dirname(__FILE__).'/../../lib/util/cmforms.php';
-require_once dirname(__FILE__).'/../admin.php';
+require_once __DIR__ .'/../../config/config.php';
+require_once __DIR__ .'/../../lib/database/staff.php';
+require_once __DIR__ .'/../../lib/database/forms.php';
+require_once __DIR__ .'/../../lib/util/util.php';
+require_once __DIR__ .'/../../lib/util/cmforms.php';
+require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('staff-questions', 'staff-questions');
 

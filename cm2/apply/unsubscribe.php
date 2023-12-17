@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__).'/apply.php';
+require_once __DIR__ .'/apply.php';
 
 $email = isset($_POST['email']) ? trim($_POST['email']) : '';
 $found = $email ? $apdb->unsubscribe_email_address($email) : false;

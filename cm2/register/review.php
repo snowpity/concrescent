@@ -1,8 +1,8 @@
 <?php
 
 
-require_once dirname(__FILE__).'/../lib/util/util.php';
-require_once dirname(__FILE__).'/register.php';
+require_once __DIR__ .'/../lib/util/util.php';
+require_once __DIR__ .'/register.php';
 
 $gid = isset($_GET['gid']) ? trim($_GET['gid']) : null;
 $tid = isset($_GET['tid']) ? trim($_GET['tid']) : null;

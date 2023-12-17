@@ -1,17 +1,17 @@
 <?php
 
-require_once dirname(__FILE__).'/config.php';
-require_once dirname(__FILE__).'/../lib/database/database.php';
-require_once dirname(__FILE__).'/../lib/database/admin.php';
-require_once dirname(__FILE__).'/../lib/database/application.php';
-require_once dirname(__FILE__).'/../lib/database/attendee.php';
-require_once dirname(__FILE__).'/../lib/database/badge-artwork.php';
-require_once dirname(__FILE__).'/../lib/database/badge-holder.php';
-require_once dirname(__FILE__).'/../lib/database/forms.php';
-require_once dirname(__FILE__).'/../lib/database/mail.php';
-require_once dirname(__FILE__).'/../lib/database/misc.php';
-require_once dirname(__FILE__).'/../lib/database/payment.php';
-require_once dirname(__FILE__).'/../lib/database/staff.php';
+require_once __DIR__ .'/config.php';
+require_once __DIR__ .'/../lib/database/database.php';
+require_once __DIR__ .'/../lib/database/admin.php';
+require_once __DIR__ .'/../lib/database/application.php';
+require_once __DIR__ .'/../lib/database/attendee.php';
+require_once __DIR__ .'/../lib/database/badge-artwork.php';
+require_once __DIR__ .'/../lib/database/badge-holder.php';
+require_once __DIR__ .'/../lib/database/forms.php';
+require_once __DIR__ .'/../lib/database/mail.php';
+require_once __DIR__ .'/../lib/database/misc.php';
+require_once __DIR__ .'/../lib/database/payment.php';
+require_once __DIR__ .'/../lib/database/staff.php';
 
 $db = new cm_db();
 new cm_admin_db($db);
