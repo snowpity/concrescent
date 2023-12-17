@@ -15,7 +15,7 @@ function print_success() {
 
 register_shutdown_function('print_success');
 
-$curl = @curl_init('http://www.paypal.com');
+$curl = @curl_init('https://www.paypal.com');
 if (!$curl) exit(0);
 
 @curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'HEAD');
