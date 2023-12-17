@@ -458,10 +458,7 @@ echo '<article>';
 					foreach ($questions as $question) {
 						if ($question['active']) {
 							$answer = (
-								isset($item['form-answers']) &&
-								isset($item['form-answers'][$question['question-id']]) ?
-								$item['form-answers'][$question['question-id']] :
-								array()
+								$item['form-answers'][$question['question-id']] ?? array()
 							);
 							$error = (
 								$errors['form-answer-' . $question['question-id']] ?? null

@@ -320,10 +320,7 @@ echo '<article>';
 							echo '<tr><td colspan="2"><h2>Additional Information</h2></td></tr>';
 						}
 						$answer = (
-							isset($item['form-answers']) &&
-							isset($item['form-answers'][$question['question-id']]) ?
-							$item['form-answers'][$question['question-id']] :
-							array()
+							$item['form-answers'][$question['question-id']] ?? array()
 						);
 						$error = (
 							$errors['form-answer-' . $question['question-id']] ?? null

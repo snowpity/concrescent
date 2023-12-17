@@ -4,7 +4,7 @@ require_once __DIR__ .'/../../config/config.php';
 
 function get_domain_url() {
 	global $cm_config;
-	if (isset($cm_config) && isset($cm_config['site-override']) && $cm_config['site-override'] != '') return $cm_config['site-override'];
+	if (isset($cm_config['site-override']) && $cm_config['site-override'] != '') return $cm_config['site-override'];
 	$https = (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on'));
 	$url = ($https ? 'https' : 'http') . '://' . $_SERVER['SERVER_NAME'];
 	if ($_SERVER['SERVER_PORT'] != ($https ? '443' : '80')) {

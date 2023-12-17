@@ -526,10 +526,7 @@ echo '<article>';
 				foreach ($questions as $question) {
 					if (my_question_is_visible($question)) {
 						$answer = (
-							isset($item['form-answers']) &&
-							isset($item['form-answers'][$question['question-id']]) ?
-							$item['form-answers'][$question['question-id']] :
-							array()
+							$item['form-answers'][$question['question-id']] ?? array()
 						);
 						echo cm_form_review_row($question, $answer, $can_edit_info);
 					}
