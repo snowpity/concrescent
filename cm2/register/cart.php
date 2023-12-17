@@ -130,7 +130,7 @@ echo '<div class="card">';
 							echo '</td>';
 							echo '<td>';
 								$badge_type_id = (int)$item['badge-type-id'];
-								$badge_type_name = isset($name_map[$badge_type_id]) ? $name_map[$badge_type_id] : $badge_type_id;
+								$badge_type_name = $name_map[$badge_type_id] ?? $badge_type_id;
 								echo '<div>' . htmlspecialchars($badge_type_name) . '</div>';
 								if (isset($errors[$i])) {
 									echo '<div class="error">' . htmlspecialchars($errors[$i]) . '</div>';

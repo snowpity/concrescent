@@ -15,12 +15,12 @@ $success = null;
 if (isset($_POST['action'])) {
 	switch ($_POST['action']) {
 		case 'upload-image':
-			$file = (isset($_FILES['file']) ? $_FILES['file'] : null);
+			$file = ($_FILES['file'] ?? null);
 			if (!$file || (isset($file['error']) && $file['error'])) {
 				$message = 'Error uploading image. Please try again with a different image.';
 				$success = false;
 			} else {
-				$image_path = (isset($file['tmp_name']) ? $file['tmp_name'] : null);
+				$image_path = ($file['tmp_name'] ?? null);
 				$image_size = ($image_path ? getimagesize($image_path) : null);
 				$image_w = (($image_size && $image_size[0]) ? $image_size[0] : null);
 				$image_h = (($image_size && $image_size[1]) ? $image_size[1] : null);
@@ -60,12 +60,12 @@ if (isset($_POST['action'])) {
 			$midb->delete_file('rooms-and-tables');
 			break;
 		case 'upload-tags':
-			$file = (isset($_FILES['file']) ? $_FILES['file'] : null);
+			$file = ($_FILES['file'] ?? null);
 			if (!$file || (isset($file['error']) && $file['error'])) {
 				$message = 'Error uploading file. Please try again with a different file.';
 				$success = false;
 			} else {
-				$path = (isset($file['tmp_name']) ? $file['tmp_name'] : null);
+				$path = ($file['tmp_name'] ?? null);
 				if ($path && $apdb->upload_rooms_and_tables($path)) {
 					$message = 'File upload succeeded.';
 					$success = true;

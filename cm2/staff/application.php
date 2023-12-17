@@ -273,7 +273,7 @@ echo '<article>';
 				echo '</tr>';
 
 				echo '<tr>';
-					$value = isset($item['subscribed']) ? $item['subscribed'] : true;
+					$value = $item['subscribed'] ?? true;
 					echo '<th></th><td><label>';
 						echo '<input type="checkbox" name="subscribed" value="1"' . ($value ? ' checked>' : '>');
 						echo 'You may contact me with promotional emails.';
@@ -351,8 +351,7 @@ echo '<article>';
 							array()
 						);
 						$error = (
-							isset($errors['form-answer-'.$question['question-id']]) ?
-							$errors['form-answer-'.$question['question-id']] : null
+							$errors['form-answer-' . $question['question-id']] ?? null
 						);
 						echo cm_form_row($question, $answer, $error);
 						$first = false;

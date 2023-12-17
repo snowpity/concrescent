@@ -153,7 +153,7 @@ if (isset($_GET['return'])) {
 	$paypal = new cm_paypal($token);
 
 	$payment_id = $_SESSION['payment_id'];
-	$payer_id = isset($_GET['PayerID']) ? $_GET['PayerID'] : null;
+	$payer_id = $_GET['PayerID'] ?? null;
 	$sale = $paypal->execute_payment($payment_id, $payer_id);
 	$transaction_id = $paypal->get_transaction_id($sale);
 	$details = json_encode($sale);

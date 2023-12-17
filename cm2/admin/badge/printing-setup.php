@@ -73,14 +73,10 @@ if (isset($_POST['action'])) {
 		isset($_COOKIE['badge_printing_vertical'])
 	);
 	$width = (
-		isset($_COOKIE['badge_printing_width']) ?
-		$_COOKIE['badge_printing_width'] :
-		$bp_config['width']
+		$_COOKIE['badge_printing_width'] ?? $bp_config['width']
 	);
 	$height = (
-		isset($_COOKIE['badge_printing_height']) ?
-		$_COOKIE['badge_printing_height'] :
-		$bp_config['height']
+		$_COOKIE['badge_printing_height'] ?? $bp_config['height']
 	);
 	$vertical = (
 		isset($_COOKIE['badge_printing_vertical']) ?

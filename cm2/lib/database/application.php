@@ -341,8 +341,8 @@ class cm_application_db {
 			if (($cmp = strnatcasecmp($a['end-time'], $b['end-time']))) return $cmp;
 			if (($cmp = strnatcasecmp($a['context'], $b['context']))) return $cmp;
 			if (($cmp = strnatcasecmp(
-				(isset($a['application-name']) ? $a['application-name'] : ''),
-				(isset($b['application-name']) ? $b['application-name'] : '')
+				($a['application-name'] ?? ''),
+				($b['application-name'] ?? '')
 			))) return $cmp;
 			return $a['context-id'] - $b['context-id'];
 		});
@@ -679,28 +679,28 @@ class cm_application_db {
 		$stmt->bind_result($order);
 		$stmt->fetch();
 		$stmt->close();
-		$name = (isset($badge_type['name']) ? $badge_type['name'] : '');
-		$description = (isset($badge_type['description']) ? $badge_type['description'] : '');
+		$name = ($badge_type['name'] ?? '');
+		$description = ($badge_type['description'] ?? '');
 		$rewards = (isset($badge_type['rewards']) ? implode("\n", $badge_type['rewards']) : '');
-		$max_applicant_count = (isset($badge_type['max-applicant-count']) ? $badge_type['max-applicant-count'] : null);
-		$max_assignment_count = (isset($badge_type['max-assignment-count']) ? $badge_type['max-assignment-count'] : null);
+		$max_applicant_count = ($badge_type['max-applicant-count'] ?? null);
+		$max_assignment_count = ($badge_type['max-assignment-count'] ?? null);
 		$base_price = (isset($badge_type['base-price']) ? (float)$badge_type['base-price'] : 0);
-		$base_applicant_count = (isset($badge_type['base-applicant-count']) ? $badge_type['base-applicant-count'] : 0);
-		$base_assignment_count = (isset($badge_type['base-assignment-count']) ? $badge_type['base-assignment-count'] : 0);
+		$base_applicant_count = ($badge_type['base-applicant-count'] ?? 0);
+		$base_assignment_count = ($badge_type['base-assignment-count'] ?? 0);
 		$price_per_applicant = (isset($badge_type['price-per-applicant']) ? (float)$badge_type['price-per-applicant'] : 0);
 		$price_per_assignment = (isset($badge_type['price-per-assignment']) ? (float)$badge_type['price-per-assignment'] : 0);
-		$max_prereg_discount = (isset($badge_type['max-prereg-discount']) ? $badge_type['max-prereg-discount'] : 'No Discount');
+		$max_prereg_discount = ($badge_type['max-prereg-discount'] ?? 'No Discount');
 		$use_permit = (isset($badge_type['use-permit']) ? ($badge_type['use-permit'] ? 1 : 0) : 0);
 		$require_permit = (isset($badge_type['require-permit']) ? ($badge_type['require-permit'] ? 1 : 0) : 0);
 		$require_contract = (isset($badge_type['require-contract']) ? ($badge_type['require-contract'] ? 1 : 0) : 0);
 		$active = (isset($badge_type['active']) ? ($badge_type['active'] ? 1 : 0) : 1);
-		$max_total_applications = (isset($badge_type['max-total-applications']) ? $badge_type['max-total-applications'] : null);
-		$max_total_applicants = (isset($badge_type['max-total-applicants']) ? $badge_type['max-total-applicants'] : null);
-		$max_total_assignments = (isset($badge_type['max-total-assignments']) ? $badge_type['max-total-assignments'] : null);
-		$start_date = (isset($badge_type['start-date']) ? $badge_type['start-date'] : null);
-		$end_date = (isset($badge_type['end-date']) ? $badge_type['end-date'] : null);
-		$min_age = (isset($badge_type['min-age']) ? $badge_type['min-age'] : null);
-		$max_age = (isset($badge_type['max-age']) ? $badge_type['max-age'] : null);
+		$max_total_applications = ($badge_type['max-total-applications'] ?? null);
+		$max_total_applicants = ($badge_type['max-total-applicants'] ?? null);
+		$max_total_assignments = ($badge_type['max-total-assignments'] ?? null);
+		$start_date = ($badge_type['start-date'] ?? null);
+		$end_date = ($badge_type['end-date'] ?? null);
+		$min_age = ($badge_type['min-age'] ?? null);
+		$max_age = ($badge_type['max-age'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
 			'INSERT INTO '.$this->cm_db->table_name('application_badge_types_'.$this->ctx_lc).' SET '.
 			'`order` = ?, `name` = ?, `description` = ?, `rewards` = ?, '.
@@ -731,28 +731,28 @@ class cm_application_db {
 
 	public function update_badge_type($badge_type) {
 		if (!$badge_type || !isset($badge_type['id']) || !$badge_type['id']) return false;
-		$name = (isset($badge_type['name']) ? $badge_type['name'] : '');
-		$description = (isset($badge_type['description']) ? $badge_type['description'] : '');
+		$name = ($badge_type['name'] ?? '');
+		$description = ($badge_type['description'] ?? '');
 		$rewards = (isset($badge_type['rewards']) ? implode("\n", $badge_type['rewards']) : '');
-		$max_applicant_count = (isset($badge_type['max-applicant-count']) ? $badge_type['max-applicant-count'] : null);
-		$max_assignment_count = (isset($badge_type['max-assignment-count']) ? $badge_type['max-assignment-count'] : null);
+		$max_applicant_count = ($badge_type['max-applicant-count'] ?? null);
+		$max_assignment_count = ($badge_type['max-assignment-count'] ?? null);
 		$base_price = (isset($badge_type['base-price']) ? (float)$badge_type['base-price'] : 0);
-		$base_applicant_count = (isset($badge_type['base-applicant-count']) ? $badge_type['base-applicant-count'] : 0);
-		$base_assignment_count = (isset($badge_type['base-assignment-count']) ? $badge_type['base-assignment-count'] : 0);
+		$base_applicant_count = ($badge_type['base-applicant-count'] ?? 0);
+		$base_assignment_count = ($badge_type['base-assignment-count'] ?? 0);
 		$price_per_applicant = (isset($badge_type['price-per-applicant']) ? (float)$badge_type['price-per-applicant'] : 0);
 		$price_per_assignment = (isset($badge_type['price-per-assignment']) ? (float)$badge_type['price-per-assignment'] : 0);
-		$max_prereg_discount = (isset($badge_type['max-prereg-discount']) ? $badge_type['max-prereg-discount'] : 'No Discount');
+		$max_prereg_discount = ($badge_type['max-prereg-discount'] ?? 'No Discount');
 		$use_permit = (isset($badge_type['use-permit']) ? ($badge_type['use-permit'] ? 1 : 0) : 0);
 		$require_permit = (isset($badge_type['require-permit']) ? ($badge_type['require-permit'] ? 1 : 0) : 0);
 		$require_contract = (isset($badge_type['require-contract']) ? ($badge_type['require-contract'] ? 1 : 0) : 0);
 		$active = (isset($badge_type['active']) ? ($badge_type['active'] ? 1 : 0) : 1);
-		$max_total_applications = (isset($badge_type['max-total-applications']) ? $badge_type['max-total-applications'] : null);
-		$max_total_applicants = (isset($badge_type['max-total-applicants']) ? $badge_type['max-total-applicants'] : null);
-		$max_total_assignments = (isset($badge_type['max-total-assignments']) ? $badge_type['max-total-assignments'] : null);
-		$start_date = (isset($badge_type['start-date']) ? $badge_type['start-date'] : null);
-		$end_date = (isset($badge_type['end-date']) ? $badge_type['end-date'] : null);
-		$min_age = (isset($badge_type['min-age']) ? $badge_type['min-age'] : null);
-		$max_age = (isset($badge_type['max-age']) ? $badge_type['max-age'] : null);
+		$max_total_applications = ($badge_type['max-total-applications'] ?? null);
+		$max_total_applicants = ($badge_type['max-total-applicants'] ?? null);
+		$max_total_assignments = ($badge_type['max-total-assignments'] ?? null);
+		$start_date = ($badge_type['start-date'] ?? null);
+		$end_date = ($badge_type['end-date'] ?? null);
+		$min_age = ($badge_type['min-age'] ?? null);
+		$max_age = ($badge_type['max-age'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
 			'UPDATE '.$this->cm_db->table_name('application_badge_types_'.$this->ctx_lc).' SET '.
 			'`name` = ?, `description` = ?, `rewards` = ?, '.
@@ -916,10 +916,10 @@ class cm_application_db {
 
 	public function create_application_blacklist_entry($entry) {
 		if (!$entry) return false;
-		$business_name = (isset($entry['business-name']) ? $entry['business-name'] : '');
-		$application_name = (isset($entry['application-name']) ? $entry['application-name'] : '');
-		$added_by = (isset($entry['added-by']) ? $entry['added-by'] : '');
-		$notes = (isset($entry['notes']) ? $entry['notes'] : '');
+		$business_name = ($entry['business-name'] ?? '');
+		$application_name = ($entry['application-name'] ?? '');
+		$added_by = ($entry['added-by'] ?? '');
+		$notes = ($entry['notes'] ?? '');
 		$normalized_business_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $business_name));
 		$normalized_application_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $application_name));
 		if (!$business_name) $business_name = null;
@@ -945,10 +945,10 @@ class cm_application_db {
 
 	public function update_application_blacklist_entry($entry) {
 		if (!$entry || !isset($entry['id']) || !$entry['id']) return false;
-		$business_name = (isset($entry['business-name']) ? $entry['business-name'] : '');
-		$application_name = (isset($entry['application-name']) ? $entry['application-name'] : '');
-		$added_by = (isset($entry['added-by']) ? $entry['added-by'] : '');
-		$notes = (isset($entry['notes']) ? $entry['notes'] : '');
+		$business_name = ($entry['business-name'] ?? '');
+		$application_name = ($entry['application-name'] ?? '');
+		$added_by = ($entry['added-by'] ?? '');
+		$notes = ($entry['notes'] ?? '');
 		$normalized_business_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $business_name));
 		$normalized_application_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $application_name));
 		if (!$business_name) $business_name = null;
@@ -988,8 +988,8 @@ class cm_application_db {
 
 	public function is_application_blacklisted($application) {
 		if (!$application) return false;
-		$business_name = (isset($application['business-name']) ? $application['business-name'] : '');
-		$application_name = (isset($application['application-name']) ? $application['application-name'] : '');
+		$business_name = ($application['business-name'] ?? '');
+		$application_name = ($application['application-name'] ?? '');
 		$normalized_business_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $business_name));
 		$normalized_application_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $application_name));
 		$query_params = array();
@@ -1133,13 +1133,13 @@ class cm_application_db {
 
 	public function create_applicant_blacklist_entry($entry) {
 		if (!$entry) return false;
-		$first_name = (isset($entry['first-name']) ? $entry['first-name'] : '');
-		$last_name = (isset($entry['last-name']) ? $entry['last-name'] : '');
-		$fandom_name = (isset($entry['fandom-name']) ? $entry['fandom-name'] : '');
-		$email_address = (isset($entry['email-address']) ? $entry['email-address'] : '');
-		$phone_number = (isset($entry['phone-number']) ? $entry['phone-number'] : '');
-		$added_by = (isset($entry['added-by']) ? $entry['added-by'] : '');
-		$notes = (isset($entry['notes']) ? $entry['notes'] : '');
+		$first_name = ($entry['first-name'] ?? '');
+		$last_name = ($entry['last-name'] ?? '');
+		$fandom_name = ($entry['fandom-name'] ?? '');
+		$email_address = ($entry['email-address'] ?? '');
+		$phone_number = ($entry['phone-number'] ?? '');
+		$added_by = ($entry['added-by'] ?? '');
+		$notes = ($entry['notes'] ?? '');
 		$normalized_real_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $first_name . $last_name));
 		$normalized_reversed_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $last_name . $first_name));
 		$normalized_fandom_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $fandom_name));
@@ -1184,13 +1184,13 @@ class cm_application_db {
 
 	public function update_applicant_blacklist_entry($entry) {
 		if (!$entry || !isset($entry['id']) || !$entry['id']) return false;
-		$first_name = (isset($entry['first-name']) ? $entry['first-name'] : '');
-		$last_name = (isset($entry['last-name']) ? $entry['last-name'] : '');
-		$fandom_name = (isset($entry['fandom-name']) ? $entry['fandom-name'] : '');
-		$email_address = (isset($entry['email-address']) ? $entry['email-address'] : '');
-		$phone_number = (isset($entry['phone-number']) ? $entry['phone-number'] : '');
-		$added_by = (isset($entry['added-by']) ? $entry['added-by'] : '');
-		$notes = (isset($entry['notes']) ? $entry['notes'] : '');
+		$first_name = ($entry['first-name'] ?? '');
+		$last_name = ($entry['last-name'] ?? '');
+		$fandom_name = ($entry['fandom-name'] ?? '');
+		$email_address = ($entry['email-address'] ?? '');
+		$phone_number = ($entry['phone-number'] ?? '');
+		$added_by = ($entry['added-by'] ?? '');
+		$notes = ($entry['notes'] ?? '');
 		$normalized_real_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $first_name . $last_name));
 		$normalized_reversed_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $last_name . $first_name));
 		$normalized_fandom_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $fandom_name));
@@ -1249,11 +1249,11 @@ class cm_application_db {
 
 	public function is_applicant_blacklisted($applicant) {
 		if (!$applicant) return false;
-		$first_name = (isset($applicant['first-name']) ? $applicant['first-name'] : '');
-		$last_name = (isset($applicant['last-name']) ? $applicant['last-name'] : '');
-		$fandom_name = (isset($applicant['fandom-name']) ? $applicant['fandom-name'] : '');
-		$email_address = (isset($applicant['email-address']) ? $applicant['email-address'] : '');
-		$phone_number = (isset($applicant['phone-number']) ? $applicant['phone-number'] : '');
+		$first_name = ($applicant['first-name'] ?? '');
+		$last_name = ($applicant['last-name'] ?? '');
+		$fandom_name = ($applicant['fandom-name'] ?? '');
+		$email_address = ($applicant['email-address'] ?? '');
+		$phone_number = ($applicant['phone-number'] ?? '');
 		$normalized_real_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $first_name . $last_name));
 		$normalized_reversed_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $last_name . $first_name));
 		$normalized_fandom_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $fandom_name));
@@ -1368,7 +1368,7 @@ class cm_application_db {
 			$qr_data = 'CM*' . $id_string . '*' . strtoupper($uuid);
 			$qr_url = resource_file_url('barcode.php', true) . '?s=qr&w=300&h=300&d=' . $qr_data;
 			$badge_type_id_string = $this->ctx_uc . 'B' . $badge_type_id;
-			$badge_type_name = (isset($name_map[$badge_type_id]) ? $name_map[$badge_type_id] : $badge_type_id);
+			$badge_type_name = ($name_map[$badge_type_id] ?? $badge_type_id);
 			$contact_real_name = trim(trim($contact_first_name) . ' ' . trim($contact_last_name));
 			$contact_email_address_subscribed = ($contact_subscribed ? $contact_email_address : null);
 			$contact_unsubscribe_link = $reg_url . '/unsubscribe.php?c=' . $this->ctx_lc . '&email=' . $contact_email_address;
@@ -1563,7 +1563,7 @@ class cm_application_db {
 			$qr_data = 'CM*' . $id_string . '*' . strtoupper($uuid);
 			$qr_url = $qr_base_url . $qr_data;
 			$badge_type_id_string = $this->ctx_uc . 'B' . $badge_type_id;
-			$badge_type_name = (isset($name_map[$badge_type_id]) ? $name_map[$badge_type_id] : $badge_type_id);
+			$badge_type_name = ($name_map[$badge_type_id] ?? $badge_type_id);
 			$contact_real_name = trim(trim($contact_first_name) . ' ' . trim($contact_last_name));
 			$contact_email_address_subscribed = ($contact_subscribed ? $contact_email_address : null);
 			$contact_unsubscribe_link = $reg_url . '/unsubscribe.php?email=' . $contact_email_address;
@@ -1699,33 +1699,33 @@ class cm_application_db {
 
 	public function create_application($application, $fdb = null) {
 		if (!$application) return false;
-		$badge_type_id = (isset($application['badge-type-id']) ? $application['badge-type-id'] : null);
-		$notes = (isset($application['notes']) ? $application['notes'] : null);
-		$contact_first_name = (isset($application['contact-first-name']) ? $application['contact-first-name'] : '');
-		$contact_last_name = (isset($application['contact-last-name']) ? $application['contact-last-name'] : '');
+		$badge_type_id = ($application['badge-type-id'] ?? null);
+		$notes = ($application['notes'] ?? null);
+		$contact_first_name = ($application['contact-first-name'] ?? '');
+		$contact_last_name = ($application['contact-last-name'] ?? '');
 		$contact_subscribed = (isset($application['contact-subscribed']) ? ($application['contact-subscribed'] ? 1 : 0) : 0);
-		$contact_email_address = (isset($application['contact-email-address']) ? $application['contact-email-address'] : '');
-		$contact_phone_number = (isset($application['contact-phone-number']) ? $application['contact-phone-number'] : '');
-		$contact_address_1 = (isset($application['contact-address-1']) ? $application['contact-address-1'] : '');
-		$contact_address_2 = (isset($application['contact-address-2']) ? $application['contact-address-2'] : '');
-		$contact_city = (isset($application['contact-city']) ? $application['contact-city'] : '');
-		$contact_state = (isset($application['contact-state']) ? $application['contact-state'] : '');
-		$contact_zip_code = (isset($application['contact-zip-code']) ? $application['contact-zip-code'] : '');
-		$contact_country = (isset($application['contact-country']) ? $application['contact-country'] : '');
-		$business_name = (isset($application['business-name']) ? $application['business-name'] : '');
-		$application_name = (isset($application['application-name']) ? $application['application-name'] : '');
-		$applicant_count = (isset($application['applicant-count']) ? $application['applicant-count'] : null);
-		$assignment_count = (isset($application['assignment-count']) ? $application['assignment-count'] : null);
-		$application_status = (isset($application['application-status']) ? $application['application-status'] : null);
-		$permit_number = (isset($application['permit-number']) ? $application['permit-number'] : null);
-		$payment_status = (isset($application['payment-status']) ? $application['payment-status'] : null);
-		$payment_badge_price = (isset($application['payment-badge-price']) ? $application['payment-badge-price'] : null);
-		$payment_group_uuid = (isset($application['payment-group-uuid']) ? $application['payment-group-uuid'] : null);
-		$payment_type = (isset($application['payment-type']) ? $application['payment-type'] : null);
-		$payment_txn_id = (isset($application['payment-txn-id']) ? $application['payment-txn-id'] : null);
-		$payment_txn_amt = (isset($application['payment-txn-amt']) ? $application['payment-txn-amt'] : null);
-		$payment_date = (isset($application['payment-date']) ? $application['payment-date'] : null);
-		$payment_details = (isset($application['payment-details']) ? $application['payment-details'] : null);
+		$contact_email_address = ($application['contact-email-address'] ?? '');
+		$contact_phone_number = ($application['contact-phone-number'] ?? '');
+		$contact_address_1 = ($application['contact-address-1'] ?? '');
+		$contact_address_2 = ($application['contact-address-2'] ?? '');
+		$contact_city = ($application['contact-city'] ?? '');
+		$contact_state = ($application['contact-state'] ?? '');
+		$contact_zip_code = ($application['contact-zip-code'] ?? '');
+		$contact_country = ($application['contact-country'] ?? '');
+		$business_name = ($application['business-name'] ?? '');
+		$application_name = ($application['application-name'] ?? '');
+		$applicant_count = ($application['applicant-count'] ?? null);
+		$assignment_count = ($application['assignment-count'] ?? null);
+		$application_status = ($application['application-status'] ?? null);
+		$permit_number = ($application['permit-number'] ?? null);
+		$payment_status = ($application['payment-status'] ?? null);
+		$payment_badge_price = ($application['payment-badge-price'] ?? null);
+		$payment_group_uuid = ($application['payment-group-uuid'] ?? null);
+		$payment_type = ($application['payment-type'] ?? null);
+		$payment_txn_id = ($application['payment-txn-id'] ?? null);
+		$payment_txn_amt = ($application['payment-txn-amt'] ?? null);
+		$payment_date = ($application['payment-date'] ?? null);
+		$payment_details = ($application['payment-details'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
 			'INSERT INTO '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' SET '.
 			'`uuid` = UUID(), `date_created` = NOW(), `date_modified` = NOW(), '.
@@ -1791,33 +1791,33 @@ class cm_application_db {
 
 	public function update_application($application, $fdb = null) {
 		if (!$application || !isset($application['id']) || !$application['id']) return false;
-		$badge_type_id = (isset($application['badge-type-id']) ? $application['badge-type-id'] : null);
-		$notes = (isset($application['notes']) ? $application['notes'] : null);
-		$contact_first_name = (isset($application['contact-first-name']) ? $application['contact-first-name'] : '');
-		$contact_last_name = (isset($application['contact-last-name']) ? $application['contact-last-name'] : '');
+		$badge_type_id = ($application['badge-type-id'] ?? null);
+		$notes = ($application['notes'] ?? null);
+		$contact_first_name = ($application['contact-first-name'] ?? '');
+		$contact_last_name = ($application['contact-last-name'] ?? '');
 		$contact_subscribed = (isset($application['contact-subscribed']) ? ($application['contact-subscribed'] ? 1 : 0) : 0);
-		$contact_email_address = (isset($application['contact-email-address']) ? $application['contact-email-address'] : '');
-		$contact_phone_number = (isset($application['contact-phone-number']) ? $application['contact-phone-number'] : '');
-		$contact_address_1 = (isset($application['contact-address-1']) ? $application['contact-address-1'] : '');
-		$contact_address_2 = (isset($application['contact-address-2']) ? $application['contact-address-2'] : '');
-		$contact_city = (isset($application['contact-city']) ? $application['contact-city'] : '');
-		$contact_state = (isset($application['contact-state']) ? $application['contact-state'] : '');
-		$contact_zip_code = (isset($application['contact-zip-code']) ? $application['contact-zip-code'] : '');
-		$contact_country = (isset($application['contact-country']) ? $application['contact-country'] : '');
-		$business_name = (isset($application['business-name']) ? $application['business-name'] : '');
-		$application_name = (isset($application['application-name']) ? $application['application-name'] : '');
-		$applicant_count = (isset($application['applicant-count']) ? $application['applicant-count'] : null);
-		$assignment_count = (isset($application['assignment-count']) ? $application['assignment-count'] : null);
-		$application_status = (isset($application['application-status']) ? $application['application-status'] : null);
-		$permit_number = (isset($application['permit-number']) ? $application['permit-number'] : null);
-		$payment_status = (isset($application['payment-status']) ? $application['payment-status'] : null);
-		$payment_badge_price = (isset($application['payment-badge-price']) ? $application['payment-badge-price'] : null);
-		$payment_group_uuid = (isset($application['payment-group-uuid']) ? $application['payment-group-uuid'] : null);
-		$payment_type = (isset($application['payment-type']) ? $application['payment-type'] : null);
-		$payment_txn_id = (isset($application['payment-txn-id']) ? $application['payment-txn-id'] : null);
-		$payment_txn_amt = (isset($application['payment-txn-amt']) ? $application['payment-txn-amt'] : null);
-		$payment_date = (isset($application['payment-date']) ? $application['payment-date'] : null);
-		$payment_details = (isset($application['payment-details']) ? $application['payment-details'] : null);
+		$contact_email_address = ($application['contact-email-address'] ?? '');
+		$contact_phone_number = ($application['contact-phone-number'] ?? '');
+		$contact_address_1 = ($application['contact-address-1'] ?? '');
+		$contact_address_2 = ($application['contact-address-2'] ?? '');
+		$contact_city = ($application['contact-city'] ?? '');
+		$contact_state = ($application['contact-state'] ?? '');
+		$contact_zip_code = ($application['contact-zip-code'] ?? '');
+		$contact_country = ($application['contact-country'] ?? '');
+		$business_name = ($application['business-name'] ?? '');
+		$application_name = ($application['application-name'] ?? '');
+		$applicant_count = ($application['applicant-count'] ?? null);
+		$assignment_count = ($application['assignment-count'] ?? null);
+		$application_status = ($application['application-status'] ?? null);
+		$permit_number = ($application['permit-number'] ?? null);
+		$payment_status = ($application['payment-status'] ?? null);
+		$payment_badge_price = ($application['payment-badge-price'] ?? null);
+		$payment_group_uuid = ($application['payment-group-uuid'] ?? null);
+		$payment_type = ($application['payment-type'] ?? null);
+		$payment_txn_id = ($application['payment-txn-id'] ?? null);
+		$payment_txn_amt = ($application['payment-txn-amt'] ?? null);
+		$payment_date = ($application['payment-date'] ?? null);
+		$payment_details = ($application['payment-details'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
 			'UPDATE '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' SET '.
 			'`date_modified` = NOW(), '.
@@ -2406,27 +2406,27 @@ class cm_application_db {
 
 	public function create_applicant($applicant) {
 		if (!$applicant) return false;
-		$application_id = (isset($applicant['application-id']) ? $applicant['application-id'] : null);
-		$attendee_id = (isset($applicant['attendee-id']) ? $applicant['attendee-id'] : null);
-		$notes = (isset($applicant['notes']) ? $applicant['notes'] : null);
-		$first_name = (isset($applicant['first-name']) ? $applicant['first-name'] : '');
-		$last_name = (isset($applicant['last-name']) ? $applicant['last-name'] : '');
-		$fandom_name = (isset($applicant['fandom-name']) ? $applicant['fandom-name'] : '');
+		$application_id = ($applicant['application-id'] ?? null);
+		$attendee_id = ($applicant['attendee-id'] ?? null);
+		$notes = ($applicant['notes'] ?? null);
+		$first_name = ($applicant['first-name'] ?? '');
+		$last_name = ($applicant['last-name'] ?? '');
+		$fandom_name = ($applicant['fandom-name'] ?? '');
 		$name_on_badge = (($fandom_name && isset($applicant['name-on-badge'])) ? $applicant['name-on-badge'] : 'Real Name Only');
-		$date_of_birth = (isset($applicant['date-of-birth']) ? $applicant['date-of-birth'] : null);
+		$date_of_birth = ($applicant['date-of-birth'] ?? null);
 		$subscribed = (isset($applicant['subscribed']) ? ($applicant['subscribed'] ? 1 : 0) : 0);
-		$email_address = (isset($applicant['email-address']) ? $applicant['email-address'] : '');
-		$phone_number = (isset($applicant['phone-number']) ? $applicant['phone-number'] : '');
-		$address_1 = (isset($applicant['address-1']) ? $applicant['address-1'] : '');
-		$address_2 = (isset($applicant['address-2']) ? $applicant['address-2'] : '');
-		$city = (isset($applicant['city']) ? $applicant['city'] : '');
-		$state = (isset($applicant['state']) ? $applicant['state'] : '');
-		$zip_code = (isset($applicant['zip-code']) ? $applicant['zip-code'] : '');
-		$country = (isset($applicant['country']) ? $applicant['country'] : '');
-		$ice_name = (isset($applicant['ice-name']) ? $applicant['ice-name'] : '');
-		$ice_relationship = (isset($applicant['ice-relationship']) ? $applicant['ice-relationship'] : '');
-		$ice_email_address = (isset($applicant['ice-email-address']) ? $applicant['ice-email-address'] : '');
-		$ice_phone_number = (isset($applicant['ice-phone-number']) ? $applicant['ice-phone-number'] : '');
+		$email_address = ($applicant['email-address'] ?? '');
+		$phone_number = ($applicant['phone-number'] ?? '');
+		$address_1 = ($applicant['address-1'] ?? '');
+		$address_2 = ($applicant['address-2'] ?? '');
+		$city = ($applicant['city'] ?? '');
+		$state = ($applicant['state'] ?? '');
+		$zip_code = ($applicant['zip-code'] ?? '');
+		$country = ($applicant['country'] ?? '');
+		$ice_name = ($applicant['ice-name'] ?? '');
+		$ice_relationship = ($applicant['ice-relationship'] ?? '');
+		$ice_email_address = ($applicant['ice-email-address'] ?? '');
+		$ice_phone_number = ($applicant['ice-phone-number'] ?? '');
 		$stmt = $this->cm_db->connection->prepare(
 			'INSERT INTO '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' SET '.
 			'`uuid` = UUID(), `date_created` = NOW(), `date_modified` = NOW(), '.
@@ -2459,27 +2459,27 @@ class cm_application_db {
 
 	public function update_applicant($applicant) {
 		if (!$applicant || !isset($applicant['id']) || !$applicant['id']) return false;
-		$application_id = (isset($applicant['application-id']) ? $applicant['application-id'] : null);
-		$attendee_id = (isset($applicant['attendee-id']) ? $applicant['attendee-id'] : null);
-		$notes = (isset($applicant['notes']) ? $applicant['notes'] : null);
-		$first_name = (isset($applicant['first-name']) ? $applicant['first-name'] : '');
-		$last_name = (isset($applicant['last-name']) ? $applicant['last-name'] : '');
-		$fandom_name = (isset($applicant['fandom-name']) ? $applicant['fandom-name'] : '');
+		$application_id = ($applicant['application-id'] ?? null);
+		$attendee_id = ($applicant['attendee-id'] ?? null);
+		$notes = ($applicant['notes'] ?? null);
+		$first_name = ($applicant['first-name'] ?? '');
+		$last_name = ($applicant['last-name'] ?? '');
+		$fandom_name = ($applicant['fandom-name'] ?? '');
 		$name_on_badge = (($fandom_name && isset($applicant['name-on-badge'])) ? $applicant['name-on-badge'] : 'Real Name Only');
-		$date_of_birth = (isset($applicant['date-of-birth']) ? $applicant['date-of-birth'] : null);
+		$date_of_birth = ($applicant['date-of-birth'] ?? null);
 		$subscribed = (isset($applicant['subscribed']) ? ($applicant['subscribed'] ? 1 : 0) : 0);
-		$email_address = (isset($applicant['email-address']) ? $applicant['email-address'] : '');
-		$phone_number = (isset($applicant['phone-number']) ? $applicant['phone-number'] : '');
-		$address_1 = (isset($applicant['address-1']) ? $applicant['address-1'] : '');
-		$address_2 = (isset($applicant['address-2']) ? $applicant['address-2'] : '');
-		$city = (isset($applicant['city']) ? $applicant['city'] : '');
-		$state = (isset($applicant['state']) ? $applicant['state'] : '');
-		$zip_code = (isset($applicant['zip-code']) ? $applicant['zip-code'] : '');
-		$country = (isset($applicant['country']) ? $applicant['country'] : '');
-		$ice_name = (isset($applicant['ice-name']) ? $applicant['ice-name'] : '');
-		$ice_relationship = (isset($applicant['ice-relationship']) ? $applicant['ice-relationship'] : '');
-		$ice_email_address = (isset($applicant['ice-email-address']) ? $applicant['ice-email-address'] : '');
-		$ice_phone_number = (isset($applicant['ice-phone-number']) ? $applicant['ice-phone-number'] : '');
+		$email_address = ($applicant['email-address'] ?? '');
+		$phone_number = ($applicant['phone-number'] ?? '');
+		$address_1 = ($applicant['address-1'] ?? '');
+		$address_2 = ($applicant['address-2'] ?? '');
+		$city = ($applicant['city'] ?? '');
+		$state = ($applicant['state'] ?? '');
+		$zip_code = ($applicant['zip-code'] ?? '');
+		$country = ($applicant['country'] ?? '');
+		$ice_name = ($applicant['ice-name'] ?? '');
+		$ice_relationship = ($applicant['ice-relationship'] ?? '');
+		$ice_email_address = ($applicant['ice-email-address'] ?? '');
+		$ice_phone_number = ($applicant['ice-phone-number'] ?? '');
 		$stmt = $this->cm_db->connection->prepare(
 			'UPDATE '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' SET '.
 			'`date_modified` = NOW(), '.

@@ -435,8 +435,8 @@ class cm_staff_db {
 		$this->cm_db->connection->autocommit(false);
 
 		$parent_id = ((isset($department['parent-id']) && (int)$department['parent-id']) ? (int)$department['parent-id'] : null);
-		$name = (isset($department['name']) ? $department['name'] : '');
-		$description = (isset($department['description']) ? $department['description'] : '');
+		$name = ($department['name'] ?? '');
+		$description = ($department['description'] ?? '');
 		$mail_alias_1 = ((isset($department['mail-alias-1']) && $department['mail-alias-1']) ? $department['mail-alias-1'] : null);
 		$mail_alias_2 = ((isset($department['mail-alias-2']) && $department['mail-alias-2']) ? $department['mail-alias-2'] : null);
 		$mail_depth = ((isset($department['mail-depth']) && $department['mail-depth']) ? $department['mail-depth'] : null);
@@ -458,8 +458,8 @@ class cm_staff_db {
 			$order = 0;
 			foreach ($department['positions'] as $position) {
 				$order++;
-				$name = (isset($position['name']) ? $position['name'] : '');
-				$description = (isset($position['description']) ? $position['description'] : '');
+				$name = ($position['name'] ?? '');
+				$description = ($position['description'] ?? '');
 				$executive = (isset($position['executive']) ? ($position['executive'] ? 1 : 0) : 0);
 				$active = (isset($position['active']) ? ($position['active'] ? 1 : 0) : 1);
 				$stmt = $this->cm_db->connection->prepare(
@@ -486,8 +486,8 @@ class cm_staff_db {
 		$this->cm_db->connection->autocommit(false);
 
 		$parent_id = ((isset($department['parent-id']) && (int)$department['parent-id']) ? (int)$department['parent-id'] : null);
-		$name = (isset($department['name']) ? $department['name'] : '');
-		$description = (isset($department['description']) ? $department['description'] : '');
+		$name = ($department['name'] ?? '');
+		$description = ($department['description'] ?? '');
 		$mail_alias_1 = ((isset($department['mail-alias-1']) && $department['mail-alias-1']) ? $department['mail-alias-1'] : null);
 		$mail_alias_2 = ((isset($department['mail-alias-2']) && $department['mail-alias-2']) ? $department['mail-alias-2'] : null);
 		$mail_depth = ((isset($department['mail-depth']) && $department['mail-depth']) ? $department['mail-depth'] : null);
@@ -519,8 +519,8 @@ class cm_staff_db {
 				$order = 0;
 				foreach ($department['positions'] as $position) {
 					$order++;
-					$name = (isset($position['name']) ? $position['name'] : '');
-					$description = (isset($position['description']) ? $position['description'] : '');
+					$name = ($position['name'] ?? '');
+					$description = ($position['description'] ?? '');
 					$executive = (isset($position['executive']) ? ($position['executive'] ? 1 : 0) : 0);
 					$active = (isset($position['active']) ? ($position['active'] ? 1 : 0) : 1);
 					$id = ((isset($position['id']) && (int)$position['id']) ? (int)$position['id'] : null);
@@ -764,16 +764,16 @@ class cm_staff_db {
 		$stmt->bind_result($order);
 		$stmt->fetch();
 		$stmt->close();
-		$name = (isset($badge_type['name']) ? $badge_type['name'] : '');
-		$description = (isset($badge_type['description']) ? $badge_type['description'] : '');
+		$name = ($badge_type['name'] ?? '');
+		$description = ($badge_type['description'] ?? '');
 		$rewards = (isset($badge_type['rewards']) ? implode("\n", $badge_type['rewards']) : '');
 		$price = (isset($badge_type['price']) ? (float)$badge_type['price'] : 0);
 		$active = (isset($badge_type['active']) ? ($badge_type['active'] ? 1 : 0) : 1);
-		$quantity = (isset($badge_type['quantity']) ? $badge_type['quantity'] : null);
-		$start_date = (isset($badge_type['start-date']) ? $badge_type['start-date'] : null);
-		$end_date = (isset($badge_type['end-date']) ? $badge_type['end-date'] : null);
-		$min_age = (isset($badge_type['min-age']) ? $badge_type['min-age'] : null);
-		$max_age = (isset($badge_type['max-age']) ? $badge_type['max-age'] : null);
+		$quantity = ($badge_type['quantity'] ?? null);
+		$start_date = ($badge_type['start-date'] ?? null);
+		$end_date = ($badge_type['end-date'] ?? null);
+		$min_age = ($badge_type['min-age'] ?? null);
+		$max_age = ($badge_type['max-age'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
 			'INSERT INTO '.$this->cm_db->table_name('staff_badge_types').' SET '.
 			'`order` = ?, `name` = ?, `description` = ?, `rewards` = ?, '.
@@ -794,16 +794,16 @@ class cm_staff_db {
 
 	public function update_badge_type($badge_type) {
 		if (!$badge_type || !isset($badge_type['id']) || !$badge_type['id']) return false;
-		$name = (isset($badge_type['name']) ? $badge_type['name'] : '');
-		$description = (isset($badge_type['description']) ? $badge_type['description'] : '');
+		$name = ($badge_type['name'] ?? '');
+		$description = ($badge_type['description'] ?? '');
 		$rewards = (isset($badge_type['rewards']) ? implode("\n", $badge_type['rewards']) : '');
 		$price = (isset($badge_type['price']) ? (float)$badge_type['price'] : 0);
 		$active = (isset($badge_type['active']) ? ($badge_type['active'] ? 1 : 0) : 1);
-		$quantity = (isset($badge_type['quantity']) ? $badge_type['quantity'] : null);
-		$start_date = (isset($badge_type['start-date']) ? $badge_type['start-date'] : null);
-		$end_date = (isset($badge_type['end-date']) ? $badge_type['end-date'] : null);
-		$min_age = (isset($badge_type['min-age']) ? $badge_type['min-age'] : null);
-		$max_age = (isset($badge_type['max-age']) ? $badge_type['max-age'] : null);
+		$quantity = ($badge_type['quantity'] ?? null);
+		$start_date = ($badge_type['start-date'] ?? null);
+		$end_date = ($badge_type['end-date'] ?? null);
+		$min_age = ($badge_type['min-age'] ?? null);
+		$max_age = ($badge_type['max-age'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
 			'UPDATE '.$this->cm_db->table_name('staff_badge_types').' SET '.
 			'`name` = ?, `description` = ?, `rewards` = ?, '.
@@ -1005,13 +1005,13 @@ class cm_staff_db {
 
 	public function create_blacklist_entry($entry) {
 		if (!$entry) return false;
-		$first_name = (isset($entry['first-name']) ? $entry['first-name'] : '');
-		$last_name = (isset($entry['last-name']) ? $entry['last-name'] : '');
-		$fandom_name = (isset($entry['fandom-name']) ? $entry['fandom-name'] : '');
-		$email_address = (isset($entry['email-address']) ? $entry['email-address'] : '');
-		$phone_number = (isset($entry['phone-number']) ? $entry['phone-number'] : '');
-		$added_by = (isset($entry['added-by']) ? $entry['added-by'] : '');
-		$notes = (isset($entry['notes']) ? $entry['notes'] : '');
+		$first_name = ($entry['first-name'] ?? '');
+		$last_name = ($entry['last-name'] ?? '');
+		$fandom_name = ($entry['fandom-name'] ?? '');
+		$email_address = ($entry['email-address'] ?? '');
+		$phone_number = ($entry['phone-number'] ?? '');
+		$added_by = ($entry['added-by'] ?? '');
+		$notes = ($entry['notes'] ?? '');
 		$normalized_real_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $first_name . $last_name));
 		$normalized_reversed_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $last_name . $first_name));
 		$normalized_fandom_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $fandom_name));
@@ -1056,13 +1056,13 @@ class cm_staff_db {
 
 	public function update_blacklist_entry($entry) {
 		if (!$entry || !isset($entry['id']) || !$entry['id']) return false;
-		$first_name = (isset($entry['first-name']) ? $entry['first-name'] : '');
-		$last_name = (isset($entry['last-name']) ? $entry['last-name'] : '');
-		$fandom_name = (isset($entry['fandom-name']) ? $entry['fandom-name'] : '');
-		$email_address = (isset($entry['email-address']) ? $entry['email-address'] : '');
-		$phone_number = (isset($entry['phone-number']) ? $entry['phone-number'] : '');
-		$added_by = (isset($entry['added-by']) ? $entry['added-by'] : '');
-		$notes = (isset($entry['notes']) ? $entry['notes'] : '');
+		$first_name = ($entry['first-name'] ?? '');
+		$last_name = ($entry['last-name'] ?? '');
+		$fandom_name = ($entry['fandom-name'] ?? '');
+		$email_address = ($entry['email-address'] ?? '');
+		$phone_number = ($entry['phone-number'] ?? '');
+		$added_by = ($entry['added-by'] ?? '');
+		$notes = ($entry['notes'] ?? '');
 		$normalized_real_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $first_name . $last_name));
 		$normalized_reversed_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $last_name . $first_name));
 		$normalized_fandom_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $fandom_name));
@@ -1121,11 +1121,11 @@ class cm_staff_db {
 
 	public function is_blacklisted($person) {
 		if (!$person) return false;
-		$first_name = (isset($person['first-name']) ? $person['first-name'] : '');
-		$last_name = (isset($person['last-name']) ? $person['last-name'] : '');
-		$fandom_name = (isset($person['fandom-name']) ? $person['fandom-name'] : '');
-		$email_address = (isset($person['email-address']) ? $person['email-address'] : '');
-		$phone_number = (isset($person['phone-number']) ? $person['phone-number'] : '');
+		$first_name = ($person['first-name'] ?? '');
+		$last_name = ($person['last-name'] ?? '');
+		$fandom_name = ($person['fandom-name'] ?? '');
+		$email_address = ($person['email-address'] ?? '');
+		$phone_number = ($person['phone-number'] ?? '');
 		$normalized_real_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $first_name . $last_name));
 		$normalized_reversed_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $last_name . $first_name));
 		$normalized_fandom_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $fandom_name));
@@ -1245,7 +1245,7 @@ class cm_staff_db {
 			$qr_data = 'CM*' . $id_string . '*' . strtoupper($uuid);
 			$qr_url = resource_file_url('barcode.php', true) . '?s=qr&w=300&h=300&d=' . $qr_data;
 			$badge_type_id_string = 'SB' . $badge_type_id;
-			$badge_type_name = (isset($name_map[$badge_type_id]) ? $name_map[$badge_type_id] : $badge_type_id);
+			$badge_type_name = ($name_map[$badge_type_id] ?? $badge_type_id);
 			$real_name = trim(trim($first_name) . ' ' . trim($last_name));
 			$only_name = $real_name;
 			$large_name = '';
@@ -1491,7 +1491,7 @@ class cm_staff_db {
 			$qr_data = 'CM*' . $id_string . '*' . strtoupper($uuid);
 			$qr_url = $qr_base_url . $qr_data;
 			$badge_type_id_string = 'SB' . $badge_type_id;
-			$badge_type_name = (isset($name_map[$badge_type_id]) ? $name_map[$badge_type_id] : $badge_type_id);
+			$badge_type_name = ($name_map[$badge_type_id] ?? $badge_type_id);
 			$real_name = trim(trim($first_name) . ' ' . trim($last_name));
 			$only_name = $real_name;
 			$large_name = '';
@@ -1673,38 +1673,38 @@ class cm_staff_db {
 
 	public function create_staff_member($staff_member, $dept_map = null, $pos_map = null, $fdb = null) {
 		if (!$staff_member) return false;
-		$badge_type_id = (isset($staff_member['badge-type-id']) ? $staff_member['badge-type-id'] : null);
-		$notes = (isset($staff_member['notes']) ? $staff_member['notes'] : null);
-		$first_name = (isset($staff_member['first-name']) ? $staff_member['first-name'] : '');
-		$last_name = (isset($staff_member['last-name']) ? $staff_member['last-name'] : '');
-		$fandom_name = (isset($staff_member['fandom-name']) ? $staff_member['fandom-name'] : '');
+		$badge_type_id = ($staff_member['badge-type-id'] ?? null);
+		$notes = ($staff_member['notes'] ?? null);
+		$first_name = ($staff_member['first-name'] ?? '');
+		$last_name = ($staff_member['last-name'] ?? '');
+		$fandom_name = ($staff_member['fandom-name'] ?? '');
 		$name_on_badge = (($fandom_name && isset($staff_member['name-on-badge'])) ? $staff_member['name-on-badge'] : 'Real Name Only');
-		$date_of_birth = (isset($staff_member['date-of-birth']) ? $staff_member['date-of-birth'] : null);
+		$date_of_birth = ($staff_member['date-of-birth'] ?? null);
 		$subscribed = (isset($staff_member['subscribed']) ? ($staff_member['subscribed'] ? 1 : 0) : 0);
-		$email_address = (isset($staff_member['email-address']) ? $staff_member['email-address'] : '');
-		$phone_number = (isset($staff_member['phone-number']) ? $staff_member['phone-number'] : '');
-		$address_1 = (isset($staff_member['address-1']) ? $staff_member['address-1'] : '');
-		$address_2 = (isset($staff_member['address-2']) ? $staff_member['address-2'] : '');
-		$city = (isset($staff_member['city']) ? $staff_member['city'] : '');
-		$state = (isset($staff_member['state']) ? $staff_member['state'] : '');
-		$zip_code = (isset($staff_member['zip-code']) ? $staff_member['zip-code'] : '');
-		$country = (isset($staff_member['country']) ? $staff_member['country'] : '');
-		$ice_name = (isset($staff_member['ice-name']) ? $staff_member['ice-name'] : '');
-		$ice_relationship = (isset($staff_member['ice-relationship']) ? $staff_member['ice-relationship'] : '');
-		$ice_email_address = (isset($staff_member['ice-email-address']) ? $staff_member['ice-email-address'] : '');
-		$ice_phone_number = (isset($staff_member['ice-phone-number']) ? $staff_member['ice-phone-number'] : '');
-		$application_status = (isset($staff_member['application-status']) ? $staff_member['application-status'] : null);
+		$email_address = ($staff_member['email-address'] ?? '');
+		$phone_number = ($staff_member['phone-number'] ?? '');
+		$address_1 = ($staff_member['address-1'] ?? '');
+		$address_2 = ($staff_member['address-2'] ?? '');
+		$city = ($staff_member['city'] ?? '');
+		$state = ($staff_member['state'] ?? '');
+		$zip_code = ($staff_member['zip-code'] ?? '');
+		$country = ($staff_member['country'] ?? '');
+		$ice_name = ($staff_member['ice-name'] ?? '');
+		$ice_relationship = ($staff_member['ice-relationship'] ?? '');
+		$ice_email_address = ($staff_member['ice-email-address'] ?? '');
+		$ice_phone_number = ($staff_member['ice-phone-number'] ?? '');
+		$application_status = ($staff_member['application-status'] ?? null);
 		$mail_alias_1 = ((isset($staff_member['mail-alias-1']) && $staff_member['mail-alias-1']) ? $staff_member['mail-alias-1'] : null);
 		$mail_alias_2 = ((isset($staff_member['mail-alias-2']) && $staff_member['mail-alias-2']) ? $staff_member['mail-alias-2'] : null);
 		$mailbox_type = ((isset($staff_member['mailbox-type']) && $staff_member['mailbox-type']) ? $staff_member['mailbox-type'] : null);
-		$payment_status = (isset($staff_member['payment-status']) ? $staff_member['payment-status'] : null);
-		$payment_badge_price = (isset($staff_member['payment-badge-price']) ? $staff_member['payment-badge-price'] : null);
-		$payment_group_uuid = (isset($staff_member['payment-group-uuid']) ? $staff_member['payment-group-uuid'] : null);
-		$payment_type = (isset($staff_member['payment-type']) ? $staff_member['payment-type'] : null);
-		$payment_txn_id = (isset($staff_member['payment-txn-id']) ? $staff_member['payment-txn-id'] : null);
-		$payment_txn_amt = (isset($staff_member['payment-txn-amt']) ? $staff_member['payment-txn-amt'] : null);
-		$payment_date = (isset($staff_member['payment-date']) ? $staff_member['payment-date'] : null);
-		$payment_details = (isset($staff_member['payment-details']) ? $staff_member['payment-details'] : null);
+		$payment_status = ($staff_member['payment-status'] ?? null);
+		$payment_badge_price = ($staff_member['payment-badge-price'] ?? null);
+		$payment_group_uuid = ($staff_member['payment-group-uuid'] ?? null);
+		$payment_type = ($staff_member['payment-type'] ?? null);
+		$payment_txn_id = ($staff_member['payment-txn-id'] ?? null);
+		$payment_txn_amt = ($staff_member['payment-txn-amt'] ?? null);
+		$payment_date = ($staff_member['payment-date'] ?? null);
+		$payment_details = ($staff_member['payment-details'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
 			'INSERT INTO '.$this->cm_db->table_name('staff').' SET '.
 			'`uuid` = UUID(), `date_created` = NOW(), `date_modified` = NOW(), '.
@@ -1785,38 +1785,38 @@ class cm_staff_db {
 
 	public function update_staff_member($staff_member, $dept_map = null, $pos_map = null, $fdb = null) {
 		if (!$staff_member || !isset($staff_member['id']) || !$staff_member['id']) return false;
-		$badge_type_id = (isset($staff_member['badge-type-id']) ? $staff_member['badge-type-id'] : null);
-		$notes = (isset($staff_member['notes']) ? $staff_member['notes'] : null);
-		$first_name = (isset($staff_member['first-name']) ? $staff_member['first-name'] : '');
-		$last_name = (isset($staff_member['last-name']) ? $staff_member['last-name'] : '');
-		$fandom_name = (isset($staff_member['fandom-name']) ? $staff_member['fandom-name'] : '');
+		$badge_type_id = ($staff_member['badge-type-id'] ?? null);
+		$notes = ($staff_member['notes'] ?? null);
+		$first_name = ($staff_member['first-name'] ?? '');
+		$last_name = ($staff_member['last-name'] ?? '');
+		$fandom_name = ($staff_member['fandom-name'] ?? '');
 		$name_on_badge = (($fandom_name && isset($staff_member['name-on-badge'])) ? $staff_member['name-on-badge'] : 'Real Name Only');
-		$date_of_birth = (isset($staff_member['date-of-birth']) ? $staff_member['date-of-birth'] : null);
+		$date_of_birth = ($staff_member['date-of-birth'] ?? null);
 		$subscribed = (isset($staff_member['subscribed']) ? ($staff_member['subscribed'] ? 1 : 0) : 0);
-		$email_address = (isset($staff_member['email-address']) ? $staff_member['email-address'] : '');
-		$phone_number = (isset($staff_member['phone-number']) ? $staff_member['phone-number'] : '');
-		$address_1 = (isset($staff_member['address-1']) ? $staff_member['address-1'] : '');
-		$address_2 = (isset($staff_member['address-2']) ? $staff_member['address-2'] : '');
-		$city = (isset($staff_member['city']) ? $staff_member['city'] : '');
-		$state = (isset($staff_member['state']) ? $staff_member['state'] : '');
-		$zip_code = (isset($staff_member['zip-code']) ? $staff_member['zip-code'] : '');
-		$country = (isset($staff_member['country']) ? $staff_member['country'] : '');
-		$ice_name = (isset($staff_member['ice-name']) ? $staff_member['ice-name'] : '');
-		$ice_relationship = (isset($staff_member['ice-relationship']) ? $staff_member['ice-relationship'] : '');
-		$ice_email_address = (isset($staff_member['ice-email-address']) ? $staff_member['ice-email-address'] : '');
-		$ice_phone_number = (isset($staff_member['ice-phone-number']) ? $staff_member['ice-phone-number'] : '');
-		$application_status = (isset($staff_member['application-status']) ? $staff_member['application-status'] : null);
+		$email_address = ($staff_member['email-address'] ?? '');
+		$phone_number = ($staff_member['phone-number'] ?? '');
+		$address_1 = ($staff_member['address-1'] ?? '');
+		$address_2 = ($staff_member['address-2'] ?? '');
+		$city = ($staff_member['city'] ?? '');
+		$state = ($staff_member['state'] ?? '');
+		$zip_code = ($staff_member['zip-code'] ?? '');
+		$country = ($staff_member['country'] ?? '');
+		$ice_name = ($staff_member['ice-name'] ?? '');
+		$ice_relationship = ($staff_member['ice-relationship'] ?? '');
+		$ice_email_address = ($staff_member['ice-email-address'] ?? '');
+		$ice_phone_number = ($staff_member['ice-phone-number'] ?? '');
+		$application_status = ($staff_member['application-status'] ?? null);
 		$mail_alias_1 = ((isset($staff_member['mail-alias-1']) && $staff_member['mail-alias-1']) ? $staff_member['mail-alias-1'] : null);
 		$mail_alias_2 = ((isset($staff_member['mail-alias-2']) && $staff_member['mail-alias-2']) ? $staff_member['mail-alias-2'] : null);
 		$mailbox_type = ((isset($staff_member['mailbox-type']) && $staff_member['mailbox-type']) ? $staff_member['mailbox-type'] : null);
-		$payment_status = (isset($staff_member['payment-status']) ? $staff_member['payment-status'] : null);
-		$payment_badge_price = (isset($staff_member['payment-badge-price']) ? $staff_member['payment-badge-price'] : null);
-		$payment_group_uuid = (isset($staff_member['payment-group-uuid']) ? $staff_member['payment-group-uuid'] : null);
-		$payment_type = (isset($staff_member['payment-type']) ? $staff_member['payment-type'] : null);
-		$payment_txn_id = (isset($staff_member['payment-txn-id']) ? $staff_member['payment-txn-id'] : null);
-		$payment_txn_amt = (isset($staff_member['payment-txn-amt']) ? $staff_member['payment-txn-amt'] : null);
-		$payment_date = (isset($staff_member['payment-date']) ? $staff_member['payment-date'] : null);
-		$payment_details = (isset($staff_member['payment-details']) ? $staff_member['payment-details'] : null);
+		$payment_status = ($staff_member['payment-status'] ?? null);
+		$payment_badge_price = ($staff_member['payment-badge-price'] ?? null);
+		$payment_group_uuid = ($staff_member['payment-group-uuid'] ?? null);
+		$payment_type = ($staff_member['payment-type'] ?? null);
+		$payment_txn_id = ($staff_member['payment-txn-id'] ?? null);
+		$payment_txn_amt = ($staff_member['payment-txn-amt'] ?? null);
+		$payment_date = ($staff_member['payment-date'] ?? null);
+		$payment_details = ($staff_member['payment-details'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
 			'UPDATE '.$this->cm_db->table_name('staff').' SET '.
 			'`date_modified` = NOW(), '.

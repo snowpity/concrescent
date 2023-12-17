@@ -69,14 +69,14 @@ if (!$_GET) {
 						$shouldAddToTransaction = true;
 
 					//Merge in the existing payment details
-					$item['payment-type']     = (isset($existingBadge['payment-type'])    ? $existingBadge['payment-type']    : null);
-					$item['payment-details']  = (isset($existingBadge['payment-details']) ? $existingBadge['payment-details'] : null);
+					$item['payment-type']     = ($existingBadge['payment-type'] ?? null);
+					$item['payment-details']  = ($existingBadge['payment-details'] ?? null);
 					if(!$shouldAddToTransaction)
 					{
-						$item['payment-promo-price']  = (isset($existingBadge['payment-promo-price'])  ? $existingBadge['payment-promo-price']    : null);
-						$item['payment-txn-id']  = (isset($existingBadge['payment-txn-id'])  ? $existingBadge['payment-txn-id']    : null);
-						$item['payment-status']  = (isset($existingBadge['payment-status'])  ? $existingBadge['payment-status']    : null);
-						$item['payment-txn-amt'] = (isset($existingBadge['payment-txn-amt']) ? $existingBadge['payment-txn-amt']    : null);
+						$item['payment-promo-price']  = ($existingBadge['payment-promo-price'] ?? null);
+						$item['payment-txn-id']  = ($existingBadge['payment-txn-id'] ?? null);
+						$item['payment-status']  = ($existingBadge['payment-status'] ?? null);
+						$item['payment-txn-amt'] = ($existingBadge['payment-txn-amt'] ?? null);
 					}
 
 					if (isset($item['addons']) && $item['addons']) {
@@ -240,7 +240,7 @@ if (!$_GET) {
 		for ($i = 0, $n = cm_reg_cart_count(); $i < $n; $i++) {
 			$item = cm_reg_cart_get($i);
 			$badge_type_id = (int)$item['badge-type-id'];
-			$badge_type_name = isset($name_map[$badge_type_id]) ? $name_map[$badge_type_id] : $badge_type_id;
+			$badge_type_name = $name_map[$badge_type_id] ?? $badge_type_id;
 			if(!(isset($item['editing-badge']) && $item['editing-badge'] > 0 && $item['badge-type-id'] == $item['editing-prior-id']) && $item['payment-promo-price'] > 0 )
 				$items[] = $paypal->create_item($badge_type_name, $item['payment-promo-price']);
 			if (isset($item['addons']) && $item['addons']) {
@@ -324,17 +324,17 @@ if (isset($_GET['return'])) {
 	//	exit(0);
 	//}
 
-	$group_uuid = isset($_GET['gid']) ? $_GET['gid'] : (isset($_SESSION['group_uuid']) ? $_SESSION['group_uuid'] : null);
-	$transaction_id = isset($_GET['tid']) ? $_GET['tid'] : (isset($_SESSION['transaction_id']) ? $_SESSION['transaction_id'] : null);
-	$_SESSION['payment_id'] = isset($_SESSION['payment_id']) ? $_SESSION['payment_id'] : null;
+	$group_uuid = $_GET['gid'] ?? ($_SESSION['group_uuid'] ?? null);
+	$transaction_id = $_GET['tid'] ?? ($_SESSION['transaction_id'] ?? null);
+	$_SESSION['payment_id'] = $_SESSION['payment_id'] ?? null;
 
-	$token = isset($_SESSION['paypal_token']) ? $_SESSION['paypal_token'] : null;
+	$token = $_SESSION['paypal_token'] ?? null;
 	$paypal = new cm_paypal($token);
 	//Ensure we have a token
 	$paypal->get_token();
 
 	//check that the payment ID is the same
-	$payment_id = isset($_GET['paymentId']) ? $_GET['paymentId'] : null;
+	$payment_id = $_GET['paymentId'] ?? null;
 
 	//retrieve the badges associated
 	$attendee_list = $atdb->list_attendees($group_uuid, NULL);
@@ -353,7 +353,7 @@ if (isset($_GET['return'])) {
 		die("Error: Unexpectedly retrieved no badges");
 	}
 
-	$payer_id = isset($_GET['PayerID']) ? $_GET['PayerID'] : null;
+	$payer_id = $_GET['PayerID'] ?? null;
 
 	//TODO: Maybe we should verify we got the attendees before executing payment????
 	$sale = $paypal->execute_payment($payment_id, $payer_id);
@@ -429,7 +429,7 @@ if (isset($_GET['cancel'])) {
 		exit(0);
 	}
 
-	$group_uuid = isset($_GET['gid']) ? $_GET['gid'] : $_SESSION['group_uuid'];
+	$group_uuid = $_GET['gid'] ?? $_SESSION['group_uuid'];
 	$attendee_ids = $_SESSION['attendee_ids'];
 
 	foreach ($attendee_ids as $id) {

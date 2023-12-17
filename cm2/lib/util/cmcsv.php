@@ -32,7 +32,7 @@ function cm_output_csv(&$columns, &$entities, $filename) {
 		$row = array();
 		foreach ($columns as $column) {
 			$key = $column['key'];
-			$value = isset($entity[$key]) ? $entity[$key] : null;
+			$value = $entity[$key] ?? null;
 			if (is_null($value)) {
 				$row[] = '';
 			} else {
@@ -60,7 +60,7 @@ function cm_output_csv(&$columns, &$entities, $filename) {
 		}
 		fputcsv($out, $row);
 	}
-	
+
 	fclose($out);
 	exit(0);
 }

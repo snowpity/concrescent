@@ -189,12 +189,12 @@ function cm_mail_dialogs() {
 }
 
 function cm_mail_posted_template($id) {
-	$contact = isset($_POST['cm-mail-contact-'.$id]) ? $_POST['cm-mail-contact-'.$id] : '';
-	$from    = isset($_POST['cm-mail-from-'   .$id]) ? $_POST['cm-mail-from-'   .$id] : '';
-	$bcc     = isset($_POST['cm-mail-bcc-'    .$id]) ? $_POST['cm-mail-bcc-'    .$id] : '';
-	$subject = isset($_POST['cm-mail-subject-'.$id]) ? $_POST['cm-mail-subject-'.$id] : '';
-	$type    = isset($_POST['cm-mail-type-'   .$id]) ? $_POST['cm-mail-type-'   .$id] : 'Text';
-	$body    = isset($_POST['cm-mail-body-'   .$id]) ? $_POST['cm-mail-body-'   .$id] : '';
+	$contact = $_POST['cm-mail-contact-' . $id] ?? '';
+	$from    = $_POST['cm-mail-from-' . $id] ?? '';
+	$bcc     = $_POST['cm-mail-bcc-' . $id] ?? '';
+	$subject = $_POST['cm-mail-subject-' . $id] ?? '';
+	$type    = $_POST['cm-mail-type-' . $id] ?? 'Text';
+	$body    = $_POST['cm-mail-body-' . $id] ?? '';
 	$body = str_replace("\r\n", "\n", $body);
 	$body = str_replace("\r", "\n", $body);
 	$body = str_replace("\n", "\r\n", $body);

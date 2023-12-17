@@ -113,7 +113,7 @@ echo '<div class="card">';
 						if (isset($item['addons']) && $item['addons']) {
 							foreach ($item['addons'] as $addon) {
 								echo '<tr>';
-									$addon_name = htmlspecialchars(isset($addon['name']) ? $addon['name'] : $addon['addon-id']);
+									$addon_name = htmlspecialchars($addon['name'] ?? $addon['addon-id']);
 									$addon_price = htmlspecialchars(price_string($addon['payment-price']));
 									$addon_status = cm_status_label($addon['payment-status']);
 									echo '<td><div class="cm-cart-addon-name">' . $addon_name . '</div></td>';

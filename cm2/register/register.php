@@ -14,7 +14,7 @@ require_once dirname(__FILE__).'/../lib/util/util.php';
 $event_name = $cm_config['event']['name'];
 
 $onsite_only = isset($_COOKIE['onsite_only']) && $_COOKIE['onsite_only'];
-$override_code = isset($_GET['override_code']) ? $_GET['override_code'] : (isset($_POST['override_code']) ? $_POST['override_code'] :'') ;
+$override_code = $_GET['override_code'] ?? ($_POST['override_code'] ?? '');
 
 $db = new cm_db();
 
@@ -213,8 +213,8 @@ function cm_reg_apply_promo_code($code) {
 	for ($i = 0, $n = cm_reg_cart_count(); $i < $n; $i++) {
 		$item = cm_reg_cart_get($i);
 		$item['index'] = $i;
-		$item['payment-promo-code'] = isset($item['payment-promo-code']) ? $item['payment-promo-code'] : null;
-		$item['payment-promo-price'] = isset($item['payment-promo-price']) ? $item['payment-promo-price'] : $item['payment-badge-price'];
+		$item['payment-promo-code'] = $item['payment-promo-code'] ?? null;
+		$item['payment-promo-price'] = $item['payment-promo-price'] ?? $item['payment-badge-price'];
 		$items[] = $item;
 	}
 	usort($items, function($a, $b) {
@@ -333,11 +333,7 @@ function cm_reg_cart_destroy($close_session = true) {
 }
 
 function cm_reg_post_edit_get() {
-	if (isset($_SESSION['post_edit'])) {
-		return $_SESSION['post_edit'];
-	} else {
-		return null;
-	}
+	return $_SESSION['post_edit'] ?? null;
 }
 
 function cm_reg_post_edit_set($item) {

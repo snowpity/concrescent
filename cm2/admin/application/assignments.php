@@ -16,8 +16,7 @@ if (!$context) {
 $ctx_lc = strtolower($context);
 $ctx_uc = strtoupper($context);
 $ctx_info = (
-	isset($cm_config['application_types'][$ctx_uc]) ?
-	$cm_config['application_types'][$ctx_uc] : null
+	$cm_config['application_types'][$ctx_uc] ?? null
 );
 if (!$ctx_info) {
 	header('Location: ../');

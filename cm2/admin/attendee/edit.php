@@ -143,7 +143,7 @@ if ($submitted) {
 	}
 }
 
-$name = isset($item['display-name']) ? $item['display-name'] : null;
+$name = $item['display-name'] ?? null;
 cm_admin_head($new ? 'Add Attendee' : ($name ? ('Edit Attendee - ' . $name) : 'Edit Attendee'));
 echo '<script type="text/javascript" src="edit.js"></script>';
 cm_admin_body($new ? 'Add Attendee' : 'Edit Attendee');
@@ -403,7 +403,7 @@ echo '<article>';
 
 				echo '<tr>';
 					echo '<th>&nbsp;</th>';
-					$value = isset($item['subscribed']) ? $item['subscribed'] : true;
+					$value = $item['subscribed'] ?? true;
 					if ($can_edit) {
 						echo '<td><label>';
 							echo '<input type="checkbox" name="subscribed" value="1"' . ($value ? ' checked>' : '>');

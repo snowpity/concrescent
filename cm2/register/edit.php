@@ -5,7 +5,7 @@ require_once dirname(__FILE__).'/../lib/util/cmforms.php';
 require_once dirname(__FILE__).'/register.php';
 
 $onsite_only = isset($_COOKIE['onsite_only']) && $_COOKIE['onsite_only'];
-$override_code = isset($_GET['override_code']) ? $_GET['override_code'] : (isset($_POST['override_code']) ? $_POST['override_code'] :'') ;
+$override_code = $_GET['override_code'] ?? ($_POST['override_code'] ?? '');
 $active_badge_types = $atdb->list_badge_types(true, false, $onsite_only, $override_code);
 $sellable_badge_types = $atdb->list_badge_types(true, true, $onsite_only, $override_code);
 if (!$sellable_badge_types) cm_reg_closed();
@@ -248,7 +248,7 @@ echo '<article>';
 				echo '</tr>';
 
 				echo '<tr>';
-					$value = isset($item['subscribed']) ? $item['subscribed'] : true;
+					$value = $item['subscribed'] ?? true;
 					echo '<th></th><td><label>';
 						echo '<input type="checkbox" name="subscribed" value="1"' . ($value ? ' checked>' : '>');
 						echo 'You may contact me with promotional emails.';
@@ -326,8 +326,7 @@ echo '<article>';
 							array()
 						);
 						$error = (
-							isset($errors['form-answer-'.$question['question-id']]) ?
-							$errors['form-answer-'.$question['question-id']] : null
+							$errors['form-answer-' . $question['question-id']] ?? null
 						);
 						echo cm_form_row($question, $answer, $error);
 						$first = false;

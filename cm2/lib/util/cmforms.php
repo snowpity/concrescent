@@ -90,11 +90,11 @@ function cm_form_row($question, $answer, $error = null, $for_editor = false) {
 		}
 		$out = '<tr class="' . implode(' ', $classes) . '">';
 	}
-	$id = isset($question['question-id']) ? $question['question-id'] : '';
-	$title = isset($question['title']) ? $question['title'] : '';
-	$text = isset($question['text']) ? $question['text'] : '';
-	$type = isset($question['type']) ? $question['type'] : '';
-	$values = isset($question['values']) ? $question['values'] : array();
+	$id = $question['question-id'] ?? '';
+	$title = $question['title'] ?? '';
+	$text = $question['text'] ?? '';
+	$type = $question['type'] ?? '';
+	$values = $question['values'] ?? array();
 	switch ($type) {
 		case 'h1':
 		case 'h2':
@@ -184,11 +184,11 @@ function cm_form_posted_answer($id, $type, $post) {
 }
 
 function cm_form_review_row($question, $answer, $can_edit = true) {
-	$type = isset($question['type']) ? $question['type'] : '';
+	$type = $question['type'] ?? '';
 	$is_title = ($type == 'h1' || $type == 'h2' || $type == 'h3');
 	$is_text = ($type == 'p' || $type == 'q' || $type == 'hr');
-	$title = isset($question['title']) ? $question['title'] : '';
-	$text = isset($question['text']) ? $question['text'] : '';
+	$title = $question['title'] ?? '';
+	$text = $question['text'] ?? '';
 	if ($can_edit || $is_title || $is_text) {
 		if ($title) $question['text'] = null;
 		return cm_form_row($question, $answer);
@@ -355,8 +355,8 @@ function cm_form_edit_body(&$form_def, $questions) {
 	foreach ($questions as $question) {
 		if ($question['type'] == 'custom-text') {
 			if ($section) cm_form_edit_static_section($section);
-			$name = (isset($question['name']) ? $question['name'] : '');
-			$default = (isset($question['default']) ? $question['default'] : '');
+			$name = ($question['name'] ?? '');
+			$default = ($question['default'] ?? '');
 			cm_form_edit_custom_text_section($name, $default);
 			$section = array();
 		} else if ($question['type'] == 'custom-questions') {

@@ -62,7 +62,7 @@ function applicant_form($apdb, $i, $applicant, $errors) {
 			if ($error) $out .= '<span class="error">' . $error . '</span>'; $out .= '</td>';
 		$out .= '</tr>';
 		$out .= '<tr>';
-			$value = isset($applicant['subscribed']) ? $applicant['subscribed'] : true;
+			$value = $applicant['subscribed'] ?? true;
 			$out .= '<th></th><td><label>';
 				$out .= '<input type="checkbox" name="subscribed-'.$i.'" value="1"' . ($value ? ' checked>' : '>');
 				$out .= 'You may contact me with promotional emails.';
@@ -76,7 +76,7 @@ function applicant_form($apdb, $i, $applicant, $errors) {
 			if ($error) $out .= '<span class="error">' . $error . '</span>'; $out .= '</td>';
 		$out .= '</tr>';
 		$out .= '<tr>';
-			$value = isset($applicant['attendee-id']) ? $applicant['attendee-id'] : false;
+			$value = $applicant['attendee-id'] ?? false;
 			$error = isset($errors['already-registered-'.$i]) ? htmlspecialchars($errors['already-registered-'.$i]) : '';
 			$out .= '<th><label for="already-registered-'.$i.'">Already Registered</label></th>';
 			$out .= '<td>';
@@ -353,7 +353,7 @@ echo '<article>';
 					echo '</tr>';
 
 					echo '<tr>';
-						$value = isset($item['contact-subscribed']) ? $item['contact-subscribed'] : true;
+						$value = $item['contact-subscribed'] ?? true;
 						echo '<th></th><td><label>';
 							echo '<input type="checkbox" name="contact-subscribed" value="1"' . ($value ? ' checked>' : '>');
 							echo 'You may contact me with promotional emails.';
@@ -464,8 +464,7 @@ echo '<article>';
 								array()
 							);
 							$error = (
-								isset($errors['form-answer-'.$question['question-id']]) ?
-								$errors['form-answer-'.$question['question-id']] : null
+								$errors['form-answer-' . $question['question-id']] ?? null
 							);
 							echo cm_form_row($question, $answer, $error);
 						}

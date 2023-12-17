@@ -7,7 +7,7 @@ require_once dirname(__FILE__).'/../lib/database/database.php';
 require_once dirname(__FILE__).'/../lib/database/admin.php';
 require_once dirname(__FILE__).'/../lib/util/res.php';
 
-$page = isset($_GET['page']) ? $_GET['page'] : null;
+$page = $_GET['page'] ?? null;
 $attempted = false;
 
 $db = new cm_db();

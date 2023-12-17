@@ -319,7 +319,7 @@ function cm_list_dialogs(&$list_def) {
 }
 
 function cm_list_make_row(&$list_def, &$entity) {
-	$search = isset($entity['search-content']) ? $entity['search-content'] : null;
+	$search = $entity['search-content'] ?? null;
 	return array(
 		'entity' => $entity,
 		'html' => cm_list_row($list_def, $entity),

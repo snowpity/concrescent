@@ -23,12 +23,12 @@ $success = null;
 if (isset($_POST['action'])) {
 	switch ($_POST['action']) {
 		case 'Upload Image':
-			$image_file = (isset($_FILES['image-file']) ? $_FILES['image-file'] : null);
+			$image_file = ($_FILES['image-file'] ?? null);
 			if (!$image_file || (isset($image_file['error']) && $image_file['error'])) {
 				$message = 'Error uploading image. Please try again with a different image.';
 				$success = false;
 			} else {
-				$image_path = (isset($image_file['tmp_name']) ? $image_file['tmp_name'] : null);
+				$image_path = ($image_file['tmp_name'] ?? null);
 				$image_size = ($image_path ? getimagesize($image_path) : null);
 				$image_w = (($image_size && $image_size[0]) ? $image_size[0] : null);
 				$image_h = (($image_size && $image_size[1]) ? $image_size[1] : null);
@@ -61,12 +61,12 @@ if (isset($_POST['action'])) {
 			}
 			exit(0);
 		case 'Upload Layout':
-			$fields_file = (isset($_FILES['fields-file']) ? $_FILES['fields-file'] : null);
+			$fields_file = ($_FILES['fields-file'] ?? null);
 			if (!$fields_file || (isset($fields_file['error']) && $fields_file['error'])) {
 				$message = 'Error uploading layout. Please try again with a different file.';
 				$success = false;
 			} else {
-				$fields_path = (isset($fields_file['tmp_name']) ? $fields_file['tmp_name'] : null);
+				$fields_path = ($fields_file['tmp_name'] ?? null);
 				if ($fields_path) {
 					if ($_POST['import-mode'] == 'replace') $badb->delete_badge_artwork_fields($file_name);
 					if ($badb->upload_badge_artwork_fields($file_name, $fields_path)) {

@@ -17,8 +17,7 @@ if (!$context) {
 $ctx_lc = strtolower($context);
 $ctx_uc = strtoupper($context);
 $ctx_info = (
-	isset($cm_config['application_types'][$ctx_uc]) ?
-	$cm_config['application_types'][$ctx_uc] : null
+	$cm_config['application_types'][$ctx_uc] ?? null
 );
 if (!$ctx_info) {
 	header('Location: ../');
@@ -187,7 +186,7 @@ if ($submitted) {
 }
 
 $title = ($new ? 'Add ' : 'Edit ') . $ctx_name . ' Badge';
-$name = isset($item['display-name']) ? $item['display-name'] : null;
+$name = $item['display-name'] ?? null;
 $full_title = (!$new && $name) ? ($title . ' - ' . $name) : $title;
 
 cm_admin_head($full_title);
@@ -366,10 +365,10 @@ echo '<article>';
 						echo '<td><a href="mailto:' . $value . '">' . $value . '</a></td>';
 					}
 				echo '</tr>';
-				
+
 				echo '<tr>';
 					echo '<th>&nbsp;</th>';
-					$value = isset($item['subscribed']) ? $item['subscribed'] : true;
+					$value = $item['subscribed'] ?? true;
 					if ($can_edit) {
 						echo '<td><label>';
 							echo '<input type="checkbox" name="subscribed" value="1"' . ($value ? ' checked>' : '>');

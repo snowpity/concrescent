@@ -20,7 +20,7 @@ $id = $new ? -1 : (int)$_GET['id'];
 $item = $new ? array() : $atdb->get_attendee($id, false);
 $submitted = isset($_POST['payment-txn-id']);
 
-$name = isset($item['display-name']) ? $item['display-name'] : null;
+$name = $item['display-name'] ?? null;
 
 $transactions = transaction_details_listTransactions($item['payment-details']);
 

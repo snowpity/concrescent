@@ -313,7 +313,7 @@ function transaction_details_listTransactions($TxnDetailsString)
 					$payment_payID = $v['id'];
 					$payment_saleID = $v['transactions'][0]['related_resources'][0]['sale']['id'];
 					$payment_txn_amt =  $v['transactions'][0]['amount']['total'];
-					$invoice_number =  isset($v['transactions'][0]['invoice_number']) ? $v['transactions'][0]['invoice_number'] : '';
+					$invoice_number = $v['transactions'][0]['invoice_number'] ?? '';
 
 					//Stuff it into the result
 					$result[$k] = array('payment-txn-id' => $k,

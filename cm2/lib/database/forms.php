@@ -195,9 +195,9 @@ class cm_forms_db {
 		$stmt->bind_result($order);
 		$stmt->fetch();
 		$stmt->close();
-		$title = (isset($question['title']) ? $question['title'] : '');
-		$text = (isset($question['text']) ? $question['text'] : '');
-		$type = (isset($question['type']) ? $question['type'] : '');
+		$title = ($question['title'] ?? '');
+		$text = ($question['text'] ?? '');
+		$type = ($question['type'] ?? '');
 		$values = (isset($question['values']) ? implode("\n", $question['values']) : '');
 		$active = (isset($question['active']) ? ($question['active'] ? 1 : 0) : 1);
 		$listed = (isset($question['listed']) ? ($question['listed'] ? 1 : 0) : 0);
@@ -224,9 +224,9 @@ class cm_forms_db {
 
 	public function update_question($question) {
 		if (!$question || !isset($question['question-id']) || !$question['question-id']) return false;
-		$title = (isset($question['title']) ? $question['title'] : '');
-		$text = (isset($question['text']) ? $question['text'] : '');
-		$type = (isset($question['type']) ? $question['type'] : '');
+		$title = ($question['title'] ?? '');
+		$text = ($question['text'] ?? '');
+		$type = ($question['type'] ?? '');
 		$values = (isset($question['values']) ? implode("\n", $question['values']) : '');
 		$active = (isset($question['active']) ? ($question['active'] ? 1 : 0) : 1);
 		$listed = (isset($question['listed']) ? ($question['listed'] ? 1 : 0) : 0);

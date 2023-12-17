@@ -29,13 +29,13 @@ DEALINGS IN THE SOFTWARE.
 if (realpath(__FILE__) == realpath($_SERVER['SCRIPT_FILENAME'])) {
 	if (isset($_POST['s']) && isset($_POST['d'])) {
 		$generator = new barcode_generator();
-		$format = (isset($_POST['f']) ? $_POST['f'] : 'png');
+		$format = ($_POST['f'] ?? 'png');
 		$generator->output_image($format, $_POST['s'], $_POST['d'], $_POST);
 		exit(0);
 	}
 	if (isset($_GET['s']) && isset($_GET['d'])) {
 		$generator = new barcode_generator();
-		$format = (isset($_GET['f']) ? $_GET['f'] : 'png');
+		$format = ($_GET['f'] ?? 'png');
 		$generator->output_image($format, $_GET['s'], $_GET['d'], $_GET);
 		exit(0);
 	}
@@ -75,20 +75,20 @@ class barcode_generator {
 			$this->encode_and_calculate_size($symbology, $data, $options);
 		$image = imagecreatetruecolor($width, $height);
 		imagesavealpha($image, true);
-		$bgcolor = (isset($options['bc']) ? $options['bc'] : 'FFF');
+		$bgcolor = ($options['bc'] ?? 'FFF');
 		$bgcolor = $this->allocate_color($image, $bgcolor);
 		imagefill($image, 0, 0, $bgcolor);
 		$colors = array(
-			(isset($options['cs']) ? $options['cs'] : ''),
-			(isset($options['cm']) ? $options['cm'] : '000'),
-			(isset($options['c2']) ? $options['c2'] : 'F00'),
-			(isset($options['c3']) ? $options['c3'] : 'FF0'),
-			(isset($options['c4']) ? $options['c4'] : '0F0'),
-			(isset($options['c5']) ? $options['c5'] : '0FF'),
-			(isset($options['c6']) ? $options['c6'] : '00F'),
-			(isset($options['c7']) ? $options['c7'] : 'F0F'),
-			(isset($options['c8']) ? $options['c8'] : 'FFF'),
-			(isset($options['c9']) ? $options['c9'] : '000'),
+			($options['cs'] ?? ''),
+			($options['cm'] ?? '000'),
+			($options['c2'] ?? 'F00'),
+			($options['c3'] ?? 'FF0'),
+			($options['c4'] ?? '0F0'),
+			($options['c5'] ?? '0FF'),
+			($options['c6'] ?? '00F'),
+			($options['c7'] ?? 'F0F'),
+			($options['c8'] ?? 'FFF'),
+			($options['c9'] ?? '000'),
 		);
 		foreach ($colors as $i => $color) {
 			$colors[$i] = $this->allocate_color($image, $color);
@@ -106,23 +106,23 @@ class barcode_generator {
 		$svg .= '<svg xmlns="http://www.w3.org/2000/svg" version="1.1"';
 		$svg .= ' width="' . $width . '" height="' . $height . '"';
 		$svg .= ' viewBox="0 0 ' . $width . ' ' . $height . '"><g>';
-		$bgcolor = (isset($options['bc']) ? $options['bc'] : 'white');
+		$bgcolor = ($options['bc'] ?? 'white');
 		if ($bgcolor) {
 			$svg .= '<rect x="0" y="0"';
 			$svg .= ' width="' . $width . '" height="' . $height . '"';
 			$svg .= ' fill="' . htmlspecialchars($bgcolor) . '"/>';
 		}
 		$colors = array(
-			(isset($options['cs']) ? $options['cs'] : ''),
-			(isset($options['cm']) ? $options['cm'] : 'black'),
-			(isset($options['c2']) ? $options['c2'] : '#FF0000'),
-			(isset($options['c3']) ? $options['c3'] : '#FFFF00'),
-			(isset($options['c4']) ? $options['c4'] : '#00FF00'),
-			(isset($options['c5']) ? $options['c5'] : '#00FFFF'),
-			(isset($options['c6']) ? $options['c6'] : '#0000FF'),
-			(isset($options['c7']) ? $options['c7'] : '#FF00FF'),
-			(isset($options['c8']) ? $options['c8'] : 'white'),
-			(isset($options['c9']) ? $options['c9'] : 'black'),
+			($options['cs'] ?? ''),
+			($options['cm'] ?? 'black'),
+			($options['c2'] ?? '#FF0000'),
+			($options['c3'] ?? '#FFFF00'),
+			($options['c4'] ?? '#00FF00'),
+			($options['c5'] ?? '#00FFFF'),
+			($options['c6'] ?? '#0000FF'),
+			($options['c7'] ?? '#FF00FF'),
+			($options['c8'] ?? 'white'),
+			($options['c9'] ?? 'black'),
 		);
 		$svg .= $this->dispatch_render_svg(
 			$code, $x, $y, $w, $h, $colors, $widths, $options
@@ -322,7 +322,7 @@ class barcode_generator {
 	) {
 		$textheight = (isset($options['th']) ? (int)$options['th'] : 10);
 		$textsize = (isset($options['ts']) ? (int)$options['ts'] : 1);
-		$textcolor = (isset($options['tc']) ? $options['tc'] : '000');
+		$textcolor = ($options['tc'] ?? '000');
 		$textcolor = $this->allocate_color($image, $textcolor);
 		$width = 0;
 		foreach ($code['b'] as $block) {
@@ -371,9 +371,9 @@ class barcode_generator {
 		$code, $x, $y, $w, $h, $colors, $widths, $options
 	) {
 		$textheight = (isset($options['th']) ? (int)$options['th'] : 10);
-		$textfont = (isset($options['tf']) ? $options['tf'] : 'monospace');
+		$textfont = ($options['tf'] ?? 'monospace');
 		$textsize = (isset($options['ts']) ? (int)$options['ts'] : 10);
-		$textcolor = (isset($options['tc']) ? $options['tc'] : 'black');
+		$textcolor = ($options['tc'] ?? 'black');
 		$width = 0;
 		foreach ($code['b'] as $block) {
 			foreach ($block['m'] as $module) {

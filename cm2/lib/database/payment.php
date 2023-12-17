@@ -201,20 +201,20 @@ class cm_payment_db {
 
 	public function create_payment($payment) {
 		if (!$payment) return false;
-		$requested_by = (isset($payment['requested-by']) ? $payment['requested-by'] : '');
-		$first_name = (isset($payment['first-name']) ? $payment['first-name'] : '');
-		$last_name = (isset($payment['last-name']) ? $payment['last-name'] : '');
-		$email_address = (isset($payment['email-address']) ? $payment['email-address'] : '');
-		$mail_template = (isset($payment['mail-template']) ? $payment['mail-template'] : '');
-		$payment_name = (isset($payment['payment-name']) ? $payment['payment-name'] : '');
-		$payment_description = (isset($payment['payment-description']) ? $payment['payment-description'] : null);
-		$payment_price = (isset($payment['payment-price']) ? $payment['payment-price'] : null);
-		$payment_status = (isset($payment['payment-status']) ? $payment['payment-status'] : null);
-		$payment_type = (isset($payment['payment-type']) ? $payment['payment-type'] : null);
-		$payment_txn_id = (isset($payment['payment-txn-id']) ? $payment['payment-txn-id'] : null);
-		$payment_txn_amt = (isset($payment['payment-txn-amt']) ? $payment['payment-txn-amt'] : null);
-		$payment_date = (isset($payment['payment-date']) ? $payment['payment-date'] : null);
-		$payment_details = (isset($payment['payment-details']) ? $payment['payment-details'] : null);
+		$requested_by = ($payment['requested-by'] ?? '');
+		$first_name = ($payment['first-name'] ?? '');
+		$last_name = ($payment['last-name'] ?? '');
+		$email_address = ($payment['email-address'] ?? '');
+		$mail_template = ($payment['mail-template'] ?? '');
+		$payment_name = ($payment['payment-name'] ?? '');
+		$payment_description = ($payment['payment-description'] ?? null);
+		$payment_price = ($payment['payment-price'] ?? null);
+		$payment_status = ($payment['payment-status'] ?? null);
+		$payment_type = ($payment['payment-type'] ?? null);
+		$payment_txn_id = ($payment['payment-txn-id'] ?? null);
+		$payment_txn_amt = ($payment['payment-txn-amt'] ?? null);
+		$payment_date = ($payment['payment-date'] ?? null);
+		$payment_details = ($payment['payment-details'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
 			'INSERT INTO '.$this->cm_db->table_name('payments').' SET '.
 			'`uuid` = UUID(), `date_created` = NOW(), `date_modified` = NOW(), '.
@@ -241,20 +241,20 @@ class cm_payment_db {
 
 	public function update_payment($payment) {
 		if (!$payment || !isset($payment['id']) || !$payment['id']) return false;
-		$requested_by = (isset($payment['requested-by']) ? $payment['requested-by'] : '');
-		$first_name = (isset($payment['first-name']) ? $payment['first-name'] : '');
-		$last_name = (isset($payment['last-name']) ? $payment['last-name'] : '');
-		$email_address = (isset($payment['email-address']) ? $payment['email-address'] : '');
-		$mail_template = (isset($payment['mail-template']) ? $payment['mail-template'] : '');
-		$payment_name = (isset($payment['payment-name']) ? $payment['payment-name'] : '');
-		$payment_description = (isset($payment['payment-description']) ? $payment['payment-description'] : null);
-		$payment_price = (isset($payment['payment-price']) ? $payment['payment-price'] : null);
-		$payment_status = (isset($payment['payment-status']) ? $payment['payment-status'] : null);
-		$payment_type = (isset($payment['payment-type']) ? $payment['payment-type'] : null);
-		$payment_txn_id = (isset($payment['payment-txn-id']) ? $payment['payment-txn-id'] : null);
-		$payment_txn_amt = (isset($payment['payment-txn-amt']) ? $payment['payment-txn-amt'] : null);
-		$payment_date = (isset($payment['payment-date']) ? $payment['payment-date'] : null);
-		$payment_details = (isset($payment['payment-details']) ? $payment['payment-details'] : null);
+		$requested_by = ($payment['requested-by'] ?? '');
+		$first_name = ($payment['first-name'] ?? '');
+		$last_name = ($payment['last-name'] ?? '');
+		$email_address = ($payment['email-address'] ?? '');
+		$mail_template = ($payment['mail-template'] ?? '');
+		$payment_name = ($payment['payment-name'] ?? '');
+		$payment_description = ($payment['payment-description'] ?? null);
+		$payment_price = ($payment['payment-price'] ?? null);
+		$payment_status = ($payment['payment-status'] ?? null);
+		$payment_type = ($payment['payment-type'] ?? null);
+		$payment_txn_id = ($payment['payment-txn-id'] ?? null);
+		$payment_txn_amt = ($payment['payment-txn-amt'] ?? null);
+		$payment_date = ($payment['payment-date'] ?? null);
+		$payment_details = ($payment['payment-details'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
 			'UPDATE '.$this->cm_db->table_name('payments').' SET '.
 			'`date_modified` = NOW(), '.

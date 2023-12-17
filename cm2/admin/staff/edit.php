@@ -215,7 +215,7 @@ if ($submitted) {
 	}
 }
 
-$name = isset($item['display-name']) ? $item['display-name'] : null;
+$name = $item['display-name'] ?? null;
 
 cm_admin_head($new ? 'Add Staff Application' : (
 	$name
@@ -258,7 +258,7 @@ cm_admin_head($new ? 'Add Staff Application' : (
 	}
 </style><?php
 
-echo '<script type="text/javascript">cm_assigned_positions = ('.json_encode(isset($item['assigned-positions']) ? $item['assigned-positions'] : array()).');</script>';
+echo '<script type="text/javascript">cm_assigned_positions = ('.json_encode($item['assigned-positions'] ?? array()).');</script>';
 echo '<script type="text/javascript" src="edit.js"></script>';
 
 cm_admin_body($new ? 'Add Staff Application' : (
@@ -458,7 +458,7 @@ echo '<article>';
 
 				echo '<tr>';
 					echo '<th>&nbsp;</th>';
-					$value = isset($item['subscribed']) ? $item['subscribed'] : true;
+					$value = $item['subscribed'] ?? true;
 					if ($can_edit_info) {
 						echo '<td><label>';
 							echo '<input type="checkbox" name="subscribed" value="1"' . ($value ? ' checked>' : '>');

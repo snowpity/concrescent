@@ -276,20 +276,20 @@ class cm_badge_artwork_db {
 
 	public function create_badge_artwork_field($field) {
 		if (!$field) return false;
-		$file_name = (isset($field['file-name']) ? $field['file-name'] : null);
+		$file_name = ($field['file-name'] ?? null);
 		$x1 = (isset($field['x1']) ? (float)$field['x1'] : null);
 		$y1 = (isset($field['y1']) ? (float)$field['y1'] : null);
 		$x2 = (isset($field['x2']) ? (float)$field['x2'] : null);
 		$y2 = (isset($field['y2']) ? (float)$field['y2'] : null);
-		$field_key = (isset($field['field-key']) ? $field['field-key'] : null);
-		$font_size = (isset($field['font-size']) ? $field['font-size'] : null);
-		$font_family = (isset($field['font-family']) ? $field['font-family'] : null);
+		$field_key = ($field['field-key'] ?? null);
+		$font_size = ($field['font-size'] ?? null);
+		$font_family = ($field['font-family'] ?? null);
 		$font_weight_bold = (isset($field['font-weight-bold']) ? ($field['font-weight-bold'] ? 1 : 0) : null);
 		$font_style_italic = (isset($field['font-style-italic']) ? ($field['font-style-italic'] ? 1 : 0) : null);
-		$color = (isset($field['color']) ? $field['color'] : null);
-		$background = (isset($field['background']) ? $field['background'] : null);
-		$color_minors = (isset($field['color-minors']) ? $field['color-minors'] : null);
-		$background_minors = (isset($field['background-minors']) ? $field['background-minors'] : null);
+		$color = ($field['color'] ?? null);
+		$background = ($field['background'] ?? null);
+		$color_minors = ($field['color-minors'] ?? null);
+		$background_minors = ($field['background-minors'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
 			'INSERT INTO '.$this->cm_db->table_name('badge_artwork_fields').' SET '.
 			'`file_name` = ?, `x1` = ?, `y1` = ?, `x2` = ?, `y2` = ?, '.
@@ -311,20 +311,20 @@ class cm_badge_artwork_db {
 
 	public function update_badge_artwork_field($field) {
 		if (!$field || !isset($field['id']) || !$field['id']) return false;
-		$file_name = (isset($field['file-name']) ? $field['file-name'] : null);
+		$file_name = ($field['file-name'] ?? null);
 		$x1 = (isset($field['x1']) ? (float)$field['x1'] : null);
 		$y1 = (isset($field['y1']) ? (float)$field['y1'] : null);
 		$x2 = (isset($field['x2']) ? (float)$field['x2'] : null);
 		$y2 = (isset($field['y2']) ? (float)$field['y2'] : null);
-		$field_key = (isset($field['field-key']) ? $field['field-key'] : null);
-		$font_size = (isset($field['font-size']) ? $field['font-size'] : null);
-		$font_family = (isset($field['font-family']) ? $field['font-family'] : null);
+		$field_key = ($field['field-key'] ?? null);
+		$font_size = ($field['font-size'] ?? null);
+		$font_family = ($field['font-family'] ?? null);
 		$font_weight_bold = (isset($field['font-weight-bold']) ? ($field['font-weight-bold'] ? 1 : 0) : null);
 		$font_style_italic = (isset($field['font-style-italic']) ? ($field['font-style-italic'] ? 1 : 0) : null);
-		$color = (isset($field['color']) ? $field['color'] : null);
-		$background = (isset($field['background']) ? $field['background'] : null);
-		$color_minors = (isset($field['color-minors']) ? $field['color-minors'] : null);
-		$background_minors = (isset($field['background-minors']) ? $field['background-minors'] : null);
+		$color = ($field['color'] ?? null);
+		$background = ($field['background'] ?? null);
+		$color_minors = ($field['color-minors'] ?? null);
+		$background_minors = ($field['background-minors'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
 			'UPDATE '.$this->cm_db->table_name('badge_artwork_fields').' SET '.
 			'`file_name` = ?, `x1` = ?, `y1` = ?, `x2` = ?, `y2` = ?, '.
