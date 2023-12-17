@@ -49,7 +49,9 @@ USER nobody
 
 COPY --chown=nobody composer.json /var/www/
 COPY --chown=nobody composer.lock /var/www/
-RUN cd /var/www && composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+RUN cd /var/www \
+    && composer check-platform-reqs \
+    && composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
 # Copy concrescent over to the image so the image is standalone.
 COPY --chown=nobody ./vendor /var/www/vendor

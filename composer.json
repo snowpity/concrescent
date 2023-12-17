@@ -1,7 +1,20 @@
 {
     "require": {
+        "php": "^8.2.10",
         "twig/twig": "^3.8",
         "slim/twig-view": "^3.3",
-        "ext-curl": "*"
+        "ext-curl": "*",
+        "ext-exif": "*",
+        "ext-gd": "*",
+        "ext-mysqli": "*"
+    },
+    "config": {
+        "platform": {
+            "php": "8.2.10",
+            "ext-curl": "8.2.10",
+            "ext-exif": "8.2.10",
+            "ext-gd": "8.2.10",
+            "ext-mysqli": "8.2.10"
+        }
     }
 }
