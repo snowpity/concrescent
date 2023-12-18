@@ -85,14 +85,16 @@
                        @create="createBadgeType" />
 
         <v-dialog v-model="btDialog"
-                  persistent>
+                  scrollable>
 
             <v-card>
                 <v-card-title class="headline">Edit Badge Type</v-card-title>
+                <v-divider></v-divider>
                 <v-card-text>
 
                     <badgeTypeForm v-model="btSelected" />
                 </v-card-text>
+                <v-divider></v-divider>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="default"
@@ -109,21 +111,24 @@
     <v-tab-item value="3">
         <treeList apiPath="Staff/Department"
                   :AddHeaders="dAddHeaders"
-                  :actions="btActions"
+                  :actions="dActions"
                   :footerActions="btFooterActions"
                   :isEditingItem="dDialog"
                   @edit="editDepartment"
-                  @create="createDepartment" />
+                  @create="createDepartment"
+                  @moveup="moveDepartmentUp"
+                  @movedown="moveDepartmentDown" />
         <v-dialog v-model="dDialog"
-                  scrollable
-                  persistent>
+                  scrollable>
 
             <v-card>
                 <v-card-title class="headline">Edit Department</v-card-title>
+                <v-divider></v-divider>
                 <v-card-text>
 
                     <editDepartment v-model="dSelected" />
                 </v-card-text>
+                <v-divider></v-divider>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="default"
@@ -264,6 +269,21 @@ export default {
             });
             return result;
         },
+        dActions: function() {
+            var result = [];
+            result.push({
+                name: "moveup",
+                text: "Up"
+            },{
+                name: "movedown",
+                text: "Down"
+            },{
+                name: 'edit',
+                text: 'Edit',
+                icon: 'edit-pencil'
+            });
+            return result;
+        },
         isCreateError: {
             get() {
                 return this.createError.length > 0;
@@ -346,10 +366,30 @@ export default {
             this.dDialog = true;
             this.dSelected = {};
         },
+        moveDepartmentUp: function(selectedDepartment) {
+            //Hack! Probably should find a better way to refresh the departments list only
+            this.dDialog = true;
+            var that = this;
+            admin.genericPost(this.authToken, 'Staff/Department/' + selectedDepartment.id + '/Move', { direction: true }, function (results) {
+                that.dDialog = false;
+            }, function () {
+                that.dDialog = false;
+            })
+        },
+        moveDepartmentDown: function(selectedDepartment) {
+            this.dDialog = true;
+            var that = this;
+            admin.genericPost(this.authToken, 'Staff/Department/' + selectedDepartment.id + '/Move', { direction: false }, function (results) {
+
+                that.dDialog = false;
+            }, function () {
+                that.dDialog = false;
+            })
+        },
         editDepartment: function(selectedDepartment) {
             this.loading = true;
             var that = this;
-            admin.genericGet(this.authToken, 'Staff/Department/' + selectedDepartment.id, null, function(editBt) {
+            admin.genericGet(this.authToken, 'Staff/Department/' + selectedDepartment.id , null, function(editBt) {
 
                 that.dSelected = editBt;
                 that.dDialog = true;

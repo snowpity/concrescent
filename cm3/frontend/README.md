@@ -32,9 +32,11 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 Getting Yarn:
 Get NodeJS 16
 `corepack enable`
-Yarn should now be available.
+Yarn should now be available. Update it to stable
+`yarn set version stable`
 
 Getting Vue UI (to help manage project)
+yarn global add @vue/cli
 yarn global add @vue/ui
 
 Add global yarn bin to your path if not already:

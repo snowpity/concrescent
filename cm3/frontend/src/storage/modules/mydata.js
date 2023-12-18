@@ -454,6 +454,12 @@ const mutations = {
             state.activeCarts = cartsInfo.carts;
         }
     },
+    updateActiveCart(state, cartdata) {
+        //Find the cart item (if it exists)
+        var ix = state.activeCarts.findIndex(cart => cart.id == cartdata.id);
+        //upsert
+        state.activeCarts.splice(ix, ix == -1 ? 0 : 1, cartdata);
+    }
 
 }
 

@@ -8,7 +8,7 @@ use MessagePack\Extension;
 
 class UserPermissions implements Extension
 {
-    public bool $IsGlobalAdmin = false;
+    public bool $IsPermanentGlobalAdmin = false;
     public array $EventPerms = array();
 
     public function __construct()
@@ -29,7 +29,7 @@ class UserPermissions implements Extension
         }
 
         //First, pack whether they're a GlobalAdmin
-        $result = $packer->pack($value->IsGlobalAdmin);
+        $result = $packer->pack($value->IsPermanentGlobalAdmin);
 
         //Then give out the GroupPerms length
         $result .= $packer->packArrayHeader(count($value->EventPerms));
@@ -48,7 +48,7 @@ class UserPermissions implements Extension
     {
         $result = new UserPermissions();
         //We'll always have an bool for the GlobalAdmin
-        $result->IsGlobalAdmin = $unpacker->unpack();
+        $result->IsPermanentGlobalAdmin = $unpacker->unpack();
         //Check if we have any EventPerms
         $eventPermCount = $unpacker->unpackArrayHeader();
         //Un-splat the events!
@@ -64,10 +64,19 @@ class UserPermissions implements Extension
     public function getPermEnumeration()
     {
         return array(
-            'IsGlobalAdmin' => $this->IsGlobalAdmin,
+            'IsGlobalAdmin' => $this->IsGlobalAdmin(),
             'EventPerms' => array_map(function ($perm) {
                 return $perm->getPermEnumeration();
             }, $this->EventPerms)
         );
+    }
+    public function IsGlobalAdmin() :bool
+    {
+        if ($this->IsPermanentGlobalAdmin) return true;
+        foreach ($this->EventPerms as $perm) {
+            if($perm->EventPerms->isGlobalAdmin())
+            return true;
+        }
+        return false;
     }
 }

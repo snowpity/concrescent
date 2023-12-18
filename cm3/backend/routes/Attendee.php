@@ -53,6 +53,8 @@ return function (App $app, $container) {
             ->add($attendeePerm);
             $app->post('/{id}', \CM3_Lib\Action\Attendee\BadgeType\Update::class)
             ->add($atManage);
+            $app->post('/{id}/Move', \CM3_Lib\Action\Attendee\BadgeType\Move::class)
+            ->add($atManage);
             $app->delete('/{id}', \CM3_Lib\Action\Attendee\BadgeType\Delete::class)
             ->add($atManage);
         },
@@ -65,6 +67,8 @@ return function (App $app, $container) {
             $app->get('/{id}', \CM3_Lib\Action\Attendee\Addon\Read::class)
             ->add($attendeePerm);
             $app->post('/{id}', \CM3_Lib\Action\Attendee\Addon\Update::class)
+            ->add($atManage);
+            $app->post('/{id}/Move', \CM3_Lib\Action\Attendee\Addon\Move::class)
             ->add($atManage);
             $app->delete('/{id}', \CM3_Lib\Action\Attendee\Addon\Delete::class)
             ->add($atManage);

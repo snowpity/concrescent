@@ -6,6 +6,7 @@ use CM3_Lib\database\Column as cm_Column;
 
 class question extends \CM3_Lib\database\Table
 {
+    use \CM3_Lib\database\orderableTrait;
     protected function setupTableDefinitions(): void
     {
         $this->TableName = 'Forms_Questions';
@@ -36,6 +37,10 @@ class question extends \CM3_Lib\database\Table
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
         $this->DefaultSearchColumns = array('id','context_code','active','title','type');
+        
+        //OrderableTrait defs
+        $this->orderColumn = 'order';
+        $this->orderGroupColumns = ['event_id','context_code'];
     }
 
     public function verifyQuestionBelongsToEvent(int $id, int $event_id)

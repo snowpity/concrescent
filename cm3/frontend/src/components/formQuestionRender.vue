@@ -101,6 +101,7 @@
                 <v-list-item-content>
                     <v-text-field v-model="multiSelectResponse[i]"
                                   append-outer-icon="mdi-close"
+                                  :readonly="readonly"
                                   :rules="isRequired ? RulesURLRequired : RulesURL "
                                   @click:append-outer="removeValue(i)"
                                   @keyup="listValueChanged" />
@@ -137,7 +138,8 @@
         </p>
         <v-radio-group :readonly="readonly"
                        v-model="userResponse"
-                       :mandatory="false">
+                       :mandatory="false"
+                       :rules="isRequired ? RulesRequired : undefined ">
             <template v-slot:label>
                 <v-md-preview v-if="question.text != null && question.text.length > 0"
                               :text="question.text" />
@@ -177,7 +179,8 @@
                   :items="listItems"
                   :clearable="isRequired"
                   :readonly="readonly"
-                  v-model="userResponse">
+                  v-model="userResponse"
+                  :rules="isRequired ? RulesRequired : undefined ">
             <template v-slot:label>
                 {{question.title}}
                 <span v-if="isRequired"
@@ -206,11 +209,11 @@ export default {
             (v) => /.+@.+\..+/.test(v) || 'E-mail must be valid',
         ],
         RulesURL: [
-            (v) => !v || /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/.test(v) || 'URL must be valid',
+            (v) => !v || /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-zA-Z0-9]+([-.]{1}[a-zA-Z0-9]+)*\.[a-zA-Z]{2,63}(:[0-9]{1,5})?(\/.*)?$/.test(v) || 'URL must be valid',
         ],
         RulesURLRequired: [
             (v) => !!v || 'URL is required',
-            (v) => /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/.test(v) || 'URL must be valid',
+            (v) => /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-zA-Z0-9]+([-.]{1}[a-zA-Z0-9]+)*\.[a-zA-Z]{2,63}(:[0-9]{1,5})?(\/.*)?$/.test(v) || 'URL must be valid',
         ],
     }),
     methods: {

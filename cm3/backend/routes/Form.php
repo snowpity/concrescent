@@ -22,6 +22,8 @@ return function (App $app, $container) {
             $app->get('/{id}', \CM3_Lib\Action\Form\Question\Read::class);
             $app->post('/{id}', \CM3_Lib\Action\Form\Question\Update::class)
             ->add($accessPerm);
+            $app->post('/{id}/Move', \CM3_Lib\Action\Form\Question\Move::class)
+            ->add($accessPerm);
             $app->delete('/{id}', \CM3_Lib\Action\Form\Question\Delete::class)
             ->add($accessPerm);
         }

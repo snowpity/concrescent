@@ -363,21 +363,16 @@ abstract class Table
 
         foreach ($columns as $value) {
             //TODO: Check column name is correct
+            $selectPart = '';
             //A bare string is just the column name
             if (gettype($value) == 'string') {
                 $selectParts .= (
-                    (
-                        isset($value->JoinedTableAlias)
-                ? '`' .$value->JoinedTableAlias.'`'
-                : (
                     !is_null($initialTableAlias)
                     ? '`' .$initialTableAlias.'`'
                     : $this->dbTableName()
-                )
-                    )
-                ) . '.`' . $value .'`, ';
+                ) . '.`' . $value .'`';
             } elseif ($value instanceof SelectColumn) {
-                $selectParts .= str_replace(
+                $selectPart .= str_replace(
                     '?',
                     (
                         isset($value->JoinedTableAlias)
@@ -391,29 +386,25 @@ abstract class Table
                     . '`' . $value->ColumnName .'`',
                     $value->EncapsulationFunction != null ? $value->EncapsulationFunction : '?'
                 );
+                $selectParts .= $selectPart;
                 if (!is_null($value->Alias)) {
                     $selectParts .= ' as `' . $value->Alias . '`';
                 }
+                if (empty($selectPart)) {
+                    $errors[] ="Unable to add select column as it resulted in an empty clause:\n" . print_r($value, true);
+                }
                 //Are we grouping this column?
                 if ($value->GroupBy) {
-                    // TODO: May not be correct if we're using an EncapsulationFunction?
-                    $groupNames[] = (
-                        isset($value->JoinedTableAlias)
-                        ? '`' .$value->JoinedTableAlias.'`.'
-                        : (
-                            !is_null($initialTableAlias)
-                            ? '`' .$initialTableAlias.'`.'
-                            : $this->dbTableName().'.'
-                        )
-                    ).
-                        $value->ColumnName;
+                    $groupNames[] = $selectPart;
                 }
-                $selectParts .= ', ';
             } elseif (!is_null($value)) {
                 $errors[] ="Unable to add select column:\n" . print_r($value, true);
             }
+            if (!is_null($value)){
+                $selectParts .= ', ';
+            }
         }
-
+        
         //Snip the trailing comma
         $selectParts = substr($selectParts, 0, -2);
         $sqlBody = ' FROM ' . $this->dbTableName() . ' ';
@@ -647,11 +638,74 @@ abstract class Table
         $sqlOrdering = '';
         if ($order != null && count($order)) {
             $sqlOrdering .= ' ORDER BY ';
-            foreach ($order as $key=>$value) {
-                if (gettype($value) == 'string') {
-                    $sqlOrdering .= '`' . $value .'`, ';
+            foreach ($order as $key => $value)
+            {
+                //TODO: Check column name is correct
+                //A bare string is just the column name or alias
+                if (gettype($value) == 'string')
+                {
+                    //Check all the aliases
+                    $orderingTable = (!empty($initialTableAlias) ? '`' . $initialTableAlias . '`' : $this->dbTableName()) . '.';
+                    $orderingValue = $value;
+                    foreach ($columns as $checkvalue)
+                    {
+                        if (gettype($checkvalue) == 'string')
+                        {
+                            //We've already discovered what the value should be in the base table
+                            if ($checkvalue == $value)
+                                break;
+                        } elseif ($checkvalue instanceof SelectColumn)
+                        {
+                            if (!is_null($checkvalue->Alias) && $checkvalue->Alias == $value) {
+                                $orderingTable = '';
+                                break;
+                            } elseif ($checkvalue->ColumnName == $value) {
+                                $orderingTable = isset($checkvalue->JoinedTableAlias)
+                                    ? "`$checkvalue->JoinedTableAlias`."
+                                    : (!is_null($initialTableAlias) ? "`$initialTableAlias`." : $this->dbTableName() . '.');
+                                break;
+                            }
+                        }
+                    }
+
+                    $sqlOrdering .= $orderingTable .'`' . $orderingValue .'`, ';
+                } elseif ($value instanceof SelectColumn) {
+                    $sqlOrdering .= str_replace(
+                        '?',
+                        (isset($value->JoinedTableAlias) ? '`' . $value->JoinedTableAlias .'`.' 
+                            : (!empty($initialTableAlias) ? '`' . $initialTableAlias .'`' : $this->dbTableName()) .'.'). '`' . $value->ColumnName .'`',
+                        $value->EncapsulationFunction != null ? $value->EncapsulationFunction : '?'
+                    );
+                    $sqlOrdering .= ', ';
+                } elseif (gettype($key) == 'string') {
+                    //Check all the aliases
+                    $orderingTable = (!empty($initialTableAlias) ? '`' . $initialTableAlias . '`' : $this->dbTableName()) . '.';
+                    $orderingValue = $key;
+                    foreach ($columns as $checkvalue)
+                    {
+                        if (gettype($checkvalue) == 'string')
+                        {
+                            //We've already discovered what the value should be in the base table
+                            if ($checkvalue == $key)
+                                break;
+                        } elseif ($checkvalue instanceof SelectColumn)
+                        {
+                            if (!is_null($checkvalue->Alias) && $checkvalue->Alias == $key) {
+                                $orderingTable = '';
+                                break;
+                            } elseif ($checkvalue->ColumnName == $key) {
+                                $orderingTable = isset($checkvalue->JoinedTableAlias)
+                                    ? "`$checkvalue->JoinedTableAlias`."
+                                    : (!is_null($initialTableAlias) ? "`$initialTableAlias`." : $this->dbTableName() . '.');
+                                break;
+                            }
+                        }
+                    }
+
+                    $sqlOrdering .= $orderingTable .'`' . $orderingValue .'` ';
+                    $sqlOrdering .= ($value ? ' DESC' : '') . ', ';
                 } else {
-                    $sqlOrdering .= '`' . $key .'`' . ($value ? ' DESC' : '') . ', ';
+                    $errors[] ="Unable to add order-by column for ".$this->dbTableName().":\n" . print_r($value, true);
                 }
             }
 

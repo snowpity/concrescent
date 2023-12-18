@@ -75,10 +75,12 @@
 
             <v-card>
                 <v-card-title class="headline">Edit Badge Type</v-card-title>
+                <v-divider></v-divider>
                 <v-card-text>
 
                     <badgeTypeForm v-model="btSelected" />
                 </v-card-text>
+                <v-divider></v-divider>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="default"
@@ -113,10 +115,12 @@
 
             <v-card>
                 <v-card-title class="headline">Edit Promo Code</v-card-title>
+                <v-divider></v-divider>
                 <v-card-text>
                     <promoCodeForm v-model="pSelected"
                                    :badge_types="contextBadges" />
                 </v-card-text>
+                <v-divider></v-divider>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="default"
@@ -130,11 +134,12 @@
 
     <v-tab-item value="4">
 
-        <simpleList apiPath="Attendee/Addon"
+        <orderableList apiPath="Attendee/Addon"
                     :isEditingItem="dEdit"
                     :AddHeaders="dAddHeaders"
                     :actions="btActions"
                     :footerActions="btFooterActions"
+                    internalKey="id"
                     show-expand
                     @edit="editAddon"
                     @create="createAddon">
@@ -161,16 +166,18 @@
                     </v-container>
                 </td>
             </template>
-        </simpleList>
+        </orderableList>
         <v-dialog v-model="dEdit"
                   scrollable>
 
             <v-card>
                 <v-card-title class="headline">Edit Addon</v-card-title>
+                <v-divider></v-divider>
                 <v-card-text>
                     <addonTypeForm v-model="dSelected"
                                    :badge_types="contextBadges" />
                 </v-card-text>
+                <v-divider></v-divider>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="default"

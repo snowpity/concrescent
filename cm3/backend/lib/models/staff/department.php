@@ -6,6 +6,7 @@ use CM3_Lib\database\Column as cm_Column;
 
 class department extends \CM3_Lib\database\Table
 {
+    use \CM3_Lib\database\orderableTrait;
     protected function setupTableDefinitions(): void
     {
         $this->TableName = 'Staff_Departments';
@@ -28,6 +29,10 @@ class department extends \CM3_Lib\database\Table
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
         $this->DefaultSearchColumns = array('id','parent_id','display_order','name','email_primary');
+        
+        //OrderableTrait defs
+        $this->orderColumn = 'display_order';
+        $this->orderGroupColumns = ['event_id','parent_id'];
     }
 
     public function verifyDepartmentBelongsToEvent(int $id, int $event_id)

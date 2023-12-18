@@ -363,7 +363,7 @@ final class badgeinfo
 
                 $result =  $this->g_badge_submission->Update($data);
         }
-        return $result;
+        return $data['display_id'];
     }
 
     public function setNextDisplayIDSpecificSubBadge($id, $context_code)
@@ -415,6 +415,7 @@ final class badgeinfo
         $data['display_id'] = (count($next) > 0) ? $next[0]['display_id'] + 1 : 1;
 
         $result =  $this->g_badge->Update($data);
+        return $data['display_id'];
     }
     public function GetFormResponses($id, $context_code, $question_ids = null)
     {
@@ -724,7 +725,7 @@ final class badgeinfo
         $whereParts =
         empty($searchText) ? null :
         array(
-            new SearchTerm('real_name', $searchText, Raw: 'MATCH(`real_name`, `fandom_name`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
+            new SearchTerm('real_name', $searchText, Raw: 'MATCH('.$this->g_badge_submission->dbTableName().'.`real_name`,'.$this->g_badge_submission->dbTableName().'.`fandom_name`) AGAINST (? IN NATURAL LANGUAGE MODE) ')
         );
         $wherePartsSimpler = array(
             new SearchTerm(
@@ -1153,6 +1154,7 @@ final class badgeinfo
             array_merge(
                 $this->selectColumns,
                 array(
+                'display_id',
                //new SelectColumn('context_code', EncapsulationFunction: "'".$contextCode."'", Alias:'context_code'),
                new SelectColumn('context_code', JoinedTableAlias:'grp'),
                new SelectColumn('application_id', EncapsulationFunction: "null", Alias:'application_id'),
@@ -1585,10 +1587,10 @@ final class badgeinfo
     public function updateSupplementaryBadgeData(&$result)
     {
         //If we're accepted or otherwise complete but still do not have a display ID, fix that
-        if (array_key_exists('display_id', $result) && $result['display_id']==null && in_array(
+        if (array_key_exists('display_id', $result) && $result['display_id']==null && (in_array(
             $result['application_status']??'',
             ['PendingAcceptance','Accepted','Onboarding','Active']
-        )) {
+        ) || $result['payment_status']??'' == 'Completed')) {
             $this->setNextDisplayIDSpecificBadge($result['id'], $result['context_code']);
         }
         switch ($result['context_code']??'A') {

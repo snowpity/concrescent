@@ -113,6 +113,18 @@
                     </template>
                     <span>Load Preview Data</span>
                 </v-tooltip>
+                <v-tooltip top>
+                        <template v-slot:activator="{ on, attrs }">                        
+                            <v-btn color="primary"
+                                        v-bind="attrs"
+                                        v-on="on"
+                                   :outlined="preview"
+                                @click="ExecutePrint">
+                                        <v-icon>mdi-printer-eye</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Load Preview Data</span>
+                    </v-tooltip>
             </v-card>
         </div>
     </v-speed-dial>
@@ -176,6 +188,15 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
+    
+    <v-dialog v-model="printPanel"
+                            fullscreen
+                            transition="none">
+        <v-card :class="{ 'printing': printPanel }">
+            <badgeFullRender :format="model"
+                                :badge="badgeData" />
+        </v-card>
+    </v-dialog>
 </v-container>
 </template>
 
@@ -187,6 +208,7 @@ import formatPropEditForm from '@/components/formatpieces/formatPropEditForm.vue
 import fieldPositioner from '@/components/formatpieces/fieldPositioner.vue';
 import fieldEditToolbar from '@/components/formatpieces/fieldEditToolbar.vue';
 import scaleToParent from '@/components/formatpieces/scaleToParent.vue';
+import badgeFullRender from '@/components/badgeFullRender.vue';
 import {
     mapGetters
 } from 'vuex'
@@ -195,6 +217,7 @@ export default Vue.extend({
         formatPropEditForm,
         fieldPositioner,
         fieldEditToolbar,
+        badgeFullRender
         //scaleToParent
     },
     props: ['value'],
@@ -209,6 +232,7 @@ export default Vue.extend({
             loadBadgeDataContext: 'A',
             loadBadgeDataID: 0,
             zoom: 1,
+            printPanel: false,
             model: {
                 id: v.id,
                 name: v.name || 'New Badge Format',
@@ -379,6 +403,31 @@ export default Vue.extend({
         zoomOut() {
 
         },
+        ExecutePrint: async function() {
+
+            this.printPanel = true;
+            await this.$nextTick();
+            //Print and close
+            (function(app) {
+                setTimeout(() => {
+                    window.print();
+                }, 430);
+            }(this));
+        },
+        printLocalStart: function() {
+            if(this.$el.clientHeight == 0){
+                console.log('Ignoring print because format editor is not visible')
+                return;
+            }
+            console.log('Prep printing')
+            this.printPanel = true;
+
+        },
+        printLocalEnd: function() {
+            console.log('Done printing')
+            this.printPanel = false;
+
+        },
     },
     watch: {
         model(newData) {
@@ -403,5 +452,19 @@ export default Vue.extend({
             };
         },
     },
+    mounted: function() {
+        //Hook the printing events
+        window.addEventListener('beforeprint', this.printLocalStart);
+        window.addEventListener('afterprint', this.printLocalEnd);
+        console.log('format editor watching for print preview')
+
+    },
+  beforeDestroy() {
+    console.log(`format editor no longer watching for print preview.`)
+        //Un-hook the printing events
+        window.removeEventListener('beforeprint', this.printLocalStart);
+        window.removeEventListener('afterprint', this.printLocalEnd);
+  }
+    
 });
 </script>

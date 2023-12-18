@@ -1,22 +1,45 @@
 <template>
 <v-stepper v-model="step"
            :vertical="true">
+        <v-stepper-step :editable="reachedStep >= 0"
+                        :complete="reachedStep > 0"
+                        step="0">Context <small>{{ currentContext.name }} {{isGroupApp ? "Application" : "Badge"}}</small></v-stepper-step>
+        <v-stepper-content step="0">
+            <v-item-group mandatory 
+                      v-model="context_code">
+                <v-container>
+                <v-row>
+                    <v-col
+                    v-for="context in badgeContexts"
+                    :key="context.context_code"
+                    cols="12"
+                    md="4"
+                    >
+                    <v-item :value="context.context_code" v-slot="{ active, toggle }" 
+                    :disabled="forbidContextChange">
+                        <v-card :elevation="active ? 10 : 1"
+                        :dark="active"
+                                :color="active ? 'primary' : ''" 
+                        @click="toggle">
+                            <v-icon class="ma-8"
+                            :color="active ? 'white' : ''" 
+                                    size=200>mdi-{{ context.menu_icon }}</v-icon>
+                            <v-card-title  class="fill-height align-end">{{ context.name }}</v-card-title>
+
+                        </v-card>
+                            
+                    </v-item>
+                    </v-col>
+                </v-row>
+                </v-container>
+            </v-item-group>
+            <v-btn color="primary"               
+                   @click="step = 1">Continue</v-btn>
+        </v-stepper-content>
     <v-stepper-step :editable="reachedStep >= 1"
                     :complete="reachedStep > 1"
-                    step="1">{{isGroupApp ? "Application" : "Badge"}} Information <small>{{compiledBadge | badgeDisplayName}} &mdash; {{ badges[selectedBadge_ix] ? badges[selectedBadge_ix].name: "Nothing yet!" | subname }}</small></v-stepper-step>
-    <v-stepper-content step="1">
+                    step="1">{{isGroupApp ? "Application" : "Badge"}} Information <small>{{compiledBadge | badgeDisplayName}} &mdash; {{ badges[selectedBadge_ix] ? badges[selectedBadge_ix].name: "Nothing yet!" | subname }}</small></v-stepper-step>    <v-stepper-content step="1">
 
-        <v-select :items="badgeContexts"
-                  :flat="true"
-                  v-model="context_code"
-                  item-text="name"
-                  item-value="context_code"
-                  no-data-text="Loading..."
-                  :readonly="forbidContextChange">
-            <template v-slot:prepend>
-                <h3 class="flex-sm-grow-1 flex-sm-shrink-0 mr-4">{{isGroupApp ? 'Application' : 'Badge'}} Type:</h3>
-            </template>
-        </v-select>
         <badgeGenInfo v-model="badgeGenInfoData"
                       :application_name1="currentContext.application_name1"
                       :application_name2="currentContext.application_name2"
@@ -28,15 +51,16 @@
                            :no-data-text="isGroupApp ? 'Applications currently closed!' : 'No Badges available!'"
                            :editBadgePriorBadgeId="editBadgePriorBadgeId"
                            @click.native="affirmBadgeType" />
-        <v-sheet v-if="selectedBadge_ix != null && badges[selectedBadge_ix]"
+        <v-sheet
                  color="grey lighten-4"
                  tile>
-            <v-card>
+            <v-card  v-if="selectedBadge_ix != null && badges[selectedBadge_ix]">
                 <v-card-title class="title">Selected:
                     {{ badges[selectedBadge_ix] ? badges[selectedBadge_ix].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
                 </v-card-title>
                 <v-card-text class="text--primary">
-                    Availability: {{badges[selectedBadge_ix].dates_available}}
+                    Availability: {{badges[selectedBadge_ix].dates_available}}<br>
+                    Ages:  {{badges[selectedBadge_ix].age_range}}<br>
                     <badgePerksRender :description="badges[selectedBadge_ix] ? badges[selectedBadge_ix].description : '' "
                                       :rewardlist="rewardlist"></badgePerksRender>
                 </v-card-text>
@@ -133,6 +157,7 @@
                         </v-toolbar>
                         <v-card-text>
                             <div class="text-h5 pa-4">{{createError}}</div>
+                            <p>If you've registered before here, you should first verify with a Magic Link. This will let you keep your badge history together.</p>
                         </v-card-text>
                         <v-card-actions>
                             <v-btn color="green"
@@ -252,7 +277,7 @@
                     step="5">Applicant Badges</v-stepper-step>
 
     <v-stepper-content step="5">
-
+        <h3>Please provide the people who will need a badge for this application.</h3>
         <subBadgeListEditor v-model="subbadges"
                             v-if="hasSubBadges"
                             :base_applicant_count="selectedBadge.base_applicant_count"
@@ -393,16 +418,7 @@ export default {
             let badges = JSON.parse(JSON.stringify(this.products));
             // First, do we have a date_of_birth?
             const bday = new Date(this.badgeGenInfoData.date_of_birth);
-            if (this.badgeGenInfoData.date_of_birth && bday) {
-                badges = badges.filter((badge) => {
-                    if (!(
-                            (badge['min_birthdate'] != null && bday < new Date(badge['min_birthdate'])) ||
-                            (badge['max_birthdate'] != null && bday > new Date(badge['max_birthdate']))
-                        )) {
-                        return badge;
-                    }
-                });
-            }
+            const shouldCheckBday = !isNaN(bday.getTime());            
 
             //Disable those that are outside the availability
             var now = new Date();
@@ -411,15 +427,43 @@ export default {
                 var end = new Date(item["end_date"]);
                 if (end < new Date('2000-01-01'))
                     end.setYear(2099);
+                //Ensure we're comparing against the end of the day
+                //Does not take account of server's set timezone :O
+                end.setHours(23);
+                end.setMinutes(59);
+                end.setSeconds(59);
+
+                //Check bday
+                var bdayvalid = true;
+                if(shouldCheckBday){
+                    bdayvalid = !(
+                        (item['min_birthdate'] != null && bday < new Date(item['min_birthdate'])) ||
+                        (item['max_birthdate'] != null && bday > new Date(item['max_birthdate']))
+                        );
+                }
+
+                //Generate age range
+                var age_range = (item['min_age'] != null ? (
+                    item['max_age'] != null ? 'Between ' + item['min_age'] + ' and ' + item['max_age'] + ' years'
+                    : 'At least ' + item['min_age'] + ' years'
+                    ) : (
+                    item['max_age'] != null ? 'Younger than ' + item['max_age'] + ' years'
+                    : 'All ages'
+                    )
+                )
+
                 var disabled =
                     (end < now) ||
                     (start > now) ||
-                    (item.quantity_remaining === 0);
+                    (item.quantity_remaining === 0) ||
+                    !bdayvalid;
                 badges[i].disabled = disabled;
+                badges[i].age_range = age_range;
                 // console.log("Badge disable?", {
                 //     start: start,
                 //     end: end,
                 //     quantity_remaining: item.quantity_remaining,
+                //       bdayvalid:bdayvalid,
                 //     disabled: disabled,
                 //     name: item.name
                 // })
@@ -563,6 +607,9 @@ export default {
     watch: {
         step(newStep) {
             this.reachedStep = Math.max(this.reachedStep, newStep);
+            if(this.step == 1){
+                this.checkBadge();
+            }
             this.autoSaveBadge();
         },
         'badgeGenInfoData.date_of_birth': function() {
@@ -757,7 +804,8 @@ export default {
         resetBadge() {
             Object.assign(this.$data, this.$options.data.apply(this));
             this.$store.commit('cart/setCurrentlyEditingItem', this.compiledBadge);
-            this.step = 1;
+            this.step = 0;
+            this.reachedStep = 0;
         },
         autoSaveBadge() {
             const cartItem = this.compiledBadge;
@@ -773,6 +821,9 @@ export default {
                 let badge = this.badges.findIndex((badge) => badge.id == bid);
                 if (badge == -1) {
                     console.log("badges are loaded but the type specified wasn't valid?", bid)
+                    //Fallback to just selecting the first one
+                    this.badge_type_id = this.badges[0].id;
+                    console.log("Setting type to first in list", this.badge_type_id)
                     badge = 0;
                 }
 
@@ -780,8 +831,9 @@ export default {
                 this.selectedBadge_ix = badge;
             } else {
                 this.validBadgeType = false;
-                this.reachedStep = 1;
-                this.step = 1;
+                this.reachedStep = Math.max(1,this.reachedStep);
+                this.step = Math.max(1,this.step);
+                console.log('No badges for context, go back to step 1', this.context_code)
 
             }
 
@@ -796,8 +848,11 @@ export default {
             }
         },
         affirmBadgeType() {
-            this.badge_type_id = this.badges[this.selectedBadge_ix].id;
-            console.log("affirmed badge type", this.badge_type_id)
+            if(this.badges[this.selectedBadge_ix]){
+                //Has an index selected that exists, ensure the type ID matches
+                this.badge_type_id = this.badges[this.selectedBadge_ix].id;
+                console.log("affirmed badge type", this.badge_type_id)
+            }
         },
         addBadgeToCart() {
             this.addProductToCart(this.compiledBadge);

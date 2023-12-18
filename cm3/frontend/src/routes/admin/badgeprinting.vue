@@ -79,7 +79,7 @@
                                 @select="selectBadgeFormat" />
                 </v-stepper-content>
                 <v-stepper-content step="2">
-                    <badgeSearchList v-if="fSelected"
+                    <badgeSearchList v-if="fSelected.id"
                                      :apiPath="'Badge/Format/' + fSelected.id + '/Badges'"
                                      internalKey="uuid"
                                      :AddHeaders="badgeSelectHeaders"

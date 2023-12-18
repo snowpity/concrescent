@@ -25,6 +25,8 @@ return function (App $app, $container) {
             ->add($gpAsign);
             $app->post('/{id}', \CM3_Lib\Action\Application\BadgeType\Update::class)
             ->add($gpAsign);
+            $app->post('/{id}/Move', \CM3_Lib\Action\Application\BadgeType\Move::class)
+            ->add($gpAsign);
             $app->delete('/{id}', \CM3_Lib\Action\Application\BadgeType\Delete::class)
             ->add($gpAsign);
         },
@@ -104,6 +106,8 @@ return function (App $app, $container) {
             $app->get('/{id}', \CM3_Lib\Action\Application\Addon\Read::class)
             ->add($groupPerm);
             $app->post('/{id}', \CM3_Lib\Action\Application\Addon\Update::class)
+            ->add($gtmanage);
+            $app->post('/{id}/Move', \CM3_Lib\Action\Application\Addon\Move::class)
             ->add($gtmanage);
             $app->delete('/{id}', \CM3_Lib\Action\Application\Addon\Delete::class)
             ->add($gtmanage);

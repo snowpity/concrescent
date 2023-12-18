@@ -3,8 +3,8 @@ import shop from '../../api/shop'
 // initial state
 const state = {
     kioskMode: false,
-    remotePrinting: true,
-    preferredRemotePrinter: "",
+    remotePrinting: false,
+    preferredRemotePrinter: "Default",
     serviceRemoteJobs: false,
     servicePrintJobsAs: "",
     printConfig: {

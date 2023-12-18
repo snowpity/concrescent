@@ -55,7 +55,7 @@
               scrollable
               :hide-overlay="printingBadge"
               :fullscreen="printingBadge">
-        <v-card :class="{'printing':printingBadge}">
+        <v-card :class="{'printing':printingBadge}" v-if="displayBadgeData">
             <v-card-title class="d-print-none">
                 <v-btn color="red lighten-1"
                        @click="removeBadge">
@@ -77,7 +77,7 @@
                     <v-btn height=266
                            width=266
                            elevation=4>
-                        <qr-code :text="displayBadgeData ? displayBadgeData['qr_data'] : ''"></qr-code>
+                        <qr-code :text="displayBadgeData['qr_data']"></qr-code>
                     </v-btn>
                 </p>
                 <v-row>
@@ -90,7 +90,7 @@
                     <h3>{{displayBadgeData | badgeDisplayName(true)}}&zwj;</h3>
                     <v-spacer></v-spacer>
                 </v-row>
-                <v-card-title class="title">{{displayBadgeData && displayBadgeData['badge-type-name']}}</v-card-title>
+                <v-card-title class="title">{{displayBadgeData['badge-type-name']}}</v-card-title>
                 <badgePerksRender :description="displayBadgeProduct ? displayBadgeProduct.description : null "
                                   :rewardlist="displayBadgeProduct ? displayBadgeProduct.rewards : null"></badgePerksRender>
                 <v-card-title>Addons purchased:</v-card-title>
@@ -108,6 +108,8 @@
                 <p v-if="displayBadgeProduct && displayBadgeData.addons != undefined && displayBadgeData.addons.length == 0">
                     No addons purchased
                 </p>
+                <v-card-title>Question responses:</v-card-title>
+                <formQuestionViewList :questions="displayBadgeQuestions" :responses="displayBadgeData.form_responses" />
             </v-card-text>
         </v-card>
     </v-dialog>
@@ -134,12 +136,14 @@ import {
 import VueQRCodeComponent from 'vue-qrcode-component';
 import badgePerksRender from '@/components/badgePerksRender.vue';
 import badgeSampleRender from '@/components/badgeSampleRender.vue';
+import formQuestionViewList from '@/components/formQuestionViewList.vue';
 
 export default {
     components: {
         'qr-code': VueQRCodeComponent,
         badgePerksRender,
         badgeSampleRender,
+        formQuestionViewList
     },
     data: () => ({
         promocodeDialog: false,
@@ -180,6 +184,16 @@ export default {
             let result = this.badges[this.displayBadgeData.context_code].find((item) => {
                 return item.id == badgeId
             });
+            return result;
+        },
+        displayBadgeQuestions() {
+            if (!this.displayBadgeModal) return null;
+            let badgeId = this.displayBadgeData.badge_type_id;
+            if (this.questions[this.displayBadgeData.context_code] == undefined) {
+
+                return null;
+            }
+            let result = this.questions[this.displayBadgeData.context_code][badgeId]
             return result;
         },
         displayImportResult() {

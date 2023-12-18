@@ -9,73 +9,77 @@
                     :actions="listActions"
                     :footerActions="listFooterActions"
                     @edit="editUser"
-                    @create="createUser" />
+                    @create="createUser" >
+                    
+                    <template v-slot:[`item.username`]="{ item }">
+                        <v-tooltip right>
+                            <template v-slot:activator="{ on, attrs }">
+                                <span v-bind="attrs"
+                                      v-on="on">
+                                    <div :class="{'font-weight-black': item.IsGlobalAdmin, 'font-italic':!item.HasPermsForEvent && !item.IsGlobalAdmin}">
+                                        {{item.username}}
+                                    </div>                                     
+                                </span>
+                            </template>
+                            {{item.IsGlobalAdmin ? 'Global Administrator.' :'' }}
+                            {{!item.HasPermsForEvent && !item.IsGlobalAdmin ?'Doesn\'t have permissions for this event.':'Has permissions for this event.' }}
+                        </v-tooltip>
+                    </template>
+                </simpleList>
 
-        <v-dialog v-model="uEdit">
+        <v-dialog v-model="uEdit"
+                  scrollable>
             <v-card tile
                     v-if="uEdit">
-
-                <v-toolbar dark
-                           flat
-                           color="primary">
-                    <v-btn icon
-                           dark
-                           @click="uEdit = false">
-                        <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                    <v-toolbar-title>Edit User</v-toolbar-title>
+                <v-card-title class="headline">Edit User</v-card-title>
+                <v-divider></v-divider>
+                <v-card-text>
+                    <v-expansion-panels>
+                        <v-expansion-panel>
+                            <v-expansion-panel-header>
+                                <v-list-item-title>{{uSelected.contact.real_name}}</v-list-item-title>
+                                <v-list-item-subtitle>{{uSelected.contact.email_address}}</v-list-item-subtitle>
+                            </v-expansion-panel-header>
+                            <v-expansion-panel-content>
+                                <profileForm v-model="uSelected.contact"
+                                            readonly />
+                            </v-expansion-panel-content>
+                        </v-expansion-panel>
+                    </v-expansion-panels>
+                    <editAdminUser v-model="uSelected" />
+                </v-card-text>
+                <v-divider></v-divider>
+                <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-toolbar-items>
-                        <v-btn dark
-                               text
-                               @click="saveUser">
-                            Save
-                        </v-btn>
-                    </v-toolbar-items>
-                </v-toolbar>
-                <v-expansion-panels>
-                    <v-expansion-panel>
-                        <v-expansion-panel-header>
-                            <v-list-item-title>{{uSelected.contact.real_name}}</v-list-item-title>
-                            <v-list-item-subtitle>{{uSelected.contact.email_address}}</v-list-item-subtitle>
-                        </v-expansion-panel-header>
-                        <v-expansion-panel-content>
-                            <profileForm v-model="uSelected.contact"
-                                         readonly />
-                        </v-expansion-panel-content>
-                    </v-expansion-panel>
-                </v-expansion-panels>
-                <editAdminUser v-model="uSelected" />
+                    <v-btn color="default"
+                           @click="uEdit = false">Cancel</v-btn>
+                    <v-btn color="primary"
+                           @click="saveUser">Save</v-btn>
+                </v-card-actions>
             </v-card>
         </v-dialog>
 
-        <v-dialog v-model="uCreate">
+        <v-dialog v-model="uCreate"
+                  scrollable>
             <v-card tile>
-
-                <v-toolbar dark
-                           flat
-                           color="primary">
-                    <v-btn icon
-                           dark
-                           @click="uCreate = false">
-                        <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                    <v-toolbar-title>Create User</v-toolbar-title>
+                <v-card-title class="headline">Create User</v-card-title>
+                <v-divider></v-divider>
+                <v-card-text>
+                    <simpleDropdown apiPath="Contact"
+                                    valueDisplay="real_name"
+                                    valueSubDisplay="email_address"
+                                    label="Search contacts"
+                                    v-model="uNew_contact_id" />
+                    <editAdminUser v-model="uSelected" />
+                </v-card-text>
+                <v-divider></v-divider>
+                <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-toolbar-items>
-                        <v-btn dark
-                               text
-                               @click="saveUser">
-                            Save
-                        </v-btn>
-                    </v-toolbar-items>
-                </v-toolbar>
-                <simpleDropdown apiPath="Contact"
-                                valueDisplay="real_name"
-                                valueSubDisplay="email_address"
-                                label="Search contacts"
-                                v-model="uNew_contact_id" />
-                <editAdminUser v-model="uSelected" />
+                    <v-btn color="default"
+                           @click="uCreate = false">Cancel</v-btn>
+                    <v-btn color="primary"
+                           @click="saveUser">Save</v-btn>
+                </v-card-actions>
             </v-card>
         </v-dialog>
     </v-tab-item>

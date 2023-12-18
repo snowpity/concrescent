@@ -1,6 +1,7 @@
 <?php
 
 namespace CM3_Lib\util;
+use MessagePack\BufferUnpacker;
 
 use CM3_Lib\util\EventPermissions;
 
@@ -13,6 +14,27 @@ class CurrentUserInfo
     ) {
         $this->perms = new EventPermissions();
     }
+
+    public function fromToken(string $token){
+
+            //Load up the unpacker
+            $unpacker = (new BufferUnpacker())
+                ->extendWith(new EventPermissions());
+            $unpacker->reset($token);
+
+            //Get the Contact ID first
+            $this->contact_id = $unpacker->unpack();
+            //And their selected event ID
+            $this->event_id = $unpacker->unpack();
+
+            $this->perms = new EventPermissions();
+            //Does this token have permissions?
+            if ($unpacker->hasRemaining()) {
+                //Ooh, has admin permissions! Decode that...
+                $this->perms = $unpacker->unpack();
+            }
+    }
+
     private $event_id = 0;
     public function SetEventId($event_id)
     {

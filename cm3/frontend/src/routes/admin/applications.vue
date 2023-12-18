@@ -191,15 +191,17 @@
                        @create="createBadgeType" />
 
         <v-dialog v-model="btDialog"
-                  persistent>
+                  scrollable>
 
             <v-card>
                 <v-card-title class="headline">Edit Badge Type</v-card-title>
+                <v-divider></v-divider>
                 <v-card-text>
 
                     <badgeTypeForm v-model="btSelected"
                                    isGroup />
                 </v-card-text>
+                <v-divider></v-divider>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="default"
@@ -235,10 +237,12 @@
 
             <v-card>
                 <v-card-title class="headline">Edit Promo Code</v-card-title>
+                <v-divider></v-divider>
                 <v-card-text>
                     <promoCodeForm v-model="pSelected"
                                    :badge_types="contextBadges" />
                 </v-card-text>
+                <v-divider></v-divider>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="default"
@@ -252,12 +256,13 @@
 
     <v-tab-item value="5">
 
-        <simpleList :apiPath="'Application/' + context_code +'/Addon'"
+        <orderableList :apiPath="'Application/' + context_code +'/Addon'"
                     :isEditingItem="aEdit"
                     :AddHeaders="aAddHeaders"
                     :actions="btActions"
                     :footerActions="btFooterActions"
                     show-expand
+                    internalKey="id"
                     @edit="editAddon"
                     @create="createAddon">
 
@@ -293,16 +298,18 @@
                     </v-container>
                 </td>
             </template>
-        </simpleList>
+        </orderableList>
         <v-dialog v-model="aEdit"
                   scrollable>
 
             <v-card>
                 <v-card-title class="headline">Edit Addon</v-card-title>
+                <v-divider></v-divider>
                 <v-card-text>
                     <addonTypeForm v-model="aSelected"
                                    :badge_types="contextBadges" />
                 </v-card-text>
+                <v-divider></v-divider>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="default"

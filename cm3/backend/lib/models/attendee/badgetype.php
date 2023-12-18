@@ -6,6 +6,7 @@ use CM3_Lib\database\Column as cm_Column;
 
 class badgetype extends \CM3_Lib\database\Table
 {
+    use \CM3_Lib\database\orderableTrait;
     protected function setupTableDefinitions(): void
     {
         $this->TableName = 'Attendee_Badge_Types';
@@ -34,6 +35,10 @@ class badgetype extends \CM3_Lib\database\Table
         $this->IndexDefs = array();
         $this->PrimaryKeys = array('id'=>false);
         $this->DefaultSearchColumns = array('id','active','display_order','name','price','quantity','dates_available');
+
+        //OrderableTrait defs
+        $this->orderColumn = 'display_order';
+        $this->orderGroupColumns = ['event_id'];
     }
 
     public function verifyBadgeTypeBelongsToEvent(int $id, int $event_id)
