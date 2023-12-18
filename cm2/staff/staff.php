@@ -1,5 +1,7 @@
 <?php
 
+use JetBrains\PhpStorm\NoReturn;
+
 session_name('PHPSESSID_CMAPPLYSTAFF');
 session_start();
 
@@ -75,6 +77,7 @@ function cm_app_tail() {
 	echo '</html>';
 }
 
+#[NoReturn]
 function cm_app_closed() {
 	global $event_name, $contact_address;
 	cm_app_head('Staff Applications Closed');
@@ -99,6 +102,7 @@ function cm_app_closed() {
 	exit(0);
 }
 
+#[NoReturn]
 function cm_app_message($title, $custom_text_name, $default_text, $fields = null) {
 	global $event_name, $fdb, $contact_address;
 	cm_app_head($title);

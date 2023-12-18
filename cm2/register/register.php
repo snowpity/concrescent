@@ -1,5 +1,7 @@
 <?php
 
+use JetBrains\PhpStorm\NoReturn;
+
 session_name('PHPSESSID_CMREG');
 session_start();
 
@@ -419,6 +421,7 @@ function cm_reg_tail() {
 	echo '</html>';
 }
 
+#[NoReturn]
 function cm_reg_closed() {
 	global $event_name, $contact_address;
 	cm_reg_head('Registration Closed');
@@ -443,6 +446,7 @@ function cm_reg_closed() {
 	exit(0);
 }
 
+#[NoReturn]
 function cm_reg_message($title, $custom_text_name, $default_text, $fields = null) {
 	global $event_name, $fdb, $contact_address;
 	cm_reg_head($title);

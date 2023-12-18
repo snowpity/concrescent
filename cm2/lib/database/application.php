@@ -1,5 +1,7 @@
 <?php
 
+use JetBrains\PhpStorm\NoReturn;
+
 require_once __DIR__ .'/../../config/config.php';
 require_once __DIR__ .'/../util/util.php';
 require_once __DIR__ .'/../util/res.php';
@@ -414,6 +416,7 @@ class cm_application_db {
 		return true;
 	}
 
+	#[NoReturn]
 	public function download_rooms_and_tables() {
 		header('Content-Type: text/csv');
 		header('Content-Disposition: attachment; filename=rooms-and-tables.csv');

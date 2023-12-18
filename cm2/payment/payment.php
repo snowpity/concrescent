@@ -1,5 +1,7 @@
 <?php
 
+use JetBrains\PhpStorm\NoReturn;
+
 session_name('PHPSESSID_CMPAY');
 session_start();
 
@@ -61,6 +63,7 @@ function cm_payment_tail() {
 	echo '</html>';
 }
 
+#[NoReturn]
 function cm_payment_message($title, $text) {
 	cm_payment_head($title);
 	cm_payment_body($title);

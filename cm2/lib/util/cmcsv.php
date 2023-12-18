@@ -1,5 +1,7 @@
 <?php
 
+use JetBrains\PhpStorm\NoReturn;
+
 function cm_form_questions_to_csv_columns($questions) {
 	$columns = array();
 	$ignored_question_types = array('h1', 'h2', 'h3', 'p', 'q', 'hr');
@@ -15,6 +17,7 @@ function cm_form_questions_to_csv_columns($questions) {
 	return $columns;
 }
 
+#[NoReturn]
 function cm_output_csv(&$columns, &$entities, $filename) {
 	header('Content-Type: text/csv');
 	header('Content-Disposition: attachment; filename=' . $filename);

@@ -1,5 +1,7 @@
 <?php
 
+use JetBrains\PhpStorm\NoReturn;
+
 require_once __DIR__ .'/../config/config.php';
 
 $context = (isset($_GET['c']) ? trim($_GET['c']) : null);
@@ -91,6 +93,7 @@ function cm_app_tail() {
 	echo '</html>';
 }
 
+#[NoReturn]
 function cm_app_closed() {
 	global $ctx_name, $event_name, $contact_address;
 	cm_app_head($ctx_name . ' Applications Closed');
@@ -116,6 +119,7 @@ function cm_app_closed() {
 	exit(0);
 }
 
+#[NoReturn]
 function cm_app_message($title, $custom_text_name, $default_text, $fields = null) {
 	global $ctx_lc, $ctx_name, $ctx_name_lc, $event_name, $fdb, $contact_address;
 	cm_app_head($title);

@@ -1,5 +1,7 @@
 <?php
 
+use JetBrains\PhpStorm\NoReturn;
+
 require_once __DIR__ .'/../../config/config.php';
 require_once __DIR__ .'/../../lib/database/badge-artwork.php';
 require_once __DIR__ .'/../../lib/database/badge-holder.php';
@@ -14,6 +16,7 @@ function get_config($p, $g, $c, $k) {
 	return false;
 }
 
+#[NoReturn]
 function print_error($h, $p) {
 	echo '<!DOCTYPE HTML>';
 	echo '<html>';
