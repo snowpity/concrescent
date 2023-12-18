@@ -2,15 +2,15 @@
 defaults
 auth           on
 tls            on
-tls_trust_file /etc/ssl/certs/ca-certificates.crt
 syslog         on
+tls_fingerprint C5:0B:2A:ED:3D:DB:06:7C:26:75:C3:79:84:4C:19:0E:4C:55:A1:88:5D:E2:27:76:22:49:CC:0D:78:8B:64:D1
 
 # Mail Account
 # For configuration settings, see
 # https://wiki.archlinux.org/title/msmtp#Basic_setup
 account        defaultaccount
-host           smtp.example.com
-port           587
+host           mail
+port           1025
 from           from@example.com
 user           username
 password       password

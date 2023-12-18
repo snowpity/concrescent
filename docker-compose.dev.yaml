@@ -37,3 +37,19 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5s
+  mail:
+    image: axllent/mailpit:v1.11
+    restart: unless-stopped
+    ports:
+    - "8025:8025"
+    environment:
+      TZ: ${TZ}
+      MP_MAX_MESSAGES: 5000
+      MP_DATA_FILE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_TLS_CERT: /srv/cert/mailpit.crt
+      MP_SMTP_TLS_KEY: /srv/cert/mailpit.key
+    volumes:
+    - ./var/mailpit:/data
+    - ./config/mailpit-certs:/srv/cert
+
