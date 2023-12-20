@@ -338,18 +338,30 @@ if (isset($_GET['return'])) {
 
 	//retrieve the badges associated
 	$attendee_list = $atdb->list_attendees($group_uuid, NULL);
-	$attendee_ids = array();
+	$attendee_ids = [];
+	$attendeeWithPaymentCompleted = null;
 	foreach ($attendee_list as $attendee) {
 		//Check that this attendee is the one we're actively targeting
-		if($attendee['payment-status'] == 'Incomplete'
-		&& (strpos($attendee['payment-details'], $payment_id) > -1 || $attendee['payment-txn-id'] == $transaction_id)
-		){
-			$attendee_ids[] = $attendee['id'];
+		if(str_contains($attendee['payment-details'], $payment_id) || $attendee['payment-txn-id'] == $transaction_id)
+		{
+			if($attendee['payment-status'] === 'Incomplete') {
+				$attendee_ids[] = $attendee['id'];
+			} elseif($attendee['payment-status'] === 'Completed') {
+				$attendeeWithPaymentCompleted = new class(
+					$attendee['payment-group-uuid'],
+					$attendee['payment-txn-id']
+				) {
+					public function __construct(public string $gid, public string $tid) {}
+				};
+			}
 		}
 	}
 
-	if(count($attendee_ids) <= 0)
+	if(empty($attendee_ids))
 	{
+		if ($attendeeWithPaymentCompleted) {
+			header("Location: /register/review.php?gid=$attendeeWithPaymentCompleted->gid&tid=$attendeeWithPaymentCompleted->tid");
+		}
 		die("Error: Unexpectedly retrieved no badges");
 	}
 
