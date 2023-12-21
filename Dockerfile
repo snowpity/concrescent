@@ -54,7 +54,6 @@ RUN cd /var/www \
     && composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
 # Copy concrescent over to the image so the image is standalone.
-COPY --chown=nobody ./vendor /var/www/vendor
 COPY --chown=nobody ./templates /var/www/templates
 COPY --chown=nobody ./cm2 /var/www/html
 
