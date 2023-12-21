@@ -191,20 +191,13 @@ if (!$_GET) {
 		}
 		cm_reg_cart_destroy();
 
-		if(!isLegacy())
-		{
-			//Redirect back to the webapp, myBadges route
-			header('Location: ' . $site_url . '/#redirect?route=myBadges&result=success&gid=' . $group_uuid . "&tid=" . $transaction_id);
-		} else {
-			cm_reg_message(
-				'Payment Complete',
-				'payment-complete',
-				'Your payment has been accepted.<br><br>'.
-				'You can <b><a href="[[review-link]]">review your order</a></b> at any time.',
-				$attendee
-			);
-		}
-		exit(0);
+		cm_reg_message(
+			'Payment Complete',
+			'payment-complete',
+			'Your payment has been accepted.<br><br>'.
+			'You can <b><a href="[[review-link]]">review your order</a></b> at any time.',
+			$attendee
+		);
 	}
 
 	if ($_SESSION['payment_method'] == 'cash') {
@@ -216,20 +209,13 @@ if (!$_GET) {
 		}
 		cm_reg_cart_destroy();
 
-		if(!isLegacy())
-		{
-			//Redirect back to the webapp, myBadges route
-			header('Location: ' . $site_url . '/#redirect?route=myBadges&result=success&gid=' . $group_uuid . "&tid=" . $transaction_id);
-		} else {
-			cm_reg_message(
-				'Registration Complete',
-				'registration-complete',
-				'Your registration has been submitted. You will need to pay at the door.<br><br>'.
-				'You can <b><a href="[[review-link]]">review your order</a></b> at any time.',
-				$attendee
-			);
-		}
-		exit(0);
+		cm_reg_message(
+			'Registration Complete',
+			'registration-complete',
+			'Your registration has been submitted. You will need to pay at the door.<br><br>'.
+			'You can <b><a href="[[review-link]]">review your order</a></b> at any time.',
+			$attendee
+		);
 	}
 
 	if ($_SESSION['payment_method'] == 'paypal') {
@@ -391,21 +377,13 @@ if (isset($_GET['return'])) {
 		}
 		cm_reg_cart_destroy();
 
-		if(!isLegacy())
-		{
-		 //Redirect back to the webapp, myBadges route
-		 header('Location: ' . $site_url . '/#redirect?route=myBadges&result=success&gid=' . $group_uuid . "&tid=" . $transaction_id);
-
-		} else {
-				cm_reg_message(
-					'Payment Complete',
-					'payment-complete',
-					'Your payment has been accepted.<br><br>'.
-					'You can <b><a href="[[review-link]]">review your order</a></b> at any time.',
-					$attendee
-				);
-		}
-		exit(0);
+		cm_reg_message(
+			'Payment Complete',
+			'payment-complete',
+			'Your payment has been accepted.<br><br>'.
+			'You can <b><a href="[[review-link]]">review your order</a></b> at any time.',
+			$attendee
+		);
 	} else {
 		foreach ($attendee_ids as $id) {
 			$pay_status = ''; $pay_type = ''; $pay_txn = ''; $pay_details = '';
@@ -417,21 +395,14 @@ if (isset($_GET['return'])) {
 		}
 		cm_reg_cart_destroy();
 
-		if(isLegacy())
-		{
-			cm_reg_message(
-				'Payment Refused',
-				'payment-refused',
-				'PayPal has refused this transaction.<br><br>'.
-				'PayPal says: [[payment-txn-msg]]<br><br>'.
-				'Unfortunately, that is all we know. Please try again later.',
-				array_merge($attendee, array('payment-txn-msg' => $sale['message']))
-			);
-		} else {
-			//Redirect back to the webapp, myBadges route
-			header('Location: ' . $site_url . '/#redirect?route=myBadges&result=refused&gid=' . $group_uuid . "&tid=" . $transaction_id);
-		}
-		exit(0);
+		cm_reg_message(
+			'Payment Refused',
+			'payment-refused',
+			'PayPal has refused this transaction.<br><br>'.
+			'PayPal says: [[payment-txn-msg]]<br><br>'.
+			'Unfortunately, that is all we know. Please try again later.',
+			array_merge($attendee, array('payment-txn-msg' => $sale['message']))
+		);
 	}
 }
 
@@ -456,7 +427,6 @@ if (isset($_GET['cancel'])) {
 		'You have cancelled your payment.',
 		$attendee
 	);
-	exit(0);
 }
 
 header('Location: index.php');

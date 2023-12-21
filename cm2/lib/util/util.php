@@ -336,25 +336,3 @@ if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
 	$_SERVER['IS_AJAX'] = true;
 }
 
-//Are we in Legacy mode?
-function isLegacy() {
-	return isset($_COOKIE['L']);
-}
-function setLegacyMode($newmode) {
-	if(isLegacy() && !$newmode){
-			setcookie("L","F",time()-1,"/");
-			//Immediately apply
-			unset($_COOKIE['L']);
-	}
-	elseif(!isLegacy() && $newmode){
-		setcookie("L","T",time()+2*60*60,"/"); //Two hours
-		$_COOKIE['L'] = 1;
-	}
-
-}
-
-//Are we setting legacy
-if(isset($_GET['legacy']))
-{
-	setLegacyMode($_GET['legacy'] == 'true');
-}

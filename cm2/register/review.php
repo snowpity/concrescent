@@ -11,13 +11,6 @@ if (!$gid || !$tid) {
 	exit(0);
 }
 
-if(!isLegacy())
-{
-	//Redirect back to the webapp, myBadges route
-	header('Location: ' . get_site_url(true) . '/#redirect?route=myBadges&gid=' . $gid . '&tid=' . $tid);
-	exit(0);
-}
-
 $items = $atdb->list_attendees($gid, $tid, $name_map, $fdb);
 if (!$items) {
 	header('Location: index.php');
