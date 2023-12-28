@@ -123,7 +123,7 @@
                                         <v-icon>mdi-printer-eye</v-icon>
                             </v-btn>
                         </template>
-                        <span>Load Preview Data</span>
+                        <span>Print</span>
                     </v-tooltip>
             </v-card>
         </div>

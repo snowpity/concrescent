@@ -15,6 +15,7 @@
     "@mdi/font": "^7.2.96",
     "axios": "^0.26.1",
     "css-loader": "^6",
+    "export-from-json": "^1.7.3",
     "json-editor-vue": "^0.10.5",
     "vanilla-jsoneditor": "^0.11.5",
     "vue": "^2",

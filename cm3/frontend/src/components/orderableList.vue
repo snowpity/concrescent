@@ -38,6 +38,73 @@
                :color="action.color"
                @click="doEmit(action.name)"
                class="ma-2">{{action.text}}</v-btn>
+        <v-spacer/>
+        <v-dialog
+            v-model="isExporting"
+            scrollable
+            max-width="500"
+            persistent
+        >
+            <template v-slot:activator="{ on, attrs }">
+            <v-btn v-if="showExport"
+                color="blue lighten-2"
+                dark
+                v-bind="attrs"
+                v-on="on"
+                class="ma-2"
+            >
+                Export
+            </v-btn>
+            </template>
+
+            <v-card>
+                <v-card-title class="headline">Export List</v-card-title>
+                <v-divider></v-divider>
+                <v-card-text>
+                <v-container>
+                    <v-row>
+                        <v-col
+                        cols="12"
+                        sm="8">
+                        <p>Format</p>
+
+                        <v-btn-toggle v-model="optionExportFormat">
+                            <v-btn value="json">
+                            JSON
+                            </v-btn>
+                            <v-btn value="csv">
+                            CSV
+                            </v-btn>
+                            <v-btn value="xls">
+                            XLS (HTML)
+                            </v-btn>
+                            </v-btn-toggle>
+                        </v-col>
+                        <v-col
+                        cols="12"
+                        sm="4">
+                        <p>Internal Header names</p>
+
+                        <v-switch
+                            v-model="optionExportRawHeaders"
+                            ></v-switch>
+                        </v-col>
+                </v-row>
+                </v-container>
+                </v-card-text>
+
+                <v-divider></v-divider>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="default"
+                            @click="isExporting = false">Cancel</v-btn>
+                    <v-btn color="primary"
+                            :loading="loading"
+                            @click="doExport">Export!</v-btn>
+                </v-card-actions>
+
+            </v-card>
+        </v-dialog>
     </template>
     <!--courtesy https://gist.github.com/loilo/73c55ed04917ecf5d682ec70a2a1b8e2 -->
     <slot v-for="(_, name) in $slots"
@@ -57,6 +124,7 @@ import admin from '../api/admin';
 import {
     debounce
 } from '@/plugins/debounce';
+import exportFromJSON from 'export-from-json';
 export default {
     components: {},
     props: {
@@ -118,14 +186,20 @@ export default {
         'showExpand': {
             type: Boolean
         },
+        'showExport':{
+            type: Boolean
+        },
     },
     data() {
         return {
             searchText: this.search || '',
             loading: false,
+            isExporting:false,
             tableOptions: {},
             tableResults: [],
             totalResults: 0,
+            optionExportFormat:'csv',
+            optionExportRawHeaders: false,
         };
     },
     computed: {
@@ -147,6 +221,22 @@ export default {
                 result.push(result.splice(actionsIx, 1)[0]);
             return result;
         },
+        pageOptionsForGet: function(){
+            const pageOptions = [
+                'sortBy',
+                'sortDesc',
+                'page',
+                'itemsPerPage'
+            ].reduce((a, e) => (a[e] = this.tableOptions[e], a),  {...this.apiAddParams});
+            if (this.searchText) pageOptions['find'] = this.searchText;
+            if (this.context_code) pageOptions['context_code'] = this.context_code;
+            //If exporting, force pagination to all
+            if(this.isExporting) {
+                pageOptions['itemsPerPage'] = -1;
+                pageOptions['page'] = 1;
+            }
+            return pageOptions;
+        },
         isSorting() {
             return this.tableOptions.sortBy.length > 0;
         },
@@ -155,19 +245,30 @@ export default {
 
         doSearch: function() {
             this.loading = true;
-            const pageOptions = [
-                'sortBy',
-                'sortDesc',
-                'page',
-                'itemsPerPage'
-            ].reduce((a, e) => (a[e] = this.tableOptions[e], a), {...this.apiAddParams});
-            if (this.searchText) pageOptions['find'] = this.searchText;
-            if (this.context_code) pageOptions['context_code'] = this.context_code;
-            admin.genericGetList(this.authToken, this.apiPath, pageOptions, (results, total) => {
+            admin.genericGetList(this.authToken, this.apiPath, this.pageOptionsForGet, (results, total) => {
                 this.tableResults = results;
                 this.totalResults = total;
                 this.loading = false;
             })
+        },
+        doExport: function() {
+            this.loading = true;
+            console.log('doSearch pageOptions', this.pageOptionsForGet);
+            admin.genericGetList(this.authToken, this.apiPath, this.pageOptionsForGet, (results, total) => {
+                this.loading = false;
+                
+                const fileName = 'Export';
+                const exportType =  this.optionExportFormat;
+                if(!this.optionExportRawHeaders){
+                    results = this.makeHeadersPretty(results);
+                }
+                exportFromJSON({
+                    data:results,
+                    fileName,
+                    exportType,
+                    withBOM:true
+                    });
+            })            
         },
         doEmit: function(eventName, item) {
             this.$emit(eventName, item);
@@ -196,6 +297,24 @@ export default {
                     this.loading = false;
                 }
             })
+        },
+        makeHeadersPretty(input) {
+            if (typeof input !== 'object') return input;
+            if (Array.isArray(input)) return input.map(this.makeHeadersPretty,this);
+            var that = this;
+            return Object.keys(input).reduce(function (newObj, key) {
+                let val = input[key];
+                let newVal = (typeof val === 'object') && val !== null ? that.makeHeadersPretty.call(that,val) : val;
+                //find new key
+                var newKeyObj = that.headers.find((header) => {
+                    if (header==key) return true;
+                    if(header.value == key) return true;
+                })
+                if(typeof newKeyObj == 'string') newKeyObj = {value:newKeyObj, text:newKeyObj};
+                if(typeof newKeyObj == 'undefined') newKeyObj = {value:key, text:key};
+                newObj[newKeyObj.text] = newVal;
+                return newObj;
+            }, {});
         }
     },
     watch: {

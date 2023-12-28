@@ -8,6 +8,7 @@
                          :RemoveHeaders="listRemoveHeaders"
                          :isEditingItem="bEdit || bPrint"
                          :actions="listActions"
+                         showExport
                          @edit="editBadge" />
 
     </v-tab-item>

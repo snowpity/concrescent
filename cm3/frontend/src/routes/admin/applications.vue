@@ -15,6 +15,7 @@
                              }"
                          :AddHeaders="listAddHeaders"
                          :RemoveHeaders="listRemoveHeaders"
+                         showExport
                          :isEditingItem="sEdit"
                          :actions="listActions"
                          @edit="editSubmission">

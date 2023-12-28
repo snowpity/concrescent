@@ -8,7 +8,12 @@
               :items="tableResults"
               :item-key="internalKey"
               class="elevation-1 fill-height"
-              :show-expand='showExpand'>
+              :show-expand='showExpand'
+              :disabled="isExporting"
+              :footer-props="{
+                itemsPerPageOptions: [5,10,15,25,50,100,-1]
+                }"
+              >
 
     <template v-slot:top="">
         <v-container fluid>
@@ -171,6 +176,74 @@
                :color="action.color"
                @click="doEmit(action.name)"
                class="ma-2">{{action.text}}</v-btn>
+        <v-spacer/>
+            <v-dialog
+                v-model="isExporting"
+                scrollable
+                max-width="500"
+                persistent
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn v-if="showExport"
+                  color="blue lighten-2"
+                  dark
+                  v-bind="attrs"
+                  v-on="on"
+                  class="ma-2"
+                >
+                  Export
+                </v-btn>
+              </template>
+
+              <v-card>
+                    <v-card-title class="headline">Export List</v-card-title>
+                    <v-divider></v-divider>
+                    <v-card-text>
+                    <v-container>
+                        <v-row>
+                            <v-col
+                            cols="12"
+                            sm="8">
+                            <p>Format</p>
+
+                            <v-btn-toggle v-model="optionExportFormat">
+                                <v-btn value="json">
+                                JSON
+                                </v-btn>
+                                <v-btn value="csv">
+                                CSV
+                                </v-btn>
+                                <v-btn value="xls">
+                                XLS (HTML)
+                                </v-btn>
+                                </v-btn-toggle>
+                            </v-col>
+                            <v-col
+                            cols="12"
+                            sm="4">
+                            <p>Internal Header names</p>
+
+                            <v-switch
+                                v-model="optionExportRawHeaders"
+                                ></v-switch>
+                            </v-col>
+                    </v-row>
+                    </v-container>
+                    </v-card-text>
+
+                    <v-divider></v-divider>
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn color="default"
+                               @click="isExporting = false">Cancel</v-btn>
+                        <v-btn color="primary"
+                                :loading="loading"
+                               @click="doExport">Export!</v-btn>
+                    </v-card-actions>
+
+              </v-card>
+            </v-dialog>
+               
     </template>
     <!--courtesy https://gist.github.com/loilo/73c55ed04917ecf5d682ec70a2a1b8e2 -->
     <slot v-for="(_, name) in $slots"
@@ -190,6 +263,7 @@ import admin from '../api/admin';
 import {
     debounce
 } from '@/plugins/debounce';
+import exportFromJSON from 'export-from-json';
 export default {
     components: {},
     props: {
@@ -263,6 +337,9 @@ export default {
         'showExpand': {
             type: Boolean
         },
+        'showExport':{
+            type: Boolean
+        },
         'dense': {
             type: Boolean
         },
@@ -272,11 +349,15 @@ export default {
             searchText: this.search,
             loading: false,
             showConfig: false,
+            isExporting:false,
             tableOptions: {},
             tableResults: [],
             totalResults: 0,
             questions: [],
             displayedQuestions: [],
+
+            optionExportFormat:'csv',
+            optionExportRawHeaders: false,
 
             //TEMP: Until Payment_Status is in its own component
             paymentStatusIcon: {
@@ -384,13 +465,8 @@ export default {
             if (actionsIx > -1)
                 result.push(result.splice(actionsIx, 1)[0]);
             return result;
-        }
-    },
-    methods: {
-
-        doSearch: function() {
-            this.loading = true;
-            console.log('doSearch apiAddParams', this.apiAddParams);
+        },
+        pageOptionsForGet: function(){
             const pageOptions = [
                 'sortBy',
                 'sortDesc',
@@ -400,8 +476,20 @@ export default {
             if (this.displayedQuestions.length) pageOptions['questions'] = this.displayedQuestions.map(x => x.id).join(',');
             if (this.searchText) pageOptions['find'] = this.searchText;
             if (this.context_code) pageOptions['context_code'] = this.context_code;
-            console.log('doSearch pageOptions', pageOptions);
-            admin.genericGetList(this.authToken, this.apiPath, pageOptions, (results, total) => {
+            //If exporting, force pagination to all
+            if(this.isExporting) {
+                pageOptions['itemsPerPage'] = -1;
+                pageOptions['page'] = 1;
+            }
+            return pageOptions;
+        }
+    },
+    methods: {
+
+        doSearch: function() {
+            this.loading = true;
+            console.log('doSearch pageOptions', this.pageOptionsForGet);
+            admin.genericGetList(this.authToken, this.apiPath, this.pageOptionsForGet, (results, total) => {
                 this.tableResults = results;
                 this.totalResults = total;
                 this.loading = false;
@@ -416,8 +504,26 @@ export default {
                         this.$emit('qrmatch', r);
                     }
                 }
-
             })
+        },
+        doExport: function() {
+            this.loading = true;
+            console.log('doSearch pageOptions', this.pageOptionsForGet);
+            admin.genericGetList(this.authToken, this.apiPath, this.pageOptionsForGet, (results, total) => {
+                this.loading = false;
+                
+                const fileName = 'Export';
+                const exportType =  this.optionExportFormat;
+                if(!this.optionExportRawHeaders){
+                    results = this.makeHeadersPretty(results);
+                }
+                exportFromJSON({
+                    data:results,
+                    fileName,
+                    exportType,
+                    withBOM:true
+                    });
+            })            
         },
         doEmit: function(eventName, item) {
             this.$emit(eventName, item);
@@ -432,6 +538,24 @@ export default {
                 //TODO: Apply personal preferences
                 this.displayedQuestions = initialQuestions;
             })
+        },
+        makeHeadersPretty(input) {
+            if (typeof input !== 'object') return input;
+            if (Array.isArray(input)) return input.map(this.makeHeadersPretty,this);
+            var that = this;
+            return Object.keys(input).reduce(function (newObj, key) {
+                let val = input[key];
+                let newVal = (typeof val === 'object') && val !== null ? that.makeHeadersPretty.call(that,val) : val;
+                //find new key
+                var newKeyObj = that.headers.find((header) => {
+                    if (header==key) return true;
+                    if(header.value == key) return true;
+                })
+                if(typeof newKeyObj == 'string') newKeyObj = {value:newKeyObj, text:newKeyObj};
+                if(typeof newKeyObj == 'undefined') newKeyObj = {value:key, text:key};
+                newObj[newKeyObj.text] = newVal;
+                return newObj;
+            }, {});
         }
     },
     watch: {
@@ -445,7 +569,7 @@ export default {
         }, 500),
         displayedQuestions: debounce(function(newSearch) {
             this.doSearch();
-        }, 500),
+        }, 2500),
         isEditingItem: debounce(function(newEditing) {
             if (!newEditing)
                 this.doSearch();
