@@ -512,11 +512,19 @@ export default {
             admin.genericGetList(this.authToken, this.apiPath, this.pageOptionsForGet, (results, total) => {
                 this.loading = false;
                 
+                //TODO: auto-generate name from context info?
                 const fileName = 'Export';
                 const exportType =  this.optionExportFormat;
                 if(!this.optionExportRawHeaders){
                     results = this.makeHeadersPretty(results);
                 }
+                // Iterate through the results and replace explicit null values with an empty string
+                results = results.map(obj => {
+                    return Object.fromEntries(
+                        Object.entries(obj).map(([key, value]) => [key, value === null ? '' : value])
+                    );
+                });
+
                 exportFromJSON({
                     data:results,
                     fileName,

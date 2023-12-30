@@ -262,6 +262,12 @@ export default {
                 if(!this.optionExportRawHeaders){
                     results = this.makeHeadersPretty(results);
                 }
+                // Iterate through the results and replace explicit null values with an empty string
+                results = results.map(obj => {
+                    return Object.fromEntries(
+                        Object.entries(obj).map(([key, value]) => [key, value === null ? '' : value])
+                    );
+                });
                 exportFromJSON({
                     data:results,
                     fileName,
