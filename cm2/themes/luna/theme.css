@@ -28,7 +28,7 @@ hr {
 
 header {
 	background: #656cb9;
-	font-family: Georgia;
+	font-family: Georgia, serif;
 	color: white;
 }
 .cm-admin header {

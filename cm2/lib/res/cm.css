@@ -289,10 +289,6 @@ a.button:visited {
 }
 label {
 	-webkit-touch-callout: none;
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
 	user-select: none;
 }
 select {
@@ -358,10 +354,6 @@ select {
 }
 .cm-list-table table .th-sortable {
 	-webkit-touch-callout: none;
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
 	user-select: none;
 	cursor: pointer;
 }
@@ -384,7 +376,7 @@ select {
 .cm-list-table table .th-sort-ascending:after,
 .cm-list-table table .th-sort-descending:after {
 	display: inline-block;
-	font-family: "Apple Symbols", "Segoe UI Symbol", "Lucida Sans Unicode";
+	font-family: "Apple Symbols", "Segoe UI Symbol", "Lucida Sans Unicode", serif;
 	font-size: 14px;
 	line-height: 1px;
 	padding-left: 8px;
@@ -832,10 +824,6 @@ table.cm-cart td:not(.td-actions) {
 	padding: 4px;
 	background: rgba(0, 0, 0, 0.1);
 	-webkit-touch-callout: none;
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
 	user-select: none;
 	cursor: pointer;
 }

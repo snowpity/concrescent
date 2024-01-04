@@ -4,6 +4,7 @@
 /msmtprc
 /.env
 /vendor
+/docker-compose.local.yaml
 
 # Data directories
 /var
