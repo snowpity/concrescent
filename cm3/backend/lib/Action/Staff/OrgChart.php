@@ -72,37 +72,40 @@ final class OrgChart
             ), alias: 'd'),)
         ), [new SearchTerm('active', 1)]);
         $staffView = new View(array(
-            new SelectColumn('position_id'),
-            new SelectColumn('staff_id'),
-            new SelectColumn('display_id', JoinedTableAlias:'s'),
-            new SelectColumn('real_name', JoinedTableAlias:'s'),
-            new SelectColumn('fandom_name', JoinedTableAlias:'s'),
-            new SelectColumn('name_on_badge', JoinedTableAlias:'s'),
-            new SelectColumn('application_status', JoinedTableAlias:'s'),
-            new SelectColumn('application_status', JoinedTableAlias:'s'),
+            new SelectColumn('position_id', JoinedTableAlias:'ap'),
+            new SelectColumn('staff_id', JoinedTableAlias:'ap'),
+            new SelectColumn('display_id'),
+            new SelectColumn('real_name'),
+            new SelectColumn('fandom_name'),
+            new SelectColumn('name_on_badge'),
+            new SelectColumn('application_status'),
+            new SelectColumn('application_status'),
             new SelectColumn('name', Alias:'Position_Name', JoinedTableAlias:'p'),
             new SelectColumn('is_exec', JoinedTableAlias:'p'),
             new SelectColumn('description', Alias:'Position_Description', JoinedTableAlias:'p'),
-            new SelectColumn('onboard_completed'),
-            new SelectColumn('onboard_meta'),
+            new SelectColumn('onboard_completed', JoinedTableAlias:'ap'),
+            new SelectColumn('onboard_meta', JoinedTableAlias:'ap'),
         ), array(
+            //Only badges for the current event
+            new Join($this->s_badge_type, array(
+                'id' => 'badge_type_id',
+                new SearchTerm('event_id', $event_id),
+            ), alias: 'bt'),
+
+            //Get assigned position(s) if any
+            new Join($this->s_assignedposition, array(
+                'staff_id' => 'id',
+            ), 'LEFT', alias: 'ap'),
             //Link the department and position stuff
             new Join($this->s_position, array(
-                'id' => 'position_id',
+                'id' => new SearchTerm('position_id', 'id', JoinedTableAlias:'ap'),
                 new SearchTerm('active', 1),
-            ), alias: 'p'),
+            ), 'LEFT', alias: 'p'),
             new Join($this->s_department, array(
                 'id' => new SearchTerm('department_id', 'id', JoinedTableAlias:'p'),
                 new SearchTerm('event_id', $event_id),
                 new SearchTerm('active', 1),
-            ), alias: 'd'),
-            //And now the staff badge stuff
-            new Join($this->s_badge, array(
-                'id' => 'staff_id',
-                new SearchTerm('application_status', array(
-                    'PendingAcceptance','Onboarding','Active'
-                ), 'IN'),
-            ), alias: 's'),
+            ), 'LEFT', alias: 'd'),
         ));
         //Do we have contact permissions?
         if ($this->CurrentUserInfo->hasEventPerm(PermEvent::Contact_Full)) {
@@ -110,12 +113,34 @@ final class OrgChart
             $staffView->Columns[] = new SelectColumn('phone_number', JoinedTableAlias:'c');
 
             $staffView->Joins[] =new Join($this->contact, array(
-                'id' => new SearchTerm('contact_id', 'id', JoinedTableAlias:'s'),
+                'id' => 'contact_id',
             ), alias: 'c');
         }
         //$this->s_assignedposition->debugThrowBeforeSelect = true;
-        $assignedpositions = $this->s_assignedposition->Search($staffView);
+        $assignedpositions = $this->s_badge->Search($staffView, [            
+            new SearchTerm('application_status', array(
+                'PendingAcceptance','Onboarding','Active'
+            ), 'IN')
+        ]);
 
+        //Add the null department and position
+        $departments[] = [
+            'id' => null,
+            'parent_id' => null,
+            'display_order' => null,
+            'name' => '[[UNASSIGNED]]',
+            "email_primary" =>  "",
+            "email_secondary" =>  "",
+            "description" =>  'Staffer does not have an assigned department!',
+        ];
+        $positions[] = [
+            'id' => null,
+            'department_id' => null,
+            'name' => '[[UNASSIGNED]]',
+            "is_exec" =>  0,
+            "desired_count" =>  0,
+            "description" =>  'Staffer does not have an assigned position!',
+        ];
 
         //First, index the departments
         $departments = array_combine(
@@ -198,9 +223,15 @@ final class OrgChart
                 }
             });
         }
-        // usort($departments, function ($a, $b) {
-        //     return $a["display_order"] <=> $b["display_order"];
-        // });
+        usort($departments, function ($a, $b) {
+            return $a["display_order"] <=> $b["display_order"];
+        });
+        //The UNASSIGNED department and position should now be at the top,
+        //check if it has any children and remove it if it does not
+        if (count($departments[0]['children'][0]['children']) == 0)
+        {
+            unset($departments[0]);
+        }
         //Finally, make out the result
         $result = array_values(array_filter($departments, function ($item) {
             return is_null($item['parent_id']);
