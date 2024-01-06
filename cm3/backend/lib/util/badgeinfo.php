@@ -477,7 +477,7 @@ final class badgeinfo
         }
     }
 
-    public function GetValidTypeIdsForContext($context_code)
+    public function GetValidTypeIdsForContext(string $context_code, bool $only_active = true)
     {
         switch ($context_code) {
             case 'A':
@@ -485,7 +485,7 @@ final class badgeinfo
                     array('id'),
                     array(
                         $this->CurrentUserInfo->EventIdSearchTerm(),
-                        new SearchTerm('active', 1)
+                        $only_active ? new SearchTerm('active', 1) : null
                     )
                 ), 'id');
             case 'S':
@@ -493,7 +493,7 @@ final class badgeinfo
                     array('id'),
                     array(
                         $this->CurrentUserInfo->EventIdSearchTerm(),
-                        new SearchTerm('active', 1)
+                        $only_active ? new SearchTerm('active', 1) : null
                     )
                 ), 'id');
             default:
@@ -509,7 +509,7 @@ final class badgeinfo
                         ))
                     ),
                     array(
-                        new SearchTerm('active', 1),
+                        $only_active ? new SearchTerm('active', 1) : null,
                         new SearchTerm('event_id', $this->CurrentUserInfo->GetEventId(), JoinedTableAlias: 'grp'),
                         new SearchTerm('context_code', $context_code, JoinedTableAlias: 'grp')
                     )
@@ -734,6 +734,7 @@ final class badgeinfo
                 subSearch: array(
                     new SearchTerm('real_name', '%' . $searchText . '%', 'LIKE', 'OR'),
                     new SearchTerm('fandom_name', '%' . $searchText . '%', 'LIKE', 'OR'),
+                    new SearchTerm('email_address', '%' . $searchText . '%', 'LIKE', 'OR', JoinedTableAlias:'con'),
                 )
             ));
         $result = $this->SearchGroupApplications($context, $whereParts, $order, $limit, $offset, $totalRows, false, $includeFormQuestions);
