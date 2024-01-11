@@ -2,7 +2,7 @@
 
 require_once __DIR__ .'/../../lib/database/staff.php';
 require_once __DIR__ .'/../../lib/database/forms.php';
-require_once __DIR__ .'/../../lib/util/cmcsv.php';
+require_once __DIR__ . '/../../lib/util/cmexport.php';
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('staff-csv', 'staff-csv');

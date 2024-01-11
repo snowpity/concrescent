@@ -73,10 +73,10 @@ $cm_admin_nav_attendee = (
 			'permission' => 'attendee-mail'
 		),
 		array(
-			'id' => 'attendee-csv',
-			'href' => '/admin/attendee/csv.php',
-			'name' => 'Attendee CSV Export',
-			'description' => 'Download a CSV file of attendee registration records.',
+			'id' => 'attendee-export',
+			'href' => '/admin/attendee/export.php',
+			'name' => 'Attendee File Export',
+			'description' => 'Download a file of attendee registration records.',
 			'permission' => 'attendee-csv'
 		),
 	)

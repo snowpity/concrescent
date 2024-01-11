@@ -2,8 +2,11 @@
 
 require_once __DIR__ .'/../../lib/database/attendee.php';
 require_once __DIR__ .'/../../lib/database/forms.php';
-require_once __DIR__ .'/../../lib/util/cmcsv.php';
+require_once __DIR__ .'/../../lib/database/misc.php';
+require_once __DIR__ . '/../../lib/util/cmexport.php';
 require_once __DIR__ .'/../admin.php';
+
+global $twig;
 
 cm_admin_check_permission('attendee-csv', 'attendee-csv');
 
@@ -13,7 +16,21 @@ $name_map = $atdb->get_badge_type_name_map();
 $fdb = new cm_forms_db($db, 'attendee');
 $questions = $fdb->list_questions();
 
-if (isset($_POST['download-attendees'])) {
+$miscDb = new cm_misc_db($db);
+
+function extractFromQuestion(string $questionId): string
+{
+	global $miscDb;
+
+	header('Content-Type: application/json');
+	header('Content-Disposition: attachment; filename=export.json');
+	header('Pragma: no-cache');
+	header('Expires: 0');
+	echo json_encode($miscDb->getBadgeTypesFromQuestionAnswer($questionId), JSON_THROW_ON_ERROR);
+	die();
+}
+
+if (isset($_GET['format'])) {
 	$columns = array_merge(
 		array(
 			array('key' => 'id',                       'name' => 'ID',                              'type' => 'int'  ),
@@ -80,26 +97,17 @@ if (isset($_POST['download-attendees'])) {
 			array('key' => 'notes',                    'name' => 'Notes',                           'type' => 'text' ),
 		)
 	);
+
 	$entities = $atdb->list_attendees(null, null, $name_map, $fdb);
-	cm_output_csv($columns, $entities, 'attendees.csv');
+
+	match($_GET['format']) {
+		'CSV' => cm_output_csv($columns, $entities, 'attendees.csv'),
+		'JSON' => cm_output_json($columns, $entities, 'attendees.json'),
+		'EXTRACT' => extractFromQuestion($_GET['question-id']),
+		default => die('Unsupported format.'),
+	};
 }
 
-cm_admin_head('Attendee CSV Export');
-cm_admin_body('Attendee CSV Export');
-cm_admin_nav('attendee-csv');
-
-echo '<article>';
-	echo '<div class="card">';
-		echo '<div class="card-content">';
-			echo '<h3>Attendees:</h3>';
-			echo '<div class="spacing">';
-				echo '<form action="csv.php" method="post">';
-					echo '<input type="submit" name="download-attendees" value="Download Attendees CSV">';
-				echo '</form>';
-			echo '</div>';
-		echo '</div>';
-	echo '</div>';
-echo '</article>';
-
-cm_admin_dialogs();
-cm_admin_tail();
+echo $twig->render('pages/admin/attendee/export.twig', [
+	'questions' => $questions,
+]);

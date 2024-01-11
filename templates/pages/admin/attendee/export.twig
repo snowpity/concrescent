@@ -1,0 +1,38 @@
+{% extends "layouts/admin.twig" %}
+{% set page_id = 'attendee-export' %}
+{% set title = 'Attendee File Export' %}
+
+{% block body %}
+<article>
+	<div class="card">
+		<div class="card-content">
+			<h3>Attendees:</h3>
+			<div class="spacing">
+				<fieldset class="spacing">
+					<legend>Complete export</legend>
+					<form action="/admin/attendee/export.php" method="get">
+						<input type="submit" name="format" value="CSV">
+						<input type="submit" name="format" value="JSON">
+					</form>
+				</fieldset>
+				<br>
+				<fieldset class="spacing">
+					<legend>Extract sponsors</legend>
+					<form action="/admin/attendee/export.php" method="get">
+						<label>
+							Question to extract attendees for :
+							<select name="question-id">
+								{% for q in questions %}
+								<option value="{{ attribute(q, 'question-id') }}">{{ q.title }}</option>
+								{% endfor %}
+							</select>
+						</label>
+						<br>
+						<input type="submit" name="format" value="EXTRACT"/>
+					</form>
+				</fieldset>
+			</div>
+		</div>
+	</div>
+</article>
+{% endblock %}

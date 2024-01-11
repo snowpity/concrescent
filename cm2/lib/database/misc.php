@@ -163,4 +163,24 @@ class cm_misc_db {
 		return $success;
 	}
 
+
+	public function getBadgeTypesFromQuestionAnswer(string $questionId): array
+	{
+		$stmt = $this->cm_db->connection->prepare(
+			'select
+			    mf_attendees.badge_type_id as badge_id,
+			    mf_attendee_badge_types.name as badge_name,
+			    mf_form_answers.answer as answer
+			from mf_attendees
+			inner join mf_form_answers
+			on mf_form_answers.question_id = ? and mf_attendees.id = mf_form_answers.context_id
+			inner join mf_attendee_badge_types
+			on mf_attendees.badge_type_id = mf_attendee_badge_types.id'
+		);
+		$stmt->bind_param('i', $questionId);
+		$stmt->execute();
+		$results = $stmt->get_result();
+		$stmt->close();
+		return $results->fetch_all(MYSQLI_ASSOC);
+	}
 }
