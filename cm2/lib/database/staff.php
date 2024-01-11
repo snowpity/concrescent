@@ -1654,6 +1654,21 @@ class cm_staff_db {
 				$staff_members[$i]['assigned-position-names-s'] = array_column_simple($assigned_positions, 'position-name-s');
 				$staff_members[$i]['assigned-position-names-h'] = array_column_simple($assigned_positions, 'position-name-h');
 				$staff_members[$i]['assigned-positions'] = $assigned_positions;
+			} else {
+				//Not yet assigned a position, make a dummy
+				$staff_members[$i]['assigned-department-id'] = -1;
+				$staff_members[$i]['assigned-department-name'] = '[[UNASSIGNED]]';
+				$staff_members[$i]['assigned-position-id'] = -1;
+				$staff_members[$i]['assigned-position-name'] =  '[[UNASSIGNED]]';
+				$staff_members[$i]['assigned-position-name-s'] =  '[[UNASSIGNED]]';
+				$staff_members[$i]['assigned-position-name-h'] =  '[[UNASSIGNED]]';
+				$staff_members[$i]['assigned-department-ids'] = [-1];
+				$staff_members[$i]['assigned-department-names'] = ['[[UNASSIGNED]]'];
+				$staff_members[$i]['assigned-position-ids'] = [-1];
+				$staff_members[$i]['assigned-position-names'] = ['[[UNASSIGNED]]'];
+				$staff_members[$i]['assigned-position-names-s'] = ['[[UNASSIGNED]]'];
+				$staff_members[$i]['assigned-position-names-h'] = ['[[UNASSIGNED]]'];
+				$staff_members[$i]['assigned-positions'] = [];
 			}
 			$stmt->close();
 

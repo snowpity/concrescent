@@ -7,6 +7,7 @@
                          :AddHeaders="listAddHeaders"
                          :RemoveHeaders="listRemoveHeaders"
                          :isEditingItem="bEdit || bPrint"
+                         showExport
                          :actions="listActions"
                          @edit="editBadge" />
 

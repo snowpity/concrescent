@@ -17,9 +17,7 @@ $departments = $sdb->list_departments();
 $staff = $sdb->list_staff_members();
 $staff = array_filter($staff, function($member) {
 	return (
-		$member['application-status'] == 'Accepted' &&
-		isset($member['assigned-positions']) &&
-		$member['assigned-positions']
+		$member['application-status'] == 'Accepted'
 	);
 });
 usort($staff, function($a, $b) {
@@ -119,6 +117,28 @@ function echo_root() {
 		}
 	}
 	echo_other_departments(0);
+}
+
+//Check if any staff are unassigned
+if(count(array_filter($staff,function($st) {return $st['assigned-department-id'] ===-1;}))){
+	//Yep, add in the dummy department and position!
+	array_unshift($departments , array(
+		'id' => -1,
+		'parent-id' => null,
+		'name' => '[[UNASSIGNED]]',
+		'description' => 'Staff members that have no department',
+		'active' => true,
+		'hierarchy' => array(-1 => '[[UNASSIGNED]]'),
+		'positions' => array(array(
+			'id' => -1,
+			'parent-id' => null,
+			'order' => 1,
+			'name' => '[[UNASSIGNED]]',
+			'description' => 'Staff that have no assigned position',
+			'executive' => false,
+			'active' => true
+		)),
+	));
 }
 
 cm_admin_head('Org Chart');
