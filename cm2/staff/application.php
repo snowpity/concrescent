@@ -50,10 +50,8 @@ if (isset($_POST['submit'])) {
 	else if (strlen($item['phone-number']) < 7) $errors['phone-number'] = 'Phone number is too short.';
 
 	$item['address-1'] = trim($_POST['address-1']);
-	if (!$item['address-1']) $errors['address-1'] = 'Address is required.';
 	$item['address-2'] = trim($_POST['address-2']);
 	$item['city'] = trim($_POST['city']);
-	if (!$item['city']) $errors['city'] = 'City is required.';
 	$item['state'] = trim($_POST['state']);
 	$item['zip-code'] = trim($_POST['zip-code']);
 	$item['country'] = trim($_POST['country']);
