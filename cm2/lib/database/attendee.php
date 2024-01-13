@@ -254,7 +254,7 @@ class cm_attendee_db {
 		return $badge_types;
 	}
 
-	public function list_badge_types($active_only = false, $unsold_only = false, $onsite_only = false, $override_code = '') {
+	public function list_badge_types($active_only = false, $unsold_only = false, $onsite_only = false, $override_code = '', bool $allowFutureBadges = false) {
 		$badge_types = array();
 		$query = (
 			'SELECT b.`id`, b.`order`, b.`name`, b.`description`, b.`rewards`,'.
@@ -264,23 +264,27 @@ class cm_attendee_db {
 			' WHERE a.`badge_type_id` = b.`id` AND a.`payment_status` = \'Completed\') c'.
 			' FROM '.$this->cm_db->table_name('attendee_badge_types').' b'
 		);
-		$first = true;
+		$whereClause = [];
 		if ($active_only) {
-			$query .= (
-				($first ? ' WHERE' : ' AND').' b.`active`'.
-				' AND (b.`start_date` IS NULL OR b.`start_date` <= CURDATE())'.
-				' AND (b.`end_date` IS NULL OR b.`end_date` >= CURDATE())'.
-				' OR (IFNULL(b.`active_override_code`,\'\') = ? )'
-			);
-			$first = false;
-			if($override_code == '')
-				$override_code = 'Todo: Do this properly';
+			$whereClause[] = 'b.`active`';
+			if (!$allowFutureBadges) {
+				$whereClause[] = 'AND (b.`start_date` IS NULL OR b.`start_date` <= CURDATE())';
+			}
+			$whereClause[] = 'AND (b.`end_date` IS NULL OR b.`end_date` >= CURDATE())';
+			$whereClause[] = 'OR (IFNULL(b.`active_override_code`,\'\') = ? )';
 
+			if($override_code === '') {
+				$override_code = 'Todo: Do this properly';
+			}
 		}
 		if ($onsite_only) {
-			$query .= ($first ? ' WHERE' : ' AND').' b.`payable_onsite`';
-			$first = false;
+			$whereClause[] = (empty($whereClause) ? ' ' : 'AND '). 'b.`payable_onsite`';
 		}
+
+		if ($whereClause) {
+			$query .= ' WHERE '. implode(' ', $whereClause);
+		}
+
 		$stmt = $this->cm_db->connection->prepare($query . ' ORDER BY b.`order`');
 		if ($active_only) {
 			$stmt->bind_param(

@@ -93,9 +93,18 @@ function applicant_form($apdb, $i, $applicant, $errors) {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-$active_badge_types = $apdb->list_badge_types(true, false);
 $sellable_badge_types = $apdb->list_badge_types(true, true);
-if (!$sellable_badge_types) cm_app_closed();
+if (!$sellable_badge_types) {
+	$futureBadges = $apdb->list_badge_types(true, true, true);
+	$startDates = array_map(static fn(array $badge): string => ($badge['start-date'] ?? ''), $futureBadges);
+	sort($startDates, SORT_STRING);
+
+	$datetime = null;
+	if ($startDates[0] ?? false) {
+		$datetime = new DateTimeImmutable($startDates[0]);
+	}
+	cm_app_closed($datetime);
+}
 
 $item = array();
 $errors = array();

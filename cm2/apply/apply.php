@@ -94,7 +94,8 @@ function cm_app_tail() {
 }
 
 #[NoReturn]
-function cm_app_closed() {
+function cm_app_closed(?DateTimeImmutable $datetime = null): void
+{
 	global $ctx_name, $event_name, $contact_address;
 	cm_app_head($ctx_name . ' Applications Closed');
 	cm_app_body($ctx_name . ' Applications Closed');
@@ -105,7 +106,12 @@ function cm_app_closed() {
 	echo htmlspecialchars($ctx_name);
 	echo ' applications for <b>';
 	echo htmlspecialchars($event_name);
-	echo '</b> are currently closed.';
+	echo '</b>';
+	if ($datetime) {
+		echo " will open on {$datetime->format('F d, Y')}.";
+	} else {
+		echo ' are currently closed.';
+	}
 	if ($contact_address) {
 		echo ' Please <b><a href="mailto:';
 		echo htmlspecialchars($contact_address);

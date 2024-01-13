@@ -6,7 +6,17 @@ require_once __DIR__ .'/register.php';
 
 $all_badge_types = $atdb->list_badge_types();
 $sellable_badge_types = $atdb->list_badge_types(true, true, $onsite_only, $override_code);
-if (!$sellable_badge_types) cm_reg_closed();
+if (!$sellable_badge_types) {
+	$futureBadges = $atdb->list_badge_types(true, true, $onsite_only, $override_code, true);
+	$startDates = array_map(static fn(array $badge): string => ($badge['start-date'] ?? ''), $futureBadges);
+	sort($startDates, SORT_STRING);
+
+	$datetime = null;
+	if ($startDates[0] ?? false) {
+		$datetime = new DateTimeImmutable($startDates[0]);
+	}
+	cm_reg_closed($datetime);
+}
 
 $all_addons = $atdb->list_addons(false, false, false, $name_map);
 

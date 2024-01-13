@@ -692,7 +692,7 @@ class cm_staff_db {
 		return $badge_types;
 	}
 
-	public function list_badge_types($active_only = false, $unsold_only = false) {
+	public function list_badge_types(bool $active_only = false, bool $unsold_only = false, bool $allowFutureBadges = false): array {
 		$badge_types = array();
 		$query = (
 			'SELECT b.`id`, b.`order`, b.`name`, b.`description`, b.`rewards`,'.
@@ -704,14 +704,11 @@ class cm_staff_db {
 			' WHERE a2.`badge_type_id` = b.`id` AND a2.`payment_status` = \'Completed\') c2'.
 			' FROM '.$this->cm_db->table_name('staff_badge_types').' b'
 		);
-		$first = true;
 		if ($active_only) {
-			$query .= (
-				($first ? ' WHERE' : ' AND').' b.`active`'.
-				' AND (b.`start_date` IS NULL OR b.`start_date` <= CURDATE())'.
-				' AND (b.`end_date` IS NULL OR b.`end_date` >= CURDATE())'
-			);
-			$first = false;
+			$query .= ' WHERE b.`active` AND (b.`end_date` IS NULL OR b.`end_date` >= CURDATE())';
+			if (!$allowFutureBadges) {
+				$query .= ' AND (b.`start_date` IS NULL OR b.`start_date` <= CURDATE())';
+			}
 		}
 		$stmt = $this->cm_db->connection->prepare($query . ' ORDER BY b.`order`');
 		$stmt->execute();

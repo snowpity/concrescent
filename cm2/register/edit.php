@@ -8,7 +8,17 @@ $onsite_only = isset($_COOKIE['onsite_only']) && $_COOKIE['onsite_only'];
 $override_code = $_GET['override_code'] ?? ($_POST['override_code'] ?? '');
 $active_badge_types = $atdb->list_badge_types(true, false, $onsite_only, $override_code);
 $sellable_badge_types = $atdb->list_badge_types(true, true, $onsite_only, $override_code);
-if (!$sellable_badge_types) cm_reg_closed();
+if (!$sellable_badge_types) {
+	$futureBadges = $atdb->list_badge_types(true, true, $onsite_only, $override_code, true);
+	$startDates = array_map(static fn(array $badge): string => ($badge['start-date'] ?? ''), $futureBadges);
+	sort($startDates, SORT_STRING);
+
+	$datetime = null;
+	if ($startDates[0] ?? false) {
+		$datetime = new DateTimeImmutable($startDates[0]);
+	}
+	cm_reg_closed($datetime);
+}
 
 //$active_addons = $atdb->list_addons(true, false, $onsite_only, $name_map);
 $sellable_addons = $atdb->list_addons(true, true, $onsite_only, $name_map);

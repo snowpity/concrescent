@@ -422,7 +422,8 @@ function cm_reg_tail() {
 }
 
 #[NoReturn]
-function cm_reg_closed() {
+function cm_reg_closed(?DateTimeImmutable $datetime = null): void
+{
 	global $event_name, $contact_address;
 	cm_reg_head('Registration Closed');
 	cm_reg_body('Registration Closed', false);
@@ -430,9 +431,14 @@ function cm_reg_closed() {
 	echo '<div class="card">';
 	echo '<div class="card-content">';
 	echo '<p>';
-	echo 'Registration for <b>';
+	echo 'Registrations for <b>';
 	echo htmlspecialchars($event_name);
-	echo '</b> is currently closed.';
+	echo '</b>';
+	if ($datetime) {
+		echo " will open on {$datetime->format('F d, Y')}.";
+	} else {
+		echo ' are currently closed.';
+	}
 	if ($contact_address) {
 		echo ' Please <b><a href="mailto:';
 		echo htmlspecialchars($contact_address);
