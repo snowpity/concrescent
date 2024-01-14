@@ -3,6 +3,7 @@
 namespace CM3_Lib\models\application;
 
 use CM3_Lib\database\Column as cm_Column;
+use CM3_Lib\database\ColumnIndex as cm_ColumnIndex;
 
 class promocode extends \CM3_Lib\database\Table
 {
@@ -15,7 +16,7 @@ class promocode extends \CM3_Lib\database\Table
             'valid_badge_type_ids' => new cm_Column('TEXT', null, true),
             'is_percentage' => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
             'active'        => new cm_Column('BOOLEAN', null, false, defaultValue: 'false'),
-            'code'          => new cm_Column('VARCHAR', '255', false, false, true, true),
+            'code'          => new cm_Column('VARCHAR', '255', false, false, false, false),
             'description'   => new cm_Column('TEXT', null, true),
             'discount'         => new cm_Column('DECIMAL', '7,2', false),
             'quantity'      => new cm_Column('INT', null, true),
@@ -28,7 +29,7 @@ class promocode extends \CM3_Lib\database\Table
             //Generated columns
             'dates_available' => new cm_Column('VARCHAR', '50', null, customPostfix: 'GENERATED ALWAYS as (concat(case `start_date` is null when true then \'forever\' else `start_date` end,\' to \', case end_date is null when true then \'forever\' else `end_date` end)) VIRTUAL'),
         );
-        $this->IndexDefs = array();
+        $this->IndexDefs = array('code_event_id' => new cm_ColumnIndex(['event_id','code'],'unique'));
         $this->PrimaryKeys = array('id'=>false);
         $this->DefaultSearchColumns = array('id','code','discount','quantity','dates_available');
     }
