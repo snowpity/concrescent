@@ -120,8 +120,8 @@ return function (App $app, $container) {
             ->add($attendeePerm);
             $app->post('/{id}', \CM3_Lib\Action\Attendee\PromoCode\Update::class)
             ->add($atManage);
-            $app->delete('/{id}', \CM3_Lib\Action\Attendee\PromoCode\Delete::class)
-            ->add($atManage);
+            $app->get('/{id}/Purchase', \CM3_Lib\Action\Attendee\PromoCode\Purchases::class)
+            ->add($attendeePerm);
         },
     );
 
