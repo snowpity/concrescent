@@ -9,6 +9,13 @@ cm_admin_nav('home');
 echo '<article>';
 	echo '<div class="card cm-home">';
 		echo '<div class="card-title">Welcome to CONcrescent</div>';
+
+		echo '<div class="card-content">';
+		$now = (new \DateTimeImmutable('now'))->format('r, e \[Y-m-d\TH:i:sP]');
+		echo "<p>Server time is : $now</p>";
+		echo '<hr>';
+		echo '</div>';
+
 		echo '<div class="card-content">';
 			$first_group = true;
 			foreach ($cm_admin_nav as $group) {
