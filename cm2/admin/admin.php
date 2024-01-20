@@ -8,6 +8,7 @@ require_once __DIR__ .'/../lib/database/admin.php';
 require_once __DIR__ .'/../lib/util/util.php';
 require_once __DIR__ .'/../lib/util/res.php';
 require_once __DIR__ .'/admin-nav.php';
+global $twig;
 
 $db = new cm_db();
 $adb = new cm_admin_db($db);
@@ -26,91 +27,71 @@ if (
 	$adb->log_access();
 }
 
-function cm_admin_head($title) {
-	echo '<!DOCTYPE HTML>';
-	echo '<html>';
-	echo '<head>';
-	echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">';
-	echo '<title>CONcrescent - ' . htmlspecialchars($title) . '</title>';
-	echo '<link rel="shortcut icon" href="' . htmlspecialchars(theme_file_url('favicon.ico', false)) . '">';
-	echo '<link rel="stylesheet" href="' . htmlspecialchars(resource_file_url('cm.css', false)) . '">';
-	echo '<link rel="stylesheet" href="' . htmlspecialchars(theme_file_url('theme.css', false)) . '">';
-	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_url('jquery.js', false)) . '"></script>';
-	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_url('cmui.js', false)) . '"></script>';
-}
+$cm_admin_nav_Filtered = array_map(function (array $group) use ($adb, $admin_user) : array {
+	$authorizedLinks = [];
 
-function cm_admin_body($title) {
-	echo '</head>';
-	echo '<body class="cm-admin">';
-	echo '<header>';
-		echo '<div class="appname">CONcrescent</div>';
-		echo '<div class="pagename">' . htmlspecialchars($title) . '</div>';
-		echo '<div class="header-items">';
-			echo '<div class="header-item">';
-				echo htmlspecialchars($GLOBALS['admin_user']['name']);
-			echo '</div>';
-		echo '</div>';
-	echo '</header>';
-}
-
-function cm_admin_nav($page_id) {
-	global $cm_admin_nav, $adb, $admin_user;
-	echo '<nav>';
-		foreach ($cm_admin_nav as $group) {
-			$first_link = true;
-			foreach ($group as $link) {
-				if (
-					!isset($link['permission']) || !$link['permission'] ||
-					$adb->user_has_permission($admin_user, $link['permission'])
-				) {
-					if ($first_link) echo '<ul>';
-					if ($link['id'] == $page_id) {
-						echo '<li class="current">';
-					} else {
-						echo '<li>';
-					}
-					$url = get_site_url(false) . $link['href'];
-					echo '<a href="' . htmlspecialchars($url) . '"';
-					if (isset($link['description']) && $link['description']) {
-						echo ' title="' . htmlspecialchars($link['description']) . '"';
-					}
-					echo '>';
-					echo htmlspecialchars($link['name']);
-					echo '</a>';
-					echo '</li>';
-					$first_link = false;
-				}
-			}
-			if (!$first_link) echo '</ul><hr>';
+	foreach ($group as $link) {
+		if ( !isset($link['permission']) || !$link['permission']
+			|| $adb->user_has_permission($admin_user, $link['permission'])
+		) {
+			$authorizedLinks[] = $link;
 		}
-	echo '</nav>';
+	}
+
+	return $authorizedLinks;
+}, $cm_admin_nav);
+
+$twig->addFunction(new \Twig\TwigFunction(
+	'user_has_permission',
+	fn (...$args) => $adb->user_has_permission($admin_user,...$args)
+));
+$twig->addGlobal('cm_admin_nav', $cm_admin_nav_Filtered);
+$twig->addGlobal('adminUsername', $GLOBALS['admin_user']['name']);
+
+function cm_admin_head($title): void
+{
+	global $twig;
+	echo $twig->render('components/admin_head.twig', [
+		'title' => $title
+	]);
 }
 
-function cm_admin_dialogs() {
-	echo '<div class="dialog-cover hidden"></div>';
+function cm_admin_body($title): void
+{
+	global $twig;
+	echo $twig->render('components/admin_body.twig', [
+		'title' => $title,
+	]);
 }
 
-function cm_admin_tail() {
-	echo '<div class="butterbar hidden"></div>';
-	echo '</body>';
-	echo '</html>';
+function cm_admin_nav($page_id): void
+{
+	global $twig;
+	echo $twig->render('components/admin_nav.twig', [
+		'page_id' => $page_id,
+	]);
 }
 
-function cm_admin_check_permission($page_id, $permission) {
-	global $adb, $admin_user;
+function cm_admin_dialogs(): void
+{
+	global $twig;
+	echo $twig->render('components/admin_dialogs.twig');
+}
+
+function cm_admin_tail(): void
+{
+	global $twig;
+	echo $twig->render('components/admin_tail.twig');
+}
+
+function cm_admin_check_permission($page_id, $permission): void
+{
+	global $adb, $admin_user, $twig;
+
 	if (!$adb->user_has_permission($admin_user, $permission)) {
-		cm_admin_head('Unauthorized');
-		cm_admin_body('Unauthorized');
-		cm_admin_nav($page_id);
-		echo '<article>';
-			echo '<div class="card cm-unauthorized">';
-				echo '<div class="card-content">';
-					echo '<p>You do not have permission to view this page.</p>';
-				echo '</div>';
-			echo '</div>';
-		echo '</article>';
-		cm_admin_dialogs();
-		cm_admin_tail();
-		exit(0);
+		echo $twig->render('pages/admin/unauthorized.twig', [
+			'page_id' => $page_id
+		]);
+		die(0);
 	}
 }

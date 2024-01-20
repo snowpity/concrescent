@@ -1,0 +1,35 @@
+{% extends "layouts/login.twig" %}
+{% set page_id = 'login' %}
+{% set title = 'Log In' %}
+
+{% block body %}
+  <header>
+    <div class="appname">CONcrescent</div>
+  </header>
+
+  <article>
+  <form action="/admin/login.php{{ page ? '?page=' ~ (page|url_encode) : '' }}"
+        method="post"
+        class="card cm-login">
+    <div class="card-title">Log In</div>
+    <div class="card-content">
+      {% if attempted %}
+      <p class="cm-error-box">Login failed. Please try again.</p>
+      {% endif %}
+      <table border="0" cellpadding="0" cellspacing="0" class="cm-form-table">
+        <tr>
+          <th><label for="username">User Name:</label></th>
+          <td><input type="text" name="username" id="username"></td>
+          </tr>
+        <tr>
+          <th><label for="password">Password:</label></th>
+          <td><input type="password" name="password" id="password"></td>
+          </tr>
+        </table>
+      </div>
+    <div class="card-buttons">
+      <input type="submit" value="Log In">
+    </div>
+  </form>
+</article>
+{% endblock %}

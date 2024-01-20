@@ -1,0 +1,11 @@
+<nav>
+{% for group in cm_admin_nav %}
+{% for link in group %}
+  {% if loop.first %}<ul>{% endif %}
+    <li{{ link.id == page_id ? ' class="current"' : '' }}>
+      <a href="{{ get_site_url(false) ~ link.href }}" title="{{ link.description }}">{{ link.name }}</a>
+    </li>
+  {% if loop.last %}</ul><hr>{% endif %}
+{% endfor %}
+{% endfor %}
+</nav>

@@ -1,0 +1,33 @@
+{% extends "layouts/admin.twig" %}
+{% set page_id = 'home' %}
+{% set title = 'Home' %}
+
+{% block body %}
+<article>
+  <div class="card cm-home">
+    <div class="card-title">Welcome to CONcrescent</div>
+    <div class="card-content">
+      <p>Server time is : {{ nowFormatted }}</p>
+    </div>
+
+    <div class="card-content">
+{% for group in cm_admin_nav %}
+{% for link in group | filter(l => l.id != 'home') %}
+  {% if loop.first and not loop.parent.first %}<hr>{% endif %}
+      <h3>
+        <a href="{{ get_site_url(false) ~ link.href }}">{{ link.name }}</a>
+      </h3>
+{% if link.description is defined and link.description %}
+      <p>{{ link.description }}</p>
+{% endif %}
+{% endfor %}
+{% else %}
+  <p class="cm-unauthorized">
+    You do not have permission to view any pages.
+  </p>
+{% endfor %}
+
+</div>
+</div>
+</article>
+{% endblock %}

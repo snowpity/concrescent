@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>CONcrescent - {{ title|e }}</title>
+  <link rel="shortcut icon" href="{{ theme_file_url('favicon.ico', false)|e }}">
+  <link rel="stylesheet" href="{{ resource_file_url('cm.css', false)|e }}">
+  <link rel="stylesheet" href="{{ theme_file_url('theme.css', false)|e }}">
+  <script type="text/javascript" src="{{ resource_file_url('jquery.js', false)|e }}"></script>
+  <script type="text/javascript" src="{{ resource_file_url('cmui.js', false)|e }}"></script>
+</head>
+<body class="cm-admin">
+<header>
+  <div class="appname">CONcrescent</div>
+  <div class="pagename">{{ title|e }}</div>
+  <div class="header-items">
+    <div class="header-item">
+      {{ adminUsername|e }}
+    </div>
+  </div>
+</header>
+<nav>
+  {% for group in cm_admin_nav %}
+    {% if group is not empty %}
+      <ul>
+      {% for link in group %}
+        <li{{ link.id == page_id ? ' class="current"' : '' }}>
+          <a href="{{ get_site_url(false) ~ link.href }}" title="{{ link.description }}">{{ link.name }}</a>
+        </li>
+      {% endfor %}
+      </ul><hr>
+    {% endif %}
+  {% endfor %}
+</nav>
+
+{% block body %}{% endblock %}
+
+<div class="dialog-cover hidden"></div>
+<div class="butterbar hidden"></div>
+</body>
+</html>
+
