@@ -177,8 +177,15 @@ function cm_form_posted_answer($id, $type, $post) {
 				}
 			}*/
 			return $answer;
+		case 'h1':
+		case 'h2':
+		case 'h3':
+		case 'p':
+		case 'q':
+		case 'hr':
+			return array();
 		default:
-		error_log("Error type of question " . $type . " is not recognized for question " . $id);
+			error_log("Error type of question " . $type . " is not recognized for question " . $id);
 			return array();
 	}
 }
