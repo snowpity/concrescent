@@ -166,16 +166,17 @@ class cm_misc_db {
 
 	public function getBadgeTypesFromQuestionAnswer(string $questionId): array
 	{
+		$p = $this->cm_db->table_prefix;
 		$stmt = $this->cm_db->connection->prepare(
-			'select
-			    mf_attendees.badge_type_id as badge_id,
-			    mf_attendee_badge_types.name as badge_name,
-			    mf_form_answers.answer as answer
-			from mf_attendees
-			inner join mf_form_answers
-			on mf_form_answers.question_id = ? and mf_attendees.id = mf_form_answers.context_id
-			inner join mf_attendee_badge_types
-			on mf_attendees.badge_type_id = mf_attendee_badge_types.id'
+			"select
+			    {$p}attendees.badge_type_id as badge_id,
+			    {$p}attendee_badge_types.name as badge_name,
+			    {$p}form_answers.answer as answer
+			from {$p}attendees
+			inner join {$p}form_answers
+			on {$p}form_answers.question_id = ? and {$p}attendees.id = {$p}form_answers.context_id
+			inner join {$p}attendee_badge_types
+			on {$p}attendees.badge_type_id = {$p}attendee_badge_types.id"
 		);
 		$stmt->bind_param('i', $questionId);
 		$stmt->execute();
