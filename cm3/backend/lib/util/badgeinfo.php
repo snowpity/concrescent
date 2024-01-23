@@ -497,7 +497,7 @@ final class badgeinfo
                     )
                 ), 'id');
             default:
-                return array_column($this->s_badge_type->Search(
+                return array_column($this->g_badge_type->Search(
                     new View(
                         array('id'),
                         array(new Join(

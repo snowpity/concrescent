@@ -9,6 +9,9 @@ const state = {
     dirty: false,
     checkoutStatus: null,
     canPay: true,
+    requiresApproval: false,
+    canCheckout: false,
+    canEdit: true
 };
 
 function calcPromoPrice(basePrice, promoData) {
@@ -30,6 +33,15 @@ const getters = {
     },
     canPay: (state, getters, rootState) => {
         return rootState.mydata.token.length > 0 && state.canPay;
+    },
+    requiresApproval: (state, getters, rootState) => {
+        return rootState.mydata.token.length > 0 && state.requiresApproval;
+    },
+    canCheckout: (state, getters, rootState) => {
+        return rootState.mydata.token.length > 0 && state.canCheckout;
+    },
+    canEdit: (state, getters, rootState) => {
+        return rootState.mydata.token.length > 0 && state.canEdit;
     },
     cartProducts: (state, getters, rootState) => state.items.map((badge) => {
         const badgeContext = rootState.products.badges[badge.context_code];
@@ -108,23 +120,15 @@ const actions = {
             if (rootState.mydata.token.length > 0) {
 
                 if (cartId == null) {
-                    commit('setcartId', cartId);
-                    //Implicit clear but not delete
-                    commit('setCheckoutStatus', {
-                        errors: [],
-                        state: "NotReady"
-                    });
-                    commit('setCartItems', {
-                        items: []
-                    });
-                    commit('clearDirty');
-                    commit('setCanPay', false);
+                    commit('resetCart');
+                    console.log('loading empty cart')
                     resolve();
                 } else {
                     //Is it in our cache?
                     if (rootState.mydata.activeCarts) {
                         var foundCart = rootState.mydata.activeCarts.find(cart => cart.id == cartId);
                         if (foundCart != undefined) {
+                            console.log('loading cart from cache', cartId)
                             commit('setcartId', cartId);
                             commit('setCheckoutStatus', {
                                 errors: foundCart.errors,
@@ -133,6 +137,9 @@ const actions = {
                             commit('setCartItems', foundCart);
                             commit('clearDirty');
                             commit('setCanPay', foundCart.canPay);
+                            commit('setRequiresApproval', foundCart.RequiresApproval);
+                            commit('setCanCheckout', foundCart.canCheckout);
+                            commit('setCanEdit', foundCart.canEdit);
                             //Now make sure our contexts for any added badges are loaded
                             var contexts = foundCart.items.map(({
                                 context_code
@@ -159,6 +166,7 @@ const actions = {
                     }
                     //Just attempt a load
                     shop.loadCart(rootState.mydata.token, cartId, async (result) => {
+                        console.log('loaded cart from net', cartId)
                         commit('setcartId', cartId);
                         commit('setCheckoutStatus', {
                             errors: result.errors,
@@ -167,6 +175,9 @@ const actions = {
                         commit('setCartItems', result);
                         commit('clearDirty');
                         commit('setCanPay', result.canPay);
+                        commit('setRequiresApproval', result.RequiresApproval);
+                        commit('setCanCheckout', result.canCheckout);
+                        commit('setCanEdit', result.canEdit);
                         //Now make sure our contexts for any added badges are loaded
                         var contexts = result.items.map(({
                             context_code
@@ -190,6 +201,7 @@ const actions = {
 
                         resolve();
                     }, (er) => {
+                        console.log('loading cart from net failed for ', cartId, er)
                         reject(er);
                     })
                 }
@@ -303,11 +315,7 @@ const actions = {
                     rootState.mydata.token,
                     state.cartId,
                     (data) => {
-                        commit('setCheckoutStatus', null);
-                        commit('setCartItems', {
-                            items: [],
-                        });
-                        commit('setcartId', null);
+                        commit('resetCart');
                         resolve();
                     },
                     (err) => reject
@@ -315,13 +323,8 @@ const actions = {
             });
         } else {
             //We don't know about any cart, just clear it
-
-
-            commit('setCheckoutStatus', null);
-            commit('setCartItems', {
-                items: [],
-            });
-            commit('setcartId', null);
+            console.log('state cartID to delete not found in correct state?', state.cartId)
+            commit('resetCart');
         }
     },
 
@@ -337,6 +340,11 @@ const actions = {
         // if product not found, and we don't have any, assume loading
         if (product == undefined && rootState.products.gotBadges[badge.context_code] == undefined) {
             console.log('Attempted to add a badge without having loaded the badge info?')
+        }
+        //Pre-check: Are we allowed to add an item?
+        if(!state.canEdit || (product.payment_deferred && state.items.length > 0 && state.checkoutStatus == null && badge.cartIx == -1)){
+            console.log('should not add an item to this cart, emptying')
+            commit('resetCart');
         }
         const cartItem = state.items.find((item) => item.cartIx === badge.cartIx && item.cartIx != null);
         if (!cartItem) {
@@ -434,6 +442,15 @@ const mutations = {
     setCanPay(state, canPay) {
         state.canPay = canPay;
     },
+    setRequiresApproval(state, requiresApproval) {
+        state.requiresApproval = requiresApproval;
+    },
+    setCanCheckout(state, canCheckout) {
+        state.canCheckout = canCheckout;
+    },
+    setCanEdit(state, canEdit) {
+        state.canEdit = canEdit;
+    },
 
     setCheckoutStatus(state, status) {
         state.checkoutStatus = status;
@@ -443,6 +460,20 @@ const mutations = {
     },
     clearDirty(state) {
         state.dirty = false;
+    },
+    resetCart(state) {
+        state.cartId= null;
+        //Implicit clear but not delete
+        state.checkoutStatus= {
+            errors: [],
+            state: "NotReady"
+        };
+        state.items= [];
+        state.dirty = false;
+        state.canPay= false;
+        state.requiresApproval= false;
+        state.canCheckout= false;
+        state.canEdit= true;
     }
 };
 

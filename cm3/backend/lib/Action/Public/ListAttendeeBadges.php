@@ -59,6 +59,7 @@ final class ListAttendeeBadges
               'rewards',
               'price',
               'payable_onsite',
+              new SelectColumn('payment_deferred',EncapsulationFunction:'0', Alias: 'payment_deferred'),
               'quantity',
               'start_date',
               'end_date',

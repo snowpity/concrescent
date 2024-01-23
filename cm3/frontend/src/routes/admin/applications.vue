@@ -224,6 +224,7 @@
                     :AddHeaders="pAddHeaders"
                     :actions="btActions"
                     :footerActions="btFooterActions"
+                    show-expand
                     @edit="editPromoCode"
                     @create="createPromoCode">
 
@@ -231,6 +232,33 @@
                 {{item.is_percentage ? "":"$"}}
                 {{item.discount}}
                 {{item.is_percentage ? "%":""}}
+            </template>
+            <template v-slot:expanded-item="{ headers, item }">
+                <td :colspan="headers.length">
+                    <v-container flex>
+                        <simpleList :apiPath="'Application/' + context_code +'/PromoCode/'+ item.id + '/Purchase'"
+                                    :headerKey="{
+                                        text: 'ID',
+                                        align: 'start',
+                                        value: 'id',
+                                    }"
+                                    :AddHeaders="paAddHeaders"
+                                    :RemoveHeaders="paRemoveHeaders"
+                                    :actions="asActions"
+                                    @edit="editBadge">
+                            <template v-slot:[`item.id`]="{ item }">
+                                <v-tooltip right>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <span v-bind="attrs"
+                                            v-on="on">
+                                            {{item.context_code}}{{item.display_id}}</span>
+                                    </template>
+                                    {{item.id}}
+                                </v-tooltip>
+                            </template>
+                        </simpleList>
+                    </v-container>
+                </td>
             </template>
         </simpleList>
         <v-dialog v-model="pEdit"
@@ -426,7 +454,23 @@ export default {
         }],
         pSelected: {},
         pEdit: false,
-
+        paAddHeaders: [{
+            text: 'Real Name',
+            value: 'real_name',
+        }, {
+            text: 'Fandom Name',
+            value: 'fandom_name',
+        }, {
+            text: 'Payment Status',
+            value: 'payment_status',
+        }, {
+            text: 'Badge Type',
+            value: 'badge_type_name',
+        }, ],
+        paRemoveHeaders: [
+            'time_printed',
+            'time_checked_in'
+        ],
         dAddHeaders: [{
             text: 'Name',
             value: 'name'

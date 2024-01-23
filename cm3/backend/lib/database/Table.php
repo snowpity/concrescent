@@ -390,8 +390,8 @@ abstract class Table
                 if (!is_null($value->Alias)) {
                     $selectParts .= ' as `' . $value->Alias . '`';
                 }
-                if (empty($selectPart)) {
-                    $errors[] ="Unable to add select column as it resulted in an empty clause:\n" . print_r($value, true);
+                if (!strlen($selectPart)) {
+                    $errors[] ="Unable to add select column as it resulted in an empty clause:\n" . print_r($value, true) . "\nResult::" . $selectPart;
                 }
                 //Are we grouping this column?
                 if ($value->GroupBy) {
