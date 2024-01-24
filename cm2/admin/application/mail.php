@@ -71,7 +71,6 @@ echo '<article>';
 				'qr-data' => 'The QR code data for this applicant.',
 				'qr-url' => 'A URL of a QR code for this applicant.',
 				'real-name' => 'The applicant\'s first and last name.',
-				'fandom-name' => 'The applicant\'s fandom name.',
 				'display-name' => 'The name the applicant has chosen to appear on their badge.',
 				'unsubscribe-link' => 'A URL to remove the applicant\'s email address from the mailing list.',
 				'badge-type-name' => 'The name of the badge type the applicant applied for.',
