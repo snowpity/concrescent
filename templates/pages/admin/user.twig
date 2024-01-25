@@ -1,0 +1,55 @@
+{% extends "layouts/admin.twig" %}
+{% set page_id = 'admin-user' %}
+{% set title = 'Account Settings' %}
+
+{% block body %}
+<article>
+  <form action="/admin/user.php" method="post" class="card cm-reg-edit">
+    <div class="card-content">
+{% if success or error %}
+{% if success %}
+      <p class="cm-success-box">{{ success }}</p>
+{% endif %}
+{% if error %}
+      <p class="cm-error-box">{{ error }}</p>
+{% endif %}
+      <hr>
+{% endif %}
+      <table border="0" cellpadding="0" cellspacing="0" class="cm-form-table">
+        <tr>
+          <td colspan="2"><p><b>Enter your current user name and password to change your account settings.</b></p></td>
+        </tr>
+        <tr>
+          <th><label for="username">Current User Name:</label></th>
+          <td><input type="text" name="username" id="username" value="{{ old_username }}"></td>
+        </tr>
+        <tr>
+          <th><label for="password">Current Password:</label></th>
+        <td><input type="password" name="password" id="password"></td>
+        </tr>
+        <tr>
+          <td colspan="2" class="hr"><hr></td>
+        </tr>
+        <tr>
+          <td colspan="2"><p>Enter your new account information below. To keep the same user name or password, leave the field blank.</p></td>
+        </tr>
+        <tr>
+          <th><label for="ea-name">Display Name:</label></th>
+          <td><input type="text" name="ea-name" id="ea-name" value="{{ new_name }}"></td>
+        </tr>
+        <tr>
+          <th><label for="ea-username">New User Name:</label></th>
+          <td><input type="text" name="ea-username" id="ea-username" value="{{ new_username }}"></td>
+        </tr>
+        <tr>
+          <th><label for="ea-password">New Password:</label></th>
+          <td><input type="password" name="ea-password" id="ea-password"></td>
+        </tr>
+        </table>
+      </div>
+    <div class="card-buttons">
+      <input type="submit" name="submit" value="Save Changes">
+    </div>
+  </form>
+</article>
+{% endblock %}
