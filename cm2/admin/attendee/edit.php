@@ -20,9 +20,13 @@ $questions = $fdb->list_questions();
 
 $new = !isset($_GET['id']);
 $id = $new ? -1 : (int)$_GET['id'];
-$item = $new ? array() : $atdb->get_attendee($id, false, $name_map, $fdb);
+$item = $new ? [
+	'age' => 0,
+	'addon-ids' => [],
+] : $atdb->get_attendee($id, false, $name_map, $fdb);
 $submitted = $can_edit && isset($_POST['submit']);
 $changed = false;
+$errorMessage = '';
 
 if ($submitted) {
 	/* Basic Information */
@@ -119,9 +123,13 @@ if ($submitted) {
 
 	/* Write Changes */
 	if ($new) {
-		$id = $atdb->create_attendee($item, $fdb);
-		$new = ($id === false);
-		$changed = ($id !== false);
+		try {
+			$id = $atdb->create_attendee($item, $fdb);
+			$new = ($id === false);
+			$changed = ($id !== false);
+		} catch (mysqli_sql_exception|InvalidArgumentException $e) {
+			$errorMessage = $e->getMessage();
+		}
 	} else {
 		$changed = $atdb->update_attendee($item, $fdb);
 	}
@@ -164,7 +172,7 @@ echo '<article>';
 				if ($changed) {
 					echo '<p class="cm-success-box">Changes saved.</p>';
 				} else {
-					echo '<p class="cm-error-box">Save failed. Please try again.</p>';
+					echo "<p class=\"cm-error-box\">Save failed. Please try again. $errorMessage</p>";
 				}
 			}
 			if (($blacklisted = $atdb->is_blacklisted($item))) {
@@ -691,7 +699,7 @@ echo '<article>';
 					echo '</tr>';
 				}
 
-				if ($adb->user_has_permission($admin_user, 'attendees-refund') ) {
+				if (!$new && $adb->user_has_permission($admin_user, 'attendees-refund') ) {
 					echo '<tr>';
 						echo '<th>Refund</th>';
 						echo '<td><a href="refund.php?id=' . $item['id'] . '" >Initiate refund</a></td>';
@@ -823,7 +831,7 @@ echo '<article>';
 		echo '</div>';
 		if ($can_edit) {
 			echo '<div class="card-buttons">';
-				echo '<input type="submit" name="submit" value="Save Changes">';
+				echo '<input type="submit" name="submit" value="'.($new ? 'Create new' : 'Save Changes').'">';
 			echo '</div>';
 		}
 	if ($can_edit) {

@@ -108,6 +108,10 @@ if (isset($_POST['cm-list-action'])) {
 			$response['rows'] = array();
 			foreach ($response['ids'] as $id) {
 				$attendee = $atdb->get_attendee($id, false, $name_map, $fdb);
+				if (!$attendee) {
+					// This indicates a broken index.
+					continue;
+				}
 				$response['rows'][] = cm_list_make_row($list_def, $attendee);
 			}
 			$response['time'] = microtime(true) - $time;
