@@ -105,7 +105,7 @@ if (isset($_POST['submit']) && isset($_POST['action']) && $_POST['action'] == 'c
 	}
 
 	if (!$errors) {
-		$_SESSION['payment_method'] = trim($_POST['payment-method']);
+		$_SESSION['payment_method'] = trim($_POST['payment-method'] ?? 'paypal');
 		cm_reg_post_edit_set($item);
 		cm_reg_post_edit_set_state('ready');
 		header('Location: post-purchase-checkout.php');

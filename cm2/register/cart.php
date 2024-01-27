@@ -51,7 +51,7 @@ if (isset($_POST['action'])) {
 
 			break;
 		case 'checkout':
-			checkout_registration(trim($_POST['payment-method']), $errors);
+			checkout_registration(trim($_POST['payment-method'] ?? 'paypal'), $errors);
 			break;
 	}
 }
