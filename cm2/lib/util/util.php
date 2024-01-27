@@ -24,8 +24,9 @@ function get_site_url($full) {
 	return get_domain_url() . $uriroot;
 }
 
-function ua($x) {
-	return (strpos($_SERVER['HTTP_USER_AGENT'], $x) !== FALSE);
+function ua(string $x): bool
+{
+	return (str_contains($_SERVER['HTTP_USER_AGENT'] ?? '', $x));
 }
 
 function float_or_null($s) {
