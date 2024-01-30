@@ -19,8 +19,6 @@ $cm_config = [
 		'username' => getenv('MYSQL_PASSWORD'),
 		'password' => getenv('MYSQL_USER'),
 		'database' => getenv('MYSQL_DATABASE'),
-		/* A string to prepend to MySQL table names for this application. */
-		'prefix' => '',
 		/* Time zone MySQL should use for date calculations (e.g. when badges are available). */
 		'timezone' => 'SYSTEM',
 	],
