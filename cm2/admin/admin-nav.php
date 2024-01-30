@@ -79,6 +79,13 @@ $cm_admin_nav_attendee = (
 			'description' => 'Download a file of attendee registration records.',
 			'permission' => 'attendee-csv'
 		),
+		array(
+			'id' => 'attendee-sponsors',
+			'href' => '/admin/attendee/sponsors.php',
+			'name' => 'Attendee Sponsors',
+			'description' => 'Get public sponsors from a Json endpoint',
+			'permission' => 'attendee-csv'
+		),
 	)
 );
 

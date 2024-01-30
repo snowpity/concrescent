@@ -1,0 +1,41 @@
+{% extends "layouts/admin.twig" %}
+{% set page_id = 'attendee-sponsors' %}
+{% set title = 'Attendee Sponsors' %}
+
+{% block body %}
+<article>
+	<div class="card">
+		<div class="card-content">
+			<h3>Attendees Sponsors:</h3>
+			<div class="spacing">
+				<p>Select the questions to : </p>
+				<form action="/admin/attendee/sponsors.php" method="get">
+					<label>
+						- get the credit names :
+						<select name="credit">
+							{% for q in questions %}
+							<option value="{{ attribute(q, 'question-id') }}" {{ websiteCreditQuestionId == attribute(q, 'question-id') ? 'selected' : '' }}>{{ q.title }}</option>
+							{% endfor %}
+						</select>
+					</label>
+					<br>
+					<label>
+						- check the Staff approval status :
+						<select name="approval">
+							{% for q in questions %}
+								<option value="{{ attribute(q, 'question-id') }}" {{ staffApprovalQuestionId == attribute(q, 'question-id') ? 'selected' : '' }}>{{ q.title }}</option>
+							{% endfor %}
+						</select>
+					</label>
+					<br>
+					<input type="submit" value="Generate signed URL"/>
+				</form>
+				<br>
+				{% if signedUrl is not null %}
+					Your signed URL is : <a href="{{ signedUrl }}" target="_blank">{{ signedUrl }}</a>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</article>
+{% endblock %}

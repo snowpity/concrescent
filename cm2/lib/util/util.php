@@ -13,7 +13,7 @@ function get_domain_url() {
 	return $url;
 }
 
-function get_site_url($full) {
+function get_site_url(bool $full = true) {
 	$uriroot = realpath(__FILE__);
 	$o = strpos($uriroot, '/lib/util/util.php');
 	if ($o !== FALSE) $uriroot = substr($uriroot, 0, $o);
@@ -331,6 +331,14 @@ function transaction_details_listTransactions($TxnDetailsString)
 		}
 		return $result;
 }
+
+function dieWithErrorLog(string $message, int $statusCode = 400, bool $printError = true): never
+{
+	error_log($message);
+	if ($printError) echo $message;
+	die($statusCode);
+}
+
 
 //Are we an AJAX call?
 $_SERVER['IS_AJAX'] = false;

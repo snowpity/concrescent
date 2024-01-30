@@ -164,20 +164,26 @@ class cm_misc_db {
 	}
 
 
-	public function getBadgeTypesFromQuestionAnswer(string $questionId): array
+	public function getBadgeTypesFromQuestionAnswer(string $creditId, string $approvalId): array
 	{
 		$stmt = $this->cm_db->connection->prepare(
-			"SELECT
-			    attendees.badge_type_id AS badge_id,
+			"SELECT attendees.badge_type_id AS badge_id,
 			    attendee_badge_types.name AS badge_name,
-			    form_answers.answer AS answer
+			    form_credits.answer AS answer
 			FROM `attendees`
-			INNER JOIN `form_answers`
-				ON form_answers.question_id = ? AND attendees.id = form_answers.context_id
-			INNER JOIN `attendee_badge_types`
-				ON attendees.badge_type_id = attendee_badge_types.id"
+				INNER JOIN `form_answers` AS form_credits
+			        ON form_credits.question_id = ?
+			    		AND form_credits.context = 'attendee'
+			            AND attendees.id = form_credits.context_id
+			    INNER JOIN `form_answers` AS forms_approval
+			        ON forms_approval.question_id = ?
+			    		AND forms_approval.context = 'attendee'
+			            AND attendees.id = forms_approval.context_id
+				INNER JOIN `attendee_badge_types`
+					ON attendees.badge_type_id = attendee_badge_types.id
+			ORDER BY attendees.id"
 		);
-		$stmt->bind_param('i', $questionId);
+		$stmt->bind_param('ii', $creditId, $approvalId);
 		$stmt->execute();
 		$results = $stmt->get_result();
 		$stmt->close();
