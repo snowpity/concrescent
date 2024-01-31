@@ -29,8 +29,9 @@ function ua(string $x): bool
 	return (str_contains($_SERVER['HTTP_USER_AGENT'] ?? '', $x));
 }
 
-function float_or_null($s) {
-	return (strlen($s) ? (float)$s : null);
+function float_or_null(string $s): ?float
+{
+	return ($s !== '' ? (float)$s : null);
 }
 
 function paragraph_string($s) {
