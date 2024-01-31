@@ -1242,18 +1242,18 @@ class cm_attendee_db {
 		$normalized_fandom_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $fandom_name));
 		$normalized_email_address = strtoupper(preg_replace('/\\+.*@|[^A-Za-z0-9]+/', '', $email_address));
 		$normalized_phone_number = preg_replace('/[^0-9]+/', '', $phone_number);
-		if (!$first_name) $first_name = null;
-		if (!$last_name) $last_name = null;
-		if (!$fandom_name) $fandom_name = null;
-		if (!$email_address) $email_address = null;
-		if (!$phone_number) $phone_number = null;
-		if (!$added_by) $added_by = null;
-		if (!$notes) $notes = null;
-		if (!$normalized_real_name) $normalized_real_name = null;
-		if (!$normalized_reversed_name) $normalized_reversed_name = null;
-		if (!$normalized_fandom_name) $normalized_fandom_name = null;
-		if (!$normalized_email_address) $normalized_email_address = null;
-		if (!$normalized_phone_number) $normalized_phone_number = null;
+		if (!$first_name) $first_name = '';
+		if (!$last_name) $last_name = '';
+		if (!$fandom_name) $fandom_name = '';
+		if (!$email_address) $email_address = '';
+		if (!$phone_number) $phone_number = '';
+		if (!$added_by) $added_by = '';
+		if (!$notes) $notes = '';
+		if (!$normalized_real_name) $normalized_real_name = '';
+		if (!$normalized_reversed_name) $normalized_reversed_name = '';
+		if (!$normalized_fandom_name) $normalized_fandom_name = '';
+		if (!$normalized_email_address) $normalized_email_address = '';
+		if (!$normalized_phone_number) $normalized_phone_number = '';
 		$stmt = $this->cm_db->connection->prepare(
 			'INSERT INTO '.$this->cm_db->table_name('attendee_blacklist').' SET '.
 			'`first_name` = ?, `last_name` = ?, `fandom_name` = ?, '.
@@ -1293,18 +1293,18 @@ class cm_attendee_db {
 		$normalized_fandom_name = strtoupper(preg_replace('/[^A-Za-z0-9]+/', '', $fandom_name));
 		$normalized_email_address = strtoupper(preg_replace('/\\+.*@|[^A-Za-z0-9]+/', '', $email_address));
 		$normalized_phone_number = preg_replace('/[^0-9]+/', '', $phone_number);
-		if (!$first_name) $first_name = null;
-		if (!$last_name) $last_name = null;
-		if (!$fandom_name) $fandom_name = null;
-		if (!$email_address) $email_address = null;
-		if (!$phone_number) $phone_number = null;
-		if (!$added_by) $added_by = null;
-		if (!$notes) $notes = null;
-		if (!$normalized_real_name) $normalized_real_name = null;
-		if (!$normalized_reversed_name) $normalized_reversed_name = null;
-		if (!$normalized_fandom_name) $normalized_fandom_name = null;
-		if (!$normalized_email_address) $normalized_email_address = null;
-		if (!$normalized_phone_number) $normalized_phone_number = null;
+		if (!$first_name) $first_name = '';
+		if (!$last_name) $last_name = '';
+		if (!$fandom_name) $fandom_name = '';
+		if (!$email_address) $email_address = '';
+		if (!$phone_number) $phone_number = '';
+		if (!$added_by) $added_by = '';
+		if (!$notes) $notes = '';
+		if (!$normalized_real_name) $normalized_real_name = '';
+		if (!$normalized_reversed_name) $normalized_reversed_name = '';
+		if (!$normalized_fandom_name) $normalized_fandom_name = '';
+		if (!$normalized_email_address) $normalized_email_address = '';
+		if (!$normalized_phone_number) $normalized_phone_number = '';
 		$stmt = $this->cm_db->connection->prepare(
 			'UPDATE '.$this->cm_db->table_name('attendee_blacklist').' SET '.
 			'`first_name` = ?, `last_name` = ?, `fandom_name` = ?, '.
