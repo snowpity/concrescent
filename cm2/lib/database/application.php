@@ -67,8 +67,8 @@ class cm_application_db {
 			$this->ctx_uc = strtoupper($context);
 			$this->ctx_lc = strtolower($context);
 			$this->ctx_info = $GLOBALS['cm_config']['application_types'][$this->ctx_uc];
-			$this->cm_anldb = new cm_lists_db($this->cm_db, 'application_search_index_'.$this->ctx_lc);
-			$this->cm_atldb = new cm_lists_db($this->cm_db, 'applicant_search_index_'.$this->ctx_lc);
+			$this->cm_anldb = new cm_lists_db($this->cm_db, "application_search_index_$this->ctx_lc");
+			$this->cm_atldb = new cm_lists_db($this->cm_db, "applicant_search_index_$this->ctx_lc");
 			$this->cm_db->table_def('application_badge_types_'.$this->ctx_lc, (
 				'`id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,'.
 				'`order` INTEGER NOT NULL,'.
@@ -228,7 +228,7 @@ class cm_application_db {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT `id`, `x1`, `y1`, `x2`, `y2`'.
-			' FROM '.$this->cm_db->table_name('rooms_and_tables').
+			' FROM `rooms_and_tables`'.
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('s', $id);
@@ -257,7 +257,7 @@ class cm_application_db {
 		$rooms_and_tables = array();
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT `id`, `x1`, `y1`, `x2`, `y2`'.
-			' FROM '.$this->cm_db->table_name('rooms_and_tables')
+			' FROM `rooms_and_tables`'
 		);
 		$stmt->execute();
 		$stmt->bind_result($id, $x1, $y1, $x2, $y2);
@@ -288,7 +288,7 @@ class cm_application_db {
 		$assignments = array();
 		$query = (
 			'SELECT `context`, `context_id`, `room_or_table_id`, `start_time`, `end_time`'.
-			' FROM '.$this->cm_db->table_name('room_and_table_assignments')
+			' FROM `room_and_table_assignments`'
 		);
 		$first = true;
 		$bind = array('');
@@ -322,10 +322,10 @@ class cm_application_db {
 		}
 		$stmt->close();
 		foreach ($assignments as $i => $assignment) {
-			$table_name = 'applications_'.strtolower($assignment['context']);
+			$table_name = strtolower($assignment['context']);
 			$stmt = $this->cm_db->connection->prepare(
 				'SELECT `business_name`, `application_name`'.
-				' FROM '.$this->cm_db->table_name($table_name).
+				" FROM `applications_$table_name`".
 				' WHERE `id` = ? LIMIT 1'
 			);
 			$stmt->bind_param('i', $assignment['context-id']);
@@ -354,7 +354,7 @@ class cm_application_db {
 	public function create_room_or_table($rt) {
 		if (!$rt || !isset($rt['id']) || !$rt['id']) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'INSERT INTO '.$this->cm_db->table_name('rooms_and_tables').' SET '.
+			'INSERT INTO `rooms_and_tables` SET '.
 			'`id` = ?, `x1` = ?, `y1` = ?, `x2` = ?, `y2` = ?'.
 			' ON DUPLICATE KEY UPDATE '.
 			'`id` = ?, `x1` = ?, `y1` = ?, `x2` = ?, `y2` = ?'
@@ -372,7 +372,7 @@ class cm_application_db {
 	public function update_room_or_table($id, $rt) {
 		if (!$id || !$rt || !isset($rt['id']) || !$rt['id']) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('rooms_and_tables').' SET '.
+			'UPDATE `rooms_and_tables` SET '.
 			'`id` = ?, `x1` = ?, `y1` = ?, `x2` = ?, `y2` = ?'.
 			' WHERE `id` = ? LIMIT 1'
 		);
@@ -389,7 +389,7 @@ class cm_application_db {
 	public function delete_room_or_table($id) {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'DELETE FROM '.$this->cm_db->table_name('rooms_and_tables').
+			'DELETE FROM `rooms_and_tables`'.
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('s', $id);
@@ -434,7 +434,7 @@ class cm_application_db {
 
 	public function delete_rooms_and_tables() {
 		$stmt = $this->cm_db->connection->prepare(
-			'DELETE FROM '.$this->cm_db->table_name('rooms_and_tables')
+			'DELETE FROM `rooms_and_tables`'
 		);
 		$success = $stmt->execute();
 		$stmt->close();
@@ -452,19 +452,19 @@ class cm_application_db {
 			' b.`require_contract`, b.`active`, b.`max_total_applications`,'.
 			' b.`max_total_applicants`, b.`max_total_assignments`,'.
 			' b.`start_date`, b.`end_date`, b.`min_age`, b.`max_age`,'.
-			' (SELECT COUNT(*) FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' a1'.
+			" (SELECT COUNT(*) FROM `applications_$this->ctx_lc` a1".
 			' WHERE a1.`badge_type_id` = b.`id` AND a1.`application_status` = \'Accepted\') c1,'.
-			' (SELECT COUNT(*) FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' a2'.
+			" (SELECT COUNT(*) FROM `applications_$this->ctx_lc` a2".
 			' WHERE a2.`badge_type_id` = b.`id` AND a2.`payment_status` = \'Completed\') c2,'.
-			' (SELECT IFNULL(SUM(a3.`applicant_count`), 0) FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' a3'.
+			" (SELECT IFNULL(SUM(a3.`applicant_count`), 0) FROM `applications_$this->ctx_lc` a3".
 			' WHERE a3.`badge_type_id` = b.`id` AND a3.`application_status` = \'Accepted\') c3,'.
-			' (SELECT IFNULL(SUM(a4.`applicant_count`), 0) FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' a4'.
+			" (SELECT IFNULL(SUM(a4.`applicant_count`), 0) FROM `applications_$this->ctx_lc` a4".
 			' WHERE a4.`badge_type_id` = b.`id` AND a4.`payment_status` = \'Completed\') c4,'.
-			' (SELECT IFNULL(SUM(a5.`assignment_count`), 0) FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' a5'.
+			" (SELECT IFNULL(SUM(a5.`assignment_count`), 0) FROM `applications_$this->ctx_lc` a5".
 			' WHERE a5.`badge_type_id` = b.`id` AND a5.`application_status` = \'Accepted\') c5,'.
-			' (SELECT IFNULL(SUM(a6.`assignment_count`), 0) FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' a6'.
+			" (SELECT IFNULL(SUM(a6.`assignment_count`), 0) FROM `applications_$this->ctx_lc` a6".
 			' WHERE a6.`badge_type_id` = b.`id` AND a6.`payment_status` = \'Completed\') c6'.
-			' FROM '.$this->cm_db->table_name('application_badge_types_'.$this->ctx_lc).' b'.
+			" FROM `application_badge_types_$this->ctx_lc` b".
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('i', $id);
@@ -537,7 +537,7 @@ class cm_application_db {
 		$badge_types = array();
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT `id`, `name`'.
-			' FROM '.$this->cm_db->table_name('application_badge_types_'.$this->ctx_lc).
+			" FROM `application_badge_types_$this->ctx_lc`".
 			' ORDER BY `order`'
 		);
 		$stmt->execute();
@@ -553,7 +553,7 @@ class cm_application_db {
 		$badge_types = array();
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT `id`, `name`'.
-			' FROM '.$this->cm_db->table_name('application_badge_types_'.$this->ctx_lc).
+			" FROM `application_badge_types_$this->ctx_lc`".
 			' ORDER BY `order`'
 		);
 		$stmt->execute();
@@ -580,19 +580,19 @@ class cm_application_db {
 			' b.`require_contract`, b.`active`, b.`max_total_applications`,'.
 			' b.`max_total_applicants`, b.`max_total_assignments`,'.
 			' b.`start_date`, b.`end_date`, b.`min_age`, b.`max_age`,'.
-			' (SELECT COUNT(*) FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' a1'.
+			" (SELECT COUNT(*) FROM `applications_$this->ctx_lc` a1".
 			' WHERE a1.`badge_type_id` = b.`id` AND a1.`application_status` = \'Accepted\') c1,'.
-			' (SELECT COUNT(*) FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' a2'.
+			" (SELECT COUNT(*) FROM `applications_$this->ctx_lc` a2".
 			' WHERE a2.`badge_type_id` = b.`id` AND a2.`payment_status` = \'Completed\') c2,'.
-			' (SELECT IFNULL(SUM(a3.`applicant_count`), 0) FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' a3'.
+			" (SELECT IFNULL(SUM(a3.`applicant_count`), 0) FROM `applications_$this->ctx_lc` a3".
 			' WHERE a3.`badge_type_id` = b.`id` AND a3.`application_status` = \'Accepted\') c3,'.
-			' (SELECT IFNULL(SUM(a4.`applicant_count`), 0) FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' a4'.
+			" (SELECT IFNULL(SUM(a4.`applicant_count`), 0) FROM `applications_$this->ctx_lc` a4".
 			' WHERE a4.`badge_type_id` = b.`id` AND a4.`payment_status` = \'Completed\') c4,'.
-			' (SELECT IFNULL(SUM(a5.`assignment_count`), 0) FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' a5'.
+			" (SELECT IFNULL(SUM(a5.`assignment_count`), 0) FROM `applications_$this->ctx_lc` a5".
 			' WHERE a5.`badge_type_id` = b.`id` AND a5.`application_status` = \'Accepted\') c5,'.
-			' (SELECT IFNULL(SUM(a6.`assignment_count`), 0) FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' a6'.
+			" (SELECT IFNULL(SUM(a6.`assignment_count`), 0) FROM `applications_$this->ctx_lc` a6".
 			' WHERE a6.`badge_type_id` = b.`id` AND a6.`payment_status` = \'Completed\') c6'.
-			' FROM '.$this->cm_db->table_name('application_badge_types_'.$this->ctx_lc).' b'
+			" FROM `application_badge_types_$this->ctx_lc` b"
 		);
 		if ($active_only) {
 			$query .= ' WHERE b.`active` AND (b.`end_date` IS NULL OR b.`end_date` >= CURDATE())';
@@ -674,7 +674,7 @@ class cm_application_db {
 		$this->cm_db->connection->autocommit(false);
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT IFNULL(MAX(`order`),0)+1 FROM '.
-			$this->cm_db->table_name('application_badge_types_'.$this->ctx_lc)
+			"`application_badge_types_$this->ctx_lc`"
 		);
 		$stmt->execute();
 		$stmt->bind_result($order);
@@ -703,7 +703,7 @@ class cm_application_db {
 		$min_age = ($badge_type['min-age'] ?? null);
 		$max_age = ($badge_type['max-age'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
-			'INSERT INTO '.$this->cm_db->table_name('application_badge_types_'.$this->ctx_lc).' SET '.
+			"INSERT INTO `application_badge_types_$this->ctx_lc` SET ".
 			'`order` = ?, `name` = ?, `description` = ?, `rewards` = ?, '.
 			'`max_applicant_count` = ?, `max_assignment_count` = ?, `base_price` = ?, '.
 			'`base_applicant_count` = ?, `base_assignment_count` = ?, '.
@@ -755,7 +755,7 @@ class cm_application_db {
 		$min_age = ($badge_type['min-age'] ?? null);
 		$max_age = ($badge_type['max-age'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('application_badge_types_'.$this->ctx_lc).' SET '.
+			"UPDATE `application_badge_types_$this->ctx_lc` SET ".
 			'`name` = ?, `description` = ?, `rewards` = ?, '.
 			'`max_applicant_count` = ?, `max_assignment_count` = ?, `base_price` = ?, '.
 			'`base_applicant_count` = ?, `base_assignment_count` = ?, '.
@@ -786,7 +786,7 @@ class cm_application_db {
 	public function delete_badge_type($id) {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'DELETE FROM '.$this->cm_db->table_name('application_badge_types_'.$this->ctx_lc).
+			"DELETE FROM `application_badge_types_$this->ctx_lc`".
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('i', $id);
@@ -799,7 +799,7 @@ class cm_application_db {
 		if (!$id) return false;
 		$active = $active ? 1 : 0;
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('application_badge_types_'.$this->ctx_lc).
+			"UPDATE `application_badge_types_$this->ctx_lc`".
 			' SET `active` = ? WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('ii', $active, $id);
@@ -814,8 +814,7 @@ class cm_application_db {
 		$ids = array();
 		$index = -1;
 		$stmt = $this->cm_db->connection->prepare(
-			'SELECT `id` FROM '.
-			$this->cm_db->table_name('application_badge_types_'.$this->ctx_lc).
+			"SELECT `id` FROM `application_badge_types_$this->ctx_lc`".
 			' ORDER BY `order`'
 		);
 		$stmt->execute();
@@ -841,7 +840,7 @@ class cm_application_db {
 			}
 			foreach ($ids as $cindex => $cid) {
 				$stmt = $this->cm_db->connection->prepare(
-					'UPDATE '.$this->cm_db->table_name('application_badge_types_'.$this->ctx_lc).
+					"UPDATE `application_badge_types_$this->ctx_lc`".
 					' SET `order` = ? WHERE `id` = ? LIMIT 1'
 				);
 				$ni = $cindex + 1;
@@ -859,7 +858,7 @@ class cm_application_db {
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT `id`, `business_name`, `application_name`, `added_by`, `notes`,'.
 			' `normalized_business_name`, `normalized_application_name`'.
-			' FROM '.$this->cm_db->table_name('application_blacklist_'.$this->ctx_lc).
+			" FROM `application_blacklist_$this->ctx_lc`".
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('i', $id);
@@ -891,7 +890,7 @@ class cm_application_db {
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT `id`, `business_name`, `application_name`, `added_by`, `notes`,'.
 			' `normalized_business_name`, `normalized_application_name`'.
-			' FROM '.$this->cm_db->table_name('application_blacklist_'.$this->ctx_lc).
+			" FROM `application_blacklist_$this->ctx_lc`".
 			' ORDER BY `business_name`, `application_name`'
 		);
 		$stmt->execute();
@@ -930,7 +929,7 @@ class cm_application_db {
 		if (!$normalized_business_name) $normalized_business_name = null;
 		if (!$normalized_application_name) $normalized_application_name = null;
 		$stmt = $this->cm_db->connection->prepare(
-			'INSERT INTO '.$this->cm_db->table_name('application_blacklist_'.$this->ctx_lc).' SET '.
+			"INSERT INTO `application_blacklist_$this->ctx_lc` SET ".
 			'`business_name` = ?, `application_name` = ?, `added_by` = ?, `notes` = ?, '.
 			'`normalized_business_name` = ?, `normalized_application_name` = ?'
 		);
@@ -959,7 +958,7 @@ class cm_application_db {
 		if (!$normalized_business_name) $normalized_business_name = null;
 		if (!$normalized_application_name) $normalized_application_name = null;
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('application_blacklist_'.$this->ctx_lc).' SET '.
+			"UPDATE `application_blacklist_$this->ctx_lc` SET ".
 			'`business_name` = ?, `application_name` = ?, `added_by` = ?, `notes` = ?, '.
 			'`normalized_business_name` = ?, `normalized_application_name` = ?'.
 			' WHERE `id` = ? LIMIT 1'
@@ -978,7 +977,7 @@ class cm_application_db {
 	public function delete_application_blacklist_entry($id) {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'DELETE FROM '.$this->cm_db->table_name('application_blacklist_'.$this->ctx_lc).
+			"DELETE FROM `application_blacklist_$this->ctx_lc`".
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('i', $id);
@@ -1011,8 +1010,7 @@ class cm_application_db {
 		}
 		if (!$query_params) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'SELECT `id` FROM '.
-			$this->cm_db->table_name('application_blacklist_'.$this->ctx_lc).
+			"SELECT `id` FROM `application_blacklist_$this->ctx_lc`".
 			' WHERE '.implode(' OR ', $query_params).' LIMIT 1'
 		);
 		call_user_func_array(array($stmt, 'bind_param'), $bind_params);
@@ -1033,7 +1031,7 @@ class cm_application_db {
 			' `normalized_fandom_name`,'.
 			' `normalized_email_address`,'.
 			' `normalized_phone_number`'.
-			' FROM '.$this->cm_db->table_name('applicant_blacklist_'.$this->ctx_lc).
+			" FROM `applicant_blacklist_$this->ctx_lc`".
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('i', $id);
@@ -1048,8 +1046,8 @@ class cm_application_db {
 			$normalized_phone_number
 		);
 		if ($stmt->fetch()) {
-			$real_name = trim(trim($first_name) . ' ' . trim($last_name));
-			$reversed_name = trim(trim($last_name) . ' ' . trim($first_name));
+			$real_name = trim(trim($first_name ?? '') . ' ' . trim($last_name ?? ''));
+			$reversed_name = trim(trim($last_name ?? '') . ' ' . trim($first_name ?? ''));
 			$result = array(
 				'id' => $id,
 				'first-name' => $first_name,
@@ -1089,7 +1087,7 @@ class cm_application_db {
 			' `normalized_fandom_name`,'.
 			' `normalized_email_address`,'.
 			' `normalized_phone_number`'.
-			' FROM '.$this->cm_db->table_name('applicant_blacklist_'.$this->ctx_lc).
+			" FROM `applicant_blacklist_$this->ctx_lc`".
 			' ORDER BY `first_name`, `last_name`'
 		);
 		$stmt->execute();
@@ -1103,8 +1101,8 @@ class cm_application_db {
 			$normalized_phone_number
 		);
 		while ($stmt->fetch()) {
-			$real_name = trim(trim($first_name) . ' ' . trim($last_name));
-			$reversed_name = trim(trim($last_name) . ' ' . trim($first_name));
+			$real_name = trim(trim($first_name ?? '') . ' ' . trim($last_name ?? ''));
+			$reversed_name = trim(trim($last_name ?? '') . ' ' . trim($first_name ?? ''));
 			$blacklist[] = array(
 				'id' => $id,
 				'first-name' => $first_name,
@@ -1159,7 +1157,7 @@ class cm_application_db {
 		if (!$normalized_email_address) $normalized_email_address = '';
 		if (!$normalized_phone_number) $normalized_phone_number = '';
 		$stmt = $this->cm_db->connection->prepare(
-			'INSERT INTO '.$this->cm_db->table_name('applicant_blacklist_'.$this->ctx_lc).' SET '.
+			"INSERT INTO `applicant_blacklist_$this->ctx_lc` SET ".
 			'`first_name` = ?, `last_name` = ?, `fandom_name` = ?, '.
 			'`email_address` = ?, `phone_number` = ?, `added_by` = ?, `notes` = ?, '.
 			'`normalized_real_name` = ?, '.
@@ -1210,7 +1208,7 @@ class cm_application_db {
 		if (!$normalized_email_address) $normalized_email_address = '';
 		if (!$normalized_phone_number) $normalized_phone_number = '';
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('applicant_blacklist_'.$this->ctx_lc).' SET '.
+			"UPDATE `applicant_blacklist_$this->ctx_lc` SET ".
 			'`first_name` = ?, `last_name` = ?, `fandom_name` = ?, '.
 			'`email_address` = ?, `phone_number` = ?, `added_by` = ?, `notes` = ?, '.
 			'`normalized_real_name` = ?, '.
@@ -1239,7 +1237,7 @@ class cm_application_db {
 	public function delete_applicant_blacklist_entry($id) {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'DELETE FROM '.$this->cm_db->table_name('applicant_blacklist_'.$this->ctx_lc).
+			"DELETE FROM `applicant_blacklist_$this->ctx_lc`".
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('i', $id);
@@ -1302,7 +1300,7 @@ class cm_application_db {
 		if (!$query_params) return false;
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT `id` FROM '.
-			$this->cm_db->table_name('applicant_blacklist_'.$this->ctx_lc).
+			"`applicant_blacklist_$this->ctx_lc`".
 			' WHERE '.implode(' OR ', $query_params).' LIMIT 1'
 		);
 		call_user_func_array(array($stmt, 'bind_param'), $bind_params);
@@ -1326,13 +1324,13 @@ class cm_application_db {
 			' a.`contact_state`, a.`contact_zip_code`, a.`contact_country`,'.
 			' a.`business_name`, a.`application_name`, a.`applicant_count`,'.
 			' a.`assignment_count`, a.`application_status`, a.`permit_number`,'.
-			' (SELECT MIN(b1.`date_of_birth`) FROM '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' b1 WHERE b1.`application_id` = a.`id`) c1,'.
-			' (SELECT MAX(b2.`date_of_birth`) FROM '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' b2 WHERE b2.`application_id` = a.`id`) c2,'.
+			" (SELECT MIN(b1.`date_of_birth`) FROM `applicants_$this->ctx_lc` b1 WHERE b1.`application_id` = a.`id`) c1,".
+			" (SELECT MAX(b2.`date_of_birth`) FROM `applicants_$this->ctx_lc` b2 WHERE b2.`application_id` = a.`id`) c2,".
 			' a.`payment_status`, a.`payment_badge_price`,'.
 			' a.`payment_group_uuid`, a.`payment_type`,'.
 			' a.`payment_txn_id`, a.`payment_txn_amt`,'.
 			' a.`payment_date`, a.`payment_details`'.
-			' FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' a'
+			' FROM `applications_'.$this->ctx_lc.'` a'
 		);
 		if ($id) {
 			if ($uuid) $query .= ' WHERE `id` = ? AND `uuid` = ? LIMIT 1';
@@ -1456,7 +1454,7 @@ class cm_application_db {
 
 			$stmt = $this->cm_db->connection->prepare(
 				'SELECT `context`, `context_id`, `room_or_table_id`, `start_time`, `end_time`'.
-				' FROM '.$this->cm_db->table_name('room_and_table_assignments').
+				' FROM `room_and_table_assignments`'.
 				' WHERE `context` = ? AND `context_id` = ?'.
 				' ORDER BY `start_time`, `end_time`, `room_or_table_id`'
 			);
@@ -1517,13 +1515,13 @@ class cm_application_db {
 			' a.`contact_state`, a.`contact_zip_code`, a.`contact_country`,'.
 			' a.`business_name`, a.`application_name`, a.`applicant_count`,'.
 			' a.`assignment_count`, a.`application_status`, a.`permit_number`,'.
-			' (SELECT MIN(b1.`date_of_birth`) FROM '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' b1 WHERE b1.`application_id` = a.`id`) c1,'.
-			' (SELECT MAX(b2.`date_of_birth`) FROM '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' b2 WHERE b2.`application_id` = a.`id`) c2,'.
+			" (SELECT MIN(b1.`date_of_birth`) FROM `applicants_$this->ctx_lc` b1 WHERE b1.`application_id` = a.`id`) c1,".
+			" (SELECT MAX(b2.`date_of_birth`) FROM `applicants_$this->ctx_lc` b2 WHERE b2.`application_id` = a.`id`) c2,".
 			' a.`payment_status`, a.`payment_badge_price`,'.
 			' a.`payment_group_uuid`, a.`payment_type`,'.
 			' a.`payment_txn_id`, a.`payment_txn_amt`,'.
 			' a.`payment_date`, a.`payment_details`'.
-			' FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' a'
+			" FROM `applications_'.$this->ctx_lc.'` a"
 		);
 		$first = true;
 		$bind = array('');
@@ -1652,7 +1650,7 @@ class cm_application_db {
 
 			$stmt = $this->cm_db->connection->prepare(
 				'SELECT `context`, `context_id`, `room_or_table_id`, `start_time`, `end_time`'.
-				' FROM '.$this->cm_db->table_name('room_and_table_assignments').
+				' FROM `room_and_table_assignments`'.
 				' WHERE `context` = ? AND `context_id` = ?'.
 				' ORDER BY `start_time`, `end_time`, `room_or_table_id`'
 			);
@@ -1728,7 +1726,7 @@ class cm_application_db {
 		$payment_date = ($application['payment-date'] ?? null);
 		$payment_details = ($application['payment-details'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
-			'INSERT INTO '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' SET '.
+			"INSERT INTO `applications_$this->ctx_lc` SET ".
 			'`uuid` = UUID(), `date_created` = NOW(), `date_modified` = NOW(), '.
 			'`badge_type_id` = ?, `notes` = ?, `contact_first_name` = ?, '.
 			'`contact_last_name` = ?, `contact_subscribed` = ?, '.
@@ -1766,8 +1764,7 @@ class cm_application_db {
 					$end_time = (isset($art['end-time']) && $art['end-time']) ? $art['end-time'] : null;
 					if ($room_or_table_id) {
 						$stmt = $this->cm_db->connection->prepare(
-							'INSERT INTO '.
-							$this->cm_db->table_name('room_and_table_assignments').
+							'INSERT INTO `room_and_table_assignments`'.
 							' SET `context` = ?, `context_id` = ?, '.
 							'`room_or_table_id` = ?, `start_time` = ?, `end_time` = ?'
 						);
@@ -1820,7 +1817,7 @@ class cm_application_db {
 		$payment_date = ($application['payment-date'] ?? null);
 		$payment_details = ($application['payment-details'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' SET '.
+			"UPDATE `applications_$this->ctx_lc` SET ".
 			'`date_modified` = NOW(), '.
 			'`badge_type_id` = ?, `notes` = ?, `contact_first_name` = ?, '.
 			'`contact_last_name` = ?, `contact_subscribed` = ?, '.
@@ -1855,7 +1852,7 @@ class cm_application_db {
 		if ($success) {
 			if (isset($application['assigned-rooms-and-tables'])) {
 				$stmt = $this->cm_db->connection->prepare(
-					'DELETE FROM '.$this->cm_db->table_name('room_and_table_assignments').
+					'DELETE FROM `room_and_table_assignments`'.
 					' WHERE `context` = ? AND `context_id` = ?'
 				);
 				$stmt->bind_param('si', $this->ctx_uc, $application['id']);
@@ -1867,8 +1864,7 @@ class cm_application_db {
 					$end_time = (isset($art['end-time']) && $art['end-time']) ? $art['end-time'] : null;
 					if ($room_or_table_id) {
 						$stmt = $this->cm_db->connection->prepare(
-							'INSERT INTO '.
-							$this->cm_db->table_name('room_and_table_assignments').
+							'INSERT INTO `room_and_table_assignments`'.
 							' SET `context` = ?, `context_id` = ?, '.
 							'`room_or_table_id` = ?, `start_time` = ?, `end_time` = ?'
 						);
@@ -1896,7 +1892,7 @@ class cm_application_db {
 	public function delete_application($id) {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'DELETE FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).
+			"DELETE FROM `applications_$this->ctx_lc`".
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('i', $id);
@@ -1905,7 +1901,7 @@ class cm_application_db {
 		if ($success) {
 			$applicant_ids = array();
 			$stmt = $this->cm_db->connection->prepare(
-				'SELECT `id` FROM '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).
+				"SELECT `id` FROM `applicants_$this->ctx_lc`".
 				' WHERE `application_id` = ?'
 			);
 			$stmt->bind_param('i', $id);
@@ -1920,7 +1916,7 @@ class cm_application_db {
 			}
 
 			$stmt = $this->cm_db->connection->prepare(
-				'DELETE FROM '.$this->cm_db->table_name('room_and_table_assignments').
+				'DELETE FROM `room_and_table_assignments`'.
 				' WHERE `context` = ? AND `context_id` = ?'
 			);
 			$stmt->bind_param('si', $this->ctx_uc, $id);
@@ -1935,7 +1931,7 @@ class cm_application_db {
 		if (!$application) return false;
 		$application_name = (isset($application['application-name']) ? strtolower($application['application-name']) : '');
 		$stmt = $this->cm_db->connection->prepare(
-			'SELECT 1 FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).
+			"SELECT 1 FROM `applications_$this->ctx_lc`".
 			' WHERE LCASE(`application_name`) = ?'
 		);
 		$stmt->bind_param('s', $application_name);
@@ -2061,7 +2057,7 @@ class cm_application_db {
 	public function update_permit_number($id, $permit_number) {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' SET '.
+			"UPDATE `applications_$this->ctx_lc` SET ".
 			'`permit_number` = ?'.
 			' WHERE `id` = ? LIMIT 1'
 		);
@@ -2079,7 +2075,7 @@ class cm_application_db {
 	public function update_payment_status($id, $status, $type, $txn_id, $txn_amt, $date, $details) {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' SET '.
+			"UPDATE `applications_$this->ctx_lc` SET ".
 			'`payment_status` = ?, `payment_type` = ?, `payment_txn_id` = ?, '.
 			'`payment_txn_amt` = ?, `payment_date` = ?, `payment_details` = ?'.
 			' WHERE `id` = ? LIMIT 1'
@@ -2113,7 +2109,7 @@ class cm_application_db {
 			' `address_1`, `address_2`, `city`, `state`, `zip_code`,'.
 			' `country`, `ice_name`, `ice_relationship`,'.
 			' `ice_email_address`, `ice_phone_number`'.
-			' FROM '.$this->cm_db->table_name('applicants_'.$this->ctx_lc)
+			" FROM `applicants_$this->ctx_lc`"
 		);
 		if ($id) {
 			if ($uuid) $query .= ' WHERE `id` = ? AND `uuid` = ? LIMIT 1';
@@ -2254,7 +2250,7 @@ class cm_application_db {
 
 	public function list_applicants($application_id = null, $expand = false, $name_map = null, $fdb = null) {
 		if (!$name_map) $name_map = $this->get_badge_type_name_map();
-		if (!$fdb) $fdb = new cm_forms_db($this->cm_db, 'application-'.$this->ctx_lc);
+		if (!$fdb) $fdb = new cm_forms_db($this->cm_db, "application-$this->ctx_lc");
 		$applicants = array();
 		$query = (
 			'SELECT `id`, `uuid`, `date_created`, `date_modified`,'.
@@ -2266,7 +2262,7 @@ class cm_application_db {
 			' `address_1`, `address_2`, `city`, `state`, `zip_code`,'.
 			' `country`, `ice_name`, `ice_relationship`,'.
 			' `ice_email_address`, `ice_phone_number`'.
-			' FROM '.$this->cm_db->table_name('applicants_'.$this->ctx_lc)
+			" FROM `applicants_$this->ctx_lc`"
 		);
 		$first = true;
 		$bind = array('');
@@ -2429,7 +2425,7 @@ class cm_application_db {
 		$ice_email_address = ($applicant['ice-email-address'] ?? '');
 		$ice_phone_number = ($applicant['ice-phone-number'] ?? '');
 		$stmt = $this->cm_db->connection->prepare(
-			'INSERT INTO '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' SET '.
+			"INSERT INTO `applicants_$this->ctx_lc` SET ".
 			'`uuid` = UUID(), `date_created` = NOW(), `date_modified` = NOW(), '.
 			'`application_id` = ?, `attendee_id` = ?, `notes` = ?, '.
 			'`first_name` = ?, `last_name` = ?, `fandom_name` = ?, '.
@@ -2482,7 +2478,7 @@ class cm_application_db {
 		$ice_email_address = ($applicant['ice-email-address'] ?? '');
 		$ice_phone_number = ($applicant['ice-phone-number'] ?? '');
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' SET '.
+			"UPDATE `applicants_$this->ctx_lc` SET ".
 			'`date_modified` = NOW(), '.
 			'`application_id` = ?, `attendee_id` = ?, `notes` = ?, '.
 			'`first_name` = ?, `last_name` = ?, `fandom_name` = ?, '.
@@ -2517,7 +2513,7 @@ class cm_application_db {
 	public function delete_applicant($id) {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'DELETE FROM '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).
+			"DELETE FROM `applicants_$this->ctx_lc`".
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('i', $id);
@@ -2532,7 +2528,7 @@ class cm_application_db {
 	public function unsubscribe_email_address($email) {
 		if (!$email) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' SET '.
+			"UPDATE `applications_$this->ctx_lc` SET ".
 			'`contact_subscribed` = FALSE WHERE LCASE(`contact_email_address`) = LCASE(?)'
 		);
 		$stmt->bind_param('s', $email);
@@ -2541,7 +2537,7 @@ class cm_application_db {
 		if ($ancount) {
 			$ids = array();
 			$stmt = $this->cm_db->connection->prepare(
-				'SELECT `id` FROM '.$this->cm_db->table_name('applications_'.$this->ctx_lc).
+				"SELECT `id` FROM `applications_$this->ctx_lc`".
 				' WHERE LCASE(`contact_email_address`) = LCASE(?)'
 			);
 			$stmt->bind_param('s', $email);
@@ -2556,7 +2552,7 @@ class cm_application_db {
 			}
 		}
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' SET '.
+			"UPDATE `applicants_$this->ctx_lc` SET ".
 			'`subscribed` = FALSE WHERE LCASE(`email_address`) = LCASE(?)'
 		);
 		$stmt->bind_param('s', $email);
@@ -2565,7 +2561,7 @@ class cm_application_db {
 		if ($atcount) {
 			$ids = array();
 			$stmt = $this->cm_db->connection->prepare(
-				'SELECT `id` FROM '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).
+				"SELECT `id` FROM `applicants_$this->ctx_lc`".
 				' WHERE LCASE(`email_address`) = LCASE(?)'
 			);
 			$stmt->bind_param('s', $email);
@@ -2585,7 +2581,7 @@ class cm_application_db {
 	public function applicant_printed($id, $reset = false) {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' SET '.
+			"UPDATE `applicants_$this->ctx_lc` SET ".
 			($reset ? (
 				'`print_count` = NULL, '.
 				'`print_first_time` = NULL, '.
@@ -2611,7 +2607,7 @@ class cm_application_db {
 	public function applicant_checked_in($id, $reset = false) {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' SET '.
+			"UPDATE `applicants_$this->ctx_lc` SET ".
 			($reset ? (
 				'`checkin_count` = NULL, '.
 				'`checkin_first_time` = NULL, '.
@@ -2648,8 +2644,8 @@ class cm_application_db {
 
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT UNIX_TIMESTAMP(at.`date_created`), an.`badge_type_id`'.
-			' FROM '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' at'.
-			' LEFT JOIN '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' an'.
+			" FROM `applicants_$this->ctx_lc` at".
+			" LEFT JOIN `applications_$this->ctx_lc` an".
 			' ON at.`application_id` = an.`id`'.
 			' ORDER BY at.`date_created`'
 		);
@@ -2666,8 +2662,8 @@ class cm_application_db {
 
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT UNIX_TIMESTAMP(an.`payment_date`), an.`badge_type_id`'.
-			' FROM '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' at'.
-			' LEFT JOIN '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' an'.
+			" FROM `applicants_$this->ctx_lc` at".
+			" LEFT JOIN `applications_$this->ctx_lc` an".
 			' ON at.`application_id` = an.`id`'.
 			' WHERE an.`payment_status` = \'Completed\''.
 			' AND an.`payment_date` IS NOT NULL'.
@@ -2686,8 +2682,8 @@ class cm_application_db {
 
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT UNIX_TIMESTAMP(at.`print_first_time`), an.`badge_type_id`'.
-			' FROM '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' at'.
-			' LEFT JOIN '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' an'.
+			" FROM `applicants_$this->ctx_lc` at".
+			" LEFT JOIN `applications_$this->ctx_lc` an".
 			' ON at.`application_id` = an.`id`'.
 			' WHERE at.`print_first_time` IS NOT NULL'.
 			' ORDER BY at.`print_first_time`'
@@ -2705,8 +2701,8 @@ class cm_application_db {
 
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT UNIX_TIMESTAMP(at.`checkin_first_time`), an.`badge_type_id`'.
-			' FROM '.$this->cm_db->table_name('applicants_'.$this->ctx_lc).' at'.
-			' LEFT JOIN '.$this->cm_db->table_name('applications_'.$this->ctx_lc).' an'.
+			" FROM `applicants_$this->ctx_lc` at".
+			" LEFT JOIN `applications_$this->ctx_lc` an".
 			' ON at.`application_id` = an.`id`'.
 			' WHERE at.`checkin_first_time` IS NOT NULL'.
 			' ORDER BY at.`checkin_first_time`'
