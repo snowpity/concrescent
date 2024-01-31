@@ -33,7 +33,7 @@ class cm_admin_db {
 				$active = 1;
 				$permissions = '*';
 				$stmt = $this->cm_db->connection->prepare(
-					'INSERT INTO '.$this->cm_db->table_name('admin_users').' SET '.
+					'INSERT INTO `admin_users` SET '.
 					'`name` = ?, `username` = ?, `password` = ?, `active` = ?, `permissions` = ?'
 				);
 				$stmt->bind_param(
@@ -59,7 +59,7 @@ class cm_admin_db {
 		if (!$username || !$password) return false;
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT `name`, `username`, `password`, `permissions`'.
-			' FROM '.$this->cm_db->table_name('admin_users').
+			' FROM `admin_users`' .
 			' WHERE `username` = ? AND `active` LIMIT 1'
 		);
 		$stmt->bind_param('s', $username);
@@ -101,7 +101,7 @@ class cm_admin_db {
 		$http_referer = $_SERVER['HTTP_REFERER'] ?? '';
 		$http_user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 		$stmt = $this->cm_db->connection->prepare(
-			'INSERT INTO '.$this->cm_db->table_name('admin_access_log').' SET '.
+			'INSERT INTO `admin_access_log` SET '.
 			'`timestamp` = NOW(), `username` = ?, '.
 			'`remote_addr` = ?, `remote_host` = ?, '.
 			'`request_method` = ?, `request_uri` = ?, '.
@@ -157,7 +157,7 @@ class cm_admin_db {
 		if (!$username) return false;
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT `name`, `username`, `active`, `permissions`'.
-			' FROM '.$this->cm_db->table_name('admin_users').
+			' FROM `admin_users`' .
 			' WHERE `username` = ? LIMIT 1'
 		);
 		$stmt->bind_param('s', $username);
@@ -182,7 +182,7 @@ class cm_admin_db {
 		$users = array();
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT `name`, `username`, `active`, `permissions`'.
-			' FROM '.$this->cm_db->table_name('admin_users').
+			' FROM `admin_users`' .
 			' ORDER BY `name`'
 		);
 		$stmt->execute();
@@ -215,7 +215,7 @@ class cm_admin_db {
 		);
 		/* Create and execute query */
 		$stmt = $this->cm_db->connection->prepare(
-			'INSERT INTO '.$this->cm_db->table_name('admin_users').' SET '.
+			'INSERT INTO `admin_users` SET '.
 			'`name` = ?, `username` = ?, `password` = ?, `active` = ?, `permissions` = ?'
 		);
 		$stmt->bind_param(
@@ -271,7 +271,7 @@ class cm_admin_db {
 		$bind_params[] = &$username;
 		/* Create and execute query */
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('admin_users').' SET '.
+			'UPDATE `admin_users` SET '.
 			implode(', ', $query_params).' WHERE `username` = ? LIMIT 1'
 		);
 		call_user_func_array(array($stmt, 'bind_param'), $bind_params);
@@ -283,7 +283,7 @@ class cm_admin_db {
 	public function delete_user($username) {
 		if (!$username) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'DELETE FROM '.$this->cm_db->table_name('admin_users').
+			'DELETE FROM `admin_users`' .
 			' WHERE `username` = ? LIMIT 1'
 		);
 		$stmt->bind_param('s', $username);
@@ -296,7 +296,7 @@ class cm_admin_db {
 		if (!$username) return false;
 		$active = $active ? 1 : 0;
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('admin_users').
+			'UPDATE `admin_users`' .
 			' SET `active` = ? WHERE `username` = ? LIMIT 1'
 		);
 		$stmt->bind_param('is', $active, $username);

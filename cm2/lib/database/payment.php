@@ -56,7 +56,7 @@ class cm_payment_db {
 			' `payment_status`, `payment_type`,'.
 			' `payment_txn_id`, `payment_txn_amt`,'.
 			' `payment_date`, `payment_details`'.
-			' FROM '.$this->cm_db->table_name('payments')
+			' FROM `payments`'
 		);
 		if ($id) {
 			if ($uuid) $query .= ' WHERE `id` = ? AND `uuid` = ? LIMIT 1';
@@ -139,7 +139,7 @@ class cm_payment_db {
 			' `payment_status`, `payment_type`,'.
 			' `payment_txn_id`, `payment_txn_amt`,'.
 			' `payment_date`, `payment_details`'.
-			' FROM '.$this->cm_db->table_name('payments').
+			' FROM `payments`' .
 			' ORDER BY `id`'
 		);
 		$stmt->execute();
@@ -216,7 +216,7 @@ class cm_payment_db {
 		$payment_date = ($payment['payment-date'] ?? null);
 		$payment_details = ($payment['payment-details'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
-			'INSERT INTO '.$this->cm_db->table_name('payments').' SET '.
+			'INSERT INTO `payments` SET '.
 			'`uuid` = UUID(), `date_created` = NOW(), `date_modified` = NOW(), '.
 			'`requested_by` = ?, `first_name` = ?, `last_name` = ?, '.
 			'`email_address` = ?, `mail_template` = ?, `payment_name` = ?, '.
@@ -256,7 +256,7 @@ class cm_payment_db {
 		$payment_date = ($payment['payment-date'] ?? null);
 		$payment_details = ($payment['payment-details'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('payments').' SET '.
+			'UPDATE `payments` SET '.
 			'`date_modified` = NOW(), '.
 			'`requested_by` = ?, `first_name` = ?, `last_name` = ?, '.
 			'`email_address` = ?, `mail_template` = ?, `payment_name` = ?, '.
@@ -284,7 +284,7 @@ class cm_payment_db {
 	public function delete_payment($id) {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'DELETE FROM '.$this->cm_db->table_name('payments').
+			'DELETE FROM `payments`' .
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('i', $id);
@@ -296,7 +296,7 @@ class cm_payment_db {
 	public function update_payment_status($id, $status, $type, $txn_id, $txn_amt, $date, $details) {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
-			'UPDATE '.$this->cm_db->table_name('payments').' SET '.
+			'UPDATE `payments` SET '.
 			'`payment_status` = ?, `payment_type` = ?, `payment_txn_id` = ?, '.
 			'`payment_txn_amt` = ?, `payment_date` = ?, `payment_details` = ?'.
 			' WHERE `id` = ? LIMIT 1'

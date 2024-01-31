@@ -53,11 +53,6 @@ class cm_db {
 		}
 	}
 
-	public function table_name($table): string
-	{
-		return "`$table`";
-	}
-
 	public function table_is_empty($table): bool
 	{
 		$result = $this->connection->query("SELECT 1 FROM `$table` LIMIT 1");
