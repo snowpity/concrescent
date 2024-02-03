@@ -60,6 +60,12 @@ abstract class Table
         }
         return $result;
     }
+
+    public function HasColumn(string $columnName): bool
+    {
+        return array_key_exists($columnName, $this->ColumnDefs);
+    }
+    
     public function dbTableName(): string
     {
         return $this->cm_db->table_name($this->TableName);
@@ -587,6 +593,10 @@ abstract class Table
                                         $whereCodes .= $typeCode;
                                         $whereData[] = &$sourceColumn->CompareValue[$key];
                                     }
+                                    //If there are no values, add in a null
+                                    if($firstNeedle == true){
+                                        $sqlBody .= "null";
+                                    }
                                     $sqlBody .= ')';
                                 }
                                 //Is our operation an is (not)
@@ -888,6 +898,10 @@ abstract class Table
                             $result .= "?";
                             $whereCodes .= $typeCode;
                             $whereData[] = &$term->CompareValue[$key];
+                        }
+                        //If there are no values, add in a null
+                        if($firstNeedle == true){
+                            $result .= "null";
                         }
                         $result .= ')';
                     }
