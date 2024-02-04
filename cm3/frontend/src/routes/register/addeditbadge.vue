@@ -325,8 +325,8 @@ import profileForm from '@/components/profileForm.vue';
 export default {
     data() {
         return {
-            step: 1,
-            reachedStep: 1,
+            step: 0,
+            reachedStep: 0,
             cartIx: -1,
             id: -1, // Attendee's ID, not the badgeType
             uuid: '',
@@ -342,7 +342,7 @@ export default {
             },
             selectedBadge_ix: null,
             validBadgeType: false,
-            context_code: 'A',
+            context_code: '',
             badge_type_id: -1,
             menuBDay: false,
 
@@ -606,6 +606,7 @@ export default {
     },
     watch: {
         step(newStep) {
+            console.log('step',newStep)
             this.reachedStep = Math.max(this.reachedStep, newStep);
             //if(this.step == 1){
                 this.checkBadge();
@@ -767,6 +768,7 @@ export default {
             if (this.$route.query.context_code != undefined) {
                 console.log('set context from URI query', this.$route.query.context_code);
                 context_code = this.$route.query.context_code
+                this.step = 1;
             }
             if (newCode != undefined) {
                 console.log('set context from dropdown', newCode);
@@ -844,9 +846,9 @@ export default {
                 this.selectedBadge_ix = badge;
             } else {
                 this.validBadgeType = false;
-                this.reachedStep = Math.max(1,this.reachedStep);
-                this.step = Math.max(1,this.step);
-                //console.log('No badges for context, go back to step 1', this.context_code)
+                this.reachedStep = Math.max(0,this.reachedStep);
+                this.step = Math.max(0,this.step);
+                //console.log('No badges for context, go back to step 0', this.context_code)
                 return;
             }
 
