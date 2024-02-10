@@ -1330,7 +1330,7 @@ class cm_application_db {
 			' a.`payment_group_uuid`, a.`payment_type`,'.
 			' a.`payment_txn_id`, a.`payment_txn_amt`,'.
 			' a.`payment_date`, a.`payment_details`'.
-			' FROM `applications_'.$this->ctx_lc.'` a'
+			" FROM `applications_$this->ctx_lc` a"
 		);
 		if ($id) {
 			if ($uuid) $query .= ' WHERE `id` = ? AND `uuid` = ? LIMIT 1';
@@ -1521,7 +1521,7 @@ class cm_application_db {
 			' a.`payment_group_uuid`, a.`payment_type`,'.
 			' a.`payment_txn_id`, a.`payment_txn_amt`,'.
 			' a.`payment_date`, a.`payment_details`'.
-			" FROM `applications_'.$this->ctx_lc.'` a"
+			" FROM `applications_$this->ctx_lc` a"
 		);
 		$first = true;
 		$bind = array('');
