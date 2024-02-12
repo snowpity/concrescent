@@ -158,6 +158,12 @@ const actions = {
             //Load only if necessary
             if (state.gotBadges[context_code] != undefined)
                 return resolve();
+            //Initialize to empty in case of failure
+            commit('setContextBadges', {
+                badges: [],
+                context_code: context_code,
+                success: false
+            });
             shop.getBadges(state.selectedEventId,
                 context_code, state.override_code,
                 badges => {

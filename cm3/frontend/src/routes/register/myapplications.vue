@@ -27,6 +27,7 @@
                         <v-icon>mdi-information</v-icon>
                     </v-btn>
                     <v-btn icon
+                            :disabled="badge.application_status!='Accepted'"
                            :to="{name:'editbadge', params: {editAppIx: idx}}">
                         <v-icon>mdi-pencil</v-icon>
                     </v-btn>

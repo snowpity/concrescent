@@ -35,6 +35,11 @@ final class Create
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
+        
+        //Make sure we don't have an ID, date_created, date_modified
+        unset($data['id']);
+        unset($data['date_created']);
+        unset($data['date_modified']);
 
         // Invoke the Domain with inputs and retain the result
         $data = $this->banlist->Create($data);

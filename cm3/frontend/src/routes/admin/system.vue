@@ -107,64 +107,36 @@
             </v-card>
         </v-dialog>
     </v-tab-item>
-    <v-tab-item value="1">
-        <orderableList apiPath="Staff/BadgeType"
-                       :AddHeaders="btAddHeaders"
-                       :actions="btActions"
-                       :footerActions="btFooterActions"
-                       :isEditingItem="btDialog"
-                       @edit="editBadgeType"
-                       @create="createBadgeType" />
+    <v-tab-item value="BanList">
+        <simpleList apiPath="Banlist"
+                       :AddHeaders="blAddHeaders"
+                       :actions="blActions"
+                       :footerActions="blFooterActions"
+                       :isEditingItem="blDialog"
+                       @edit="editBan"
+                       @create="createBan" />
 
-        <v-dialog v-model="btDialog"
+        <v-dialog v-model="blDialog"
                   persistent>
 
             <v-card>
-                <v-card-title class="headline">Edit Badge Type</v-card-title>
+                <v-card-title class="headline">Edit Ban</v-card-title>
                 <v-card-text>
 
-                    <badgeTypeForm v-model="btSelected" />
+                    <banForm v-model="blSelected" />
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="default"
-                           @click="btDialog = false">Cancel</v-btn>
+                           @click="blDialog = false">Cancel</v-btn>
                     <v-btn color="primary"
-                           @click="saveBadgeType">Save</v-btn>
+                           @click="saveBan">Save</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
     </v-tab-item>
     <v-tab-item value="2">
         <formQuestionEditList context_code="S" />
-    </v-tab-item>
-    <v-tab-item value="3">
-        <treeList apiPath="Staff/Department"
-                  :AddHeaders="dAddHeaders"
-                  :actions="btActions"
-                  :footerActions="btFooterActions"
-                  :isEditingItem="dDialog"
-                  @edit="editDepartment"
-                  @create="createDepartment" />
-        <v-dialog v-model="dDialog"
-                  scrollable
-                  persistent>
-
-            <v-card>
-                <v-card-title class="headline">Edit Department</v-card-title>
-                <v-card-text>
-
-                    <editDepartment v-model="dSelected" />
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="default"
-                           @click="dDialog = false">Cancel</v-btn>
-                    <v-btn color="primary"
-                           @click="saveDepartment">Save</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
     </v-tab-item>
 
     <v-dialog v-model="loading"
@@ -199,9 +171,8 @@ import {
 } from '@/plugins/debounce';
 import badgeSearchList from '@/components/badgeSearchList.vue';
 import simpleList from '@/components/simpleList.vue';
-import badgeTypeForm from '@/components/badgeTypeForm.vue';
+import banForm from '@/components/banForm.vue';
 import formQuestionEditList from '@/components/formQuestionEditList.vue';
-import treeList from '@/components/treeList.vue';
 import editBadgeAdmin from '@/components/editBadgeAdmin.vue';
 import editDepartment from '@/components/editDepartment.vue';
 
@@ -209,11 +180,10 @@ export default {
     components: {
         //badgeSearchList,
         simpleList,
-        badgeTypeForm,
         formQuestionEditList,
-        treeList,
+        banForm,
         //editBadgeAdmin,
-        editDepartment
+        // editDepartment
     },
     props: [
         'subTabIx'
@@ -243,18 +213,18 @@ export default {
         bSaved: false,
         bSavedDetails: {},
         bPrint: false,
-        btAddHeaders: [{
-            text: 'Dates Available',
-            value: 'dates_available'
+        blAddHeaders: [{
+            text: 'Real Name',
+            value: 'real_name'
         }, {
-            text: 'Price',
-            value: 'price'
+            text: 'Phone Number',
+            value: 'phone_number'
         }, {
-            text: 'Active',
-            value: 'active'
+            text: 'Email Address',
+            value: 'email_address'
         }],
-        btSelected: {},
-        btDialog: false,
+        blSelected: {},
+        blDialog: false,
 
         dAddHeaders: [{
             text: 'Name',
@@ -285,7 +255,7 @@ export default {
             });
             return result;
         },
-        btActions: function() {
+        blActions: function() {
             var result = [];
             result.push({
                 name: 'edit',
@@ -294,7 +264,7 @@ export default {
             });
             return result;
         },
-        btFooterActions: function() {
+        blFooterActions: function() {
             var result = [];
             result.push({
                 name: 'create',
@@ -364,33 +334,33 @@ export default {
                 that.loading = false;
             })
         },
-        createBadgeType: function() {
-            this.btDialog = true;
-            this.btSelected = {};
+        createBan: function() {
+            this.blDialog = true;
+            this.blSelected = {};
         },
-        editBadgeType: function(selectedBadgeType) {
+        editBan: function(selectedBan) {
             this.loading = true;
-            this.btDialog = true;
+            this.blDialog = true;
             var that = this;
-            admin.genericGet(this.authToken, 'Staff/BadgeType/' + selectedBadgeType.id, null, function(editBt) {
+            admin.genericGet(this.authToken, 'Banlist/' + selectedBan.id, null, function(editBl) {
 
-                that.btSelected = editBt;
+                that.blSelected = editBl;
                 that.loading = false;
             }, function() {
                 that.loading = false;
             })
         },
-        saveBadgeType: function() {
-            var url = 'Staff/BadgeType';
-            if (this.btSelected.id != undefined)
-                url = url + '/' + this.btSelected.id;
-            console.log("Saving badge type", this.btSelected)
+        saveBan: function() {
+            var url = 'Banlist';
+            if (this.blSelected.id != undefined)
+                url = url + '/' + this.blSelected.id;
+            console.log("Saving ban", this.blSelected)
             var that = this;
-            admin.genericPost(this.authToken, url, this.btSelected, function(editBt) {
+            admin.genericPost(this.authToken, url, this.blSelected, function(editBt) {
 
-                that.btSelected = editBt;
+                that.blSelected = editBt;
                 that.loading = false;
-                that.btDialog = false;
+                that.blDialog = false;
             }, function() {
                 that.loading = false;
             })
@@ -442,6 +412,10 @@ export default {
                 key: 'ErrorLog',
                 text: 'Error Log',
                 title: 'Error Log'
+            },{
+                key: 'BanList',
+                text: 'Banlist',
+                title: 'Ban List'
             },
             {
                 key: '1',

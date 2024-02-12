@@ -49,6 +49,11 @@ final class badgevalidator
     ) {
     }
 
+    private ?int $payment_id = null;
+    public function Set_Payment_Id(int $payment_id){
+        $this->payment_id = $payment_id;
+    }
+
     //Returns an array of the errors in this badge
     public function ValdateCartBadge(&$item)
     {
@@ -100,12 +105,20 @@ final class badgevalidator
                         //Add only the validator for badge_type_id
                         $v->addColumnValidator('badge_type_id', v::In($this->GetValidTypeIdsForContext($item['context_code'])), true);
                     }
+                    //Check that they're not attempting to change their type
+                    if(isset($item['existing'])){
+                        $v->addColumnValidator('badge_type_id', v::Equals($item['existing']['badge_type_id']), true);
+                    }
                 }
                 //TODO: Add submission applicants
         }
 
-        //Add the questions validator
-        //TODO: Implement
+        //Validate that we're not modifying an existing badge that belongs to another payment
+        if($this->payment_id && isset($item['existing'])){
+            if($item['existing']['payment_status'] != 'Completed' && ($item['existing']['payment_id'] ??-1) != $this->payment_id){
+                $v->addColumnValidator('id', v::alwaysInvalid()->setTemplate('id is being edited in another cart.'), true);
+            }
+        }
 
         $v->Validate($item);
         return $v->GetErrors();

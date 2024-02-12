@@ -21,7 +21,7 @@ class banlist extends \CM3_Lib\database\Table
 
             'date_created'             => new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP'),
             'date_modified'         => new cm_Column('TIMESTAMP', null, false, false, false, false, 'CURRENT_TIMESTAMP', false, 'ON UPDATE CURRENT_TIMESTAMP'),
-            'date_expired'          => new cm_Column('TIMESTAMP', null, true, false, false, false),
+            'date_expired'          => new cm_Column('DATE', null, true, false, false, false),
             'notes'                    => new cm_Column('TEXT', null, true),
 
             //Normalized computed columns
@@ -45,22 +45,24 @@ class banlist extends \CM3_Lib\database\Table
         $whereTerms                       = array();
         //Translation map
         foreach (array(
-            'real_name' => 'normalized_real_name',
-            'fandom_name' => 'normalized_real_name',
-            'ice_name' => 'normalized_real_name',
-            'group_name' => 'normalized_real_name',
+            ['real_name' , 'normalized_real_name'],
+            ['fandom_name' , 'normalized_real_name'],
+            ['ice_name' , 'normalized_real_name'],
+            ['group_name' , 'normalized_real_name'],
 
-            'real_name' => 'normalized_fandom_name',
-            'fandom_name' => 'normalized_fandom_name',
-            'ice_name' => 'normalized_fandom_name',
-            'group_name' => 'normalized_fandom_name',
+            ['real_name' , 'normalized_fandom_name'],
+            ['fandom_name' , 'normalized_fandom_name'],
+            ['ice_name' , 'normalized_fandom_name'],
+            ['group_name' , 'normalized_fandom_name'],
 
-            'notify_email' => 'normalized_email_address',
-            'ice_email_address' => 'normalized_email_address',
-            'ice_phone_number' => 'normalized_phone_number',
-            'phone_number' => 'normalized_phone_number',
-            'real_name' => 'real_name',
-        ) as $entityName => $banlistName) {
+            ['notify_email' , 'normalized_email_address'],
+            ['ice_email_address' , 'normalized_email_address'],
+            ['ice_phone_number' , 'normalized_phone_number'],
+            ['phone_number' , 'normalized_phone_number'],
+            ['real_name' , 'real_name'],
+        ) as $blToken) {
+            $entityName = $blToken[0];
+            $banlistName = $blToken[1];
             if (isset($entity[$entityName]) && $entity[$entityName] != null) {
                 $whereTerms[]                   = $this->getWhereTerm($entity[$entityName], $banlistName);
             }

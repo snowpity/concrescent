@@ -497,7 +497,7 @@ final class badgeinfo
                     )
                 ), 'id');
             default:
-                return array_column($this->s_badge_type->Search(
+                return array_column($this->g_badge_type->Search(
                     new View(
                         array('id'),
                         array(new Join(
@@ -1162,6 +1162,7 @@ final class badgeinfo
                new SelectColumn('application_status', EncapsulationFunction: "''", Alias:'application_status'),
                'badge_type_id',
                'payment_status',
+               'payment_id',
                'payment_promo_price',
                'payment_badge_price',
                new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ'),
@@ -1244,6 +1245,7 @@ final class badgeinfo
                'application_status',
                'badge_type_id',
                'payment_status',
+               'payment_id',
                'payment_promo_price',
                'payment_badge_price',
                new SelectColumn('name', Alias:'badge_type_name', JoinedTableAlias:'typ'),

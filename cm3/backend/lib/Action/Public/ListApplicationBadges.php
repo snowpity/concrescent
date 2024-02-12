@@ -65,6 +65,7 @@ final class ListApplicationBadges
                   'price_per_assignment',
                   'max_prereg_discount',
                   'payable_onsite',
+                  'payment_deferred',
                   'max_total_applications',
                   'max_total_applicants',
                   'max_total_assignments',

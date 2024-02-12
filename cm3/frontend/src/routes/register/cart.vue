@@ -41,23 +41,38 @@
                                     <div class="text-truncate">{{product.badge_type_name}}</div>
                                     &nbsp;|&nbsp;
                                     <v-badge :value="product.payment_promo_code != undefined && product.payment_promo_code.length > 0"
-                                             color="cyan lighten-3">
+                                             color="cyan lighten-3"
+                                             left floating>
                                         <template v-slot:badge>
                                             <v-icon @click.stop="promoAppliedDialogData = product">mdi-sale</v-icon>
                                         </template>
                                         <span>{{ product.payment_promo_price | currency }}&nbsp;</span>
                                     </v-badge>
                                     <v-spacer></v-spacer>
-                                    <v-badge color="error"
-                                             overlap
-                                             :content="badgeErrorCount(cart,idx)"
-                                             :value="!!badgeErrorCount(cart,idx)">
-                                        <v-btn icon
-                                               :disabled="!cart.canEdit"
-                                               @click.stop="editBadge(cart.id, idx)">
-                                            <v-icon>mdi-pencil</v-icon>
-                                        </v-btn>
-                                    </v-badge>
+                                    <v-tooltip bottom>
+                                        <template v-slot:activator="{ on, attrs }">
+                                            <v-btn color="error"
+                                                    small
+                                                    v-bind="attrs"     
+                                                    v-on="on"                                               
+                                                    v-if="!!badgeErrorCount(cart,idx)">
+                                                    {{ badgeErrorCount(cart,idx) }} <v-icon>mdi-alert-outline</v-icon>
+                                                </v-btn>
+                                        </template> 
+                                        <span>
+                                            Problems:
+                                            <ul>
+                                                <li v-for="(er, i) in cart.errors[idx]" :key="i">
+                                                    {{ badgeError(er) }}
+                                                </li>
+                                            </ul>
+                                        </span>
+                                    </v-tooltip>
+                                    <v-btn icon
+                                        :disabled="!cart.canEdit"
+                                        @click.stop="editBadge(cart.id, idx)">
+                                        <v-icon>mdi-pencil</v-icon>
+                                    </v-btn>
                                     <v-btn icon
                                            :disabled="!cart.canEdit"
                                            @click.stop="startRemoveBadge(cart.id, idx)">
@@ -246,7 +261,7 @@
     <v-dialog v-model="clearCartDialog"
               max-width="300">
         <v-card>
-            <v-card-title class="headline">Clear cart?</v-card-title>
+            <v-card-title class="headline">Clear cart {{cartIdSelected}}?</v-card-title>
 
             <v-card-text>
                 This will remove all items from the cart.
@@ -565,6 +580,23 @@ export default {
             if (cart.errors.length < ix) return 0;
             return Object.keys(cart.errors[ix]).length;
         },
+        badgeError: function(er){
+            var msgAr = er.split(' ');
+            var preText = '';
+            switch (msgAr[0]) {
+                case 'badge_type_id':
+                    preText = 'Selected badge';
+                    break;
+                case 'id':
+                    preText = 'This';
+                break;
+                default:
+                    preText = 'Question ' + msgAr[0];
+                    break;
+            }
+            msgAr.splice(0,1,preText);
+            return msgAr.join(' ');
+        },
         cartStateTranslation: function(state) {
             return ({
                 'NotReady': 'Not ready',
@@ -709,6 +741,10 @@ export default {
     watch: {
         'checkoutStatus': function(newstatus) {
             this.cartState = newstatus ? newstatus.state : 'undefined';
+            //The rest of this stuff is to react to submitting the cart, don't do it if we don't have a progress dialog box
+            if(this.processingCheckoutDialog == false && this.promoCodeProcessing == false) {
+                return;
+            }
             if (newstatus) {
                 switch (newstatus.state) {
                     case 'Incomplete':
@@ -744,6 +780,9 @@ export default {
                             if (_this.isLoggedIn)
                                 _this.$store.dispatch('mydata/fetchCarts', false)
                         }, 1500);
+                        //Clear the selected cart
+                        console.log('awaiting approval clearing cart')
+                        this.loadCart(null);
                         break;
                     case 'Completed':
                         //Determine if this was a normal Attendee or a group application
@@ -775,7 +814,7 @@ export default {
             }
         },
         'cartIdSelected': async function(newId) {
-            console.log('showing cart because selected', this.cartIdSelected);
+            console.log('showing cart because selected', this.cartIdSelected, newId);
             //Find the cart index associated with the ID and ensure it's expanded
             var cartIx = this.activeCarts.findIndex(cart => cart.id == newId);
             if (cartIx != undefined) {

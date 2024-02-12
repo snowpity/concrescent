@@ -325,8 +325,8 @@ import profileForm from '@/components/profileForm.vue';
 export default {
     data() {
         return {
-            step: 1,
-            reachedStep: 1,
+            step: 0,
+            reachedStep: 0,
             cartIx: -1,
             id: -1, // Attendee's ID, not the badgeType
             uuid: '',
@@ -342,7 +342,7 @@ export default {
             },
             selectedBadge_ix: null,
             validBadgeType: false,
-            context_code: 'A',
+            context_code: '',
             badge_type_id: -1,
             menuBDay: false,
 
@@ -606,10 +606,11 @@ export default {
     },
     watch: {
         step(newStep) {
+            console.log('step',newStep)
             this.reachedStep = Math.max(this.reachedStep, newStep);
-            if(this.step == 1){
+            //if(this.step == 1){
                 this.checkBadge();
-            }
+            //}
             this.autoSaveBadge();
         },
         'badgeGenInfoData.date_of_birth': function() {
@@ -623,25 +624,47 @@ export default {
                 badge_type_id: this.badge_type_id
             })
         },
+        products(){
+            this.checkBadge();
+        },
         compiledBadge() {
             this.autoSaveBadge();
         },
         '$route.name': function(name) {
             // The only way this changes is... if they click the Add Badge from the main menu while still here
             // Still, in case of weirdness...
+            console.log('route changed and is now ', name)
             if (name == 'addbadge') {
                 this.resetBadge();
             }
         },
         $route( /* to, from */ ) {
             // react to route changes...
+            console.log('Loading badge because route changed')
             this.loadBadge();
         },
         '$store.state.products.selectedEventId': function(event_id) {
+            console.log('Loading badge because selected event id changed')
             this.loadBadge();
         },
-        context_code(newCode) {
-            this.loadBadge(newCode);
+        async context_code(newCode) {
+            
+            //refresh the current context data
+            console.log('Selecting context ' + newCode);
+            try {
+                await this.$store.dispatch('products/getEventInfo');
+                await this.$store.dispatch('products/selectContext', newCode);
+
+            } catch (e) {
+                console.log('Selecting context ' + newCode + ' failed, waiting for a moment');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                await this.$store.dispatch('products/getEventInfo');
+                await this.$store.dispatch('products/selectContext', newCode);
+            } finally {
+
+            }
+            // console.log('Loading badge because context code changed')
+            // this.loadBadge(newCode);
         },
     },
     methods: {
@@ -687,6 +710,11 @@ export default {
             this.creatingAccount = false;
         },
         async loadBadge(newCode) {
+            //Early bail if we don't yet have a context
+            if(!this.$store.state.products.selectedEventId){
+                console.log('bailing from loadBadge, we have no idea what event we in yet',this.$store.state.products.selectedEventId)
+                return;
+            }
             let cartItem;
             if (this.$route.query.override) {
                 const override = this.$route.query.override;
@@ -740,9 +768,10 @@ export default {
             if (this.$route.query.context_code != undefined) {
                 console.log('set context from URI query', this.$route.query.context_code);
                 context_code = this.$route.query.context_code
+                this.step = 1;
             }
             if (newCode != undefined) {
-                console.log('set context from dropdown');
+                console.log('set context from dropdown', newCode);
                 context_code = newCode;
             }
             if (context_code == undefined) {
@@ -784,21 +813,7 @@ export default {
 
             this.context_code = context_code;
 
-            //refresh the current context data
-            console.log('Selecting context ' + this.context_code);
-            try {
-                await this.$store.dispatch('products/getEventInfo');
-                await this.$store.dispatch('products/selectContext', this.context_code);
-
-            } catch (e) {
-                console.log('Selecting context ' + this.context_code + ' failed, waiting for a moment');
-                await new Promise(resolve => setTimeout(resolve, 500));
-                await this.$store.dispatch('products/getEventInfo');
-                await this.$store.dispatch('products/selectContext', this.context_code);
-            } finally {
-
-            }
-            this.checkBadge();
+            // this.checkBadge();
 
         },
         resetBadge() {
@@ -831,10 +846,10 @@ export default {
                 this.selectedBadge_ix = badge;
             } else {
                 this.validBadgeType = false;
-                this.reachedStep = Math.max(1,this.reachedStep);
-                this.step = Math.max(1,this.step);
-                console.log('No badges for context, go back to step 1', this.context_code)
-
+                this.reachedStep = Math.max(0,this.reachedStep);
+                this.step = Math.max(0,this.step);
+                //console.log('No badges for context, go back to step 0', this.context_code)
+                return;
             }
 
             // Ensure only applicable badge addons are selected!
@@ -893,6 +908,7 @@ export default {
         profileForm,
     },
     created() {
+        console.log('Loading badge because this page was loaded for the first time')
         this.loadBadge();
     },
 };

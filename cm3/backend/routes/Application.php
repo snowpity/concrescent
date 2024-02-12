@@ -159,8 +159,8 @@ return function (App $app, $container) {
             ->add($groupPerm);
             $app->post('/{id}', \CM3_Lib\Action\Application\PromoCode\Update::class)
             ->add($gtmanage);
-            $app->delete('/{id}', \CM3_Lib\Action\Application\PromoCode\Delete::class)
-            ->add($gtmanage);
+            $app->get('/{id}/Purchase', \CM3_Lib\Action\Application\PromoCode\Purchases::class)
+            ->add($groupPerm);
         },
     );
 

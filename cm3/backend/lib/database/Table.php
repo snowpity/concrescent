@@ -60,6 +60,12 @@ abstract class Table
         }
         return $result;
     }
+
+    public function HasColumn(string $columnName): bool
+    {
+        return array_key_exists($columnName, $this->ColumnDefs);
+    }
+    
     public function dbTableName(): string
     {
         return $this->cm_db->table_name($this->TableName);
@@ -390,8 +396,8 @@ abstract class Table
                 if (!is_null($value->Alias)) {
                     $selectParts .= ' as `' . $value->Alias . '`';
                 }
-                if (empty($selectPart)) {
-                    $errors[] ="Unable to add select column as it resulted in an empty clause:\n" . print_r($value, true);
+                if (!strlen($selectPart)) {
+                    $errors[] ="Unable to add select column as it resulted in an empty clause:\n" . print_r($value, true) . "\nResult::" . $selectPart;
                 }
                 //Are we grouping this column?
                 if ($value->GroupBy) {
@@ -586,6 +592,10 @@ abstract class Table
                                         $sqlBody .= "?";
                                         $whereCodes .= $typeCode;
                                         $whereData[] = &$sourceColumn->CompareValue[$key];
+                                    }
+                                    //If there are no values, add in a null
+                                    if($firstNeedle == true){
+                                        $sqlBody .= "null";
                                     }
                                     $sqlBody .= ')';
                                 }
@@ -888,6 +898,10 @@ abstract class Table
                             $result .= "?";
                             $whereCodes .= $typeCode;
                             $whereData[] = &$term->CompareValue[$key];
+                        }
+                        //If there are no values, add in a null
+                        if($firstNeedle == true){
+                            $result .= "null";
                         }
                         $result .= ')';
                     }

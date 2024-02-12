@@ -36,14 +36,9 @@ final class Read
     {
         // Extract the form data from the request body
         $data = (array)$request->getParsedBody();
-        //TODO: Actually do something with submitted data. Also, provide some sane defaults
-
-        $whereParts = array(
-          new SearchTerm('id', $params['id'])
-        );
 
         // Invoke the Domain with inputs and retain the result
-        $data = $this->banlist->Search("*", $whereParts);
+        $data = $this->banlist->GetByID($params['id'], '*');
 
         // Build the HTTP response
         return $this->responder

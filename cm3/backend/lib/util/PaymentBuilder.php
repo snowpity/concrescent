@@ -136,6 +136,9 @@ final class PaymentBuilder
         $this->pp = null;
         $this->stagedItems = array();
 
+        //Tell the badge validator the cart id
+        $this->badgevalidator->Set_Payment_Id($this->getCartId());
+
         //Load cart meta
         $this->refreshCartMeta();
         return true;
@@ -261,10 +264,11 @@ final class PaymentBuilder
         if (!isset($item['context_code'])) {
             $item['context_code']='A';
         }
+        $isGroupApplication = !($item['context_code'] == 'A' || $item['context_code'] == 'S');
         //Ensure this badge is owned by the user (if we're not editing) and is good on the surface
         if (isset($item['id']) && $item['id'] > 0) {
             //Group apps are special
-            if ($item['context_code'] == 'A' || $item['context_code'] == 'S') {
+            if (!$isGroupApplication) {
                 $bi = $this->badgeinfo->getSpecificBadge($item['id'], $item['context_code']);
             } else {
                 $bi = $this->badgeinfo->getASpecificGroupApplication($item['id'] ?? 0, $item['context_code'], true);
@@ -653,7 +657,7 @@ final class PaymentBuilder
                     $addon['payment_id'] = $this->cart['id'];
                     $addon['payment_status'] = 'Incomplete';
 
-                    $this->badgeinfo->AddUpdateBadgeAddonUnchecked($addon, $cartitem['context_code']);
+                    $this->badgeinfo->AddUpdateBadgeAddonUnchecked($addon);
                 }
             }
         }
