@@ -41,22 +41,16 @@ $cm_config = [
 			'application-blacklisted' => [
 				'B' => '', // Vendors
 				'E' => '', // Panels
-				'G' => '', // Guests
-				'M' => '', // Press
 			],
 			/* Notification hooks for application submission. */
 			'application-submitted' => [
 				'B' => '', // Vendors
 				'E' => '', // Panels
-				'G' => '', // Guests
-				'M' => '', // Press
 			],
 			/* Notification hooks for application approval. */
 			'application-accepted' => [
 				'B' => '', // Vendors
 				'E' => '', // Panels
-				'G' => '', // Guests
-				'M' => '', // Press
 			],
 			/* Notification hook for blacklisted staff applications. */
 			'staff-blacklisted' => '',
@@ -100,24 +94,6 @@ $cm_config = [
 			'business_name_text' => 'The name of the business, organization, group, or individual presenting the panel.',
 			'application_name_term' => 'Panel Name',
 			'application_name_text' => 'The name of the panel. This is the name that appears publicly.'
-		],
-		/* Guests */
-		'G' => [
-			'nav_prefix' => 'Guest',
-			'assignment_term' => ['Time Slot', 'Time Slots'],
-			'business_name_term' => 'Business Name',
-			'business_name_text' => 'The name of the business, organization, group, or individual representing the guest.',
-			'application_name_term' => 'Guest Name',
-			'application_name_text' => 'The name by which the guest is known. This is the name that appears publicly.'
-		],
-		/* Press */
-		'M' => [
-			'nav_prefix' => 'Press',
-			'assignment_term' => ['Time Slot', 'Time Slots'],
-			'business_name_term' => 'Business Name',
-			'business_name_text' => 'The name of the business, organization, group, or individual who owns the publication.',
-			'application_name_term' => 'Publication Name',
-			'application_name_text' => 'The name of the publication. This is the name that appears publicly.'
 		],
 	],
 
