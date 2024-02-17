@@ -428,6 +428,15 @@ export default {
             text: 'Dates Available',
             value: 'dates_available'
         }, {
+            text: 'Total Available',
+            value: 'quantity'
+        }, {
+            text: 'Total Accepted',
+            value: 'quantity_sold'
+        }, {
+            text: 'Total Remaining',
+            value: 'quantity_remaining'
+        }, {
             text: 'Price',
             value: 'price'
         }, {

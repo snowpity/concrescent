@@ -293,6 +293,12 @@ export default {
             text: 'Total Available',
             value: 'quantity'
         }, {
+            text: 'Total Sold',
+            value: 'quantity_sold'
+        }, {
+            text: 'Total Remaining',
+            value: 'quantity_remaining'
+        }, {
             text: 'Price',
             value: 'price'
         }, {

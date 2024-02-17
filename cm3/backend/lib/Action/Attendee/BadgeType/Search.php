@@ -2,8 +2,13 @@
 
 namespace CM3_Lib\Action\Attendee\BadgeType;
 
+use CM3_Lib\database\SelectColumn;
 use CM3_Lib\database\SearchTerm;
+use CM3_Lib\database\View;
+use CM3_Lib\database\Join;
+
 use CM3_Lib\models\attendee\badgetype;
+use CM3_Lib\models\attendee\badge;
 
 use CM3_Lib\util\badgeinfo;
 
@@ -26,7 +31,8 @@ final class Search
     public function __construct(
         private Responder $responder,
         private badgetype $badgetype,
-        private badgeinfo $badgeinfo
+        private badgeinfo $badgeinfo,
+        private badge $badge
     ) {
     }
 
@@ -52,7 +58,39 @@ final class Search
         $pg = $this->badgeinfo->parseQueryParamsPagination($qp, 'display_order');
         $totalRows = 0;
         // Invoke the Domain with inputs and retain the result
-        $data = $this->badgetype->Search(array(), $whereParts, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
+        $data = $this->badgetype->Search( new View(
+            array(
+              'id',
+              'display_order',
+              'name',
+              'price',
+              'quantity',
+              'start_date',
+              'end_date',
+              'min_age',
+              'max_age',
+              'dates_available',
+              new SelectColumn('quantity_sold', EncapsulationFunction: 'ifnull(?,0)', Alias: 'quantity_sold', JoinedTableAlias: 'q'),
+              new SelectColumn('quantity_sold', EncapsulationFunction: 'quantity - ifnull(?,0)', Alias: 'quantity_remaining', JoinedTableAlias: 'q')
+          ),
+            array(
+            new Join(
+                $this->badge,
+                array(
+                  'badge_type_id'=>'id',
+                ),
+                'LEFT',
+                'q',
+                array(
+                  new SelectColumn('badge_type_id', true),
+                  new SelectColumn('id', false, 'count(?)', 'quantity_sold')
+              ),
+                array(
+                 new SearchTerm('payment_status', 'Completed'),
+               )
+            ),
+          )
+        ), $whereParts, $pg['order'], $pg['limit'], $pg['offset'], $totalRows);
 
         $response = $response->withHeader('X-Total-Rows', (string)$totalRows);
 
