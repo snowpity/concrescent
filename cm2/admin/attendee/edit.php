@@ -3,10 +3,12 @@
 require_once __DIR__ .'/../../lib/database/attendee.php';
 require_once __DIR__ .'/../../lib/database/forms.php';
 require_once __DIR__ .'/../../lib/database/mail.php';
+require_once __DIR__ .'/../../lib/database/misc.php';
 require_once __DIR__ .'/../../lib/util/util.php';
 require_once __DIR__ .'/../../lib/util/res.php';
 require_once __DIR__ .'/../../lib/util/cmforms.php';
 require_once __DIR__ .'/../admin.php';
+require_once __DIR__ .'/../../../vendor/autoload.php';
 
 cm_admin_check_permission('attendees', array('||', 'attendees-view', 'attendees-edit'));
 $can_edit = $adb->user_has_permission($admin_user, 'attendees-edit') && !isset($_GET['ro']);
@@ -17,6 +19,12 @@ $all_addons = $atdb->list_addons(false, false, false, $name_map);
 
 $fdb = new cm_forms_db($db, 'attendee');
 $questions = $fdb->list_questions();
+
+$miscDb = new cm_misc_db($db);
+$taskSponsorPublishable = new \App\Task\SponsorPublishableTask(
+    $miscDb,
+    new \App\Hook\CloudflareApi(),
+);
 
 $new = !isset($_GET['id']);
 $id = $new ? -1 : (int)$_GET['id'];
@@ -148,6 +156,8 @@ if ($submitted) {
 			$template = $mdb->get_mail_template('attendee-paid');
 			$mdb->send_mail($item['email-address'], $template, $item);
 		}
+
+        $taskSponsorPublishable->onAttendeeManualUpdate();
 	}
 }
 

@@ -31,6 +31,21 @@ $cm_config = [
 		'currency' => '',
 	],
 
+    'extra_features' => [
+        'sponsors' => [
+            'nameCredit' => null,/// Id of the question holding the credit name.
+            'publishableCredit' => null,/// Id of the question telling if it can be published.
+        ],
+    ],
+
+    'cloudflare' => [
+        'bearer_token' => null,
+        'purge' => [
+            'zone_id' => null,
+            'files' => null,
+        ],
+    ],
+
 	/* Slack Integration Configuration */
 	'slack' => [
 		/* Slack notification hooks. */

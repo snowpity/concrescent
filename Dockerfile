@@ -5,7 +5,7 @@ FROM trafex/php-nginx:3.4.0 as base
 USER root
 RUN apk update
 # Install the missing php modules
-RUN apk add php82-gd php82-mysqli php82-exif
+RUN apk add php82-gd php82-mysqli php82-exif php82-pecl-apcu
 # Install a mail transfer agent
 RUN apk add msmtp && echo 'sendmail_path = "/usr/bin/msmtp -t"' >> /etc/php82/php.ini;
 

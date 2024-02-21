@@ -6,7 +6,9 @@
         "ext-curl": "*",
         "ext-exif": "*",
         "ext-gd": "*",
-        "ext-mysqli": "*"
+        "ext-mysqli": "*",
+        "ext-apcu": "*",
+        "symfony/http-client": "^7.0"
     },
     "require-dev": {
         "roave/security-advisories": "dev-latest",
@@ -21,6 +23,12 @@
             "ext-exif": "8.2.10",
             "ext-gd": "8.2.10",
             "ext-mysqli": "8.2.10"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\Task\\": ["cm2/lib/Task/", "html/lib/Task/"],
+            "App\\Hook\\": ["cm2/lib/Hook/", "html/lib/Hook/"]
         }
     }
 }
