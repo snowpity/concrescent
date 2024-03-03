@@ -713,36 +713,6 @@ final class badgeinfo
             $badge = $this->addComputedColumns($badge, false);
         }
 
-        //Fetch associated form responses if full == true
-        if ($full) {
-            //Generate searchTerms for each of the found badges
-            $f_searchTerms = [];
-            foreach ($g_data as &$badge) {
-                $f_searchTerms[] = new SearchTerm(
-                    '',
-                    '',
-                    TermType: 'OR',
-                    subSearch: [
-                            new SearchTerm('context_code', $badge['context_code']),
-                            new SearchTerm('context_id', $badge['id']),
-                    ]
-                );
-            }
-            $f_responsedata = $this->f_response->Search(
-                array('context_id','context_code','question_id','response'),
-                $f_searchTerms
-            );
-
-            foreach ($g_data as &$badge) {
-                $f_filteredbadgedata = array_filter($f_responsedata, function ($f_response) use ($badge) {
-                    return $f_response['context_id'] == $badge['id']
-                    &&  $f_response['context_code'] == $badge['context_code'] ;
-                });
-                //Zip together the responses
-                $badge['form_responses'] = array_combine(array_column($f_filteredbadgedata, 'question_id'), array_column($f_filteredbadgedata, 'response'));
-            }
-        }
-
         return $g_data;
 
     }
@@ -810,6 +780,26 @@ final class badgeinfo
                     new SearchTerm('email_address', '%' . $searchText . '%', 'LIKE', 'OR', JoinedTableAlias:'con'),
                 )
             ));
+            
+        //If it looks like they specified a badge ID, add that to the search term
+        preg_match_all('/(?\'context_code\'[a-zA-Z]{0,3})(?\'display_id\'\d+)/m', $searchText, $badgeMatches, PREG_SET_ORDER, 0);
+        foreach ($badgeMatches as $exactSearch) {
+            $whereParts[]= new SearchTerm('', '', TermType:'OR', subSearch: array(
+                    new SearchTerm('context_code', $exactSearch['context_code'], JoinedTableAlias:'grp'),
+                    new SearchTerm('display_id', $exactSearch['display_id'], )
+                ));
+        }
+        
+        //If it looks like an internal ID, add  it to the search term
+        preg_match_all('/^(?\'id\'\d+)$/m', $searchText, $badgeMatches, PREG_SET_ORDER, 0);
+        foreach ($badgeMatches as $exactSearch) {
+            $whereParts[]= new SearchTerm('', '', TermType:'OR', subSearch: array(
+                    new SearchTerm('id', $exactSearch['id'], ),
+                    //TODO: This isn't working for some reason
+                    //new SearchTerm('payment_id', $exactSearch['id'])
+                ));
+        }
+
         $result = $this->SearchGroupApplications($context, $whereParts, $order, $limit, $offset, $totalRows, false, $includeFormQuestions);
         //If we got nothing, switch to a simpler search
         if (count($result) == 0) {

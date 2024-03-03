@@ -249,6 +249,11 @@ export default {
                 this.tableResults = results;
                 this.totalResults = total;
                 this.loading = false;
+                
+                //If they're on a page that apparently doesn't exist
+                if(results.length == 0 && total != 0){
+                    this.tableOptions['page'] = 1;
+                }
             })
         },
         doExport: function() {

@@ -932,8 +932,24 @@ final class PaymentBuilder
                 $badgeItems = [];
             }
 
-            foreach ($badgeItems as $key => &$item) {
+            //Attempt to send mail(s)
+            $anyFail = false;
+            foreach ($badgeItems as $key => &$item)
+            {
                 $this->completeBadge($item);
+                try
+                {
+                    $anyFail |= !$this->Mail->SendTemplate($to, $template, $item, $item['notify_email']);
+                } catch (\Exception $e)
+                {
+                    //Oops, couldn't send. Oh well?
+                    $anyFail = true;
+                }
+            }
+
+            if ($anyFail)
+            {
+                $errors['sentUpdate'] = false;
             }
 
             //Check for addons

@@ -38,8 +38,8 @@
         </v-stepper-content>
     <v-stepper-step :editable="reachedStep >= 1"
                     :complete="reachedStep > 1"
-                    step="1">{{isGroupApp ? "Application" : "Badge"}} Information <small>{{compiledBadge | badgeDisplayName}} &mdash; {{ badges[selectedBadge_ix] ? badges[selectedBadge_ix].name: "Nothing yet!" | subname }}</small></v-stepper-step>    <v-stepper-content step="1">
-
+                    step="1">{{isGroupApp ? "Application" : "Badge"}} Information <small>{{compiledBadge | badgeDisplayName}} &mdash; {{ badges[selectedBadge_ix] ? badges[selectedBadge_ix].name: "Nothing yet!" | subname }}</small></v-stepper-step> 
+    <v-stepper-content step="1">
         <badgeGenInfo v-model="badgeGenInfoData"
                       :application_name1="currentContext.application_name1"
                       :application_name2="currentContext.application_name2"
@@ -54,14 +54,14 @@
         <v-sheet
                  color="grey lighten-4"
                  tile>
-            <v-card  v-if="selectedBadge_ix != null && badges[selectedBadge_ix]">
+            <v-card>
                 <v-card-title class="title">Selected:
-                    {{ badges[selectedBadge_ix] ? badges[selectedBadge_ix].name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
+                    {{ selectedBadge ? selectedBadge.name : "Nothing yet!" }} {{isProbablyDowngrading ? "Warning: Possible downgrade!" : ""}}
                 </v-card-title>
                 <v-card-text class="text--primary">
-                    Availability: {{badges[selectedBadge_ix].dates_available}}<br>
-                    Ages:  {{badges[selectedBadge_ix].age_range}}<br>
-                    <badgePerksRender :description="badges[selectedBadge_ix] ? badges[selectedBadge_ix].description : '' "
+                    Availability: {{selectedBadge.dates_available}}<br>
+                    Ages:  {{selectedBadge.age_range}}<br>
+                    <badgePerksRender :description="selectedBadge ? selectedBadge.description : '' "
                                       :rewardlist="rewardlist"></badgePerksRender>
                 </v-card-text>
             </v-card>
@@ -490,7 +490,21 @@ export default {
             return badges;
         },
         selectedBadge() {
-            return this.badges[this.selectedBadge_ix];
+            return this.badges[this.selectedBadge_ix] || {
+                "id":"",
+    "name": "Loading...",
+    "description": "Loading...",
+    "price": "",
+    "payable_onsite": 0,
+    "start_date": "1970-01-01",
+    "end_date": "1970-01-01",
+    "min_age": null,
+    "max_age": null,
+    "max_birthdate": null,
+    "min_birthdate": null,
+    "dates_available": "Loading...",
+    "quantity_sold": 0
+};
         },
         compiledBadge() {
             // Special because of how the select dropdown works
@@ -653,12 +667,14 @@ export default {
             console.log('Selecting context ' + newCode);
             try {
                 await this.$store.dispatch('products/getEventInfo');
+                await this.$store.dispatch('products/getBadgeContexts');
                 await this.$store.dispatch('products/selectContext', newCode);
 
             } catch (e) {
                 console.log('Selecting context ' + newCode + ' failed, waiting for a moment');
                 await new Promise(resolve => setTimeout(resolve, 500));
                 await this.$store.dispatch('products/getEventInfo');
+                await this.$store.dispatch('products/getBadgeContexts');
                 await this.$store.dispatch('products/selectContext', newCode);
             } finally {
 
@@ -768,7 +784,6 @@ export default {
             if (this.$route.query.context_code != undefined) {
                 console.log('set context from URI query', this.$route.query.context_code);
                 context_code = this.$route.query.context_code
-                this.step = 1;
             }
             if (newCode != undefined) {
                 console.log('set context from dropdown', newCode);
@@ -846,9 +861,9 @@ export default {
                 this.selectedBadge_ix = badge;
             } else {
                 this.validBadgeType = false;
-                this.reachedStep = Math.max(0,this.reachedStep);
-                this.step = Math.max(0,this.step);
-                //console.log('No badges for context, go back to step 0', this.context_code)
+                // this.reachedStep = Math.max(0,this.reachedStep);
+                // this.step = Math.max(0,this.step);
+                console.log('No badges for context, go back to step 0', this.context_code)
                 return;
             }
 
