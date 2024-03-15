@@ -552,7 +552,7 @@ export default {
             let badPayStatus = [
                 'NotReady', 'AwaitingApproval', 'NotStarted',
                 'Cancelled', 'Refunded'
-            ].indexOf(item.application_status);
+            ].indexOf(item.payment_status);
             if (badPayStatus > -1) return false;
 
             return true;

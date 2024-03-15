@@ -873,7 +873,7 @@ export default {
             } = this;
             if (badgeAddons.length > 0) {
                 if (typeof this.addonsSelected.filter === 'function') {
-                    this.addonsSelected = this.addonsSelected.filter((aid) => undefined != badgeAddons[aid]);
+                    this.addonsSelected = this.addonsSelected.filter((aid) => undefined != badgeAddons.find(function(ba){return ba.id==this;},aid));
                 }
             }
         },
