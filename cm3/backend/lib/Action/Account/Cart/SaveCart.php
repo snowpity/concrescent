@@ -5,6 +5,7 @@ namespace CM3_Lib\Action\Account\Cart;
 use CM3_Lib\database\SearchTerm;
 
 use CM3_Lib\models\payment;
+use CM3_Lib\util\PermEvent;
 use CM3_Lib\util\PaymentBuilder;
 use CM3_Lib\util\CurrentUserInfo;
 use CM3_Lib\util\badgeinfo;
@@ -50,11 +51,16 @@ class SaveCart
         //Check if we have specified a cart
         $cart_id = $data['id'] ?? $params['id'] ?? 0;
         $cart_uuid = $data['uuid'] ?? '';
+        
+        if($this->CurrentUserInfo->HasEventPerm(PermEvent::GlobalAdmin) ){
+            $this->PaymentBuilder->SetIgnoreBadgeTypeAvailability(true);
+        }
 
         $cart_loaded = $this->PaymentBuilder->loadCart(
             $cart_id,
             $cart_uuid,
             $this->CurrentUserInfo->GetEventId(),
+            $this->CurrentUserInfo->HasEventPerm(PermEvent::GlobalAdmin) ? null :
             $this->CurrentUserInfo->GetContactId()
         );
 

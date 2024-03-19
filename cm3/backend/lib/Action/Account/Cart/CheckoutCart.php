@@ -4,7 +4,9 @@ namespace CM3_Lib\Action\Account\Cart;
 
 use CM3_Lib\database\SearchTerm;
 use CM3_Lib\Factory\PaymentModuleFactory;
+use CM3_Lib\util\PermEvent;
 use CM3_Lib\util\PaymentBuilder;
+use CM3_Lib\util\CurrentUserInfo;
 
 use CM3_Lib\models\payment;
 
@@ -27,7 +29,8 @@ class CheckoutCart
     public function __construct(
         private Responder $responder,
         private PaymentBuilder $PaymentBuilder,
-        private payment $payment
+        private payment $payment,
+        private CurrentUserInfo $CurrentUserInfo,
     ) {
     }
 
@@ -42,6 +45,11 @@ class CheckoutCart
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, $params): ResponseInterface
     {
         $data = (array)$request->getParsedBody();
+        //TODO: Validate ownership/permissions?
+        
+        if($this->CurrentUserInfo->HasEventPerm(PermEvent::GlobalAdmin) ){
+            $this->PaymentBuilder->SetIgnoreBadgeTypeAvailability(true);
+        }
 
         //Check if we have specified a cart
         $cart_id = $data['id'] ?? $params['id'] ?? 0;
@@ -51,7 +59,6 @@ class CheckoutCart
             throw new HttpNotFoundException($request);
         }
 
-        //TODO: Validate ownership/permissions?
 
         //If the cart is in progress, we cannot adjust it until cancelled or completed...
         if (!$this->PaymentBuilder->canCheckout()
