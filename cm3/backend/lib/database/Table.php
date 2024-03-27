@@ -837,9 +837,14 @@ abstract class Table
         $result = '(';
         $firstInGroup = true;
 
-        foreach ($terms as $term) {
+        foreach ($terms as $termkey =>$term) {
             if (is_null($term)) {
                 continue;
+            }
+            if (!($term instanceof SearchTerm))
+            {
+                //Create it from wholecloth
+                $term = new SearchTerm($termkey, $term);
             }
             if ($firstInGroup) {
                 $firstInGroup = false;

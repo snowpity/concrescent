@@ -346,9 +346,9 @@ class PayProcessor implements \CM3_Lib\Modules\Payment\PayProcessorInterface
                             'discount' => $this->makeMoney($this->orderData['prep']['discount'])
                         ))
                     ),
-                    'description' =>$this->orderData['prep']['description'],
-                    'custom_id' =>$this->orderData['prep']['transaction_id'],
-                    'invoice_id' =>$this->orderData['prep']['invoice_id'],
+                    'description' =>$this->orderData['prep']['description'] ?? '',
+                    'custom_id' =>$this->orderData['prep']['transaction_id'] ?? '',
+                    'invoice_id' =>$this->orderData['prep']['invoice_id'] ?? '',
                     'items'=>$this->orderData['prep']['items']
                 )
             ),

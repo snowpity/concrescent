@@ -445,6 +445,11 @@ final class PaymentBuilder
                 }
             }
         }
+        //If they're already attempting to pay, skip some interfering checks
+
+        if ($this->cart['payment_status'] == 'Incomplete' && $this->CanPay && $this->AllowPay) {
+            $this->SetIgnoreBadgeTypeAvailability(true);
+        }
         if ($this->cart['payment_status'] == 'AwaitingApproval' && $this->CanPay && $this->AllowPay) {
             //They must now meet the criteria to pay, switch them to NotStarted
             $this->cart['payment_status'] = 'NotStarted';
