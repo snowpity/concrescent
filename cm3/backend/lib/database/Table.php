@@ -95,7 +95,7 @@ abstract class Table
         foreach ($this->ColumnDefs as $columnName => $columnDef) {
             if (array_key_exists($columnName, $entrydata)) {
                 //If we're not explicitly enabling data setting in On Update columns, eliminate any mention of it
-                if(!$this->allowSettingOnUpdatedColumns && stripos($columnDef->customPostfix,'on update') !== false){
+                if(!$this->allowSettingOnUpdatedColumns && !empty($columnDef->customPostfix) && stripos($columnDef->customPostfix,'on update') !== false){
                     unset($entrydata[$columnName]);
                     continue;
                 }
