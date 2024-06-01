@@ -1,6 +1,6 @@
 {
     "require": {
-        "php": "^8.2.10",
+        "php": "^8.3",
         "twig/twig": "^3.8",
         "slim/twig-view": "^3.3",
         "ext-curl": "*",
@@ -18,11 +18,11 @@
     },
     "config": {
         "platform": {
-            "php": "8.2.10",
-            "ext-curl": "8.2.10",
-            "ext-exif": "8.2.10",
-            "ext-gd": "8.2.10",
-            "ext-mysqli": "8.2.10"
+            "php": "8.3.1",
+            "ext-curl": "8.3.1",
+            "ext-exif": "832.0",
+            "ext-gd": "8.3.1",
+            "ext-mysqli": "8.3.1"
         }
     },
     "autoload": {
