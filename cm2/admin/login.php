@@ -15,6 +15,12 @@ $db = new cm_db();
 $adb = new cm_admin_db($db);
 if (isset($_POST['username']) && isset($_POST['password'])) {
 	if ($adb->log_in($_POST['username'], $_POST['password'])) {
+
+        $log->audit->info(
+            'User logged in.',
+            ['sub' => 'user','username' => $_POST['username']]
+        );
+
 		$adb->log_access();
 		if ($page) {
 			header('Location: ' . $page);
@@ -24,6 +30,11 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
 		exit(0);
 	}
 	$attempted = true;
+
+    $log->audit->notice(
+        'Unsuccessful login attempt.',
+        ['sub' => 'user', 'username' => $_POST['username']]
+    );
 }
 $adb->log_out();
 
