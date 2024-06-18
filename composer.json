@@ -31,7 +31,8 @@
     "autoload": {
         "psr-4": {
             "App\\Task\\": ["cm2/lib/Task/", "html/lib/Task/"],
-            "App\\Hook\\": ["cm2/lib/Hook/", "html/lib/Hook/"]
+            "App\\Hook\\": ["cm2/lib/Hook/", "html/lib/Hook/"],
+            "App\\Log\\": ["cm2/lib/Log/", "html/lib/Log/"]
         }
     }
 }
