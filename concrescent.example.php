@@ -47,6 +47,10 @@ $cm_config = [
         ],
     ],
 
+    'logging' => [
+        'log_dir' => '/var/www/log',
+    ],
+
 	/* Slack Integration Configuration */
 	'slack' => [
 		/* Slack notification hooks. */

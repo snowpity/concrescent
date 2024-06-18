@@ -9,6 +9,7 @@ services:
     user: nobody
     volumes:
       - ./cm2:/var/www/html:ro
+      - ./var/log/concrescent:/var/www/log
       - ./vendor:/var/www/vendor:ro
       - ./templates:/var/www/templates:ro
       - ./msmtprc:/etc/msmtprc:ro
