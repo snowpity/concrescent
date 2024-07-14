@@ -9,12 +9,14 @@ namespace {
 namespace App\Task {
 
     use App\Hook\CloudflareApi;
+    use App\Log\LogLibrary;
 
     readonly class SponsorPublishableTask
     {
         public function __construct(
             private \cm_misc_db $miscDb,
             private CloudflareApi $cloudflareApi,
+            private LogLibrary   $log,
         ) {
         }
 
@@ -51,7 +53,7 @@ namespace App\Task {
 
                 $this->cloudflareApi->purgeSponsors();
             } catch (\Throwable $e) {
-                \error_log('Failed to execute task '. self::class. ': '. $e->getMessage());
+                $this->log->system->error('Failed to execute task '. __METHOD__ .' : '. $e->getMessage());
             }
         }
     }
