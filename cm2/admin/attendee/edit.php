@@ -10,6 +10,8 @@ require_once __DIR__ .'/../../lib/util/cmforms.php';
 require_once __DIR__ .'/../admin.php';
 require_once __DIR__ .'/../../../vendor/autoload.php';
 
+global $log;
+
 cm_admin_check_permission('attendees', array('||', 'attendees-view', 'attendees-edit'));
 $can_edit = $adb->user_has_permission($admin_user, 'attendees-edit') && !isset($_GET['ro']);
 
@@ -23,7 +25,10 @@ $questions = $fdb->list_questions();
 $miscDb = new cm_misc_db($db);
 $taskSponsorPublishable = new \App\Task\SponsorPublishableTask(
     $miscDb,
-    new \App\Hook\CloudflareApi(),
+    new \App\Hook\CloudflareApi(
+        $log
+    ),
+    $log,
 );
 
 $new = !isset($_GET['id']);
