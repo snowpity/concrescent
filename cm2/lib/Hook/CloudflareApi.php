@@ -8,6 +8,7 @@ namespace {
 
 namespace App\Hook {
 
+    use App\Log\LogLibrary;
     use Symfony\Component\HttpClient\HttpClient;
     use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -16,6 +17,7 @@ namespace App\Hook {
         private HttpClientInterface $client;
 
         public function __construct(
+            private LogLibrary   $log,
             ?HttpClientInterface $client = null
         ) {
             $this->client = $client ?? HttpClient::create();
@@ -46,9 +48,15 @@ namespace App\Hook {
                     ]
                 );
 
-                \error_log('Purging Cloudflare zone ' . $zoneId . ' resulted in ' . $response->getContent());
+                $this->log->cloudflare->info(
+                    'Purging Cloudflare zone {zoneId} for URLs {files} resulted in ' . $response->getContent(),
+                    ['sub' => 'cloudflare', 'zoneId' => $zoneId, 'files' => $files]
+                );
             } catch (\Throwable $e) {
-                \error_log('Failed to execute Cloudflare purge : '. $e->getMessage());
+                $this->log->cloudflare->error(
+                    'Failed to execute Cloudflare purge : '. $e->getMessage(),
+                    ['sub' => 'cloudflare']
+                );
             }
         }
 
