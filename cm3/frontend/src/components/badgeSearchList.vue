@@ -387,7 +387,7 @@ export default {
             applicationStatusIcon: {
                 'InProgress': 'alert',
                 'Submitted': 'clock-alert',
-                'Cancelled': 'alert',
+                'Cancelled': 'close-octagon',
                 'Rejected': 'close-octagon',
                 'Terminated': 'close-octagon',
                 'Waitlisted': 'progress-question',
@@ -493,6 +493,11 @@ export default {
                 this.tableResults = results;
                 this.totalResults = total;
                 this.loading = false;
+                
+                //If they're on a page that apparently doesn't exist
+                if(results.length == 0 && total != 0){
+                    this.tableOptions['page'] = 1;
+                }
 
                 //If this looks like a badge scan, and we had exactly one result, emit it
                 if (results.length == 1) {

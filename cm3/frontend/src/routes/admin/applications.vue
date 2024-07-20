@@ -102,14 +102,6 @@
         <badgeSearchList v-if="context_id>0"
                          :apiPath="'Application/' + context_code +'/Applicant'"
                          :context_code="context_code"
-                         :headerFirst="{
-                       text: currentContext.application_name1,
-                       value: 'real_name',
-                   }"
-                         :headerSecond="{
-                       text: currentContext.application_name2,
-                       value: 'fandom_name',
-                   }"
                          :AddHeaders="listAddHeaders"
                          :RemoveHeaders="listRemoveHeaders"
                          :isEditingItem="bEdit"
@@ -427,6 +419,15 @@ export default {
         }, {
             text: 'Dates Available',
             value: 'dates_available'
+        }, {
+            text: 'Total Available',
+            value: 'quantity'
+        }, {
+            text: 'Total Accepted',
+            value: 'quantity_sold'
+        }, {
+            text: 'Total Remaining',
+            value: 'quantity_remaining'
         }, {
             text: 'Price',
             value: 'price'

@@ -11,6 +11,29 @@ trait orderableTrait
     //When dynamically adjusting an entry, these columns will be treated as the group-by
     public array $orderGroupColumns = [];
 
+    //Override the table's Create method
+    public function _createOrUpdate_entry( array $entrydata, bool $isNew)
+    {
+        if($isNew 
+        || !($entrydata[$this->orderColumn] ?? 0)
+        )
+        {
+            $entrydata[$this->orderColumn] = $this->GetNextOrder($entrydata);
+        }
+        return parent::_createOrUpdate_entry($entrydata, $isNew);
+    }
+
+    public function GetNextOrder($entrydata) :int
+    {
+
+        $next = $this->Search(
+                [$this->orderColumn] ,
+                array_intersect_key($entrydata, array_flip($this->orderGroupColumns)),
+                [$this->orderColumn => true],
+                1
+            );
+        return (count($next) > 0) ? $next[0][$this->orderColumn] + 1 : 1;
+    }
 
     private function orderBatchUpdate(array $items)
     {

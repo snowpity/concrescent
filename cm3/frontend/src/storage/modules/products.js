@@ -119,7 +119,6 @@ const actions = {
             if (!state.gotBadgeContexts) {
                 shop.getBadgeContexts(state.selectedEventId, contexts => {
                     commit('setBadgeContexts', contexts);
-                    commit('setBadgeContextSelected', contexts[0].context_code);
                     resolve();
                 })
             } else {

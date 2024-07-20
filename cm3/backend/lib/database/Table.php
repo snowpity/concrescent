@@ -20,6 +20,7 @@ abstract class Table
     public array $Views;
 
     public bool $debugThrowBeforeSelect = false;
+    public bool $allowSettingOnUpdatedColumns = false;
 
     //Sets up table definitions above
     abstract protected function setupTableDefinitions(): void;
@@ -93,6 +94,11 @@ abstract class Table
         $paramWhereNames = array();
         foreach ($this->ColumnDefs as $columnName => $columnDef) {
             if (array_key_exists($columnName, $entrydata)) {
+                //If we're not explicitly enabling data setting in On Update columns, eliminate any mention of it
+                if(!$this->allowSettingOnUpdatedColumns && !empty($columnDef->customPostfix) && stripos($columnDef->customPostfix,'on update') !== false){
+                    unset($entrydata[$columnName]);
+                    continue;
+                }
                 //It was provided. Is it good?
                 if (gettype($entrydata[$columnName]) == 'array') {
                     //We don't support arrays as parameters
@@ -837,9 +843,14 @@ abstract class Table
         $result = '(';
         $firstInGroup = true;
 
-        foreach ($terms as $term) {
+        foreach ($terms as $termkey =>$term) {
             if (is_null($term)) {
                 continue;
+            }
+            if (!($term instanceof SearchTerm))
+            {
+                //Create it from wholecloth
+                $term = new SearchTerm($termkey, $term);
             }
             if ($firstInGroup) {
                 $firstInGroup = false;

@@ -49,6 +49,7 @@ final class Search
         $qp = $request->getQueryParams();
         $find = $qp['find'] ?? '';
         $context = $qp['context'] ?? false;
+        $totalRows = 0;
 
 
         //First, determine if this is an exact match code, for example from QR code
@@ -62,13 +63,14 @@ final class Search
             $result = $this->badgeinfo->SearchSpecificBadge($uuid, $shortcode, false);
 
             if ($result !== false && $result['display_id'] == $display_id) {
-                $response = $response->withHeader('X-Total-Rows', (string)1);
+                $totalRows = 1;
                 $result = array($result);
             } else {
-                $response = $response->withHeader('X-Total-Rows', (string)0);
-                $result = array();
+                //Check for group application's main QR code
+                $result = $this->badgeinfo->SearchBadgesFromGroup($uuid,false,$totalRows);
             }
-
+            
+            $response = $response->withHeader('X-Total-Rows', (string)$totalRows);
             return $this->responder
                 ->withJson($response, $result);
         }

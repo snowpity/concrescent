@@ -158,6 +158,10 @@ final class PaymentBuilder
         $this->payment->Update($this->cart);
     }
 
+    public function SetIgnoreBadgeTypeAvailability(bool $ignoreBadgeTypeAvailability)
+    {
+        $this->badgevalidator->Set_IgnoreBadgeTypeAvailability($ignoreBadgeTypeAvailability);
+    }
     public function canEdit()
     {
         return
@@ -172,7 +176,8 @@ final class PaymentBuilder
         if (!(
             ($this->cart['payment_status'] == 'NotStarted'
             ||$this->cart['payment_status'] == 'Incomplete'
-            ||$this->cart['payment_status'] == 'Cancelled')
+            ||$this->cart['payment_status'] == 'Cancelled'
+            ||$this->cart['payment_status'] == 'ForbidPayment')
             &&$this->cartErrorCount()==0
         )
         ) {
@@ -439,6 +444,11 @@ final class PaymentBuilder
                     $this->CanPay = false;
                 }
             }
+        }
+        //If they're already attempting to pay, skip some interfering checks
+
+        if ($this->cart['payment_status'] == 'Incomplete' && $this->CanPay && $this->AllowPay) {
+            $this->SetIgnoreBadgeTypeAvailability(true);
         }
         if ($this->cart['payment_status'] == 'AwaitingApproval' && $this->CanPay && $this->AllowPay) {
             //They must now meet the criteria to pay, switch them to NotStarted
@@ -859,7 +869,8 @@ final class PaymentBuilder
     public function confirmPrep()
     {
         //Make sure we're not AwaitingApproval
-        if ($this->cart['payment_status'] == 'AwaitingApproval') {
+        if ($this->cart['payment_status'] == 'AwaitingApproval'
+        || $this->cart['payment_status'] == 'ForbidPayment') {
             return false;
         }
 
@@ -932,8 +943,26 @@ final class PaymentBuilder
                 $badgeItems = [];
             }
 
-            foreach ($badgeItems as $key => &$item) {
+            //Attempt to send mail(s)
+            $anyFail = false;
+            foreach ($badgeItems as $key => &$item)
+            {
+                $template = $item['context_code'] . '-payment-' .$item['payment_status'];
+                $to = $this->CurrentUserInfo->GetContactEmail($item['contact_id']);
                 $this->completeBadge($item);
+                try
+                {
+                    $anyFail |= !$this->Mail->SendTemplate($to, $template, $item, $item['notify_email']);
+                } catch (\Exception $e)
+                {
+                    //Oops, couldn't send. Oh well?
+                    $anyFail = true;
+                }
+            }
+
+            if ($anyFail)
+            {
+                $errors['sentUpdate'] = false;
             }
 
             //Check for addons

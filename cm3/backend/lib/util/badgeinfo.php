@@ -477,6 +477,16 @@ final class badgeinfo
         }
     }
 
+    public function GetValidContexts(bool $only_active = true) 
+    {
+        return array_merge( ['A'],
+        array_column($this->g_group->Search(['context_code'],[
+            $this->CurrentUserInfo->EventIdSearchTerm(),
+            $only_active ? new SearchTerm('active', 1) : null
+        ]),'context_code')
+        ,['S']);
+    }
+
     public function GetValidTypeIdsForContext(string $context_code, bool $only_active = true)
     {
         switch ($context_code) {
@@ -684,6 +694,29 @@ final class badgeinfo
         return $this->addComputedColumns($result);
     }
 
+    public function SearchBadgesFromGroup($uuid, $full, &$totalRows = null,) {
+
+        $g_data = $this->g_badge_submission->GetByIDorUUID(null,  $uuid,['id']);
+        if($g_data === false){
+            return [];
+        }
+        $gid = $g_data['id'];
+        $g_bv = $this->groupBadgeView();
+        if ($full) {
+            $this->MergeView($g_bv, $this->badgeViewFullAddGroup());
+        }
+        $g_data = $this->g_badge->Search($g_bv, [
+            new SearchTerm('application_id',$gid)
+        ], resultTotal: $totalRows, initialTableAlias: 'b');
+
+        foreach ($g_data as &$badge) {
+            $badge = $this->addComputedColumns($badge, false);
+        }
+
+        return $g_data;
+
+    }
+
     public function SearchBadgesText($context, string $searchText, $order, $limit, $offset, &$totalRows, $includeFormQuestions = null)
     {
         $whereParts =
@@ -712,6 +745,16 @@ final class badgeinfo
                     new SearchTerm('display_id', $exactSearch['display_id'], )
                 ));
         }
+        
+        //If it looks like an internal ID, add  it to the search term
+        preg_match_all('/^(?\'id\'\d+)$/m', $searchText, $badgeMatches, PREG_SET_ORDER, 0);
+        foreach ($badgeMatches as $exactSearch) {
+            $whereParts[]= new SearchTerm('', '', TermType:'OR', subSearch: array(
+                    new SearchTerm('id', $exactSearch['id'], ),
+                    //TODO: This isn't working for some reason
+                    //new SearchTerm('payment_id', $exactSearch['id'])
+                ));
+        }
 
         $result = $this->SearchBadges($context, $whereParts, $order, $limit, $offset, $totalRows, false, $includeFormQuestions);
         //If we got nothing, switch to a simpler search
@@ -737,6 +780,26 @@ final class badgeinfo
                     new SearchTerm('email_address', '%' . $searchText . '%', 'LIKE', 'OR', JoinedTableAlias:'con'),
                 )
             ));
+            
+        //If it looks like they specified a badge ID, add that to the search term
+        preg_match_all('/(?\'context_code\'[a-zA-Z]{0,3})(?\'display_id\'\d+)/m', $searchText, $badgeMatches, PREG_SET_ORDER, 0);
+        foreach ($badgeMatches as $exactSearch) {
+            $whereParts[]= new SearchTerm('', '', TermType:'OR', subSearch: array(
+                    new SearchTerm('context_code', $exactSearch['context_code'], JoinedTableAlias:'grp'),
+                    new SearchTerm('display_id', $exactSearch['display_id'], )
+                ));
+        }
+        
+        //If it looks like an internal ID, add  it to the search term
+        preg_match_all('/^(?\'id\'\d+)$/m', $searchText, $badgeMatches, PREG_SET_ORDER, 0);
+        foreach ($badgeMatches as $exactSearch) {
+            $whereParts[]= new SearchTerm('', '', TermType:'OR', subSearch: array(
+                    new SearchTerm('id', $exactSearch['id'], ),
+                    //TODO: This isn't working for some reason
+                    //new SearchTerm('payment_id', $exactSearch['id'])
+                ));
+        }
+
         $result = $this->SearchGroupApplications($context, $whereParts, $order, $limit, $offset, $totalRows, false, $includeFormQuestions);
         //If we got nothing, switch to a simpler search
         if (count($result) == 0) {
@@ -977,10 +1040,20 @@ final class badgeinfo
                     //Does this match a column with an alias?
                     if (($selCol->ColumnName == $term->ColumnName || $selCol->Alias == $term->ColumnName)
                     && $selCol->JoinedTableAlias != null) {
+                //if($term->ColumnName == 'payment_id') die($selCol->JoinedTableAlias);
                         $term->JoinedTableAlias = $selCol->JoinedTableAlias;
                         break;
                     }
                 }
+            }
+            //Search the joins' columns
+            foreach ($badgeView->Joins as $join) {
+                //TODO: Implement?
+            }
+            //If there is subSearch, iterate into that
+            if($sterm->subSearch != null) {
+                
+                $this->AdjustSearchTerms($sterm->subSearch, $badgeView);
             }
             $result[] = $term;
         }
@@ -1339,7 +1412,7 @@ final class badgeinfo
         );
     }
 
-    public function groupBadgeView()
+    public function groupBadgeView() : View
     {
         return new View(
             array_merge(
@@ -1593,7 +1666,7 @@ final class badgeinfo
         if (array_key_exists('display_id', $result) && $result['display_id']==null && (in_array(
             $result['application_status']??'',
             ['PendingAcceptance','Accepted','Onboarding','Active']
-        ) || $result['payment_status']??'' == 'Completed')) {
+        ) || ($result['payment_status']??'') == 'Completed')) {
             $this->setNextDisplayIDSpecificBadge($result['id'], $result['context_code']);
         }
         switch ($result['context_code']??'A') {
@@ -1686,6 +1759,11 @@ final class badgeinfo
                     $setSubbadges[$curIx] = $existingSubbadge;
                 }
             }
+        }
+        
+        //Save the form responses
+        if (isset($result['form_responses'])) {
+            $this->SetFormResponses($result['id'], $result['context_code'], $result['form_responses']);
         }
     }
 

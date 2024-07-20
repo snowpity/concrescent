@@ -54,6 +54,11 @@ final class badgevalidator
         $this->payment_id = $payment_id;
     }
 
+    private bool $ignoreBadgeTypeAvailability = false;
+    public function Set_IgnoreBadgeTypeAvailability(bool $ignoreBadgeTypeAvailability){
+        $this->ignoreBadgeTypeAvailability = $ignoreBadgeTypeAvailability;
+    }    
+
     //Returns an array of the errors in this badge
     public function ValdateCartBadge(&$item)
     {
@@ -155,11 +160,13 @@ final class badgevalidator
     {
         //TODO: Test for things like badge upgrades for the start_date and end_date?
         if(!in_array($item['application_status']??'NotStarted',['Accepted','PendingAcceptance'] )){
-            if (isset($badgetypeData['start_date']) && date_create() < date_create($badgetypeData['start_date'])) {
-                $v->addColumnValidator('badge_type_id', v::alwaysInvalid()->setTemplate('badge_type_id not yet available'), true);
-            }
-            if (isset($badgetypeData['end_date']) && date_create() > date_create($badgetypeData['end_date'])->setTime(23,59,59)) {
-                $v->addColumnValidator('badge_type_id', v::alwaysInvalid()->setTemplate('badge_type_id no longer available'), true);
+            if(!$this->ignoreBadgeTypeAvailability){
+                if (isset($badgetypeData['start_date']) && date_create() < date_create($badgetypeData['start_date'])) {
+                    $v->addColumnValidator('badge_type_id', v::alwaysInvalid()->setTemplate('badge_type_id not yet available'), true);
+                }
+                if (isset($badgetypeData['end_date']) && date_create() > date_create($badgetypeData['end_date'])->setTime(23,59,59)) {
+                    $v->addColumnValidator('badge_type_id', v::alwaysInvalid()->setTemplate('badge_type_id no longer available'), true);
+                }
             }
         }
 
@@ -185,8 +192,10 @@ final class badgevalidator
         //         return $i['quantity_remaining'] !== 0;
         //     }
         // ), 'id');
-        if ($badgetypeData['quantity_remaining'] === 0 && $item['badge_type_id'] != ($item['existing']['badge_type_id']??0)) {
-            $v->addColumnValidator('badge_type_id', v::alwaysInvalid()->setTemplate('badge_type_id available quantity exhausted'), true);
+        if(!$this->ignoreBadgeTypeAvailability){
+            if ($badgetypeData['quantity_remaining'] === 0 && $item['badge_type_id'] != ($item['existing']['badge_type_id']??0)) {
+                $v->addColumnValidator('badge_type_id', v::alwaysInvalid()->setTemplate('badge_type_id available quantity exhausted'), true);
+            }
         }
 
 
