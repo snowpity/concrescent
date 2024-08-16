@@ -11,6 +11,7 @@ require_once __DIR__ .'/../../lib/util/cmlists.php';
 require_once __DIR__ .'/../../lib/util/cmforms.php';
 require_once __DIR__ .'/../../lib/util/slack.php';
 require_once __DIR__ .'/../admin.php';
+require_once __DIR__ .'/../../../vendor/autoload.php';
 
 $context = (isset($_GET['c']) ? trim($_GET['c']) : null);
 if (!$context) {
@@ -56,6 +57,10 @@ $questions = $fdb->list_questions();
 $atdb = new cm_attendee_db($db);
 $mdb = new cm_mail_db($db);
 $midb = new cm_misc_db($db);
+
+$taskSchedulePublishable = new \App\Task\SchedulePublishableTask(
+    new \App\Hook\CloudflareApi(),
+);
 
 $new = !isset($_GET['id']);
 $id = $new ? -1 : (int)$_GET['id'];
@@ -250,6 +255,7 @@ if ($submitted) {
 			}
 		}
 		if ($can_edit_status) {
+			$taskSchedulePublishable->onScheduleManualUpdate();
 			if (isset($_POST['resend-application-email']) && $_POST['resend-application-email']) {
 				$application_status = strtolower($item['application-status']);
 				$template_name = 'application-' . $application_status . '-' . $ctx_lc;
