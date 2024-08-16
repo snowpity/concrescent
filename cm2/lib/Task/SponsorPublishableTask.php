@@ -49,7 +49,7 @@ namespace App\Task {
 
                 \apcu_store(self::class . '::last_known_hash', $sponsorsHash);
 
-                $this->cloudflareApi->purge();
+                $this->cloudflareApi->purgeSponsors();
             } catch (\Throwable $e) {
                 \error_log('Failed to execute task '. self::class. ': '. $e->getMessage());
             }

@@ -42,7 +42,8 @@ $cm_config = [
         'bearer_token' => null,
         'purge' => [
             'zone_id' => null,
-            'files' => null,
+            'sponsor_files' => null,
+			'schedule_files' => null,
         ],
     ],
 
