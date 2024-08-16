@@ -10,10 +10,9 @@ namespace App\Task {
 
     use App\Hook\CloudflareApi;
 
-    readonly class SchedulePublishTask
+    readonly class SchedulePublishableTask
     {
         public function __construct(
-            private \cm_misc_db $miscDb,
             private CloudflareApi $cloudflareApi,
         ) {
         }

@@ -21,7 +21,7 @@ namespace App\Hook {
             $this->client = $client ?? HttpClient::create();
         }
 
-        private function runPurge( $files = null ): void
+        private function runPurge(?array $files = null): void
         {
             try {
                 global $cm_config;
@@ -29,7 +29,7 @@ namespace App\Hook {
                 $bearer = $cm_config['cloudflare']['bearer_token'] ?? null;
                 $zoneId = $cm_config['cloudflare']['purge']['zone_id'] ?? null;
 
-                if ($bearer === null || $files === null || $zoneId === null) {
+                if ($bearer === null || empty($files) || $zoneId === null) {
                     return;
                 }
 
@@ -52,23 +52,23 @@ namespace App\Hook {
             }
         }
 
-        public function purgeSponsors( ): void
+        public function purgeSponsors(): void
         {
             global $cm_config;
-            $this->runPurge(
+            $this->runPurge([
                 $cm_config['cloudflare']['purge']['sponsor_files'] ??
                 $cm_config['cloudflare']['purge']['files'] ??
                 null
-            );
+            ]);
         }
 
-        public function purgeSchedule( ): void
+        public function purgeSchedule(): void
         {
             global $cm_config;
-            $this->runPurge(
+            $this->runPurge([
                 $cm_config['cloudflare']['purge']['schedule_files'] ??
                 null
-            );
+            ]);
         }
     }
 }
