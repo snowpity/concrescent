@@ -17,7 +17,7 @@ services:
     - .env.prod
     - .env
   mysql:
-    image: mysql:8
+    image: mysql:8.4
     restart: unless-stopped
     volumes:
       - ./var/mysql-data:/var/lib/mysql

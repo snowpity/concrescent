@@ -1,5 +1,5 @@
 # Use nginx & PHP8.1-FMP image by trafex
-FROM trafex/php-nginx:3.5.0 as base
+FROM trafex/php-nginx:3.6.0 AS base
 
 # Elevate privileges to root for installation of packages
 USER root
@@ -17,7 +17,7 @@ COPY --chown=root:root ./config/php-upload-size.ini /etc/php83/conf.d/
 # Return privileges to unprivileged user after all packages have been installed
 USER nobody
 
-FROM base as dev
+FROM base AS dev
 
 # Temporary switch to root
 USER root
@@ -37,7 +37,7 @@ VOLUME /srv/host/config.php
 
 EXPOSE 8080
 
-FROM base as prod
+FROM base AS prod
 
 USER root
 
