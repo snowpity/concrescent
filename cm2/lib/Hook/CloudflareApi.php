@@ -21,13 +21,12 @@ namespace App\Hook {
             $this->client = $client ?? HttpClient::create();
         }
 
-        public function purge( ): void
+        private function runPurge( $files = null ): void
         {
             try {
                 global $cm_config;
 
                 $bearer = $cm_config['cloudflare']['bearer_token'] ?? null;
-                $files = $cm_config['cloudflare']['purge']['files'] ?? null;
                 $zoneId = $cm_config['cloudflare']['purge']['zone_id'] ?? null;
 
                 if ($bearer === null || $files === null || $zoneId === null) {
@@ -51,6 +50,25 @@ namespace App\Hook {
             } catch (\Throwable $e) {
                 \error_log('Failed to execute Cloudflare purge : '. $e->getMessage());
             }
+        }
+
+        public function purgeSponsors( ): void
+        {
+            global $cm_config;
+            $this->runPurge(
+                $cm_config['cloudflare']['purge']['sponsor_files'] ??
+                $cm_config['cloudflare']['purge']['files'] ??
+                null
+            );
+        }
+
+        public function purgeSchedule( ): void
+        {
+            global $cm_config;
+            $this->runPurge(
+                $cm_config['cloudflare']['purge']['schedule_files'] ??
+                null
+            );
         }
     }
 }

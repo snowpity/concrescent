@@ -7,6 +7,7 @@ require_once __DIR__ .'/../../lib/database/forms.php';
 require_once __DIR__ .'/../../lib/util/util.php';
 require_once __DIR__ .'/../../lib/util/cmlists.php';
 require_once __DIR__ .'/../admin.php';
+require_once __DIR__ .'/../../../vendor/autoload.php';
 
 $context = (isset($_GET['c']) ? trim($_GET['c']) : null);
 if (!$context) {
@@ -29,6 +30,10 @@ cm_admin_check_permission('application-assignments-'.$ctx_lc, 'application-assig
 
 $apdb = new cm_application_db($db, $context);
 $midb = new cm_misc_db($db);
+
+$taskSchedulePublishable = new \App\Task\SchedulePublishableTask(
+    new \App\Hook\CloudflareApi(),
+);
 
 $list_def = array(
 	'loader' => 'server-side',
@@ -170,6 +175,7 @@ if (isset($_POST['action'])) {
 				}
 			}
 			echo json_encode($response);
+			if ($response['ok']) $taskSchedulePublishable->onScheduleManualUpdate();
 			break;
 	}
 	exit(0);
