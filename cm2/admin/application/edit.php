@@ -13,6 +13,8 @@ require_once __DIR__ .'/../../lib/util/slack.php';
 require_once __DIR__ .'/../admin.php';
 require_once __DIR__ .'/../../../vendor/autoload.php';
 
+global $log;
+
 $context = (isset($_GET['c']) ? trim($_GET['c']) : null);
 if (!$context) {
 	header('Location: ../');
@@ -59,7 +61,9 @@ $mdb = new cm_mail_db($db);
 $midb = new cm_misc_db($db);
 
 $taskSchedulePublishable = new \App\Task\SchedulePublishableTask(
-    new \App\Hook\CloudflareApi(),
+    new \App\Hook\CloudflareApi(
+        $log
+    ),
 );
 
 $new = !isset($_GET['id']);

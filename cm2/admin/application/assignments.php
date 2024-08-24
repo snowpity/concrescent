@@ -9,6 +9,8 @@ require_once __DIR__ .'/../../lib/util/cmlists.php';
 require_once __DIR__ .'/../admin.php';
 require_once __DIR__ .'/../../../vendor/autoload.php';
 
+global $log;
+
 $context = (isset($_GET['c']) ? trim($_GET['c']) : null);
 if (!$context) {
 	header('Location: ../');
@@ -32,7 +34,9 @@ $apdb = new cm_application_db($db, $context);
 $midb = new cm_misc_db($db);
 
 $taskSchedulePublishable = new \App\Task\SchedulePublishableTask(
-    new \App\Hook\CloudflareApi(),
+    new \App\Hook\CloudflareApi(
+        $log,
+    ),
 );
 
 $list_def = array(
