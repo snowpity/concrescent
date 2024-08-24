@@ -130,6 +130,8 @@ if (isset($_POST['cm-list-action'])) {
 	exit(0);
 }
 
+$errorMessage = '';
+
 if ($submitted) {
 	/* Basic Information */
 	$item['first-name'] = trim($_POST['first-name']);
@@ -155,17 +157,22 @@ if ($submitted) {
 	$item['notes'] = $_POST['notes'];
 
 	/* Write Changes */
-	if ($new) {
-		$id = $apdb->create_applicant($item);
-		$new = ($id === false);
-		$changed = ($id !== false);
-		if ($changed) {
-			$action_url = 'badge-edit.php?c=' . $ctx_lc . '&id=' . $id;
-			$list_def['ajax-url'] = get_site_url(false) . '/admin/application/' . $action_url;
-		}
-	} else {
-		$changed = $apdb->update_applicant($item);
-	}
+  try {
+      if ($new) {
+          $id = $apdb->create_applicant($item);
+          $new = ($id === false);
+          $changed = ($id !== false);
+          if ($changed) {
+              $action_url = 'badge-edit.php?c=' . $ctx_lc . '&id=' . $id;
+              $list_def['ajax-url'] = get_site_url(false) . '/admin/application/' . $action_url;
+          }
+      } else {
+          $changed = $apdb->update_applicant($item);
+      }
+  } catch (mysqli_sql_exception|InvalidArgumentException $e) {
+      $errorMessage = $e->getMessage();
+  }
+
 	if ($changed) {
 		if (isset($_POST['print']) && $_POST['print']) $apdb->applicant_printed($id, $_POST['print'] === 'reset');
 		if (isset($_POST['checkin']) && $_POST['checkin']) $apdb->applicant_checked_in($id, $_POST['checkin'] === 'reset');
@@ -217,7 +224,7 @@ echo '<article>';
 				if ($changed) {
 					echo '<p class="cm-success-box">Changes saved.</p>';
 				} else {
-					echo '<p class="cm-error-box">Save failed. Please try again.</p>';
+					echo "<p class=\"cm-error-box\">Save failed. Please try again. $errorMessage</p>";
 				}
 			}
 			if (($attendee_blacklisted = $atdb->is_blacklisted($item))) {
@@ -240,10 +247,10 @@ echo '<article>';
 					}
 				echo '</div>';
 			}
-			if ($item['age'] && $item['age'] < 18) {
+			if (($item['age'] ?? 18) < 18) {
 				echo '<p class="cm-note-box">This person is under 18.</p>';
 			}
-			if (($can_edit && $submitted) || $attendee_blacklisted || $applicant_blacklisted || ($item['age'] && $item['age'] < 18)) {
+			if (($can_edit && $submitted) || $attendee_blacklisted || $applicant_blacklisted || (($item['age'] ?? 18) < 18)) {
 				echo '<hr>';
 			}
 			echo '<table border="0" cellpadding="0" cellspacing="0" class="cm-form-table">';
