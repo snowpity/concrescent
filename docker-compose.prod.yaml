@@ -21,6 +21,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./var/mysql-data:/var/lib/mysql
+      - ./init:/docker-entrypoint-initdb.d/
     env_file:
     - .env.prod
     - .env

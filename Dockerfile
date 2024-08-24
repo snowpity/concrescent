@@ -12,7 +12,7 @@ RUN apk add msmtp && echo 'sendmail_path = "/usr/bin/msmtp -t"' >> /etc/php83/ph
 # Create nginx config directory and increase upload size for files via entity-size.conf and php-upload-size.ini
 
 COPY --chown=root:root ./config/entity-size.conf /etc/nginx/conf.d/
-COPY --chown=root:root ./config/php-upload-size.ini /etc/php83/conf.d/
+COPY --chown=root:root ./config/php-10-common.ini /etc/php83/conf.d/
 
 # Return privileges to unprivileged user after all packages have been installed
 USER nobody
@@ -24,8 +24,8 @@ USER root
 # Install xdebug
 RUN apk add --no-cache php83-pecl-xdebug
 # Add configuration
-COPY --chown=root:root ./config/xdebug.ini /etc/php83/conf.d/
-COPY --chown=root:root ./config/php-dev.ini /etc/php83/conf.d/
+COPY --chown=root:root ./config/php-40-xdebug.ini /etc/php83/conf.d/
+COPY --chown=root:root ./config/php-20-dev.ini /etc/php83/conf.d/
 
 # Switch back to non-root user
 USER nobody
@@ -44,6 +44,7 @@ USER root
 RUN mkdir /var/www/vendor
 RUN chown nobody /var/www/vendor
 COPY --chown=nobody composer /usr/bin/
+COPY --chown=root:root ./config/php-20-prod.ini /etc/php83/conf.d/
 
 USER nobody
 
