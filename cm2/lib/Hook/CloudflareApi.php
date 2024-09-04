@@ -63,20 +63,20 @@ namespace App\Hook {
         public function purgeSponsors(): void
         {
             global $cm_config;
-            $this->runPurge([
+            $this->runPurge(
                 $cm_config['cloudflare']['purge']['sponsor_files'] ??
                 $cm_config['cloudflare']['purge']['files'] ??
                 null
-            ]);
+            );
         }
 
         public function purgeSchedule(): void
         {
             global $cm_config;
-            $this->runPurge([
+            $this->runPurge(
                 $cm_config['cloudflare']['purge']['schedule_files'] ??
                 null
-            ]);
+            );
         }
     }
 }
