@@ -388,10 +388,13 @@ echo '<article>';
 					}
 				echo '</div>';
 			}
-			if ($item['min-age'] && $item['min-age'] < 18) {
+
+            $under18 = !$new && ($item['min-age'] && $item['min-age'] < 18);
+
+			if ($under18) {
 				echo '<p class="cm-note-box">At least one applicant on this application is under 18.</p>';
 			}
-			if (($can_submit && $submitted) || $attendee_blacklisted || $applicant_blacklisted || $application_blacklisted || ($item['min-age'] && $item['min-age'] < 18)) {
+			if (($can_submit && $submitted) || $attendee_blacklisted || $applicant_blacklisted || $application_blacklisted || $under18) {
 				echo '<hr>';
 			}
 			echo '<table border="0" cellpadding="0" cellspacing="0" class="cm-form-table cm-list-table-containing-table">';
