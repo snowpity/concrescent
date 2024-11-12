@@ -175,14 +175,14 @@ if ($submitted) {
 			|| ( float_or_null($item['payment-txn-amt'    ]) !== float_or_null($_POST['payment-txn-amt'    ]) )
 			|| (               $item['payment-details'    ]  !=                $_POST['payment-details'    ]  )
 		) {
+            $item['payment-group-uuid' ] = $db->uuid();
+            $item['payment-date'       ] = $db->now();
 			$item['payment-status'     ] =          trim($_POST['payment-status'     ]);
 			$item['payment-badge-price'] = float_or_null($_POST['payment-badge-price']);
 			$item['payment-type'       ] =          trim($_POST['payment-type'       ]);
-			$item['payment-txn-id'     ] =          trim($_POST['payment-txn-id'     ]);
+			$item['payment-txn-id'     ] =          trim($_POST['payment-txn-id'     ]) ?: $item['payment-group-uuid' ];
 			$item['payment-txn-amt'    ] = float_or_null($_POST['payment-txn-amt'    ]);
 			$item['payment-details'    ] =               $_POST['payment-details'    ] ;
-			$item['payment-group-uuid' ] = $db->uuid();
-			$item['payment-date'       ] = $db->now();
 		}
 
 		/* Custom Questions */
@@ -233,6 +233,7 @@ if ($submitted) {
 
 	/* Write Changes */
 	if ($new) {
+        $item['payment-txn-id'] = $item['payment-group-uuid'];
 		$id = $apdb->create_application($item, $fdb);
 		$new = ($id === false);
 		$changed = ($id !== false);

@@ -76,16 +76,16 @@ if ($submitted) {
 		|| ( (float)$item['payment-txn-amt'    ] != (float)$_POST['payment-txn-amt'    ] )
 		|| (        $item['payment-details'    ] !=        $_POST['payment-details'    ] )
 	) {
+        $item['payment-group-uuid'] = $db->uuid();
+        $item['payment-date'] = $db->now();
 		$item['payment-status'] = trim($_POST['payment-status']);
 		$item['payment-badge-price'] = (float)$_POST['payment-badge-price'];
 		$item['payment-promo-code'] = trim($_POST['payment-promo-code']);
 		$item['payment-promo-price'] = (float)$_POST['payment-promo-price'];
 		$item['payment-type'] = trim($_POST['payment-type']);
-		$item['payment-txn-id'] = trim($_POST['payment-txn-id']);
+		$item['payment-txn-id'] = trim($_POST['payment-txn-id']) ?: $item['payment-group-uuid'];
 		$item['payment-txn-amt'] = (float)$_POST['payment-txn-amt'];
 		$item['payment-details'] = $_POST['payment-details'];
-		$item['payment-group-uuid'] = $db->uuid();
-		$item['payment-date'] = $db->now();
 	}
 
 	/* Addons */
