@@ -28,7 +28,7 @@ $require_contract = false;
 
 foreach ($applications as $application) {
 	$application_items = $apdb->generate_invoice($application, $atdb);
-	if (strlen($application['payment-badge-price'])) {
+	if (strlen($application['payment-badge-price'] ?? '')) {
 		$intended_price = $application['payment-badge-price'];
 		$calculated_price = array_sum(array_column_simple($application_items, 'price'));
 		if ($calculated_price != $intended_price) {
