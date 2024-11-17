@@ -31,6 +31,10 @@ $cm_config = [
 		'currency' => '',
 	],
 
+    'payment' => [
+        'sales_tax' => 0.065, /// 6.5%
+    ],
+
     'extra_features' => [
         'sponsors' => [
             'nameCredit' => null,/// Id of the question holding the credit name.

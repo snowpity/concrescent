@@ -5,6 +5,8 @@ require_once __DIR__ .'/register.php';
 
 global $onsite_only;
 global $override_code;
+global $cm_config;
+global $name_map;
 
 global $twig;
 
@@ -91,20 +93,26 @@ if (!cm_reg_cart_count()) {
  */
 $badge_price_total = 0;
 $promo_price_total = 0;
+$salesTaxSubTotal = 0;
 $totalWithSalesTax = 0;
+$salesTax = ($cm_config['payment']['sales_tax'] ?? 0);
 
 foreach ($_SESSION['cart'] as $i => $item) {
     $badge_price_total += (float)$item['payment-badge-price'];
     $promo_price_total += (float)$item['payment-promo-price'];
+    if ($item['sales-tax'] === 1) {
+        $salesTaxSubTotal += $item['payment-promo-price'] * $salesTax;
+    }
     foreach ($item['addons'] ?? [] as $addon) {
         $badge_price_total += (float)$addon['price'];
         $promo_price_total += (float)$addon['price'];
+        if ($addon['sales-tax'] === 1) {
+            $salesTaxSubTotal += $addon['price'] * $salesTax;
+        }
     }
 }
 
-$salesTax = $promo_price_total * 0.12;
-$totalWithSalesTax = $promo_price_total * 1.12;
-/**  */
+$totalWithSalesTax = $promo_price_total + $salesTaxSubTotal;
 
 /**
  * Check if all items are payable on site
@@ -147,7 +155,8 @@ echo $twig->render('pages/register/cart.twig', [
     'badge_price_total' => $badge_price_total,
     'promo_price_total' => $promo_price_total,
     'totalWithSalesTax' => $totalWithSalesTax,
-    'salesTax' => $salesTax,
+    'salesTaxSubTotal' => $salesTaxSubTotal,
     'previouslyEnteredPromoCode' => $_POST['code'] ?? '',
     'allPayableOnsite' => $allPayableOnsite,
+    'name_map' => $name_map,
 ]);

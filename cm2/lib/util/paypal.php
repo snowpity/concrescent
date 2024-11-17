@@ -83,19 +83,24 @@ class cm_paypal {
 		return json_decode($result, true);
 	}
 
-	public function create_item($name, $price) {
+	public function create_item($name, $price, $tax) {
 		return array(
 			'quantity' => '1',
 			'name' => $name,
 			'price' => number_format($price, 2, '.', ''),
-			'currency' => $this->currency
+			'currency' => $this->currency,
+            'tax' => number_format($tax, 2, '.', ''),
 		);
 	}
 
-	public function create_total($total) {
+	public function create_total($total, $tax) {
 		return array(
 			'total' => number_format($total, 2, '.', ''),
-			'currency' => $this->currency
+			'currency' => $this->currency,
+            'details' => [
+                "subtotal" => number_format($total-$tax, 2, '.', ''),
+                "tax" => number_format($tax, 2, '.', ''),
+            ]
 		);
 	}
 

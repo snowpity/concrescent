@@ -12,10 +12,16 @@ if (count($_GET) == 1) {
 		exit(0);
 	}
 
+    /** @var float $salesTax */
+    $salesTax = ($cm_config['payment']['sales_tax'] ?? 0);
+    $salesTaxSubTotal = 0;
+
 	$total_price = 0;
 	$app_id_map = array();
 	foreach ($_SESSION['cart'] as $item) {
-		$total_price += $item['price'];
+        $salesTaxPart = $item['sales-tax'] ? ($item['price'] * $salesTax) : 0;
+        $salesTaxSubTotal += $salesTaxPart;
+		$total_price += $item['price'] + $salesTaxPart;
 		if (isset($app_id_map[$item['application-id']])) {
 			$app_id_map[$item['application-id']] += $item['price'];
 		} else {
@@ -52,9 +58,14 @@ if (count($_GET) == 1) {
 
 		$items = array();
 		foreach ($_SESSION['cart'] as $item) {
-			$items[] = $paypal->create_item($item['name'].' - '.$item['details'], $item['price']);
+            $salesTaxPart = $item['sales-tax'] ? ($item['price'] * $salesTax) : 0;
+			$items[] = $paypal->create_item(
+                $item['name'].' - '.$item['details'],
+                $item['price'],
+                $salesTaxPart,
+            );
 		}
-		$total = $paypal->create_total($total_price);
+		$total = $paypal->create_total($total_price, $salesTaxSubTotal);
 		$txn = $paypal->create_transaction($items, $total, $group_uuid."::".$db->uuid());
 
 		$payment = $paypal->create_payment_pp(

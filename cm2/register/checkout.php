@@ -218,25 +218,43 @@ if (!$_GET) {
 		);
 	}
 
-	if ($_SESSION['payment_method'] == 'paypal') {
+	if ($_SESSION['payment_method'] === 'paypal') {
 		$paypal = new cm_paypal();
 		$token = $paypal->get_token();
+
+        /** @var float $salesTax */
+        $salesTax = ($cm_config['payment']['sales_tax'] ?? 0);
+        $salesTaxSubTotal = 0;
 
 		$items = array();
 		for ($i = 0, $n = cm_reg_cart_count(); $i < $n; $i++) {
 			$item = cm_reg_cart_get($i);
 			$badge_type_id = (int)$item['badge-type-id'];
 			$badge_type_name = $name_map[$badge_type_id] ?? $badge_type_id;
-			if(!(isset($item['editing-badge']) && $item['editing-badge'] > 0 && $item['badge-type-id'] == $item['editing-prior-id']) && $item['payment-promo-price'] > 0 )
-				$items[] = $paypal->create_item($badge_type_name, $item['payment-promo-price']);
+			if(!(isset($item['editing-badge']) && $item['editing-badge'] > 0 && $item['badge-type-id'] == $item['editing-prior-id']) && $item['payment-promo-price'] > 0 ) {
+                $salesTaxPart = $item['sales-tax'] ? ($item['payment-promo-price'] * $salesTax) : 0;
+                $salesTaxSubTotal += $salesTaxPart;
+				$items[] = $paypal->create_item(
+                    $badge_type_name,
+                    $item['payment-promo-price'],
+                    $salesTaxPart
+                );
+            }
 			if (isset($item['addons']) && $item['addons']) {
 				foreach ($item['addons'] as $addon) {
-					if($addon['payment-status'] == 'Incomplete')
-					$items[] = $paypal->create_item($addon['name'], $addon['price']);
+					if($addon['payment-status'] == 'Incomplete') {
+                        $salesTaxPart = $addon['sales-tax'] ? ($addon['price'] * $salesTax) : 0;
+                        $salesTaxSubTotal += $salesTaxPart;
+                        $items[] = $paypal->create_item(
+                            $addon['name'],
+                            $addon['price'],
+                            $salesTaxPart
+                        );
+                    }
 				}
 			}
 		}
-		$total = $paypal->create_total($total_price);
+		$total = $paypal->create_total($total_price, $salesTaxSubTotal);
 		$txn = $paypal->create_transaction($items, $total,$group_uuid . '::' .$transaction_id);
 
 		$payment = $paypal->create_payment_pp(

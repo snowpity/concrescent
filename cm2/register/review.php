@@ -47,6 +47,7 @@ echo '<div class="card">';
 			echo '<table border="0" cellpadding="0" cellspacing="0" class="cm-cart">';
 				$badge_price_total = 0;
 				$promo_price_total = 0;
+                $salesTaxSubTotal = 0;
 				echo '<thead>';
 					echo '<tr>';
 						echo '<th>Name</th>';
@@ -84,8 +85,13 @@ echo '<div class="card">';
 								} else {
 									echo '<div>' . htmlspecialchars(price_string($badge_price)) . '</div>';
 								}
-								$badge_price_total += $badge_price;
-								$promo_price_total += $promo_price;
+
+                                $itemPrice = $promo_price;
+                                $salesTax = ($cm_config['payment']['sales_tax'] ?? 0);
+                                $salesTaxPart = $itemPrice * $salesTax;
+                                $salesTaxSubTotal += $salesTaxPart;
+                                $badge_price_total += $badge_price + $salesTaxPart;
+                                $promo_price_total += $promo_price + $salesTaxPart;
 							echo '</td>';
 							echo '<td>';
 								$payment_status = $item['payment-status'];
@@ -117,8 +123,12 @@ echo '<div class="card">';
 										echo '<td class="td-actions"></td>';
 									}
 								echo '</tr>';
-								$badge_price_total += (float)$addon['payment-price'];
-								$promo_price_total += (float)$addon['payment-price'];
+                                $itemPrice = (float)$addon['payment-price'];
+                                $salesTax = ($cm_config['payment']['sales_tax'] ?? 0);
+                                $salesTaxPart = $itemPrice * $salesTax;
+                                $salesTaxSubTotal += $salesTaxPart;
+								$badge_price_total += $itemPrice + $salesTaxPart;
+								$promo_price_total += $itemPrice + $salesTaxPart;
 							}
 						}
 					}
@@ -140,6 +150,19 @@ echo '<div class="card">';
 							echo '<th class="td-actions"></th>';
 						}
 					echo '</tr>';
+                    if ($salesTaxSubTotal > 0) {
+                        echo '<tr>';
+                        echo '<td>including sales tax:</td>';
+                        echo '<td></td>';
+                        echo '<td class="td-numeric">';
+                        echo '<div>' . htmlspecialchars(price_string($salesTaxSubTotal)) . '</div>';
+                        echo '</td>';
+                        echo '<td></td>';
+                        if ($can_post_purchase_edit) {
+                            echo '<td class="td-actions"></td>';
+                        }
+                    }
+                    echo '</tr>';
 				echo '</tfoot>';
 			echo '</table>';
 		echo '</div>';

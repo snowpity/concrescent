@@ -73,6 +73,7 @@ $list_def['edit-clear-function'] = <<<END
 		$('#ea-name').val('');
 		$('#ea-description').val('');
 		$('#ea-price').val('0.00');
+		$('#ea-sales-tax').prop('checked', false);
 		$('#ea-payable-onsite').prop('checked', false);
 		$('#ea-active').prop('checked', true);
 		$('.ea-badge-types').prop('checked', false);
@@ -89,6 +90,7 @@ $list_def['edit-load-function'] = <<<END
 		$('#ea-name').val(e['name']);
 		$('#ea-description').val(e['description']);
 		$('#ea-price').val(e['price']);
+		$('#ea-sales-tax').prop('checked', !!e['sales-tax']);
 		$('#ea-payable-onsite').prop('checked', !!e['payable-onsite']);
 		$('#ea-active').prop('checked', !!e['active']);
 		$('.ea-badge-types').each(function() {
@@ -108,6 +110,7 @@ $list_def['edit-save-function'] = <<<END
 			'name': $('#ea-name').val(),
 			'description': $('#ea-description').val(),
 			'price': $('#ea-price').val(),
+			'sales-tax': $('#ea-sales-tax').is(':checked'),
 			'payable-onsite': $('#ea-payable-onsite').is(':checked'),
 			'active': $('#ea-active').is(':checked'),
 			'badge-type-ids': [],
@@ -219,6 +222,12 @@ echo '<table border="0" cellpadding="0" cellspacing="0" class="cm-form-table">';
 			echo '<label><input type="checkbox" name="ea-payable-onsite" id="ea-payable-onsite">Payable On-Site</label>';
 		echo '</td>';
 	echo '</tr>';
+    echo '<tr>';
+        echo '<th><label for="ea-sales-tax">Sales tax:</label></th>';
+        echo '<td>';
+            echo '<input type="checkbox" name="ea-sales-tax" id="ea-sales-tax"><label for="ea-sales-tax">Applicable</label>&nbsp;&nbsp;';
+        echo '</td>';
+    echo '</tr>';
 	echo '<tr>';
 		echo '<th><label for="ea-active">Active:</label></th>';
 		echo '<td><label><input type="checkbox" name="ea-active" id="ea-active">Active</label></td>';

@@ -5,6 +5,8 @@ require_once __DIR__ .'/../../lib/util/util.php';
 require_once __DIR__ .'/../../lib/util/cmlists.php';
 require_once __DIR__ .'/../admin.php';
 
+global $twig;
+
 cm_admin_check_permission('attendee-badge-types', 'attendee-badge-types');
 
 $atdb = new cm_attendee_db($db);
@@ -68,6 +70,7 @@ $list_def['edit-clear-function'] = <<<END
 		$('#ea-description').val('');
 		$('#ea-rewards').val('');
 		$('#ea-price').val('0.00');
+		$('#ea-sales-tax').prop('checked', false);
 		$('#ea-payable-onsite').prop('checked', false);
 		$('#ea-active').prop('checked', true);
 		$('#ea-quantity').val('');
@@ -83,6 +86,7 @@ $list_def['edit-load-function'] = <<<END
 		$('#ea-description').val(e['description']);
 		$('#ea-rewards').val((e['rewards'] || []).join('\\n'));
 		$('#ea-price').val(e['price']);
+		$('#ea-sales-tax').prop('checked', !!e['sales-tax']);
 		$('#ea-payable-onsite').prop('checked', !!e['payable-onsite']);
 		$('#ea-active').prop('checked', !!e['active']);
 		$('#ea-quantity').val(e['quantity'] || '');
@@ -104,6 +108,7 @@ $list_def['edit-save-function'] = <<<END
 			'description': $('#ea-description').val(),
 			'rewards': rewards,
 			'price': $('#ea-price').val(),
+			'sales-tax': $('#ea-sales-tax').is(':checked'),
 			'payable-onsite': $('#ea-payable-onsite').is(':checked'),
 			'active': $('#ea-active').is(':checked'),
 			'quantity': $('#ea-quantity').val() || null,
@@ -191,57 +196,68 @@ echo '</article>';
 cm_admin_dialogs();
 cm_list_edit_dialog_start();
 
-echo '<table border="0" cellpadding="0" cellspacing="0" class="cm-form-table">';
-	echo '<tr>';
-		echo '<th><label for="ea-name">Name:</label></th>';
-		echo '<td><input type="text" name="ea-name" id="ea-name"></td>';
-	echo '</tr>';
-	echo '<tr>';
-		echo '<th><label for="ea-description">Description:</label></th>';
-		echo '<td><textarea name="ea-description" id="ea-description"></textarea></td>';
-	echo '</tr>';
-	echo '<tr>';
-		echo '<th><label for="ea-rewards">Rewards:</label></th>';
-		echo '<td>';
-			echo '<textarea name="ea-rewards" id="ea-rewards"></textarea>';
-			echo '<br>(Enter one reward per line. Do not add bullets or hyphens.)';
-		echo '</td>';
-	echo '</tr>';
-	echo '<tr>';
-		echo '<th><label for="ea-price">Price:</label></th>';
-		echo '<td>';
-			echo '<input type="number" name="ea-price" id="ea-price" min="0" step="0.01">&nbsp;&nbsp;';
-			echo '<label><input type="checkbox" name="ea-payable-onsite" id="ea-payable-onsite">Payable On-Site</label>';
-		echo '</td>';
-	echo '</tr>';
-	echo '<tr>';
-		echo '<th><label for="ea-active">Active:</label></th>';
-		echo '<td><label><input type="checkbox" name="ea-active" id="ea-active">Active</label></td>';
-	echo '</tr>';
-	echo '<tr>';
-		echo '<th><label for="ea-quantity">Quantity Available:</label></th>';
-		echo '<td>';
-			echo '<input type="number" name="ea-quantity" id="ea-quantity" min="1">';
-			echo '&nbsp;&nbsp;(Leave blank for unlimited.)';
-		echo '</td>';
-	echo '</tr>';
-	echo '<tr>';
-		echo '<th><label for="ea-start-date">Dates Available:</label></th>';
-		echo '<td>';
-			echo '<input type="date" name="ea-start-date" id="ea-start-date">';
-			echo '&nbsp;&nbsp;through&nbsp;&nbsp;';
-			echo '<input type="date" name="ea-end-date" id="ea-end-date">';
-		echo '</td>';
-	echo '</tr>';
-	echo '<tr>';
-		echo '<th><label for="ea-min-age">Age Range:</label></th>';
-		echo '<td>';
-			echo '<input type="number" name="ea-min-age" id="ea-min-age" min="1" max="999">';
-			echo '&nbsp;&nbsp;through&nbsp;&nbsp;';
-			echo '<input type="number" name="ea-max-age" id="ea-max-age" min="1" max="999">';
-		echo '</td>';
-	echo '</tr>';
-echo '</table>';
+$templateString = <<<HEREDOC
+<table border="0" cellpadding="0" cellspacing="0" class="cm-form-table">
+	<tr>
+		<th><label for="ea-name">Name:</label></th>
+		<td><input type="text" name="ea-name" id="ea-name"></td>
+	</tr>
+	<tr>
+		<th><label for="ea-description">Description:</label></th>
+		<td><textarea name="ea-description" id="ea-description"></textarea></td>
+	</tr>
+	<tr>
+		<th><label for="ea-rewards">Rewards:</label></th>
+		<td>
+			<textarea name="ea-rewards" id="ea-rewards"></textarea>
+			<br>(Enter one reward per line. Do not add bullets or hyphens.)
+		</td>
+	</tr>
+	<tr>
+		<th><label for="ea-price">Price:</label></th>
+		<td>
+			<input type="number" name="ea-price" id="ea-price" min="0" step="0.01">&nbsp;&nbsp;
+			<label><input type="checkbox" name="ea-payable-onsite" id="ea-payable-onsite">Payable On-Site</label>
+		</td>
+	</tr>
+    <tr>
+        <th><label for="ea-sales-tax">Sales tax:</label></th>
+        <td>
+            <input type="checkbox" name="ea-sales-tax" id="ea-sales-tax"><label for="ea-sales-tax">Applicable</label>&nbsp;&nbsp;
+        </td>
+        </tr>
+	<tr>
+		<th><label for="ea-active">Active:</label></th>
+		<td><label><input type="checkbox" name="ea-active" id="ea-active">Active</label></td>
+	</tr>
+	<tr>
+		<th><label for="ea-quantity">Quantity Available:</label></th>
+		<td>
+			<input type="number" name="ea-quantity" id="ea-quantity" min="1">
+			&nbsp;&nbsp;(Leave blank for unlimited.)
+		</td>
+	</tr>
+	<tr>
+		<th><label for="ea-start-date">Dates Available:</label></th>
+		<td>
+			<input type="date" name="ea-start-date" id="ea-start-date">
+			&nbsp;&nbsp;through&nbsp;&nbsp;
+			<input type="date" name="ea-end-date" id="ea-end-date">
+		</td>
+	</tr>
+	<tr>
+		<th><label for="ea-min-age">Age Range:</label></th>
+		<td>
+			<input type="number" name="ea-min-age" id="ea-min-age" min="1" max="999">
+			&nbsp;&nbsp;through&nbsp;&nbsp;
+			<input type="number" name="ea-max-age" id="ea-max-age" min="1" max="999">
+		</td>
+	</tr>
+</table>
+HEREDOC;
+
+$template = $twig->createTemplate($templateString);
+echo $template->render();
 
 cm_list_edit_dialog_end();
 cm_list_dialogs($list_def);

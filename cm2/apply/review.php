@@ -20,8 +20,10 @@ if (!$applications) {
 $atdb = new cm_attendee_db($db);
 $items = array();
 $items_total = 0;
+$items_total_sales_tax = 0;
 $cart_items = array();
 $cart_items_total = 0;
+$cart_items_total_sales_tax = 0;
 $use_permit = false;
 $require_permit = false;
 $require_contract = false;
@@ -45,14 +47,22 @@ foreach ($applications as $application) {
 		$application['application-status'] == 'Accepted' &&
 		$application['payment-status'] != 'Completed'
 	);
+
+    global $cm_config;
+    $salesTax = ($cm_config['payment']['sales_tax'] ?? 0);
+
 	foreach ($application_items as $item) {
 		$item['application-status'] = $application['application-status'];
 		$item['payment-status'] = $application['payment-status'];
 		$items[] = $item;
-		$items_total += $item['price'];
+		$salesTaxPart = $item['sales-tax'] ? $item['price'] * $salesTax : 0;
+        $items_total += $item['price'] + $salesTaxPart;
+        $items_total_sales_tax += $salesTaxPart;
 		if ($add_to_cart) {
 			$cart_items[] = $item;
-			$cart_items_total += $item['price'];
+            $salesTaxPart = $item['sales-tax'] ? $item['price'] * $salesTax : 0;
+            $cart_items_total += $item['price'] + $salesTaxPart;
+            $cart_items_total_sales_tax += $salesTaxPart;
 		}
 	}
 	$badge = $apdb->get_badge_type($application['badge-type-id']);
@@ -153,14 +163,18 @@ if ($cart_items && !$require_contract) {
 					if ($cart_items) {
 						echo '<tr>';
 							echo '<th>To Be Paid:</th>';
-							echo '<th class="td-numeric">' . htmlspecialchars(price_string($cart_items_total)) . '</th>';
+							echo '<th class="td-numeric">' . htmlspecialchars(price_string($cart_items_total));
+                            if ($cart_items_total_sales_tax != 0) echo ' incl. sales tax ' . htmlspecialchars(price_string($cart_items_total_sales_tax));
+                            echo '</th>';
 							echo '<th></th>';
 							echo '<th></th>';
 						echo '</tr>';
 					}
 					echo '<tr>';
 						echo '<th>Total:</th>';
-						echo '<th class="td-numeric">' . htmlspecialchars(price_string($items_total)) . '</th>';
+						echo '<th class="td-numeric">' . htmlspecialchars(price_string($items_total));
+                        if ($items_total_sales_tax != 0) echo ' incl. sales tax ' . htmlspecialchars(price_string($items_total_sales_tax));
+                        echo '</th>';
 						echo '<th></th>';
 						echo '<th></th>';
 					echo '</tr>';

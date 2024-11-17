@@ -78,10 +78,13 @@ class cm_application_db {
 				'`max_applicant_count` INTEGER NULL,'.
 				'`max_assignment_count` INTEGER NULL,'.
 				'`base_price` DECIMAL(7,2) NOT NULL,'.
+				'`base_price_sales_tax` BOOLEAN NOT NULL,'.
 				'`base_applicant_count` INTEGER NOT NULL,'.
 				'`base_assignment_count` INTEGER NOT NULL,'.
 				'`price_per_applicant` DECIMAL(7,2) NOT NULL,'.
+				'`price_per_applicant_sales_tax` BOOLEAN NOT NULL,'.
 				'`price_per_assignment` DECIMAL(7,2) NOT NULL,'.
+				'`price_per_assignment_sales_tax` BOOLEAN NOT NULL,'.
 				'`max_prereg_discount` ENUM('.
 					'\'No Discount\','.
 					'\'Price per Applicant\','.
@@ -445,9 +448,11 @@ class cm_application_db {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT b.`id`, b.`order`, b.`name`, b.`description`, b.`rewards`,'.
-			' b.`max_applicant_count`, b.`max_assignment_count`, b.`base_price`,'.
+			' b.`max_applicant_count`, b.`max_assignment_count`,'.
+			' b.`base_price`, b.`base_price_sales_tax`,'.
 			' b.`base_applicant_count`, b.`base_assignment_count`,'.
-			' b.`price_per_applicant`, b.`price_per_assignment`,'.
+			' b.`price_per_applicant`, b.`price_per_applicant_sales_tax`,'.
+			' b.`price_per_assignment`, b.`price_per_assignment_sales_tax`,'.
 			' b.`max_prereg_discount`, b.`use_permit`, b.`require_permit`,'.
 			' b.`require_contract`, b.`active`, b.`max_total_applications`,'.
 			' b.`max_total_applicants`, b.`max_total_assignments`,'.
@@ -471,9 +476,11 @@ class cm_application_db {
 		$stmt->execute();
 		$stmt->bind_result(
 			$id, $order, $name, $description, $rewards,
-			$max_applicant_count, $max_assignment_count, $base_price,
+			$max_applicant_count, $max_assignment_count,
+            $base_price, $base_price_sales_tax,
 			$base_applicant_count, $base_assignment_count,
-			$price_per_applicant, $price_per_assignment,
+			$price_per_applicant, $price_per_applicant_sales_tax,
+            $price_per_assignment, $price_per_assignment_sales_tax,
 			$max_prereg_discount, $use_permit, $require_permit,
 			$require_contract, $active, $max_total_applications,
 			$max_total_applicants, $max_total_assignments,
@@ -497,10 +504,13 @@ class cm_application_db {
 				'max-applicant-count' => $max_applicant_count,
 				'max-assignment-count' => $max_assignment_count,
 				'base-price' => $base_price,
+				'base-price-sales-tax' => $base_price_sales_tax,
 				'base-applicant-count' => $base_applicant_count,
 				'base-assignment-count' => $base_assignment_count,
 				'price-per-applicant' => $price_per_applicant,
+				'price-per-applicant-sales-tax' => $price_per_applicant_sales_tax,
 				'price-per-assignment' => $price_per_assignment,
+				'price-per-assignment-sales-tax' => $price_per_assignment_sales_tax,
 				'max-prereg-discount' => $max_prereg_discount,
 				'use-permit' => !!$use_permit,
 				'require-permit' => !!$require_permit,
@@ -573,9 +583,11 @@ class cm_application_db {
 		$badge_types = [];
 		$query = (
 			'SELECT b.`id`, b.`order`, b.`name`, b.`description`, b.`rewards`,'.
-			' b.`max_applicant_count`, b.`max_assignment_count`, b.`base_price`,'.
+			' b.`max_applicant_count`, b.`max_assignment_count`,'.
+			' b.`base_price`, b.`base_price_sales_tax`,'.
 			' b.`base_applicant_count`, b.`base_assignment_count`,'.
-			' b.`price_per_applicant`, b.`price_per_assignment`,'.
+			' b.`price_per_applicant`, b.`price_per_applicant_sales_tax`,'.
+			' b.`price_per_assignment`, b.`price_per_assignment_sales_tax`,'.
 			' b.`max_prereg_discount`, b.`use_permit`, b.`require_permit`,'.
 			' b.`require_contract`, b.`active`, b.`max_total_applications`,'.
 			' b.`max_total_applicants`, b.`max_total_assignments`,'.
@@ -604,9 +616,11 @@ class cm_application_db {
 		$stmt->execute();
 		$stmt->bind_result(
 			$id, $order, $name, $description, $rewards,
-			$max_applicant_count, $max_assignment_count, $base_price,
+			$max_applicant_count, $max_assignment_count,
+            $base_price, $base_price_sales_tax,
 			$base_applicant_count, $base_assignment_count,
-			$price_per_applicant, $price_per_assignment,
+			$price_per_applicant, $price_per_applicant_sales_tax,
+            $price_per_assignment, $price_per_assignment_sales_tax,
 			$max_prereg_discount, $use_permit, $require_permit,
 			$require_contract, $active, $max_total_applications,
 			$max_total_applicants, $max_total_assignments,
@@ -635,10 +649,13 @@ class cm_application_db {
 				'max-applicant-count' => $max_applicant_count,
 				'max-assignment-count' => $max_assignment_count,
 				'base-price' => $base_price,
+				'base-price-sales-tax' => $base_price_sales_tax,
 				'base-applicant-count' => $base_applicant_count,
 				'base-assignment-count' => $base_assignment_count,
 				'price-per-applicant' => $price_per_applicant,
+				'price-per-applicant-sales-tax' => $price_per_applicant_sales_tax,
 				'price-per-assignment' => $price_per_assignment,
+				'price-per-assignment-sales-tax' => $price_per_assignment_sales_tax,
 				'max-prereg-discount' => $max_prereg_discount,
 				'use-permit' => !!$use_permit,
 				'require-permit' => !!$require_permit,
@@ -686,10 +703,13 @@ class cm_application_db {
 		$max_applicant_count = ($badge_type['max-applicant-count'] ?? null);
 		$max_assignment_count = ($badge_type['max-assignment-count'] ?? null);
 		$base_price = (isset($badge_type['base-price']) ? (float)$badge_type['base-price'] : 0);
+        $base_price_sales_tax = (isset($badge_type['base-price-sales-tax']) ? ($badge_type['base-price-sales-tax'] ? 1 : 0) : 0);
 		$base_applicant_count = ($badge_type['base-applicant-count'] ?? 0);
 		$base_assignment_count = ($badge_type['base-assignment-count'] ?? 0);
 		$price_per_applicant = (isset($badge_type['price-per-applicant']) ? (float)$badge_type['price-per-applicant'] : 0);
+		$price_per_applicant_sales_tax = (isset($badge_type['price-per-applicant-sales-tax']) ? ($badge_type['price-per-applicant-sales-tax'] ? 1 : 0) : 0);
 		$price_per_assignment = (isset($badge_type['price-per-assignment']) ? (float)$badge_type['price-per-assignment'] : 0);
+		$price_per_assignment_sales_tax = (isset($badge_type['price-per-assignment-sales-tax']) ? ($badge_type['price-per-assignment-sales-tax'] ? 1 : 0) : 0);
 		$max_prereg_discount = ($badge_type['max-prereg-discount'] ?? 'No Discount');
 		$use_permit = (isset($badge_type['use-permit']) ? ($badge_type['use-permit'] ? 1 : 0) : 0);
 		$require_permit = (isset($badge_type['require-permit']) ? ($badge_type['require-permit'] ? 1 : 0) : 0);
@@ -705,20 +725,24 @@ class cm_application_db {
 		$stmt = $this->cm_db->connection->prepare(
 			"INSERT INTO `application_badge_types_$this->ctx_lc` SET ".
 			'`order` = ?, `name` = ?, `description` = ?, `rewards` = ?, '.
-			'`max_applicant_count` = ?, `max_assignment_count` = ?, `base_price` = ?, '.
+			'`max_applicant_count` = ?, `max_assignment_count` = ?,'.
+            ' `base_price` = ?, `base_price_sales_tax` = ?, '.
 			'`base_applicant_count` = ?, `base_assignment_count` = ?, '.
-			'`price_per_applicant` = ?, `price_per_assignment` = ?, '.
+			'`price_per_applicant` = ?, `price_per_applicant_sales_tax` = ?, '.
+			'`price_per_assignment` = ?, `price_per_assignment_sales_tax` = ?, '.
 			'`max_prereg_discount` = ?, `use_permit` = ?, `require_permit` = ?, '.
 			'`require_contract` = ?, `active` = ?, `max_total_applications` = ?, '.
 			'`max_total_applicants` = ?, `max_total_assignments` = ?, '.
 			'`start_date` = ?, `end_date` = ?, `min_age` = ?, `max_age` = ?'
 		);
 		$stmt->bind_param(
-			'isssiidiiddsiiiiiiissii',
+			'isssiidiiididisiiiiiiissii',
 			$order, $name, $description, $rewards,
-			$max_applicant_count, $max_assignment_count, $base_price,
+			$max_applicant_count, $max_assignment_count,
+            $base_price, $base_price_sales_tax,
 			$base_applicant_count, $base_assignment_count,
-			$price_per_applicant, $price_per_assignment,
+			$price_per_applicant, $price_per_applicant_sales_tax,
+            $price_per_assignment, $price_per_assignment_sales_tax,
 			$max_prereg_discount, $use_permit, $require_permit,
 			$require_contract, $active, $max_total_applications,
 			$max_total_applicants, $max_total_assignments,
@@ -738,10 +762,13 @@ class cm_application_db {
 		$max_applicant_count = ($badge_type['max-applicant-count'] ?? null);
 		$max_assignment_count = ($badge_type['max-assignment-count'] ?? null);
 		$base_price = (isset($badge_type['base-price']) ? (float)$badge_type['base-price'] : 0);
+		$base_price_sales_tax = (isset($badge_type['base-price-sales-tax']) ? ($badge_type['base-price-sales-tax'] ? 1 : 0) : 0);
 		$base_applicant_count = ($badge_type['base-applicant-count'] ?? 0);
 		$base_assignment_count = ($badge_type['base-assignment-count'] ?? 0);
 		$price_per_applicant = (isset($badge_type['price-per-applicant']) ? (float)$badge_type['price-per-applicant'] : 0);
+		$price_per_applicant_sales_tax = (isset($badge_type['price-per-applicant-sales-tax']) ? ($badge_type['price-per-applicant-sales-tax'] ? 1 : 0) : 0);
 		$price_per_assignment = (isset($badge_type['price-per-assignment']) ? (float)$badge_type['price-per-assignment'] : 0);
+		$price_per_assignment_sales_tax = (isset($badge_type['price-per-assignment-sales-tax']) ? ($badge_type['price-per-assignment-sales-tax'] ? 1 : 0) : 0);
 		$max_prereg_discount = ($badge_type['max-prereg-discount'] ?? 'No Discount');
 		$use_permit = (isset($badge_type['use-permit']) ? ($badge_type['use-permit'] ? 1 : 0) : 0);
 		$require_permit = (isset($badge_type['require-permit']) ? ($badge_type['require-permit'] ? 1 : 0) : 0);
@@ -757,9 +784,11 @@ class cm_application_db {
 		$stmt = $this->cm_db->connection->prepare(
 			"UPDATE `application_badge_types_$this->ctx_lc` SET ".
 			'`name` = ?, `description` = ?, `rewards` = ?, '.
-			'`max_applicant_count` = ?, `max_assignment_count` = ?, `base_price` = ?, '.
+			'`max_applicant_count` = ?, `max_assignment_count` = ?,'.
+            '`base_price` = ?, `base_price_sales_tax` = ?,'.
 			'`base_applicant_count` = ?, `base_assignment_count` = ?, '.
-			'`price_per_applicant` = ?, `price_per_assignment` = ?, '.
+			'`price_per_applicant` = ?, `price_per_applicant_sales_tax` = ?, '.
+			'`price_per_assignment` = ?, `price_per_assignment_sales_tax` = ?, '.
 			'`max_prereg_discount` = ?, `use_permit` = ?, `require_permit` = ?, '.
 			'`require_contract` = ?, `active` = ?, `max_total_applications` = ?, '.
 			'`max_total_applicants` = ?, `max_total_assignments` = ?, '.
@@ -767,11 +796,13 @@ class cm_application_db {
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param(
-			'sssiidiiddsiiiiiiissiii',
+			'sssiidiiididisiiiiiiissiii',
 			$name, $description, $rewards,
-			$max_applicant_count, $max_assignment_count, $base_price,
+			$max_applicant_count, $max_assignment_count,
+            $base_price, $base_price_sales_tax,
 			$base_applicant_count, $base_assignment_count,
-			$price_per_applicant, $price_per_assignment,
+			$price_per_applicant, $price_per_applicant_sales_tax,
+            $price_per_assignment, $price_per_assignment_sales_tax,
 			$max_prereg_discount, $use_permit, $require_permit,
 			$require_contract, $active, $max_total_applications,
 			$max_total_applicants, $max_total_assignments,
@@ -1958,6 +1989,7 @@ class cm_application_db {
 			'name' => $ctx_info['nav_prefix'] . ' Application Fee',
 			'details' => $badge['name'],
 			'price' => $badge['base-price'],
+			'sales-tax' => $badge['base-price-sales-tax'],
 			'price-string' => price_string($badge['base-price'])
 		);
 
@@ -1970,6 +2002,7 @@ class cm_application_db {
 					'name' => $ctx_info['nav_prefix'] . ' ' . $ctx_info['assignment_term'][0] . ' Fee',
 					'details' => $art['room-or-table-id'] . ' (' . ($index + 1) . ' of ' . $count . ')',
 					'price' => ($index < $free_assignments) ? 0 : $badge['price-per-assignment'],
+					'sales-tax' => $badge['price-per-assignment-sales-tax'],
 					'price-string' => ($index < $free_assignments) ? 'INCLUDED' : price_string($badge['price-per-assignment'])
 				);
 			}
@@ -1982,6 +2015,7 @@ class cm_application_db {
 						'name' => $ctx_info['nav_prefix'] . ' ' . $ctx_info['assignment_term'][0] . ' Fee',
 						'details' => '(' . ($index + 1) . ' of ' . $count . ')',
 						'price' => ($index < $free_assignments) ? 0 : $badge['price-per-assignment'],
+						'sales-tax' => $badge['price-per-assignment-sales-tax'],
 						'price-string' => ($index < $free_assignments) ? 'INCLUDED' : price_string($badge['price-per-assignment'])
 					);
 				}
@@ -1997,6 +2031,7 @@ class cm_application_db {
 					'name' => $ctx_info['nav_prefix'] . ' Badge Fee',
 					'details' => $applicant['display-name'] . ' (' . ($index + 1) . ' of ' . $count . ')',
 					'price' => ($index < $free_applicants) ? 0 : $badge['price-per-applicant'],
+					'sales-tax' => $badge['price-per-applicant-sales-tax'],
 					'price-string' => ($index < $free_applicants) ? 'INCLUDED' : price_string($badge['price-per-applicant'])
 				);
 			}
@@ -2009,6 +2044,7 @@ class cm_application_db {
 						'name' => $ctx_info['nav_prefix'] . ' Badge Fee',
 						'details' => '(' . ($index + 1) . ' of ' . $count . ')',
 						'price' => ($index < $free_applicants) ? 0 : $badge['price-per-applicant'],
+						'sales-tax' => $badge['price-per-applicant-sales-tax'],
 						'price-string' => ($index < $free_applicants) ? 'INCLUDED' : price_string($badge['price-per-applicant'])
 					);
 				}
@@ -2020,9 +2056,22 @@ class cm_application_db {
 			$fdb = new cm_forms_db($this->cm_db, 'attendee');
 
 			$total_price = 0;
-			foreach ($applications as $a) $total_price += $a['price'];
-			foreach ($assignments as $a) $total_price += $a['price'];
-			foreach ($applicants as $a) $total_price += $a['price'];
+
+            global $cm_config;
+            $salesTax = ($cm_config['payment']['sales_tax'] ?? 0);
+
+			foreach ($applications as $a) {
+                $salesTaxPart = $a['sales-tax'] ? $a['price'] * $salesTax : 0;
+                $total_price += $a['price'] + $salesTaxPart;
+            }
+			foreach ($assignments as $a) {
+                $salesTaxPart = $a['sales-tax'] ? $a['price'] * $salesTax : 0;
+                $total_price += $a['price'] + $salesTaxPart;
+            }
+			foreach ($applicants as $a) {
+                $salesTaxPart = $a['sales-tax'] ? $a['price'] * $salesTax : 0;
+                $total_price += $a['price'] + $salesTaxPart;
+            }
 
 			$max_discount = 0;
 			switch ($badge['max-prereg-discount']) {

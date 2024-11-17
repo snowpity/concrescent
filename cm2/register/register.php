@@ -13,6 +13,8 @@ require_once __DIR__ .'/../lib/database/mail.php';
 require_once __DIR__ .'/../lib/util/res.php';
 require_once __DIR__ .'/../lib/util/util.php';
 
+global $cm_config;
+
 $event_name = $cm_config['event']['name'];
 
 $onsite_only = isset($_COOKIE['onsite_only']) && $_COOKIE['onsite_only'];
@@ -104,6 +106,7 @@ function cm_reg_item_update_from_post(&$item, $post)
 
 	$item['payment-status'] = 'Incomplete';
 	$item['payment-badge-price'] = $found_badge_type ? $found_badge_type['price'] : 0;
+	$item['sales-tax'] = $found_badge_type ? $found_badge_type['sales-tax'] : 0;
 	$item['payment-promo-code'] = null;
 	$item['payment-promo-price'] = $found_badge_type ? $found_badge_type['price'] : 0;
 
@@ -296,14 +299,22 @@ function cm_reg_cart_verify_availability($payment_method)
 }
 
 function cm_reg_cart_total() {
+    global $cm_config;
+
 	if (!isset($_SESSION['cart'])) $_SESSION['cart'] = array();
+    $salesTax = ($cm_config['payment']['sales_tax'] ?? 0);
 	$total = 0;
 	foreach ($_SESSION['cart'] as $item) {
-		$total += (float)$item['payment-promo-price'];
+        $itemPart = (float)$item['payment-promo-price'];
+        $salesTaxPart = $item['sales-tax'] ? $itemPart * $salesTax : 0;
+		$total += $itemPart + $salesTaxPart;
 		if (isset($item['addons']) && $item['addons']) {
 			foreach ($item['addons'] as $addon) {
-				if($addon['payment-status'] == 'Incomplete')
-					$total += (float)$addon['price'];
+				if($addon['payment-status'] === 'Incomplete') {
+                    $itemPart = (float)$addon['price'];
+                    $salesTaxPart = $addon['sales-tax'] ? $itemPart * $salesTax : 0;
+                    $total += $itemPart + $salesTaxPart;
+                }
 			}
 		}
 	}

@@ -37,6 +37,7 @@ class cm_attendee_db {
 			'`description` TEXT NULL,'.
 			'`rewards` TEXT NULL,'.
 			'`price` DECIMAL(7,2) NOT NULL,'.
+			'`sales_tax` BOOLEAN NOT NULL,'.
 			'`payable_onsite` BOOLEAN NOT NULL,'.
 			'`active` BOOLEAN NOT NULL,'.
 			'`quantity` INTEGER NULL,'.
@@ -52,6 +53,7 @@ class cm_attendee_db {
 			'`name` VARCHAR(255) NOT NULL,'.
 			'`description` TEXT NULL,'.
 			'`price` DECIMAL(7,2) NOT NULL,'.
+			'`sales_tax` BOOLEAN NOT NULL,'.
 			'`payable_onsite` BOOLEAN NOT NULL,'.
 			'`active` BOOLEAN NOT NULL,'.
 			'`badge_type_ids` TEXT NULL,'.
@@ -171,7 +173,7 @@ class cm_attendee_db {
 		if (!$id) return false;
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT b.`id`, b.`order`, b.`name`, b.`description`, b.`rewards`,'.
-			' b.`price`, b.`payable_onsite`, b.`active`, b.`quantity`,'.
+			' b.`price`, b.`sales_tax`, b.`payable_onsite`, b.`active`, b.`quantity`,'.
 			' b.`start_date`, b.`end_date`, b.`min_age`, b.`max_age`,'.
 			' (SELECT COUNT(*) FROM `attendees` a'.
 			' WHERE a.`badge_type_id` = b.`id` AND a.`payment_status` = \'Completed\') c'.
@@ -182,7 +184,7 @@ class cm_attendee_db {
 		$stmt->execute();
 		$stmt->bind_result(
 			$id, $order, $name, $description, $rewards,
-			$price, $payable_onsite, $active, $quantity,
+			$price, $salesTax, $payable_onsite, $active, $quantity,
 			$start_date, $end_date, $min_age, $max_age,
 			$quantity_sold
 		);
@@ -199,6 +201,7 @@ class cm_attendee_db {
 				'description' => $description,
 				'rewards' => ($rewards ? explode("\n", $rewards) : array()),
 				'price' => $price,
+				'sales-tax' => $salesTax,
 				'payable-onsite' => !!$payable_onsite,
 				'active' => !!$active,
 				'quantity' => $quantity,
@@ -258,7 +261,7 @@ class cm_attendee_db {
 		$badge_types = array();
 		$query = (
 			'SELECT b.`id`, b.`order`, b.`name`, b.`description`, b.`rewards`,'.
-			' b.`price`, b.`payable_onsite`, b.`active`, b.`quantity`,'.
+			' b.`price`, b.`sales_tax`, b.`payable_onsite`, b.`active`, b.`quantity`,'.
 			' b.`start_date`, b.`end_date`, b.`min_age`, b.`max_age`,'.
 			' (SELECT COUNT(*) FROM `attendees` a'.
 			' WHERE a.`badge_type_id` = b.`id` AND a.`payment_status` = \'Completed\') c'.
@@ -295,7 +298,7 @@ class cm_attendee_db {
 		$stmt->execute();
 		$stmt->bind_result(
 			$id, $order, $name, $description, $rewards,
-			$price, $payable_onsite, $active, $quantity,
+			$price, $salesTax, $payable_onsite, $active, $quantity,
 			$start_date, $end_date, $min_age, $max_age,
 			$quantity_sold
 		);
@@ -313,6 +316,7 @@ class cm_attendee_db {
 				'description' => $description,
 				'rewards' => ($rewards ? explode("\n", $rewards) : array()),
 				'price' => $price,
+				'sales-tax' => $salesTax,
 				'payable-onsite' => !!$payable_onsite,
 				'active' => !!$active,
 				'quantity' => $quantity,
@@ -346,6 +350,7 @@ class cm_attendee_db {
 		$description = ($badge_type['description'] ?? '');
 		$rewards = (isset($badge_type['rewards']) ? implode("\n", $badge_type['rewards']) : '');
 		$price = (isset($badge_type['price']) ? (float)$badge_type['price'] : 0);
+		$salesTax = (isset($badge_type['sales-tax']) ? ($badge_type['sales-tax'] ? 1 : 0) : 0);
 		$payable_onsite = (isset($badge_type['payable-onsite']) ? ($badge_type['payable-onsite'] ? 1 : 0) : 0);
 		$active = (isset($badge_type['active']) ? ($badge_type['active'] ? 1 : 0) : 1);
 		$quantity = ($badge_type['quantity'] ?? null);
@@ -356,13 +361,13 @@ class cm_attendee_db {
 		$stmt = $this->cm_db->connection->prepare(
 			'INSERT INTO `attendee_badge_types` SET '.
 			'`order` = ?, `name` = ?, `description` = ?, `rewards` = ?, '.
-			'`price` = ?, `payable_onsite` = ?, `active` = ?, `quantity` = ?, '.
+			'`price` = ?, `sales_tax` = ?, `payable_onsite` = ?, `active` = ?, `quantity` = ?, '.
 			'`start_date` = ?, `end_date` = ?, `min_age` = ?, `max_age` = ?'
 		);
 		$stmt->bind_param(
-			'isssdiiissii',
+			'isssdiiiissii',
 			$order, $name, $description, $rewards,
-			$price, $payable_onsite, $active, $quantity,
+			$price, $salesTax, $payable_onsite, $active, $quantity,
 			$start_date, $end_date, $min_age, $max_age
 		);
 		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
@@ -377,6 +382,7 @@ class cm_attendee_db {
 		$description = ($badge_type['description'] ?? '');
 		$rewards = (isset($badge_type['rewards']) ? implode("\n", $badge_type['rewards']) : '');
 		$price = (isset($badge_type['price']) ? (float)$badge_type['price'] : 0);
+        $salesTax = (isset($badge_type['sales-tax']) ? ($badge_type['sales-tax'] ? 1 : 0) : 0);
 		$payable_onsite = (isset($badge_type['payable-onsite']) ? ($badge_type['payable-onsite'] ? 1 : 0) : 0);
 		$active = (isset($badge_type['active']) ? ($badge_type['active'] ? 1 : 0) : 1);
 		$quantity = ($badge_type['quantity'] ?? null);
@@ -387,14 +393,14 @@ class cm_attendee_db {
 		$stmt = $this->cm_db->connection->prepare(
 			'UPDATE `attendee_badge_types` SET '.
 			'`name` = ?, `description` = ?, `rewards` = ?, '.
-			'`price` = ?, `payable_onsite` = ?, `active` = ?, `quantity` = ?, '.
+			'`price` = ?, `sales_tax` = ?,`payable_onsite` = ?, `active` = ?, `quantity` = ?, '.
 			'`start_date` = ?, `end_date` = ?, `min_age` = ?, `max_age` = ?'.
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param(
-			'sssdiiissiii',
+			'sssdiiiissiii',
 			$name, $description, $rewards,
-			$price, $payable_onsite, $active, $quantity,
+			$price, $salesTax, $payable_onsite, $active, $quantity,
 			$start_date, $end_date, $min_age, $max_age,
 			$badge_type['id']
 		);
@@ -486,6 +492,7 @@ class cm_attendee_db {
 		if (!$name_map) $name_map = $this->get_badge_type_name_map();
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT b.`id`, b.`order`, b.`name`, b.`description`, b.`price`,'.
+            ' b.`sales_tax`, '.
 			' b.`payable_onsite`, b.`active`, b.`badge_type_ids`, b.`quantity`,'.
 			' b.`start_date`, b.`end_date`, b.`min_age`, b.`max_age`,'.
 			' (SELECT COUNT(*) FROM `attendee_addon_purchases` a'.
@@ -496,8 +503,9 @@ class cm_attendee_db {
 		$stmt->bind_param('i', $id);
 		$stmt->execute();
 		$stmt->bind_result(
-			$id, $order, $name, $description, $price,
-			$payable_onsite, $active, $badge_type_ids, $quantity,
+			$id, $order, $name, $description,
+            $price, $salesTax,
+            $payable_onsite, $active, $badge_type_ids, $quantity,
 			$start_date, $end_date, $min_age, $max_age,
 			$quantity_sold
 		);
@@ -512,6 +520,7 @@ class cm_attendee_db {
 				'name' => $name,
 				'description' => $description,
 				'price' => $price,
+                'sales-tax' => $salesTax,
 				'payable-onsite' => !!$payable_onsite,
 				'active' => !!$active,
 				'badge-type-ids' => ($badge_type_ids ? explode(',', $badge_type_ids) : array()),
@@ -541,7 +550,7 @@ class cm_attendee_db {
 		if (!$name_map) $name_map = $this->get_badge_type_name_map();
 		$addons = array();
 		$query = (
-			'SELECT b.`id`, b.`order`, b.`name`, b.`description`, b.`price`,'.
+			'SELECT b.`id`, b.`order`, b.`name`, b.`description`, b.`price`, b.`sales_tax`,'.
 			' b.`payable_onsite`, b.`active`, b.`badge_type_ids`, b.`quantity`,'.
 			' b.`start_date`, b.`end_date`, b.`min_age`, b.`max_age`,'.
 			' (SELECT COUNT(*) FROM `attendee_addon_purchases` a'.
@@ -564,7 +573,7 @@ class cm_attendee_db {
 		$stmt = $this->cm_db->connection->prepare($query . ' ORDER BY b.`order`');
 		$stmt->execute();
 		$stmt->bind_result(
-			$id, $order, $name, $description, $price,
+			$id, $order, $name, $description, $price, $salesTax,
 			$payable_onsite, $active, $badge_type_ids, $quantity,
 			$start_date, $end_date, $min_age, $max_age,
 			$quantity_sold
@@ -581,6 +590,7 @@ class cm_attendee_db {
 				'name' => $name,
 				'description' => $description,
 				'price' => $price,
+				'sales-tax' => $salesTax,
 				'payable-onsite' => !!$payable_onsite,
 				'active' => !!$active,
 				'badge-type-ids' => ($badge_type_ids ? explode(',', $badge_type_ids) : array()),
@@ -619,6 +629,7 @@ class cm_attendee_db {
 		$name = ($addon['name'] ?? '');
 		$description = ($addon['description'] ?? '');
 		$price = (isset($addon['price']) ? (float)$addon['price'] : 0);
+        $salesTax = (isset($addon['sales-tax']) ? ($addon['sales-tax'] ? 1 : 0) : 0);
 		$payable_onsite = (isset($addon['payable-onsite']) ? ($addon['payable-onsite'] ? 1 : 0) : 0);
 		$active = (isset($addon['active']) ? ($addon['active'] ? 1 : 0) : 1);
 		$badge_type_ids = (isset($addon['badge-type-ids']) ? implode(',', $addon['badge-type-ids']) : '*');
@@ -630,14 +641,16 @@ class cm_attendee_db {
 		$stmt = $this->cm_db->connection->prepare(
 			'INSERT INTO `attendee_addons` SET '.
 			'`order` = ?, `name` = ?, `description` = ?, `price` = ?, '.
+            '`sales_tax` = ?, '.
 			'`payable_onsite` = ?, `active` = ?, `badge_type_ids` = ?, '.
 			'`quantity` = ?, `start_date` = ?, `end_date` = ?, '.
 			'`min_age` = ?, `max_age` = ?'
 		);
 		$stmt->bind_param(
-			'issdiisissii',
+			'issdiiisissii',
 			$order, $name, $description, $price,
-			$payable_onsite, $active, $badge_type_ids,
+            $salesTax,
+            $payable_onsite, $active, $badge_type_ids,
 			$quantity, $start_date, $end_date,
 			$min_age, $max_age
 		);
@@ -652,6 +665,7 @@ class cm_attendee_db {
 		$name = ($addon['name'] ?? '');
 		$description = ($addon['description'] ?? '');
 		$price = (isset($addon['price']) ? (float)$addon['price'] : 0);
+        $salesTax = (isset($addon['sales-tax']) ? ($addon['sales-tax'] ? 1 : 0) : 0);
 		$payable_onsite = (isset($addon['payable-onsite']) ? ($addon['payable-onsite'] ? 1 : 0) : 0);
 		$active = (isset($addon['active']) ? ($addon['active'] ? 1 : 0) : 1);
 		$badge_type_ids = (isset($addon['badge-type-ids']) ? implode(',', $addon['badge-type-ids']) : '*');
@@ -662,14 +676,14 @@ class cm_attendee_db {
 		$max_age = ($addon['max-age'] ?? null);
 		$stmt = $this->cm_db->connection->prepare(
 			'UPDATE `attendee_addons` SET '.
-			'`name` = ?, `description` = ?, `price` = ?, '.
+			'`name` = ?, `description` = ?, `price` = ?, `sales_tax` = ?,'.
 			'`payable_onsite` = ?, `active` = ?, `badge_type_ids` = ?, '.
 			'`quantity` = ?, `start_date` = ?, `end_date` = ?, '.
 			'`min_age` = ?, `max_age` = ? WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param(
-			'ssdiisissiii',
-			$name, $description, $price,
+			'ssdiiisissiii',
+			$name, $description, $price, $salesTax,
 			$payable_onsite, $active, $badge_type_ids,
 			$quantity, $start_date, $end_date,
 			$min_age, $max_age, $addon['id']
