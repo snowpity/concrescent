@@ -169,7 +169,7 @@ function cm_reg_item_update_from_post(&$item, $post)
 	return $errors;
 }
 
-function cm_reg_cart_count($include_addons = false) {
+function cm_reg_cart_count($include_addons = false): int {
 	if (!isset($_SESSION['cart'])) $_SESSION['cart'] = array();
 	$count = count($_SESSION['cart']);
 	if ($include_addons) {
@@ -338,7 +338,7 @@ function cm_reg_post_edit_get() {
 	return $_SESSION['post_edit'] ?? null;
 }
 
-function cm_reg_post_edit_set($item) {
+function cm_reg_post_edit_set($item): void {
 	$_SESSION['post_edit'] = $item;
 }
 
@@ -361,13 +361,13 @@ function cm_reg_post_edit_total() {
 	return $total;
 }
 
-function cm_reg_post_edit_set_state($state) {
+function cm_reg_post_edit_set_state(string $state): void {
 	if (!isset($_SESSION['post_edit'])) $_SESSION['post_edit'] = array();
 	$_SESSION['post_edit_hash'] = md5(serialize($_SESSION['post_edit']));
 	$_SESSION['post_edit_state'] = $state;
 }
 
-function cm_reg_post_edit_check_state($expected_state) {
+function cm_reg_post_edit_check_state(string $expected_state): bool {
 	if (!isset($_SESSION['post_edit'])) return false;
 	if (!isset($_SESSION['post_edit_hash'])) return false;
 	if (!isset($_SESSION['post_edit_state'])) return false;
@@ -377,52 +377,74 @@ function cm_reg_post_edit_check_state($expected_state) {
 	return true;
 }
 
-function cm_reg_post_edit_destroy($close_session = true) {
-	unset($_SESSION['post_edit']);
-	unset($_SESSION['post_edit_hash']);
-	unset($_SESSION['post_edit_state']);
-	if($close_session)
-		session_destroy();
+function cm_reg_post_edit_destroy(): void {
+    unset(
+        $_SESSION['post_edit'],
+        $_SESSION['post_edit_hash'],
+        $_SESSION['post_edit_state']
+    );
+    session_destroy();
 }
 
-function cm_reg_head($title) {
-	echo '<!DOCTYPE HTML>';
-	echo '<html>';
-	echo '<head>';
-	echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">';
-	echo '<title>Register - ' . htmlspecialchars($title) . '</title>';
-	echo '<link rel="shortcut icon" href="' . htmlspecialchars(theme_file_url('favicon.ico', false)) . '">';
-	echo '<link rel="stylesheet" href="' . htmlspecialchars(resource_file_url('cm.css', false)) . '">';
-	echo '<link rel="stylesheet" href="' . htmlspecialchars(theme_file_url('theme.css', false)) . '">';
-	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_url('jquery.js', false)) . '"></script>';
-	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_url('cmui.js', false)) . '"></script>';
+function cm_reg_head(string $title): void {
+    global $twig;
+
+    $template = $twig->createTemplate(<<<HEREDOC
+        <!DOCTYPE HTML>
+            <html lang="en">
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                <title>Register {{ title|e }} </title>
+                <link rel="shortcut icon" href="{{ theme_file_url('favicon.ico', false)|e }}">
+                <link rel="stylesheet" href="{{ resource_file_url('cm.css', false)|e }}">
+                <link rel="stylesheet" href="{{ theme_file_url('theme.css', false)|e }}">
+                <script type="text/javascript" src="{{ resource_file_url('jquery.js', false)|e }}"></script>
+                <script type="text/javascript" src="{{ resource_file_url('cmui.js', false)|e }}"></script>
+        HEREDOC
+    );
+    echo $template->render([
+        'title' => $title,
+    ]);
 }
 
-function cm_reg_body($title, $show_cart = true) {
-	echo '</head>';
-	echo '<body class="cm-reg">';
-	echo '<header>';
-		echo '<div class="pagename">' . htmlspecialchars($title) . '</div>';
-		if ($show_cart) {
-			echo '<div class="header-items">';
-				echo '<div class="header-item">';
-					$url = get_site_url(false) . '/register/cart.php';
-					$count = cm_reg_cart_count(true);
-					$count .= ($count == 1) ? ' item' : ' items';
-					echo '<a href="' . htmlspecialchars($url) . '">Shopping Cart: ' . $count . '</a>';
-				echo '</div>';
-			echo '</div>';
-		}
-	echo '</header>';
+function cm_reg_body(string $title, bool $show_cart = true): void {
+    global $twig;
+
+    $template = $twig->createTemplate(<<<HEREDOC
+        </head>
+        <body class="cm-reg">
+          <header>
+            <div class="pagename"> {{ title|e }}</div>
+            {% if show_cart == true %}
+            <div class="header-items">
+              <div class="header-item">
+              <a href="{{ get_site_url(false) ~ '/register/cart.php'}}">Shopping Cart: {{ count }} item{{ count == 1 ? '' : 's' }}</a>
+              </div>
+            </div>
+            {% endif %}
+          </header>
+        HEREDOC
+    );
+    echo $template->render([
+        'title' => $title,
+        'show_cart' => $show_cart,
+        'count' => cm_reg_cart_count(true),
+    ]);
 }
 
-function cm_reg_tail() {
-	echo '</body>';
-	echo '</html>';
+function cm_reg_tail(): void {
+    global $twig;
+
+    $template = $twig->createTemplate(<<<HEREDOC
+            </body>
+        </html>
+        HEREDOC
+    );
+    echo $template->render();
 }
 
 #[NoReturn]
-function cm_reg_closed(?DateTimeImmutable $datetime = null): void
+function cm_reg_closed(?DateTimeImmutable $datetime = null): never
 {
 	global $event_name, $contact_address;
 	cm_reg_head('Registration Closed');
@@ -453,7 +475,7 @@ function cm_reg_closed(?DateTimeImmutable $datetime = null): void
 }
 
 #[NoReturn]
-function cm_reg_message($title, $custom_text_name, $default_text, $fields = null) {
+function cm_reg_message(string $title, string $custom_text_name, string $default_text, array|false|null $fields = null): never {
 	global $event_name, $fdb, $contact_address;
 	cm_reg_head($title);
 	cm_reg_body($title, false);

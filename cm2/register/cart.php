@@ -3,6 +3,7 @@
 require_once __DIR__ .'/../lib/util/util.php';
 require_once __DIR__ .'/register.php';
 
+global $twig;
 
 $all_badge_types = $atdb->list_badge_types();
 $sellable_badge_types = $atdb->list_badge_types(true, true, $onsite_only, $override_code);
@@ -59,22 +60,28 @@ if (isset($_POST['action'])) {
 if (!cm_reg_cart_count()) {
 	cm_reg_head('Shopping Cart');
 	cm_reg_body('Shopping Cart');
-	echo '<article>';
-		echo '<div class="card">';
-			echo '<div class="card-title">Shopping Cart</div>';
-			echo '<div class="card-content">';
-				echo '<p>';
-					echo 'Your shopping cart is empty. ';
-					echo 'To get started, click <b>Add a Badge</b>.';
-				echo '</p>';
-			echo '</div>';
-			echo '<div class="card-buttons">';
-				echo '<a href="edit.php" role="button" class="button register-button">';
-					echo 'Add a Badge';
-				echo '</a>';
-			echo '</div>';
-		echo '</div>';
-	echo '</article>';
+
+    $template = $twig->createTemplate(<<<HEREDOC
+        <article>
+            <div class="card">
+                <div class="card-title">Shopping Cart</div>
+                <div class="card-content">
+                <p>
+                Your shopping cart is empty. 
+                To get started, click <b>Add a Badge</b>.
+                </p>
+              </div>
+                <div class="card-buttons">
+                    <a href="edit.php" role="button" class="button register-button">
+                    Add a Badge
+                    </a>
+                </div>
+            </div>
+        </article>
+        HEREDOC
+    );
+    echo $template->render();
+
 	cm_reg_tail();
 	exit(0);
 }
