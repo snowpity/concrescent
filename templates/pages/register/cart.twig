@@ -1,0 +1,193 @@
+{% extends "layouts/reg.twig" %}
+{% set show_cart = true %}
+{% set title = 'Shopping Cart' %}
+{% set show_cart = true %}
+
+{% block body %}
+<article>
+  <div class="card">
+    <div class="card-title">Shopping Cart</div>
+    <div class="card-content">
+      {% if errors.checkout is defined %}
+        <p class="cm-error-box">{{ errors.checkout|e }}</p>
+      {% endif %}
+      <p>
+        Your shopping cart has <b> {{ count }} </b> item{{ count == 1 ? '' : 's' }} . Your registration is not complete until you click <b>Place Order</b>.
+      </p>
+      <div class="cm-list-table">
+        <table border="0" cellpadding="0" cellspacing="0" class="cm-cart">
+          <thead>
+          <tr>
+            <th>Name</th>
+            <th>Badge Type</th>
+            <th class="td-numeric">Price</th>
+            <th class="td-actions">Actions</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for item in items %}
+            <tr>
+              <td>
+                {% set real_name = item['first-name']|trim ~ ' ' ~ item['last-name']|trim %}
+                {% set fandom_name = item['fandom-name']|trim %}
+                {% set name_on_badge = fandom_name ? item['name-on-badge']|trim : 'Real Name Only' %}
+                {% if name_on_badge == 'Fandom Name Large, Real Name Small' %}
+                  <div><b>{{ fandom_name|e }}</b></div>
+                  <div>{{ real_name|e }}</div>
+                {% elseif name_on_badge == 'Real Name Large, Fandom Name Small' %}
+                  <div><b>{{ real_name|e }}</b></div>
+                  <div>{{ fandom_name|e }}</div>
+                {% elseif name_on_badge == 'Fandom Name Only' %}
+                  <div><b>{{ fandom_name|e }}</b></div>
+                {% else %}
+                  <div><b>{{ real_name|e }}</b></div>
+                {% endif %}
+                {% if item['payment-promo-code'] is defined and item['payment-promo-code'] != '' %}
+                  <div><b>Promo Code:</b> {{ item['payment-promo-code']|e }}</div>
+                {% endif %}
+              </td>
+              <td>
+                {% set badge_type_id = item['badge-type-id'] %}
+                {% set badge_type_name = name_map[badge_type_id] ?? badge_type_id %}
+                <div>{{ badge_type_name|e }}</div>
+                {% if errors[i] is defined %}
+                  <div class="error">{{ errors[i]|e }}</div>
+                {% endif %}
+              </td>
+              <td class="td-numeric">
+                {% set badge_price = item['payment-badge-price'] %}
+                {% set promo_price = item['payment-promo-price'] %}
+                {% if badge_price != promo_price %}
+                  <div><s>{{ badge_price|price_string }}</s></div>
+                  <div><b>{{ promo_price|price_string }}</b></div>
+                {% else %}
+                  <div>{{ badge_price|price_string }}</div>
+                {% endif %}
+              </td>
+              <td class="td-actions">
+                <a href="edit.php?index={{ i }}" role="button" class="button edit-button">Edit</a>
+                <form action="cart.php" method="post">
+                  <input type="hidden" name="action" value="remove">
+                  <input type="hidden" name="index" value="{{ i }}">
+                  <input type="submit" name="submit" value="Remove">
+                </form>
+              </td>
+            </tr>
+            {% if item.addons is defined %}
+              {% for addon in item.addons %}
+                <tr>
+                  <td>
+                    <div class="cm-cart-addon-name">{{ addon.name|e }}</div>
+                    {% if errors[i ~ 'a' ~ addon.id] is defined %}
+                      <div class="cm-cart-addon-error error">{{ errors[i ~ 'a' ~ addon.id]|e }}</div>
+                    {% endif %}
+                  </td>
+                  <td><div>Addon</div></td>
+                  <td class="td-numeric"><div>{{ addon.price|price_string }}</div></td>
+                  <td class="td-actions"></td>
+                </tr>
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+          <tr>
+            <td>Subtotal:</td>
+            <td></td>
+            <td class="td-numeric">
+              {% if badge_price_total != promo_price_total %}
+                <div><s>{{ badge_price_total|price_string }}</s></div>
+                <div>{{ promo_price_total|price_string }}</div>
+              {% else %}
+                <div>{{ badge_price_total|price_string }}</div>
+              {% endif %}
+            </td>
+            <td class="td-actions">
+              <form action="cart.php" method="post">
+                <input type="hidden" name="action" value="removeall">
+                <input type="submit" name="submit" value="Remove All">
+              </form>
+            </td>
+          </tr>
+          <tr>
+            <td>Sales tax :</td>
+            <td></td>
+            <td class="td-numeric">
+              <div>{{ salesTax|price_string }}</div>
+            </td>
+            <td class="td-actions"></td>
+          </tr>
+          </tbody>
+          <tfoot>
+          <tr>
+            <th><br>Total :<br><br></th>
+            <th></th>
+            <th class="td-numeric">
+              <div>{{ totalWithSalesTax|price_string }}</div>
+            </th>
+            <th class="td-actions"></th>
+          </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="card-buttons">
+      <a href="edit.php{% if override_code != '' %}?override_code={{ override_code }}{% endif %}" role="button" class="button register-button">Add Another Badge</a>
+    </div>
+  </div>
+
+  <form action="cart.php" method="post" class="card">
+    <div class="card-title">Redeem Promo Code</div>
+    <div class="card-content">
+      <p>
+        <label>Enter Promo Code:
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        {% if errors.code is defined %}
+          <input type="text" name="code" value="{{ previouslyEnteredPromoCode|e }}">
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          <span class="error">{{ errors.code|e }}</span>
+        {% else %}
+          <input type="text" name="code">
+        {% endif %}
+        </label>
+      </p>
+      <p>
+        Only one promo code can be used at a time.
+        Also, changing the contents of your shopping cart
+        in any way will remove the promo code; you will
+        then need to enter the promo code again.
+      </p>
+    </div>
+    <div class="card-buttons">
+      <input type="hidden" name="action" value="redeem">
+      <input type="submit" name="submit" value="Redeem Code" class="register-button">
+    </div>
+    {% if override_code != '' %}
+      <input type="hidden" name="override_code" value="{{ override_code }}">
+    {% endif %}
+  </form>
+
+  <form action="cart.php" method="post" class="card">
+    <div class="card-title">Place Order</div>
+    <div class="card-content">
+      <p><b>Please select a payment method:</b></p>
+      <div class="spacing">
+        {% if onsite_only %}
+          <div><label><input type="radio" name="payment-method" value="cash" checked>Pay with cash at the event</label></div>
+        {% else %}
+          <div><label><input type="radio" name="payment-method" value="paypal" checked>Pay with PayPal</label></div>
+          {% if allPayableOnsite %}
+            <div><label><input type="radio" name="payment-method" value="cash">Pay with cash at the event</label></div>
+          {% endif %}
+        {% endif %}
+      </div>
+      <p>Your registration is not complete until you click <b>Place Order</b>.</p>
+    </div>
+    <div class="card-buttons">
+      <input type="hidden" name="action" value="checkout">
+      <input type="submit" name="submit" value="Place Order" class="register-button">
+    </div>
+    {% if override_code != '' %}
+      <input type="hidden" name="override_code" value="{{ override_code }}">
+    {% endif %}
+  </form>
+</article>
+{% endblock %}
