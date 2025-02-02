@@ -9,7 +9,7 @@ return RectorConfig::configure()
     ->withPaths([
         __DIR__ . '/cm2',
     ])
-    ->withPhpSets()
+    ->withPhpSets(php84: true)
     ->withRules([
         AddVoidReturnTypeWhereNoReturnRector::class,
     ]);

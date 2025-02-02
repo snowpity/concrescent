@@ -1,8 +1,9 @@
 <?php
 
-# Fail silently if the config file isn't available on the mounting point.
-# This indirection is useful for an easier time running the legacy application on Docker.
-# You can safely override thi entire file with the final config file when running a production release.shuld
+# Fail silently if the config file isn't available at the target.
+# This indirection is useful for running the application in all kinds of setup even without Docker.
+# You can also override this current file.
+/** @phpstan-ignore include.fileNotFound */
 include('/srv/host/config.php');
 
 if(!isset($cm_config)) {
