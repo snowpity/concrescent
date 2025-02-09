@@ -2,7 +2,6 @@
     "require": {
         "php": "^8.3",
         "twig/twig": "^3.8",
-        "slim/twig-view": "^3.3",
         "ext-curl": "*",
         "ext-exif": "*",
         "ext-gd": "*",
