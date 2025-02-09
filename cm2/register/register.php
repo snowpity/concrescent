@@ -353,19 +353,33 @@ function cm_reg_post_edit_set($item): void {
 	$_SESSION['post_edit'] = $item;
 }
 
-function cm_reg_post_edit_total() {
-	$total = 0;
+class PostEditSubTotal {
+    /** @var float Gross total */
+    public float $total = 0;
+    public float $tax = 0;
+}
+
+function cm_reg_post_edit_total(): PostEditSubTotal {
+    global $cm_config;
+    $salesTax = ($cm_config['payment']['sales_tax'] ?? 0);
+
+	$total = new PostEditSubTotal();
+
 	if (isset($_SESSION['post_edit'])) {
 		$item = $_SESSION['post_edit'];
 		if (isset($item['new-badge-type'])) {
 			$bt = $item['new-badge-type'];
 			if (isset($bt['price-diff'])) {
-				$total += (float)$bt['price-diff'];
+                $taxPart = $bt['sales-tax'] ? (float)$bt['price-diff'] * $salesTax : 0;
+                $total->total += (float)$bt['price-diff'] + $taxPart;
+                $total->tax += $taxPart;
 			}
 		}
 		if (isset($item['new-addons'])) {
 			foreach ($item['new-addons'] as $addon) {
-				$total += (float)$addon['price'];
+                $taxPart = $addon['sales-tax'] ? (float)$addon['price'] * $salesTax : 0;
+				$total->total += (float)$addon['price'] + $taxPart;
+                $total->tax += $taxPart;
 			}
 		}
 	}
