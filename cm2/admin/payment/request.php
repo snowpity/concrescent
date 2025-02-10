@@ -29,6 +29,7 @@ if (isset($_POST['submit'])) {
 	$item['payment-description'] = trim($_POST['payment-description']);
 	$item['payment-price'] = (float)trim($_POST['payment-price']);
 	if ($item['payment-price'] <= 0) $errors['payment-price'] = 'Requested amount is required.';
+    $item['sales-tax'] = $_POST['sales-tax'];
 
 	$item['payment-status'] = 'Incomplete';
 
@@ -141,6 +142,12 @@ echo '<article>';
 					echo '<td><input type="number" id="payment-price" name="payment-price" value="' . $value . '" min="0" step="0.01">';
 					if ($error) echo '<span class="error">' . $error . '</span>'; echo '</td>';
 				echo '</tr>';
+
+                echo '<tr>';
+                echo '<th><label for="sales-tax">Sales tax applicable ?</label></th>';
+                    $value = isset($item['sales-tax']) ? htmlspecialchars($item['sales-tax']) : '';
+                    echo '<td><input type="checkbox" id="sales-tax" name="sales-tax"></td>';
+                echo '</tr>';
 
 				echo '<tr>';
 					$value = isset($item['mail-template']) ? htmlspecialchars($item['mail-template']) : '';

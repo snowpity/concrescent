@@ -39,44 +39,14 @@ function cm_payment_cart_destroy() {
 	session_destroy();
 }
 
-function cm_payment_head($title) {
-	echo '<!DOCTYPE HTML>';
-	echo '<html>';
-	echo '<head>';
-	echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">';
-	echo '<title>' . htmlspecialchars($title) . '</title>';
-	echo '<link rel="shortcut icon" href="' . htmlspecialchars(theme_file_url('favicon.ico', false)) . '">';
-	echo '<link rel="stylesheet" href="' . htmlspecialchars(resource_file_url('cm.css', false)) . '">';
-	echo '<link rel="stylesheet" href="' . htmlspecialchars(theme_file_url('theme.css', false)) . '">';
-}
-
-function cm_payment_body($title) {
-	echo '</head>';
-	echo '<body class="cm-payment">';
-	echo '<header>';
-	echo '<div class="pagename">' . htmlspecialchars($title) . '</div>';
-	echo '</header>';
-}
-
-function cm_payment_tail() {
-	echo '</body>';
-	echo '</html>';
-}
-
 #[NoReturn]
 function cm_payment_message($title, $text) {
-	cm_payment_head($title);
-	cm_payment_body($title);
-	echo '<article>';
-	echo '<div class="card">';
-	echo '<div class="card-title">';
-	echo htmlspecialchars($title);
-	echo '</div>';
-	echo '<div class="card-content">';
-	echo safe_html_string($text, true);
-	echo '</div>';
-	echo '</div>';
-	echo '</article>';
-	cm_payment_tail();
+    global $twig;
+
+    echo $twig->render('pages/payment/message.twig', [
+        'title' => $title,
+        'text' => safe_html_string($text, true),
+    ]);
+
 	exit(0);
 }

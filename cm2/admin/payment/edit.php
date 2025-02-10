@@ -27,6 +27,7 @@ if ($submitted) {
 	$item['payment-name'] = trim($_POST['payment-name']);
 	$item['payment-description'] = trim($_POST['payment-description']);
 	$item['payment-price'] = (float)$_POST['payment-price'];
+	$item['sales-tax'] = $_POST['sales-tax'] ?? '' === 'on' ? 1 : 0;
 
 	/* Payment Information */
 	if (
@@ -171,6 +172,13 @@ echo '<article>';
 						echo '<td>' . $value . '</td>';
 					}
 				echo '</tr>';
+
+                echo '<tr>';
+                    echo '<th><label for="sales-tax">Sales tax applicable ?</label></th>';
+                    $value = ($item['sales-tax'] ?? 0) ? 'checked' : '';
+                    $disabled = !$can_edit ? 'disabled' : '';
+                    echo "<td><input type=\"checkbox\" id=\"sales-tax\" name=\"sales-tax\" $disabled $value></td>";
+                echo '</tr>';
 
 				echo '<tr>';
 					echo '<th><label for="mail-template">Form Letter</label></th>';

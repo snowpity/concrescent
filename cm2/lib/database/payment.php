@@ -31,6 +31,7 @@ class cm_payment_db {
 			'`payment_name` VARCHAR(255) NOT NULL,'.
 			'`payment_description` TEXT NULL,'.
 			'`payment_price` DECIMAL(7,2) NOT NULL,'.
+			'`sales_tax` BOOLEAN NOT NULL,'.
 			'`payment_status` ENUM('.
 				'\'Incomplete\','.
 				'\'Cancelled\','.
@@ -52,7 +53,7 @@ class cm_payment_db {
 			'SELECT `id`, `uuid`, `date_created`, `date_modified`,'.
 			' `requested_by`, `first_name`, `last_name`,'.
 			' `email_address`, `mail_template`, `payment_name`,'.
-			' `payment_description`, `payment_price`,'.
+			' `payment_description`, `payment_price`, `sales_tax`,'.
 			' `payment_status`, `payment_type`,'.
 			' `payment_txn_id`, `payment_txn_amt`,'.
 			' `payment_date`, `payment_details`'.
@@ -76,7 +77,7 @@ class cm_payment_db {
 			$id, $uuid, $date_created, $date_modified,
 			$requested_by, $first_name, $last_name,
 			$email_address, $mail_template, $payment_name,
-			$payment_description, $payment_price,
+			$payment_description, $payment_price, $sales_tax,
 			$payment_status, $payment_type,
 			$payment_txn_id, $payment_txn_amt,
 			$payment_date, $payment_details
@@ -112,6 +113,7 @@ class cm_payment_db {
 				'payment-name' => $payment_name,
 				'payment-description' => $payment_description,
 				'payment-price' => $payment_price,
+				'sales-tax' => $sales_tax,
 				'payment-price-string' => $payment_price_string,
 				'payment-status' => $payment_status,
 				'payment-type' => $payment_type,
@@ -135,7 +137,7 @@ class cm_payment_db {
 			'SELECT `id`, `uuid`, `date_created`, `date_modified`,'.
 			' `requested_by`, `first_name`, `last_name`,'.
 			' `email_address`, `mail_template`, `payment_name`,'.
-			' `payment_description`, `payment_price`,'.
+			' `payment_description`, `payment_price`, `sales_tax`,'.
 			' `payment_status`, `payment_type`,'.
 			' `payment_txn_id`, `payment_txn_amt`,'.
 			' `payment_date`, `payment_details`'.
@@ -147,7 +149,7 @@ class cm_payment_db {
 			$id, $uuid, $date_created, $date_modified,
 			$requested_by, $first_name, $last_name,
 			$email_address, $mail_template, $payment_name,
-			$payment_description, $payment_price,
+			$payment_description, $payment_price, $sales_tax,
 			$payment_status, $payment_type,
 			$payment_txn_id, $payment_txn_amt,
 			$payment_date, $payment_details
@@ -184,6 +186,7 @@ class cm_payment_db {
 				'payment-name' => $payment_name,
 				'payment-description' => $payment_description,
 				'payment-price' => $payment_price,
+				'sales-tax' => $sales_tax,
 				'payment-price-string' => $payment_price_string,
 				'payment-status' => $payment_status,
 				'payment-type' => $payment_type,
@@ -209,6 +212,7 @@ class cm_payment_db {
 		$payment_name = ($payment['payment-name'] ?? '');
 		$payment_description = ($payment['payment-description'] ?? null);
 		$payment_price = ($payment['payment-price'] ?? null);
+		$sales_tax = ($payment['sales-tax'] ?? null);
 		$payment_status = ($payment['payment-status'] ?? null);
 		$payment_type = ($payment['payment-type'] ?? null);
 		$payment_txn_id = ($payment['payment-txn-id'] ?? null);
@@ -220,16 +224,16 @@ class cm_payment_db {
 			'`uuid` = UUID(), `date_created` = NOW(), `date_modified` = NOW(), '.
 			'`requested_by` = ?, `first_name` = ?, `last_name` = ?, '.
 			'`email_address` = ?, `mail_template` = ?, `payment_name` = ?, '.
-			'`payment_description` = ?, `payment_price` = ?, '.
+			'`payment_description` = ?, `payment_price` = ?, `sales_tax` = ?, '.
 			'`payment_status` = ?, `payment_type` = ?, '.
 			'`payment_txn_id` = ?, `payment_txn_amt` = ?, '.
 			'`payment_date` = ?, `payment_details` = ?'
 		);
 		$stmt->bind_param(
-			'sssssssdsssdss',
+			'sssssssdisssdss',
 			$requested_by, $first_name, $last_name,
 			$email_address, $mail_template, $payment_name,
-			$payment_description, $payment_price,
+			$payment_description, $payment_price, $sales_tax,
 			$payment_status, $payment_type,
 			$payment_txn_id, $payment_txn_amt,
 			$payment_date, $payment_details
@@ -249,6 +253,7 @@ class cm_payment_db {
 		$payment_name = ($payment['payment-name'] ?? '');
 		$payment_description = ($payment['payment-description'] ?? null);
 		$payment_price = ($payment['payment-price'] ?? null);
+		$sales_tax = ($payment['sales-tax'] ?? null);
 		$payment_status = ($payment['payment-status'] ?? null);
 		$payment_type = ($payment['payment-type'] ?? null);
 		$payment_txn_id = ($payment['payment-txn-id'] ?? null);
@@ -260,17 +265,17 @@ class cm_payment_db {
 			'`date_modified` = NOW(), '.
 			'`requested_by` = ?, `first_name` = ?, `last_name` = ?, '.
 			'`email_address` = ?, `mail_template` = ?, `payment_name` = ?, '.
-			'`payment_description` = ?, `payment_price` = ?, '.
+			'`payment_description` = ?, `payment_price` = ?,  `sales_tax` = ?, '.
 			'`payment_status` = ?, `payment_type` = ?, '.
 			'`payment_txn_id` = ?, `payment_txn_amt` = ?, '.
 			'`payment_date` = ?, `payment_details` = ?'.
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param(
-			'sssssssdsssdssi',
+			'sssssssdisssdssi',
 			$requested_by, $first_name, $last_name,
 			$email_address, $mail_template, $payment_name,
-			$payment_description, $payment_price,
+			$payment_description, $payment_price, $sales_tax,
 			$payment_status, $payment_type,
 			$payment_txn_id, $payment_txn_amt,
 			$payment_date, $payment_details,

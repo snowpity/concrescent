@@ -14,6 +14,7 @@ $twig->addFunction(new \Twig\TwigFunction('theme_file_url', theme_file_url(...))
 $twig->addFunction(new \Twig\TwigFunction('resource_file_url', resource_file_url(...)));
 $twig->addFunction(new \Twig\TwigFunction('get_site_url', get_site_url(...)));
 $twig->addFilter(new \Twig\TwigFilter('price_string', price_string(...)));
+$twig->addFilter(new \Twig\TwigFilter('cm_status_label', cm_status_label(...)));
 
 function config_file_path($file) {
 	return realpath(__DIR__ . '/../../config') . '/' . $file;

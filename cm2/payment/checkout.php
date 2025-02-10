@@ -37,8 +37,15 @@ if (!$_GET) {
 		$paypal = new cm_paypal();
 		$token = $paypal->get_token();
 
-		$items = array($paypal->create_item($item['payment-name'], $price));
-		$total = $paypal->create_total($price);
+        global $cm_config;
+        /** @var float $salesTax */
+        $salesTax = ($cm_config['payment']['sales_tax'] ?? 0);
+
+        $salesTaxPart = $item['sales-tax'] ? $price * $salesTax : 0;
+
+
+		$items = array($paypal->create_item($item['payment-name'], $price, $salesTaxPart));
+		$total = $paypal->create_total($price+$salesTaxPart, $salesTaxPart);
 		$txn = $paypal->create_transaction($items, $total, $group_id."::".$db->uuid());
 
 		$payment = $paypal->create_payment_pp(

@@ -1,0 +1,76 @@
+{% extends "layouts/payment.twig" %}
+
+{% block body %}
+<article>
+
+  <div class="card">
+    <div class="card-title"> {{ title|e }}</div>
+    <div class="card-content">
+      <p>
+      {% if paymentCompleted %}
+        Here are the details of the payment you made on
+        <b>{{ item['payment-date']|e }}</b>
+      {% else %}
+        Please review your payment below. Your payment
+        is not complete until you click <b>Confirm &amp; Pay</b>.
+      {% endif %}
+      {% if contact_address %}
+        If you have any questions, feel free to
+        <b><a href="mailto:{{ contact_address|e }}">contact us</a></b>.
+      {% endif %}
+      </p>
+
+      <div class="cm-list-table">
+        <table border="0" cellpadding="0" cellspacing="0" class="cm-cart">
+          <thead>
+          <tr>
+            <th>Item</th>
+            <th class="td-numeric">Price</th>
+            <th>Payment Status</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>
+              <div><b>{{ item['real-name']|e }}</b></div>
+              <div>{{ item['payment-name']|e }}</div>
+            </td>
+            <td class="td-numeric">
+              <div> {{ item['payment-price']|price_string|e }}</div>
+            </td>
+            <td>
+              <div>{{ item['payment-status']|cm_status_label|raw }}</div>
+            </td>
+          </tr>
+          </tbody>
+          <tfoot>
+          <tr>
+            <th>Total</th>
+            <th class="td-numeric">
+              <div> {{ total|price_string|e }}</div>
+            </th>
+            <th></th>
+          </tr>
+          {% if salesTaxAmount %}
+          <tr>
+            <td><em>including sales tax</em></td>
+            <td class="td-numeric">
+              <div> {{ salesTaxAmount|price_string|e }}</div>
+            </td>
+            <td></td>
+          </tr>
+          {% endif %}
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    {% if not paymentCompleted %}
+    <div class="card-buttons">
+      <form action="/payment/review.php?uid={{ uid|e }}" method="post">
+        <input type="submit" name="submit" value="Confirm &amp; Pay" class="register-button">
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</article>
+{% endblock %}
