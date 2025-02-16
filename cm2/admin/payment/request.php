@@ -29,7 +29,7 @@ if (isset($_POST['submit'])) {
 	$item['payment-description'] = trim($_POST['payment-description']);
 	$item['payment-price'] = (float)trim($_POST['payment-price']);
 	if ($item['payment-price'] <= 0) $errors['payment-price'] = 'Requested amount is required.';
-    $item['sales-tax'] = $_POST['sales-tax'];
+    $item['sales-tax'] = ($_POST['sales-tax'] ?? false) === 'on';
 
 	$item['payment-status'] = 'Incomplete';
 
