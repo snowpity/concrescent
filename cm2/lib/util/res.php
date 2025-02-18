@@ -6,9 +6,15 @@ require_once __DIR__.'/../../../vendor/autoload.php';
 
 $log = \App\Log\LogLibrary::createSingleInstance();
 
+$isAppDebug = getenv('APP_DEBUG');
+
 $twig = new \Twig\Environment(
 	new \Twig\Loader\FilesystemLoader(__DIR__.'/../../../templates'),
-	['debug' => true]
+	[
+        'debug' => $isAppDebug,
+        'strict_variables' => $isAppDebug,
+        'cache' => __DIR__.'/../../../var/cache/twig',
+    ],
 );
 $twig->addFunction(new \Twig\TwigFunction('theme_file_url', theme_file_url(...)));
 $twig->addFunction(new \Twig\TwigFunction('resource_file_url', resource_file_url(...)));
