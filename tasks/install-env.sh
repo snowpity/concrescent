@@ -12,5 +12,5 @@ fi
 
 if ! [[ -f concrescent.php ]]; then
   cp concrescent.example.php concrescent.php
-  echo "Edit concrescent.php file with your database, paypal, slack, event proprties, and other things."
+  echo "Edit concrescent.php file with your database, PayPal, Slack, event properties, and other things."
 fi

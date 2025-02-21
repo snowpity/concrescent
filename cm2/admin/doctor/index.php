@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -8,51 +9,77 @@
 	.wn { background: yellow; color: black; }
 	.ng { background: red; color: white; }
 </style>
-<script src="../../lib/res/jquery.js"></script>
 <script>
-	$(document).ready(function() {
-		$('tr').each(function(index) {
-			var self = $(this);
-			var testfile = self.attr('id') + '.php';
-			setTimeout(function() {
-				$.ajax({
-					'method': 'GET',
-					'url': testfile,
-					'cache': false,
-					'dataType': 'text',
-					'success': function(d) {
-						switch (d.substring(0, 3)) {
-							case 'OK ':
-								self.addClass('ok');
-								self.find('th').text('PASSED');
-								self.find('td').text(d.substring(3));
-								break;
-							case 'WN ':
-								self.addClass('wn');
-								self.find('th').text('NOTICE');
-								self.find('td').text(d.substring(3));
-								break;
-							case 'NG ':
-								self.addClass('ng');
-								self.find('th').text('FAILED');
-								self.find('td').text(d.substring(3));
-								break;
-							default:
-								self.addClass('ng');
-								self.find('th').text('FAILED');
-								self.find('td').text('Test failed to run. Check earlier tests.');
-								break;
-						}
-					},
-					'error': function() {
-						self.addClass('ng');
-						self.find('th').text('FAILED');
-						self.find('td').text('Test failed to run. Check earlier tests.');
-					}
-				});
-			}, (index+1)*10);
-		});
+'use strict';
+document.addEventListener('DOMContentLoaded', function()
+{
+	const TEST_STATUS = Object.freeze({
+		GOOD: Object.freeze({class: 'ok', name: 'PASSED'}),
+		WARN: Object.freeze({class: 'wn', name: 'NOTICE'}),
+		FAIL: Object.freeze({class: 'ng', name: 'FAILED'}),
 	});
+
+	function set_row(row, status, message)
+	{
+		row.classList.add(status.class);
+		row.querySelector('th').textContent = status.name;
+		row.querySelector('td').textContent = message;
+	}
+
+	function run_test(row)
+	{
+		/*return*/ fetch(row.id + '.php', {
+			method: 'GET',
+			cache: 'no-store'
+		})
+		.then(response => {
+			if(!response.ok)
+			{
+				throw 'Test "' + row.id + '" failed to run. HTTP status code: ' + response.status;
+			}
+			return response.text();
+		})
+		.then(data => {
+			// NOTE: This will blow up if the response isn't at least 3 characters.
+			const statusCode = data.substring(0, 3);
+			const message = data.substring(3);
+
+			switch(statusCode)
+			{
+				case 'OK ':
+					set_row(row, TEST_STATUS.GOOD, message);
+					break;
+				case 'WN ':
+					set_row(row, TEST_STATUS.WARN, message);
+					break;
+				case 'NG ':
+					set_row(row, TEST_STATUS.FAIL, message);
+					break;
+				default:
+					set_row(row, TEST_STATUS.FAIL, 'Test "' + row.id + '" failed to run. Response: ' + data);
+					break;
+			}
+		})
+		.catch(error => {
+			if(typeof error === 'string')
+			{
+				set_row(row, TEST_STATUS.FAIL, error);
+			}
+			else
+			{
+				console.error(error);
+				set_row(row, TEST_STATUS.FAIL, 'Test "' + row.id + '" failed to run. Check the console for exception details.');
+			}
+		});
+	}
+
+	// This runs the tests in parallel, as fast as possible.
+	// To run the tests sequentially, uncomment the `return` in` `run_test`.
+	const rows = document.getElementsByTagName('tr');
+	Array.prototype.reduce.call(rows, (promise, row) => {
+		return promise.then(() => run_test(row));
+	}, Promise.resolve());
+});
 </script>
 </head>
 <body>
@@ -64,10 +91,6 @@
 	<tr id="phpversion">
 		<th>CHECKING</th>
 		<td>Checking PHP version...</td>
-	</tr>
-	<tr id="magicquotes">
-		<th>CHECKING</th>
-		<td>Checking Magic Quotes...</td>
 	</tr>
 	<tr id="config1">
 		<th>CHECKING</th>
