@@ -12,7 +12,7 @@ services:
         condition: service_healthy
     volumes:
       - ./msmtprc:/etc/msmtprc:ro
-      - ./concrescent.php:/var/www/html/config/config.php:ro
+      - ./concrescent.php:/srv/app/cm2/config/config.php:ro
     env_file:
     - .env.prod
     - .env

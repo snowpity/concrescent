@@ -8,13 +8,13 @@ services:
       - "80:8080"
     user: nobody
     volumes:
-      - ./cm2:/var/www/html:ro
-      - ./vendor:/var/www/vendor:ro
-      - ./templates:/var/www/templates:ro
+      - ./cm2:/srv/app/cm2:ro
+      - ./vendor:/srv/app/vendor:ro
+      - ./templates:/srv/app/templates:ro
       - ./msmtprc:/etc/msmtprc:ro
       - ./concrescent.php:/srv/host/config.php:ro
-      - ./var/cache/twig:/var/www/var/cache/twig
-      - ./var/log/concrescent:/var/www/log
+      - ./var/cache:/srv/app/var/cache
+      - ./var/log/concrescent:/srv/app/log
     env_file:
       - .env.dev
       - .env
