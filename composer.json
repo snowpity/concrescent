@@ -31,10 +31,10 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\Task\\": ["cm2/lib/Task/"],
-            "App\\Hook\\": ["cm2/lib/Hook/"],
-            "App\\Log\\": ["cm2/lib/Log/"],
-            "App\\Database\\Model\\": ["cm2/lib/database/Model/"]
+            "App\\Task\\": "cm2/lib/Task",
+            "App\\Hook\\": "cm2/lib/Hook",
+            "App\\Log\\": "cm2/lib/Log",
+            "App\\Database\\Model\\": "cm2/lib/database/Model"
         }
     }
 }

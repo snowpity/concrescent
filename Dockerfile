@@ -61,13 +61,13 @@ USER nobody
 
 COPY --chown=nobody composer.json /srv/app/
 COPY --chown=nobody composer.lock /srv/app/
-RUN cd /srv/app \
-    && composer check-platform-reqs \
-    && composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-
 # Copy concrescent over to the image so the image is standalone.
 COPY --chown=nobody ./templates /srv/app/templates
 COPY --chown=nobody ./cm2 /srv/app/cm2
+
+RUN cd /srv/app \
+    && composer check-platform-reqs \
+    && composer install --no-dev --classmap-authoritative --no-interaction --no-progress
 
 VOLUME /srv/app/cm2/config/config.php
 
