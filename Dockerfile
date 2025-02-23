@@ -4,7 +4,14 @@ FROM trafex/php-nginx:3.8.0 AS base
 USER root
 RUN apk update
 # Install the missing php modules
-RUN apk add php84-gd php84-mysqli php84-exif php84-pecl-apcu
+RUN apk add \
+    php84-gd \
+    php84-exif \
+    php84-pecl-apcu \
+    php84-pdo \
+    php84-mysqli php84-pdo_mysql
+    #php84-sqlite3 php84-pdo_sqlite
+    #php84-pgsql php84-pdo_pgsql
 # Install a mail transfer agent
 RUN apk add msmtp && echo 'sendmail_path = "/usr/bin/msmtp -t"' >> /etc/php84/php.ini;
 

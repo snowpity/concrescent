@@ -5,6 +5,7 @@
         "ext-curl": "*",
         "ext-exif": "*",
         "ext-gd": "*",
+        "ext-pdo": "*",
         "ext-mysqli": "*",
         "ext-apcu": "*",
         "symfony/http-client": "^7.0",
@@ -24,7 +25,8 @@
             "ext-curl": "8.4.2",
             "ext-exif": "832.0",
             "ext-gd": "8.4.2",
-            "ext-mysqli": "8.4.2"
+            "ext-mysqli": "8.4.2",
+            "ext-pdo": "8.4.2"
         }
     },
     "autoload": {
