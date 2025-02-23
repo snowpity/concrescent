@@ -1,0 +1,28 @@
+<form
+  method="GET"
+  target="_self"
+  action="/admin/attendee/list.php"
+  hx-get="/admin/attendee/list.php"
+  hx-boost="true"
+  hx-target="#page-content"
+  hx-push-url="true"
+  hx-trigger="change delay:500ms"
+>
+<fieldset class="cm-search-box cm-filter-box">
+  {% for filter in filters %}
+    {% if filter.type.name in ['Checkbox'] %}
+      <span class="filter-label">{{ filter.label }}</span>&nbsp;=&nbsp;
+      {% for entry in filter.entries %}
+        <label class="filter-entry {{ entry.metaClass }}">
+          <span class="">{{ entry.label }}</span>
+        <input
+          type="checkbox"
+          name="{{ filter.name }}[]"
+          value="{{ entry.value }}"
+          {{ entry.checked ? 'checked' : '' }}
+        /></label>
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+</fieldset>
+</form>

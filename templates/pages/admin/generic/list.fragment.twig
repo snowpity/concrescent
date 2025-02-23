@@ -1,0 +1,16 @@
+<article class="cm-search-page">
+  {{ include('components/list/searchbox.twig', {
+    'searchCriterias': searchCriterias,
+    'searchQuery': searchQuery,
+    'maxResults': maxResults ?? null,
+  }, with_context: false) }}
+  {{ include('components/list/filterbox.twig', {
+    'filters': filters,
+  }, with_context: false) }}
+  {{ include('components/list/table.twig', {
+    'columns': columns,
+    'attendees': attendees,
+    'rowAction': rowAction,
+    'tableAction': tableAction,
+  }, with_context: false) }}
+</article>

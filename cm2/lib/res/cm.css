@@ -101,6 +101,9 @@ article {
 nav + article {
 	left: 220px;
 }
+nav + #page-content > article {
+	left: 220px;
+}
 
 /* Cards */
 
@@ -878,3 +881,29 @@ table.cm-cart td:not(.td-actions) {
 		position: static !important;
 	}
 }
+
+
+.cm-filter-box {
+	margin: 3px;
+
+	.filter-label, .filter-entry {
+		border: 1px solid grey;
+		margin: 0 3px;
+		padding: 3px;
+		height: 1.25rem;
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.filter-label {
+		border-radius: 6px 0 0 6px;
+	}
+
+	.filter-entry {
+		border-radius: 0 6px 6px 0;
+	}
+	.filter-entry:hover {
+		background: #ede9e9;
+	}
+}
+

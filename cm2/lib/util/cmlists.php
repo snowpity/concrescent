@@ -170,60 +170,65 @@ function cm_list_row(&$list_def, &$entity) {
 	$subscribed = (isset($entity['subscribed']) && $entity['subscribed']);
 	$out = ($active ? '<tr' : '<tr class="inactive"') . ' id="rowid-' . htmlspecialchars($key) . '">';
 	if (isset($list_def['columns']) && $list_def['columns']) {
-		foreach ($list_def['columns'] as $column) {
-			$value = (isset($column['key']) && $column['key'] && isset($entity[$column['key']])) ? $entity[$column['key']] : '';
-			$value1 = (isset($column['key1']) && $column['key1'] && isset($entity[$column['key1']])) ? $entity[$column['key1']] : '';
-			$value2 = (isset($column['key2']) && $column['key2'] && isset($entity[$column['key2']])) ? $entity[$column['key2']] : '';
-			$value3 = (isset($column['key3']) && $column['key3'] && isset($entity[$column['key3']])) ? $entity[$column['key3']] : '';
-			$type = (isset($column['type']) && $column['type']) ? $column['type'] : '?';
-			switch ($type) {
-				case 'html'        : $out .= '<td>' . $value                   . '</td>'; break;
-				case 'text'        : $out .= '<td>' . htmlspecialchars($value) . '</td>'; break;
-				case 'bool'        : $out .= '<td>' . ($value ? 'Yes' : 'No')  . '</td>'; break;
-				case 'bool-inverse': $out .= '<td>' . ($value ? 'No' : 'Yes')  . '</td>'; break;
-				case 'url'         : $out .= '<td>' . url_link($value)         . '</td>'; break;
-				case 'url-short'   : $out .= '<td>' . url_link_short($value)   . '</td>'; break;
-				case 'email'       : $out .= '<td>' . email_link($value)       . '</td>'; break;
-				case 'email-short' : $out .= '<td>' . email_link_short($value) . '</td>'; break;
-				case 'date-range'  : $out .= '<td>' . date_range_string($value1, $value2)             . '</td>'; break;
-				case 'age-range'   : $out .= '<td>' . age_range_string($value1, $value2)              . '</td>'; break;
-				case 'array'       : $out .= '<td>' . htmlspecialchars(cm_array_string($value))       . '</td>'; break;
-				case 'array-short' : $out .= '<td>' . htmlspecialchars(cm_array_string_short($value)) . '</td>'; break;
-				case 'email-subbed': $out .= '<td>' . cm_email_subbed($subscribed, $value)            . '</td>'; break;
-				case 'status-label': $out .= '<td>' . cm_status_label($value)                         . '</td>'; break;
-				case 'html-numeric': $out .= '<td class="td-numeric">' . $value                                    . '</td>'; break;
-				case 'numeric'     : $out .= '<td class="td-numeric">' . htmlspecialchars($value)                  . '</td>'; break;
-				case 'quantity'    : $out .= '<td class="td-numeric">' . htmlspecialchars(quantity_string($value)) . '</td>'; break;
-				case 'quantity3':
-					$term1 = (isset($column['term1']) && $column['term1']) ? htmlspecialchars($column['term1']) : 'Applications';
-					$term2 = (isset($column['term2']) && $column['term2']) ? htmlspecialchars($column['term2']) : 'Applicants';
-					$term3 = (isset($column['term3']) && $column['term3']) ? htmlspecialchars($column['term3']) : 'Assignments';
-					$value1 = htmlspecialchars(quantity_string($value1)); if ($value1 == 'unlimited') $value1 = '&#x221E;';
-					$value2 = htmlspecialchars(quantity_string($value2)); if ($value2 == 'unlimited') $value2 = '&#x221E;';
-					$value3 = htmlspecialchars(quantity_string($value3)); if ($value3 == 'unlimited') $value3 = '&#x221E;';
-					$out .= '<td class="td-numeric">';
-					$out .= '<span title="' . $term1 . '">' . $value1 . '</span>&nbsp;/&nbsp;';
-					$out .= '<span title="' . $term2 . '">' . $value2 . '</span>&nbsp;/&nbsp;';
-					$out .= '<span title="' . $term3 . '">' . $value3 . '</span>';
-					$out .= '</td>';
-					break;
-				case 'price'       : $out .= '<td class="td-numeric">' . htmlspecialchars(price_string($value))    . '</td>'; break;
-				default            : $out .= '<td>?</td>'; break;
-			}
-		}
+        foreach ($list_def['columns'] as $column) {
+            $value = ($column['key']??false) ? ($entity[$column['key']]??'') : '';
+            $value1 = ($column['key1']??false) ? ($entity[$column['key1']]??'') : '';
+            $value2 = ($column['key2']??false) ? ($entity[$column['key2']]??'') : '';
+            $value3 = ($column['key3']??false) ? ($entity[$column['key3']]??'') : '';
+            $type = (isset($column['type']) && $column['type']) ? $column['type'] : '?';
+            $out .= match ($type) {
+                'html' => '<td>' . $value . '</td>',
+                'text' => '<td>' . htmlspecialchars($value) . '</td>',
+                'bool' => '<td>' . ($value ? 'Yes' : 'No') . '</td>',
+                'bool-inverse' => '<td>' . ($value ? 'No' : 'Yes') . '</td>',
+                'url' => '<td>' . url_link($value) . '</td>',
+                'url-short' => '<td>' . url_link_short($value) . '</td>',
+                'email' => '<td>' . email_link($value) . '</td>',
+                'email-short' => '<td>' . email_link_short($value) . '</td>',
+                'date-range' => '<td>' . date_range_string($value1, $value2) . '</td>',
+                'age-range' => '<td>' . age_range_string($value1, $value2) . '</td>',
+                'array' => '<td>' . htmlspecialchars(cm_array_string($value)) . '</td>',
+                'array-short' => '<td>' . htmlspecialchars(cm_array_string_short($value)) . '</td>',
+                'email-subbed' => '<td>' . cm_email_subbed($subscribed, $value) . '</td>',
+                'status-label' => '<td>' . cm_status_label($value) . '</td>',
+                'html-numeric' => '<td class="td-numeric">' . $value . '</td>',
+                'numeric' => '<td class="td-numeric">' . htmlspecialchars($value) . '</td>',
+                'quantity' => '<td class="td-numeric">' . htmlspecialchars(quantity_string($value)) . '</td>',
+                'quantity3' => (static function () use ($column, $value1, $value2, $value3) {
+                    $term1 = $column['term1'] ?? false ? htmlspecialchars($column['term1']) : 'Applications';
+                    $term2 = $column['term2'] ?? false ? htmlspecialchars($column['term2']) : 'Applicants';
+                    $term3 = $column['term3'] ?? false ? htmlspecialchars($column['term3']) : 'Assignments';
+                    $value1 = htmlspecialchars(quantity_string($value1));
+                    if ($value1 == 'unlimited') $value1 = '&#x221E;';
+                    $value2 = htmlspecialchars(quantity_string($value2));
+                    if ($value2 == 'unlimited') $value2 = '&#x221E;';
+                    $value3 = htmlspecialchars(quantity_string($value3));
+                    if ($value3 == 'unlimited') $value3 = '&#x221E;';
+                    return '<td class="td-numeric">' .
+                        '<span title="' . $term1 . '">' . $value1 . '</span>&nbsp;/&nbsp;' .
+                        '<span title="' . $term2 . '">' . $value2 . '</span>&nbsp;/&nbsp;' .
+                        '<span title="' . $term3 . '">' . $value3 . '</span>' .
+                        '</td>';
+                })(),
+                'price' => '<td class="td-numeric">' . htmlspecialchars(price_string($value)) . '</td>',
+                default => '<td>?</td>',
+            };
+        }
 	}
 	if (isset($list_def['row-actions']) && array_filter($list_def['row-actions'])) {
+        $rowActions = $list_def['row-actions'];
+
 		$out .= '<td class="td-actions">';
-			if (in_array('select', $list_def['row-actions'])) {
+			if (in_array('select', $rowActions)) {
 				$label = (isset($list_def['select-label']) ? htmlspecialchars($list_def['select-label']) : 'Select');
 				$out .= '<button class="select-button">' . $label . '</button>';
 			}
-			if (in_array('switch', $list_def['row-actions'])) {
+			if (in_array('switch', $rowActions)) {
 				$class = $active ? 'deactivate' : 'activate';
 				$label = $active ? 'Deactivate' : 'Activate';
 				$out .= '<button class="' . $class . '-button">' . $label . '</button>';
 			}
-			if (in_array('edit', $list_def['row-actions'])) {
+			if (in_array('edit', $rowActions)) {
 				$label = (isset($list_def['edit-label']) ? htmlspecialchars($list_def['edit-label']) : 'Edit');
 				if (isset($list_def['edit-url']) && $list_def['edit-url']) {
 					$out .= '<a href="' . htmlspecialchars($list_def['edit-url'] . $key) . '" target="_blank" role="button" class="button edit-button">' . $label . '</a>';
@@ -231,15 +236,15 @@ function cm_list_row(&$list_def, &$entity) {
 					$out .= '<button class="edit-button">' . $label . '</button>';
 				}
 			}
-			if (in_array('reorder', $list_def['row-actions'])) {
+			if (in_array('reorder', $rowActions)) {
 				$out .= '<button class="up-button">&#x2191;</button>';
 				$out .= '<button class="down-button">&#x2193;</button>';
 			}
-			if (in_array('delete', $list_def['row-actions'])) {
+			if (in_array('delete', $rowActions)) {
 				$label = (isset($list_def['delete-label']) ? htmlspecialchars($list_def['delete-label']) : 'Delete');
 				$out .= '<button class="delete-button">' . $label . '</button>';
 			}
-			if (in_array('review', $list_def['row-actions'])) {
+			if (in_array('review', $rowActions)) {
 				$label = (isset($list_def['review-label']) ? htmlspecialchars($list_def['review-label']) : 'Review');
 				if (isset($list_def['review-url']) && $list_def['review-url']) {
 					$out .= '<a href="' . htmlspecialchars($list_def['review-url'] . $key) . '" target="_blank" role="button" class="button review-button">' . $label . '</a>';

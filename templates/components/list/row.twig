@@ -1,0 +1,14 @@
+{# @var attendee \App\Database\Model\ShortAttendee #}
+
+<tr>
+  <td>{{ attendee.idString }}</td>
+  <td>{{ attendee.badgeTypeName }}</td>
+  <td>{{ attendee.subscribed ? '&#x2713;' : '&#x2717;' }} {{ attendee.emailAdress }}</td>
+  <td>{{ attendee.paymentStatus|cm_status_label|raw }}</td>
+  <td>{{ attendee.paymentDate }}</td>
+  <td>{{ attendee.printCount }}</td>
+  <td>{{ attendee.checkinCount }}</td>
+  <td>{{ include('components/list/cell-action.twig', {
+      'rowAction': rowAction
+    }) }}</td>
+</tr>

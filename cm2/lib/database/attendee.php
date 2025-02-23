@@ -1,5 +1,8 @@
 <?php
 
+use App\Database\Model\ShortAttendee;
+use App\Database\Model\PaymentStatus;
+
 require_once __DIR__ .'/../../config/config.php';
 require_once __DIR__ .'/../util/util.php';
 require_once __DIR__ .'/../util/res.php';
@@ -1675,6 +1678,83 @@ class cm_attendee_db {
 		$stmt->close();
 		return false;
 	}
+
+    /**
+     * @param PaymentStatus[]|null $paymentStatus
+     */
+    public function shortlist_attendees(
+        ?array $name_map = null,
+        ?array $paymentStatus = null,
+        array $sort = [],
+    ): array {
+        if (!$name_map) {
+            $name_map = $this->get_badge_type_name_map();
+        }
+        $query = <<<HEREDOC
+            SELECT `id`, `uuid`, `date_created`, `date_modified`,
+             `print_count`,`checkin_count`,
+             `badge_type_id`, `first_name`, `last_name`,
+             `fandom_name`, 
+             `subscribed`, `email_address`,
+             `payment_status`, `payment_promo_code`, `payment_date`
+             FROM `attendees`
+        HEREDOC;
+
+        $types = '';
+        $params = [];
+        $where = '';
+        $wheres = [];
+        if (!empty($paymentStatus)) {
+            $statuses = [];
+            foreach ($paymentStatus as $status) {
+                $types .= 's';
+                $params[] = $status->value;
+                $statuses[] = '?';
+            }
+            $wheres[] = '`payment_status` IN (' . implode(',', $statuses) . ')';
+        }
+        if ($wheres) {
+            $where = ' WHERE '. implode(' AND ', $wheres);
+        }
+
+        $stmt = $this->cm_db->connection->prepare($query . $where . ' ORDER BY `id`');
+
+        if ($wheres) {
+            $stmt->bind_param($types,  ...$params);
+        }
+
+        $stmt->execute();
+        $stmt->bind_result(
+            $id, $uuid, $date_created, $date_modified,
+            $print_count, $checkin_count,
+            $badge_type_id, $first_name, $last_name, $fandom_name,
+            $subscribed, $email_address,
+            $payment_status, $payment_promo_code, $payment_date,
+        );
+        $attendees = [];
+        while ($stmt->fetch()) {
+            $attendees[] = new ShortAttendee(
+                $id,
+                $uuid,
+                $date_created,
+                $date_modified,
+                $print_count,
+                $checkin_count,
+                $badge_type_id,
+                ($name_map[$badge_type_id] ?? $badge_type_id),
+                $first_name,
+                $last_name,
+                $fandom_name,
+                $subscribed,
+                $email_address,
+                PaymentStatus::tryFrom($payment_status),
+                $payment_promo_code,
+                $payment_date,
+            );
+        }
+        $stmt->close();
+        return $attendees;
+    }
 
 	public function list_attendees($gid = null, $tid = null, $name_map = null, $fdb = null) {
 		if (!$name_map) $name_map = $this->get_badge_type_name_map();

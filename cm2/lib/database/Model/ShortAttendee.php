@@ -29,5 +29,6 @@ class ShortAttendee {
         public readonly string $emailAdress,
         public readonly PaymentStatus $paymentStatus,
         public readonly ?string $paymentPromoCode,
+        public readonly ?string $paymentDate,
     ) {}
 }

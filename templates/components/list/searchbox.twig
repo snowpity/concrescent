@@ -1,0 +1,42 @@
+{% set options = [5, 10, 20, 50, 100, 200, 500, 1000] %}
+{% set maxResults = maxResults ?? 20 %}
+{% set searchCriterias = searchCriterias ?? null %}
+
+<form
+  method="POST"
+  target="_self"
+  action=""
+  hx-post=""
+  hx-boost="true"
+  hx-target="#page-content"
+  hx-trigger="keyup change delay:400ms"
+>
+  <div class="cm-search-box">
+    <label class="cm-search-input">
+      <input
+        type="text"
+        name="sq"
+        placeholder="Search{{ searchCriterias ? ' by '~searchCriterias : '' }}"
+        value="{{ searchQuery }}"
+        _autofocus
+        _onfocus="this.setSelectionRange(this.value.length,this.value.length);"
+      />
+    </label>
+    <div class="cm-search-options">
+      <button class="cm-search-first-page">&#xAB;</button>
+      <button class="cm-search-prev-page">&#x2039;</button>
+      <label>
+        <b class="cm-search-vis-start">0</b> - <b class="cm-search-vis-end">0</b> of <b class="cm-search-vis-total">0</b>
+      </label>
+      <button class="cm-search-next-page">&#x203A;</button>
+      <button class="cm-search-last-page">&#xBB;</button>
+      <label>Results:
+        <select class="cm-search-max-results">
+          {% for option in options %}
+            <option value="{{ option }}" {{ option == maxResults ? ' selected' : '' }}>{{ option }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+  </div>
+</form>

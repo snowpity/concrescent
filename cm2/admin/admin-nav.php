@@ -30,6 +30,13 @@ $cm_admin_nav_attendee = (
 			'description' => 'View and modify attendee registration records.',
 			'permission' => array('||', 'attendees', 'attendees-view', 'attendees-edit', 'attendees-delete')
 		),
+        array(
+            'id' => 'attendees-v2',
+            'href' => '/admin/attendee/list.php',
+            'name' => 'Attendees list v2',
+            'description' => 'View and modify attendee registration records.',
+            'permission' => array('||', 'attendees', 'attendees-view', 'attendees-edit', 'attendees-delete')
+        ),
 		array(
 			'id' => 'attendee-badge-types',
 			'href' => '/admin/attendee/badge-types.php',

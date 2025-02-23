@@ -1,5 +1,8 @@
 <?php
 
+use App\Database\Model\ApplicationStatus;
+use App\Database\Model\PaymentStatus;
+
 require_once __DIR__ .'/../../config/config.php';
 
 function get_domain_url() {
@@ -182,10 +185,17 @@ function cm_email_subbed($subbed, $email) {
 	return $subbed_span;
 }
 
-function cm_status_label(string $status) {
-	$label_class = strtolower(preg_replace('/[^A-Za-z0-9]+/', '', $status));
+function cm_status_label(string|\UnitEnum $status): string {
+    if ($status instanceof \BackedEnum) {
+        $statusValue = $status->value;
+    } elseif ($status instanceof \UnitEnum) {
+        $statusValue = $status->name;
+    } else {
+        $statusValue = $status;
+    }
+	$label_class = strtolower(preg_replace('/[^A-Za-z0-9]+/', '', $statusValue));
 	$label = '<span class="cm-status-label cm-status-' . $label_class . '">';
-	return $label . htmlspecialchars($status) . '</span>';
+	return $label . htmlspecialchars($statusValue) . '</span>';
 }
 
 function calculate_age(string $today, string $birthdate) {
