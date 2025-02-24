@@ -1,8 +1,8 @@
 <?php
 
+require_once 'util.php';
 require_once __DIR__ .'/../../config/config.php';
 error_reporting(0);
-header('Content-Type: text/plain');
 
 if (
 	isset($cm_config['paypal']['api_url']) && $cm_config['paypal']['api_url'] &&
@@ -10,7 +10,7 @@ if (
 	isset($cm_config['paypal']['secret']) && $cm_config['paypal']['secret'] &&
 	isset($cm_config['paypal']['currency']) && $cm_config['paypal']['currency']
 ) {
-	echo 'OK PayPal configuration has been specified.';
+    passed('config4', 'PayPal configuration has been specified.');
 } else {
-	echo 'NG PayPal configuration has not been specified.';
+    failed('config4', 'PayPal configuration has not been specified.');
 }

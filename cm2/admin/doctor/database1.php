@@ -1,8 +1,8 @@
 <?php
 
+require_once 'util.php';
 require_once __DIR__ .'/../../config/config.php';
 error_reporting(0);
-header('Content-Type: text/plain');
 
 try {
 	$connection = new mysqli(
@@ -12,31 +12,36 @@ try {
 		$cm_config['database']['database']
 	);
 } catch (mysqli_sql_exception $e) {
-	echo "NG Could not connect to database (code {$e->getCode()}): {$e->getMessage()}";
+	$message = "Could not connect to database (code {$e->getCode()}): {$e->getMessage()}";
 	if ($e->getCode() === 2002) {
-		die('. Check if the service is running.');
+        $message .= '. Check if the service is running.';
 	}
-	die();
+	failed('database1', $message);
+    die();
 }
 
 if (!$connection) {
-	die('NG Could not connect to database. Check database configuration.');
+	failed('database1', 'Could not connect to database. Check database configuration.');
+    die();
 }
 
 $query = $connection->query('SELECT 6*7');
 if (!$query) {
-	die('NG Connection to database is not working. Check database configuration.');
+	failed('database1', 'Connection to database is not working. Check database configuration.');
+    die();
 }
 
 $row = $query->fetch_row();
 if (!$row) {
-	die('NG Connection to database is not working. Check database configuration.');
+	failed('database1', 'Connection to database is not working. Check database configuration.');
+    die();
 }
 
 $answer = $row[0];
 if ($answer != 42) {
-	die('NG Connection to database is not working. Check database configuration.');
+	failed('database1', 'Connection to database is not working. Check database configuration.');
+    die();
 }
 
 $query->close();
-echo 'OK Successfully connected to database.';
+passed('database1', 'Successfully connected to database.');

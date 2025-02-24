@@ -1,15 +1,15 @@
 <?php
 
+require_once 'util.php';
 error_reporting(0);
-header('Content-Type: text/plain');
 
 $success = false;
 
 function print_success() {
 	if ($GLOBALS['success']) {
-		echo 'OK The cURL extension is installed and working.';
+		passed('curl', 'The cURL extension is installed and working.');
 	} else {
-		echo 'NG The cURL extension is not installed or is not working. Please reinstall the cURL extension.';
+		failed('curl', 'The cURL extension is not installed or is not working. Please reinstall the cURL extension.');
 	}
 }
 
