@@ -43,10 +43,7 @@ class cm_db {
 
 	public function execute(string $query, ?array $params = null): PDOStatement
 	{
-		$stmt = $this->prepare($query);
-		$r = $stmt->execute($params);
-		assert($r);
-		return $stmt;
+		return $this->prepare($query)->execute($params);
 	}
 
 	// The stuff calling this needs to be moved elsewhere, perhaps a separate database-init page.
