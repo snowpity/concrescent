@@ -370,7 +370,7 @@ class cm_attendee_db {
 			$price, $salesTax, $payable_onsite, $active, $quantity,
 			$start_date, $end_date, $min_age, $max_age
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 		$this->cm_db->connection->autocommit(true);
 		return $id;
@@ -654,7 +654,7 @@ class cm_attendee_db {
 			$quantity, $start_date, $end_date,
 			$min_age, $max_age
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 		$this->cm_db->connection->autocommit(true);
 		return $id;
@@ -836,7 +836,7 @@ class cm_attendee_db {
 				$payment_txn_id, $payment_txn_amt,
 				$payment_date, $payment_details
 			);
-			$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+			$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 			$stmt->close();
 			$ids[] = $id;
 		}
@@ -865,13 +865,16 @@ class cm_attendee_db {
 			' WHERE `attendee_id` = ? and `payment_txn_id` = ?'
 		);
 		$stmt->bind_param('ssssis', $status, $status, $type, $details, $attendee_id, $txn);
-		$success = $stmt->execute();
-		if($success === false)
+		try
 		{
-			error_log('Error while attempting to update addon purchase status:\n' . print_r($this->cm_db->connection->error, true));
+			$stmt->execute();
+			return true;
 		}
-		$stmt->close();
-		return $success;
+		catch(PDOException $error)
+		{
+			error_log('Error while attempting to update addon purchase status:\n' . print_r($error, true));
+			return false;
+		}
 	}
 
 	public function promo_code_normalize($code) {
@@ -1073,7 +1076,7 @@ class cm_attendee_db {
 			$code, $description, $price, $percentage, $active,
 			$badge_type_ids, $limit_per_customer, $start_date, $end_date
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 		return $id;
 	}
@@ -1288,7 +1291,7 @@ class cm_attendee_db {
 			$normalized_email_address,
 			$normalized_phone_number
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 		return $id;
 	}
@@ -1937,23 +1940,25 @@ class cm_attendee_db {
 			$payment_txn_id, $payment_txn_amt,
 			$payment_date, $payment_details
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
-		if($id === false)
+		try
 		{
-			error_log('Error while attempting to create attendee:\n' . print_r($this->cm_db->connection->error, true));
+			$stmt->execute();
+		}
+		catch(PDOException $error)
+		{
+			error_log('Error while attempting to create attendee:\n' . print_r($error, true));
 			error_log('Submitted data:\n' . print_r($attendee,true));
+			return false;
 		}
-		$stmt->close();
-		if ($id !== false) {
-			if (isset($attendee['addons'])) {
-				$this->create_addon_purchases($id, $attendee['addons']);
-			}
-			if ($fdb && isset($attendee['form-answers'])) {
-				$fdb->set_answers($id, $attendee['form-answers']);
-			}
-			$attendee = $this->get_attendee($id);
-			$this->cm_ldb->add_entity($attendee);
+		$id = $this->cm_db->last_insert_id();
+		if (isset($attendee['addons'])) {
+			$this->create_addon_purchases($id, $attendee['addons']);
 		}
+		if ($fdb && isset($attendee['form-answers'])) {
+			$fdb->set_answers($id, $attendee['form-answers']);
+		}
+		$attendee = $this->get_attendee($id);
+		$this->cm_ldb->add_entity($attendee);
 		return $id;
 	}
 
@@ -2020,27 +2025,28 @@ class cm_attendee_db {
 			$payment_date, $payment_details,
 			$attendee['id']
 		);
-		$success = $stmt->execute();
-		if (!$success)
+		try
 		{
-			error_log('Error while attempting to update attendee:\n' . print_r($this->cm_db->connection->error, true));
+			$stmt->execute();
+		}
+		catch(PDOException $error)
+		{
+			error_log('Error while attempting to update attendee:\n' . print_r($error, true));
 			error_log('Submitted data:\n' . print_r($attendee,true));
+			return false;
 		}
-		$stmt->close();
-		if ($success) {
-			if (isset($attendee['addons'])) {
-				$this->delete_addon_purchases($attendee['id']);
-				$this->create_addon_purchases($attendee['id'], $attendee['addons']);
-			}
-			if ($fdb && isset($attendee['form-answers'])) {
-				$fdb->clear_answers($attendee['id']);
-				$fdb->set_answers($attendee['id'], $attendee['form-answers']);
-			}
-			$attendee = $this->get_attendee($attendee['id']);
-			$this->cm_ldb->remove_entity($attendee['id']);
-			$this->cm_ldb->add_entity($attendee);
+		if (isset($attendee['addons'])) {
+			$this->delete_addon_purchases($attendee['id']);
+			$this->create_addon_purchases($attendee['id'], $attendee['addons']);
 		}
-		return $success;
+		if ($fdb && isset($attendee['form-answers'])) {
+			$fdb->clear_answers($attendee['id']);
+			$fdb->set_answers($attendee['id'], $attendee['form-answers']);
+		}
+		$attendee = $this->get_attendee($attendee['id']);
+		$this->cm_ldb->remove_entity($attendee['id']);
+		$this->cm_ldb->add_entity($attendee);
+		return true;
 	}
 
 	public function delete_attendee($id) {
@@ -2067,14 +2073,17 @@ class cm_attendee_db {
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('si', $newnote,  $id);
-		$success = $stmt->execute();
-		if (!$success)
+		try
 		{
-			error_log('Error while attempting to update attendee note:\n' . print_r($this->cm_db->connection->error, true));
-			error_log('Submitted data:\n' . print_r(array('id' =>$id, 'notes'  => $newnote),true));
+			$stmt->execute();
+			return true;
 		}
-		$stmt->close();
-		return $success;
+		catch(PDOException $error)
+		{
+			error_log('Error while attempting to update attendee note:\n' . print_r($error, true));
+			error_log('Submitted data:\n' . print_r(array('id' =>$id, 'notes'  => $newnote),true));
+			return false;
+		}
 	}
 	public function update_payment_status($id, $status, $type, $txn, $details) {
 		if (!$id) return false;
@@ -2086,20 +2095,21 @@ class cm_attendee_db {
 			' WHERE `id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('sssssi', $status, $status, $type, $txn, $details,  $id);
-		$success = $stmt->execute();
-		if (!$success)
+		try
 		{
-			error_log('Error while attempting to update attendee payment status:\n' . print_r($this->cm_db->connection->error, true));
+			$stmt->execute();
+		}
+		catch(PDOException $error)
+		{
+			error_log('Error while attempting to update attendee payment status:\n' . print_r($error, true));
 			error_log('Submitted data:\n' . print_r(array('id' =>$id, 'status' => $status,'type'=> $type, 'txn' => $txn, 'details'  => $details),true));
+			return false;
 		}
-		$stmt->close();
-		if ($success) {
-			$this->update_addon_purchase_payment_status($id, $status, $type, $txn, $details);
-			$attendee = $this->get_attendee($id);
-			$this->cm_ldb->remove_entity($id);
-			$this->cm_ldb->add_entity($attendee);
-		}
-		return $success;
+		$this->update_addon_purchase_payment_status($id, $status, $type, $txn, $details);
+		$attendee = $this->get_attendee($id);
+		$this->cm_ldb->remove_entity($id);
+		$this->cm_ldb->add_entity($attendee);
+		return true;
 	}
 	public function get_payment_status($id, &$status, &$type, &$txn, &$details) {
 		if (!$id) return false;
@@ -2127,7 +2137,7 @@ class cm_attendee_db {
 			'`subscribed` = FALSE WHERE LCASE(`email_address`) = LCASE(?)'
 		);
 		$stmt->bind_param('s', $email);
-		$count = $stmt->execute() ? $this->cm_db->connection->affected_rows : false;
+		$count = $stmt->execute() ? $this->cm_db->affected_rows() : false;
 		$stmt->close();
 		if ($count) {
 			$ids = array();

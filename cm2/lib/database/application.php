@@ -748,7 +748,7 @@ class cm_application_db {
 			$max_total_applicants, $max_total_assignments,
 			$start_date, $end_date, $min_age, $max_age
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 		$this->cm_db->connection->autocommit(true);
 		return $id;
@@ -969,7 +969,7 @@ class cm_application_db {
 			$business_name, $application_name, $added_by, $notes,
 			$normalized_business_name, $normalized_application_name
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 		return $id;
 	}
@@ -1207,7 +1207,7 @@ class cm_application_db {
 			$normalized_email_address,
 			$normalized_phone_number
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 		return $id;
 	}
@@ -1785,7 +1785,7 @@ class cm_application_db {
 			$payment_txn_id, $payment_txn_amt,
 			$payment_date, $payment_details
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 		if ($id !== false) {
 			if (isset($application['assigned-rooms-and-tables'])) {
@@ -2494,7 +2494,7 @@ class cm_application_db {
 			$country, $ice_name, $ice_relationship,
 			$ice_email_address, $ice_phone_number
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 		if ($id !== false) {
 			$applicant = $this->get_applicant($id, null, true);
@@ -2581,7 +2581,7 @@ class cm_application_db {
 			'`contact_subscribed` = FALSE WHERE LCASE(`contact_email_address`) = LCASE(?)'
 		);
 		$stmt->bind_param('s', $email);
-		$ancount = $stmt->execute() ? $this->cm_db->connection->affected_rows : 0;
+		$ancount = $stmt->execute() ? $this->cm_db->affected_rows() : 0;
 		$stmt->close();
 		if ($ancount) {
 			$ids = array();
@@ -2605,7 +2605,7 @@ class cm_application_db {
 			'`subscribed` = FALSE WHERE LCASE(`email_address`) = LCASE(?)'
 		);
 		$stmt->bind_param('s', $email);
-		$atcount = $stmt->execute() ? $this->cm_db->connection->affected_rows : 0;
+		$atcount = $stmt->execute() ? $this->cm_db->affected_rows() : 0;
 		$stmt->close();
 		if ($atcount) {
 			$ids = array();

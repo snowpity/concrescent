@@ -216,7 +216,7 @@ class cm_forms_db {
 			$title, $text, $type, $values,
 			$active, $listed, $exposed, $visible, $required
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 		$this->cm_db->connection->autocommit(true);
 		return $id;

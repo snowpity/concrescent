@@ -238,7 +238,7 @@ class cm_payment_db {
 			$payment_txn_id, $payment_txn_amt,
 			$payment_date, $payment_details
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 		return $id;
 	}

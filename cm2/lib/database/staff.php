@@ -451,7 +451,7 @@ class cm_staff_db {
 			$parent_id, $name, $description,
 			$mail_alias_1, $mail_alias_2, $mail_depth, $active
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 
 		if ($id !== false && isset($department['positions']) && $department['positions']) {
@@ -783,7 +783,7 @@ class cm_staff_db {
 			$price, $active, $quantity,
 			$start_date, $end_date, $min_age, $max_age
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 		$this->cm_db->connection->autocommit(true);
 		return $id;
@@ -1045,7 +1045,7 @@ class cm_staff_db {
 			$normalized_email_address,
 			$normalized_phone_number
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 		return $id;
 	}
@@ -1746,7 +1746,7 @@ class cm_staff_db {
 			$payment_txn_id, $payment_txn_amt,
 			$payment_date, $payment_details
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
 		$stmt->close();
 		if ($id !== false) {
 			if ($dept_map && $pos_map && isset($staff_member['assigned-positions'])) {
@@ -1990,7 +1990,7 @@ class cm_staff_db {
 			'`subscribed` = FALSE WHERE LCASE(`email_address`) = LCASE(?)'
 		);
 		$stmt->bind_param('s', $email);
-		$count = $stmt->execute() ? $this->cm_db->connection->affected_rows : false;
+		$count = $stmt->execute() ? $this->cm_db->affected_rows() : false;
 		$stmt->close();
 		if ($count) {
 			$ids = array();
