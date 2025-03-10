@@ -424,7 +424,7 @@ class cm_staff_db {
 
 	public function create_department($department) {
 		if (!$department) return false;
-		$this->cm_db->connection->autocommit(false);
+		$this->cm_db->connection->beginTransaction();
 
 		$parent_id = ((isset($department['parent-id']) && (int)$department['parent-id']) ? (int)$department['parent-id'] : null);
 		$name = ($department['name'] ?? '');
@@ -467,13 +467,13 @@ class cm_staff_db {
 			}
 		}
 
-		$this->cm_db->connection->autocommit(true);
+		$this->cm_db->connection->commit();
 		return $id;
 	}
 
 	public function update_department($department) {
 		if (!$department || !isset($department['id']) || !$department['id']) return false;
-		$this->cm_db->connection->autocommit(false);
+		$this->cm_db->connection->beginTransaction();
 
 		$parent_id = ((isset($department['parent-id']) && (int)$department['parent-id']) ? (int)$department['parent-id'] : null);
 		$name = ($department['name'] ?? '');
@@ -527,13 +527,13 @@ class cm_staff_db {
 			}
 		}
 
-		$this->cm_db->connection->autocommit(true);
+		$this->cm_db->connection->commit();
 		return $success;
 	}
 
 	public function delete_department($id) {
 		if (!$id) return false;
-		$this->cm_db->connection->autocommit(false);
+		$this->cm_db->connection->beginTransaction();
 
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT `parent_id`'.
@@ -569,7 +569,7 @@ class cm_staff_db {
 			$stmt->execute();
 		}
 
-		$this->cm_db->connection->autocommit(true);
+		$this->cm_db->connection->commit();
 		return $success;
 	}
 
@@ -728,7 +728,7 @@ class cm_staff_db {
 
 	public function create_badge_type($badge_type) {
 		if (!$badge_type) return false;
-		$this->cm_db->connection->autocommit(false);
+		$this->cm_db->connection->beginTransaction();
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT IFNULL(MAX(`order`),0)+1 FROM '.
 			'`staff_badge_types`'
@@ -759,7 +759,7 @@ class cm_staff_db {
 			$start_date, $end_date, $min_age, $max_age
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$this->cm_db->connection->autocommit(true);
+		$this->cm_db->connection->commit();
 		return $id;
 	}
 
@@ -818,7 +818,7 @@ class cm_staff_db {
 
 	public function reorder_badge_type($id, $direction) {
 		if (!$id || !$direction) return false;
-		$this->cm_db->connection->autocommit(false);
+		$this->cm_db->connection->beginTransaction();
 		$ids = array();
 		$index = -1;
 		$stmt = $this->cm_db->connection->prepare(
@@ -855,7 +855,7 @@ class cm_staff_db {
 				$stmt->execute();
 			}
 		}
-		$this->cm_db->connection->autocommit(true);
+		$this->cm_db->connection->commit();
 		return ($index >= 0);
 	}
 

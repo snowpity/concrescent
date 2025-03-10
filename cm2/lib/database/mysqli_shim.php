@@ -74,15 +74,6 @@ class mysqli
 		return new mysqli_stmt($stmt);
 	}
 
-	public function autocommit(bool $enable): bool
-	{
-		if($enable)
-		{
-			return $this->pdo->commit();
-		}
-		return $this->pdo->beginTransaction();
-	}
-
 	// drop-in PDO compat
 	public function query(string $query): PDOStatement|false
 	{
@@ -91,5 +82,13 @@ class mysqli
 	public function getAttribute(int $attribute): mixed
 	{
 		return $this->pdo->getAttribute($attribute);
+	}
+	public function beginTransaction(): bool
+	{
+		return $this->pdo->beginTransaction();
+	}
+	public function commit(): bool
+	{
+		return $this->pdo->commit();
 	}
 }
