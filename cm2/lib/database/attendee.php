@@ -332,7 +332,7 @@ class cm_attendee_db {
 
 	public function create_badge_type($badge_type) {
 		if (!$badge_type) return false;
-		$this->cm_db->connection->autocommit(false);
+		$this->cm_db->connection->beginTransaction();
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT IFNULL(MAX(`order`),0)+1 FROM '.
 			'`attendee_badge_types`'
@@ -365,7 +365,7 @@ class cm_attendee_db {
 			$start_date, $end_date, $min_age, $max_age
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$this->cm_db->connection->autocommit(true);
+		$this->cm_db->connection->commit();
 		return $id;
 	}
 
@@ -426,7 +426,7 @@ class cm_attendee_db {
 
 	public function reorder_badge_type($id, $direction) {
 		if (!$id || !$direction) return false;
-		$this->cm_db->connection->autocommit(false);
+		$this->cm_db->connection->beginTransaction();
 		$ids = array();
 		$index = -1;
 		$stmt = $this->cm_db->connection->prepare(
@@ -464,7 +464,7 @@ class cm_attendee_db {
 				$stmt->execute();
 			}
 		}
-		$this->cm_db->connection->autocommit(true);
+		$this->cm_db->connection->commit();
 		return ($index >= 0);
 	}
 
@@ -602,7 +602,7 @@ class cm_attendee_db {
 
 	public function create_addon($addon) {
 		if (!$addon) return false;
-		$this->cm_db->connection->autocommit(false);
+		$this->cm_db->connection->beginTransaction();
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT IFNULL(MAX(`order`),0)+1 FROM '.
 			'`attendee_addons`'
@@ -639,7 +639,7 @@ class cm_attendee_db {
 			$min_age, $max_age
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$this->cm_db->connection->autocommit(true);
+		$this->cm_db->connection->commit();
 		return $id;
 	}
 
@@ -700,7 +700,7 @@ class cm_attendee_db {
 
 	public function reorder_addon($id, $direction) {
 		if (!$id || !$direction) return false;
-		$this->cm_db->connection->autocommit(false);
+		$this->cm_db->connection->beginTransaction();
 		$ids = array();
 		$index = -1;
 		$stmt = $this->cm_db->connection->prepare(
@@ -738,7 +738,7 @@ class cm_attendee_db {
 				$stmt->execute();
 			}
 		}
-		$this->cm_db->connection->autocommit(true);
+		$this->cm_db->connection->commit();
 		return ($index >= 0);
 	}
 

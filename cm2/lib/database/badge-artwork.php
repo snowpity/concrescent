@@ -457,7 +457,7 @@ class cm_badge_artwork_db {
 
 	public function set_badge_artwork_map($context, $context_id, $file_name) {
 		if (!$context || !$context_id || !$file_name) return false;
-		$this->cm_db->connection->autocommit(false);
+		$this->cm_db->connection->beginTransaction();
 		$stmt = $this->cm_db->connection->prepare(
 			'DELETE FROM `badge_artwork_map`' .
 			' WHERE `context` = ? AND `context_id` = ? AND `file_name` = ?'
@@ -470,7 +470,7 @@ class cm_badge_artwork_db {
 		);
 		$stmt->bind_param('sis', $context, $context_id, $file_name);
 		$success = $stmt->execute();
-		$this->cm_db->connection->autocommit(true);
+		$this->cm_db->connection->commit();
 		return $success;
 	}
 

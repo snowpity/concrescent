@@ -176,7 +176,7 @@ class cm_forms_db {
 
 	public function create_question($question) {
 		if (!$question) return false;
-		$this->cm_db->connection->autocommit(false);
+		$this->cm_db->connection->beginTransaction();
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT IFNULL(MAX(`order`),0)+1 FROM '.
 			'`form_questions`' .
@@ -208,7 +208,7 @@ class cm_forms_db {
 			$active, $listed, $exposed, $visible, $required
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$this->cm_db->connection->autocommit(true);
+		$this->cm_db->connection->commit();
 		return $id;
 	}
 
@@ -267,7 +267,7 @@ class cm_forms_db {
 
 	public function set_question_order($newids) {
 		if (!$newids) return false;
-		$this->cm_db->connection->autocommit(false);
+		$this->cm_db->connection->beginTransaction();
 		$oldids = $this->get_question_order();
 		foreach ($oldids as $id) {
 			if (!in_array($id, $newids)) {
@@ -284,7 +284,7 @@ class cm_forms_db {
 			$stmt->bind_param('iis', $ni, $id, $this->context);
 			$stmt->execute();
 		}
-		$this->cm_db->connection->autocommit(true);
+		$this->cm_db->connection->commit();
 		return $this->get_question_order();
 	}
 
