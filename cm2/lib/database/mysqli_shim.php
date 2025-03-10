@@ -51,35 +51,6 @@ class mysqli_stmt
 	}
 }
 
-class mysqli_result
-{
-	public PDOStatement $pdo_stmt;
-
-	public function __construct(PDOStatement $stmt)
-	{
-		$this->pdo_stmt = $stmt;
-	}
-
-	public function fetch_row(): array|false
-	{
-		return $this->pdo_stmt->fetch(PDO::FETCH_NUM);
-	}
-
-	// drop-in PDO compat
-	public function fetch(...$args): mixed
-	{
-		return $this->pdo_stmt->fetch(...$args);
-	}
-	public function fetchAll(...$args): array
-	{
-		return $this->pdo_stmt->fetchAll(...$args);
-	}
-	public function fetchColumn(int $column = 0): mixed
-	{
-		return $this->pdo_stmt->fetchColumn($column);
-	}
-}
-
 class mysqli
 {
 	public PDO $pdo;
@@ -91,22 +62,6 @@ class mysqli
 			"mysql:host=$host;dbname=$dbname;charset=utf8mb4",
 			$username, $password
 		);
-	}
-
-	public function character_set_name(): string
-	{
-		return $this->pdo->query('SELECT @@character_set_connection;')->fetchColumn();
-	}
-
-	// The second parameter, `int $result_mode`, is never used in cm2.
-	public function query(string $query): mysqli_result|bool
-	{
-		$stmt = $this->pdo->query($query);
-		if($stmt === false)
-		{
-			return false;
-		}
-		return new mysqli_result($stmt);
 	}
 
 	public function prepare(string $query): mysqli_stmt|false
@@ -129,6 +84,10 @@ class mysqli
 	}
 
 	// drop-in PDO compat
+	public function query(string $query): PDOStatement|false
+	{
+		return $this->pdo->query($query);
+	}
 	public function getAttribute(int $attribute): mixed
 	{
 		return $this->pdo->getAttribute($attribute);

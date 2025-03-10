@@ -47,10 +47,6 @@ echo '<article>';
 					echo '<b>MySQL Time Zone (Configured):</b> ';
 					echo $cm_config['database']['timezone'];
 				echo '</p>';
-				echo '<p>';
-					echo '<br><b>MySQLi Character Set:</b> ';
-					echo $db->connection->character_set_name();
-				echo '</p>';
 				echo '<p><b>MySQL Character Sets:</b></p>';
 				$charsets = $db->characterset();
 				foreach ($charsets as $k => $v) {
