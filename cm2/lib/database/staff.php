@@ -257,7 +257,6 @@ class cm_staff_db {
 					$mail_alias_1, $mail_alias_2
 				)
 			);
-			$stmt->close();
 
 			while ($parent_id && !isset($result['hierarchy'][$parent_id])) {
 				$stmt = $this->cm_db->connection->prepare(
@@ -274,7 +273,6 @@ class cm_staff_db {
 				} else {
 					$parent_id = null;
 				}
-				$stmt->close();
 			}
 			$result['hierarchy'] = array_keys_values(
 				array_reverse($result['hierarchy'], true),
@@ -307,11 +305,9 @@ class cm_staff_db {
 				$result['search-content'][] = $name;
 				$result['search-content'][] = $description;
 			}
-			$stmt->close();
 
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -331,7 +327,6 @@ class cm_staff_db {
 				'name' => $name
 			);
 		}
-		$stmt->close();
 		return $departments;
 	}
 
@@ -351,7 +346,6 @@ class cm_staff_db {
 				'name' => $name
 			);
 		}
-		$stmt->close();
 		return $positions;
 	}
 
@@ -386,7 +380,6 @@ class cm_staff_db {
 				)
 			);
 		}
-		$stmt->close();
 
 		foreach (array_keys($departments) as $id) {
 			$parent_id = $departments[$id]['parent-id'];
@@ -425,7 +418,6 @@ class cm_staff_db {
 			$departments[$parent_id]['search-content'][] = $name;
 			$departments[$parent_id]['search-content'][] = $description;
 		}
-		$stmt->close();
 
 		return array_values($departments);
 	}
@@ -452,7 +444,6 @@ class cm_staff_db {
 			$mail_alias_1, $mail_alias_2, $mail_depth, $active
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 
 		if ($id !== false && isset($department['positions']) && $department['positions']) {
 			$order = 0;
@@ -473,7 +464,6 @@ class cm_staff_db {
 					$description, $executive, $active
 				);
 				$stmt->execute();
-				$stmt->close();
 			}
 		}
 
@@ -505,7 +495,6 @@ class cm_staff_db {
 			$department['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 
 		if ($success) {
 			$stmt = $this->cm_db->connection->prepare(
@@ -514,7 +503,6 @@ class cm_staff_db {
 			);
 			$stmt->bind_param('i', $department['id']);
 			$stmt->execute();
-			$stmt->close();
 			if (isset($department['positions']) && $department['positions']) {
 				$order = 0;
 				foreach ($department['positions'] as $position) {
@@ -535,7 +523,6 @@ class cm_staff_db {
 						$description, $executive, $active
 					);
 					$stmt->execute();
-					$stmt->close();
 				}
 			}
 		}
@@ -557,7 +544,6 @@ class cm_staff_db {
 		$stmt->execute();
 		$stmt->bind_result($parent_id);
 		if (!$stmt->fetch()) $parent_id = null;
-		$stmt->close();
 
 		$stmt = $this->cm_db->connection->prepare(
 			'DELETE FROM `staff_departments`' .
@@ -565,7 +551,6 @@ class cm_staff_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 
 		if ($success) {
 			$stmt = $this->cm_db->connection->prepare(
@@ -575,7 +560,6 @@ class cm_staff_db {
 			);
 			$stmt->bind_param('ii', $parent_id, $id);
 			$stmt->execute();
-			$stmt->close();
 
 			$stmt = $this->cm_db->connection->prepare(
 				'DELETE FROM `staff_positions`' .
@@ -583,7 +567,6 @@ class cm_staff_db {
 			);
 			$stmt->bind_param('i', $id);
 			$stmt->execute();
-			$stmt->close();
 		}
 
 		$this->cm_db->connection->autocommit(true);
@@ -599,7 +582,6 @@ class cm_staff_db {
 		);
 		$stmt->bind_param('ii', $active, $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -629,7 +611,7 @@ class cm_staff_db {
 			$event_end_date   = $this->event_info['end_date'  ];
 			$min_birthdate = $max_age ? (((int)$event_start_date - $max_age - 1) . substr($event_start_date, 4)) : null;
 			$max_birthdate = $min_age ? (((int)$event_end_date   - $min_age    ) . substr($event_end_date  , 4)) : null;
-			$result = array(
+			return [
 				'id' => $id,
 				'id-string' => 'SB' . $id,
 				'order' => $order,
@@ -648,12 +630,9 @@ class cm_staff_db {
 				'max-age' => $max_age,
 				'min-birthdate' => $min_birthdate,
 				'max-birthdate' => $max_birthdate,
-				'search-content' => array($name, $description, $rewards)
-			);
-			$stmt->close();
-			return $result;
+				'search-content' => [$name, $description, $rewards],
+			];
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -669,7 +648,6 @@ class cm_staff_db {
 		while ($stmt->fetch()) {
 			$badge_types[$id] = $name;
 		}
-		$stmt->close();
 		return $badge_types;
 	}
 
@@ -688,7 +666,6 @@ class cm_staff_db {
 				'name' => $name
 			);
 		}
-		$stmt->close();
 		return $badge_types;
 	}
 
@@ -746,7 +723,6 @@ class cm_staff_db {
 				'search-content' => array($name, $description, $rewards)
 			);
 		}
-		$stmt->close();
 		return $badge_types;
 	}
 
@@ -760,7 +736,6 @@ class cm_staff_db {
 		$stmt->execute();
 		$stmt->bind_result($order);
 		$stmt->fetch();
-		$stmt->close();
 		$name = ($badge_type['name'] ?? '');
 		$description = ($badge_type['description'] ?? '');
 		$rewards = (isset($badge_type['rewards']) ? implode("\n", $badge_type['rewards']) : '');
@@ -784,7 +759,6 @@ class cm_staff_db {
 			$start_date, $end_date, $min_age, $max_age
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		$this->cm_db->connection->autocommit(true);
 		return $id;
 	}
@@ -816,7 +790,6 @@ class cm_staff_db {
 			$badge_type['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -828,7 +801,6 @@ class cm_staff_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -841,7 +813,6 @@ class cm_staff_db {
 		);
 		$stmt->bind_param('ii', $active, $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -861,7 +832,6 @@ class cm_staff_db {
 			$ids[] = $cid;
 			if ($id == $cid) $index = $cindex;
 		}
-		$stmt->close();
 		if ($index >= 0) {
 			while ($direction < 0 && $index > 0) {
 				$ids[$index] = $ids[$index - 1];
@@ -883,7 +853,6 @@ class cm_staff_db {
 				$ni = $cindex + 1;
 				$stmt->bind_param('ii', $ni, $cid);
 				$stmt->execute();
-				$stmt->close();
 			}
 		}
 		$this->cm_db->connection->autocommit(true);
@@ -939,10 +908,8 @@ class cm_staff_db {
 					$added_by, $notes
 				)
 			);
-			$stmt->close();
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -995,7 +962,6 @@ class cm_staff_db {
 				)
 			);
 		}
-		$stmt->close();
 		return $blacklist;
 	}
 
@@ -1046,7 +1012,6 @@ class cm_staff_db {
 			$normalized_phone_number
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		return $id;
 	}
 
@@ -1099,7 +1064,6 @@ class cm_staff_db {
 			$entry['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -1111,7 +1075,6 @@ class cm_staff_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -1175,7 +1138,6 @@ class cm_staff_db {
 		$stmt->execute();
 		$stmt->bind_result($id);
 		$success = $stmt->fetch();
-		$stmt->close();
 		return $success ? $this->get_blacklist_entry($id) : false;
 	}
 
@@ -1350,7 +1312,6 @@ class cm_staff_db {
 				'review-link' => $review_link,
 				'search-content' => $search_content
 			);
-			$stmt->close();
 
 			$stmt = $this->cm_db->connection->prepare(
 				'SELECT `department_id`, `department_name`, `position_id`, `position_name`'.
@@ -1403,7 +1364,6 @@ class cm_staff_db {
 				$result['assigned-position-names-h'] = array_column_simple($assigned_positions, 'position-name-h');
 				$result['assigned-positions'] = $assigned_positions;
 			}
-			$stmt->close();
 
 			$answers = $fdb->list_answers($id);
 			if ($answers) {
@@ -1417,7 +1377,6 @@ class cm_staff_db {
 			}
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -1597,7 +1556,6 @@ class cm_staff_db {
 				'search-content' => $search_content
 			);
 		}
-		$stmt->close();
 		foreach ($staff_members as $i => $staff_member) {
 			$stmt = $this->cm_db->connection->prepare(
 				'SELECT `department_id`, `department_name`, `position_id`, `position_name`'.
@@ -1665,7 +1623,6 @@ class cm_staff_db {
 				$staff_members[$i]['assigned-position-names-h'] = ['[[UNASSIGNED]]'];
 				$staff_members[$i]['assigned-positions'] = [];
 			}
-			$stmt->close();
 
 			$answers = $fdb->list_answers($staff_member['id']);
 			if ($answers) {
@@ -1747,7 +1704,6 @@ class cm_staff_db {
 			$payment_date, $payment_details
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		if ($id !== false) {
 			if ($dept_map && $pos_map && isset($staff_member['assigned-positions'])) {
 				$order = 0;
@@ -1781,7 +1737,6 @@ class cm_staff_db {
 						$position_id, $position_name
 					);
 					$stmt->execute();
-					$stmt->close();
 				}
 			}
 			if ($fdb && isset($staff_member['form-answers'])) {
@@ -1861,7 +1816,6 @@ class cm_staff_db {
 			$staff_member['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			if ($dept_map && $pos_map && isset($staff_member['assigned-positions'])) {
 				$stmt = $this->cm_db->connection->prepare(
@@ -1870,7 +1824,6 @@ class cm_staff_db {
 				);
 				$stmt->bind_param('i', $staff_member['id']);
 				$stmt->execute();
-				$stmt->close();
 				$order = 0;
 				foreach ($staff_member['assigned-positions'] as $ap) {
 					$order++;
@@ -1902,7 +1855,6 @@ class cm_staff_db {
 						$position_id, $position_name
 					);
 					$stmt->execute();
-					$stmt->close();
 				}
 			}
 			if ($fdb && isset($staff_member['form-answers'])) {
@@ -1924,7 +1876,6 @@ class cm_staff_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$stmt = $this->cm_db->connection->prepare(
 				'DELETE FROM `staff_assigned_positions`' .
@@ -1932,7 +1883,6 @@ class cm_staff_db {
 			);
 			$stmt->bind_param('i', $id);
 			$stmt->execute();
-			$stmt->close();
 			$this->cm_ldb->remove_entity($id);
 		}
 		return $success;
@@ -1956,7 +1906,6 @@ class cm_staff_db {
 		$stmt->execute();
 		$stmt->bind_result($x);
 		$exists = $stmt->fetch() && $x;
-		$stmt->close();
 		return $exists;
 	}
 
@@ -1974,7 +1923,6 @@ class cm_staff_db {
 			$txn_amt, $date, $details, $id
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$staff_member = $this->get_staff_member($id);
 			$this->cm_ldb->remove_entity($id);
@@ -1991,7 +1939,6 @@ class cm_staff_db {
 		);
 		$stmt->bind_param('s', $email);
 		$count = $stmt->execute() ? $this->cm_db->affected_rows() : false;
-		$stmt->close();
 		if ($count) {
 			$ids = array();
 			$stmt = $this->cm_db->connection->prepare(
@@ -2002,7 +1949,6 @@ class cm_staff_db {
 			$stmt->execute();
 			$stmt->bind_result($id);
 			while ($stmt->fetch()) $ids[] = $id;
-			$stmt->close();
 			foreach ($ids as $id) {
 				$staff_member = $this->get_staff_member($id);
 				$this->cm_ldb->remove_entity($id);
@@ -2029,7 +1975,6 @@ class cm_staff_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$staff_member = $this->get_staff_member($id);
 			$this->cm_ldb->remove_entity($id);
@@ -2055,7 +2000,6 @@ class cm_staff_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$staff_member = $this->get_staff_member($id);
 			$this->cm_ldb->remove_entity($id);
@@ -2090,7 +2034,6 @@ class cm_staff_db {
 			$timelines[$btid][0][$timestamp] = ++$counters[$btid][0];
 			$timelines['*'][0][$timestamp] = ++$counters['*'][0];
 		}
-		$stmt->close();
 
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT UNIX_TIMESTAMP(`payment_date`), `badge_type_id`'.
@@ -2108,7 +2051,6 @@ class cm_staff_db {
 			$timelines[$btid][1][$timestamp] = ++$counters[$btid][1];
 			$timelines['*'][1][$timestamp] = ++$counters['*'][1];
 		}
-		$stmt->close();
 
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT UNIX_TIMESTAMP(`print_first_time`), `badge_type_id`'.
@@ -2125,7 +2067,6 @@ class cm_staff_db {
 			$timelines[$btid][2][$timestamp] = ++$counters[$btid][2];
 			$timelines['*'][2][$timestamp] = ++$counters['*'][2];
 		}
-		$stmt->close();
 
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT UNIX_TIMESTAMP(`checkin_first_time`), `badge_type_id`'.
@@ -2142,7 +2083,6 @@ class cm_staff_db {
 			$timelines[$btid][3][$timestamp] = ++$counters[$btid][3];
 			$timelines['*'][3][$timestamp] = ++$counters['*'][3];
 		}
-		$stmt->close();
 
 		ksort($timestamps);
 		return array(
@@ -2151,5 +2091,4 @@ class cm_staff_db {
 			'timelines' => $timelines
 		);
 	}
-
 }

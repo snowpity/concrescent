@@ -31,7 +31,6 @@ class cm_misc_db {
 		$stmt->execute();
 		$stmt->bind_result($value);
 		$success = $stmt->fetch() && $value;
-		$stmt->close();
 		return $success ? $value : $def;
 	}
 
@@ -44,7 +43,6 @@ class cm_misc_db {
 		);
 		$stmt->bind_param('sss', $key, $value, $value);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -56,7 +54,6 @@ class cm_misc_db {
 		);
 		$stmt->bind_param('s', $key);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -118,10 +115,8 @@ class cm_misc_db {
 			header('Pragma: no-cache');
 			header('Expires: 0');
 			echo $data;
-			$stmt->close();
 			return true;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -137,10 +132,8 @@ class cm_misc_db {
 		$stmt->bind_result($image_w, $image_h);
 		if ($stmt->fetch() && $image_w && $image_h) {
 			$size = array($image_w, $image_h);
-			$stmt->close();
 			return $size;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -152,7 +145,6 @@ class cm_misc_db {
 		);
 		$stmt->bind_param('s', $name);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 

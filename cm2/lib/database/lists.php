@@ -62,7 +62,6 @@ class cm_lists_db {
 			);
 			$stmt->bind_param('iss', $id, $key, $value);
 			$stmt->execute();
-			$stmt->close();
 		}
 	}
 
@@ -79,7 +78,6 @@ class cm_lists_db {
 		);
 		$stmt->bind_param('i', $id);
 		$stmt->execute();
-		$stmt->close();
 	}
 
 	public function drop_index() {
@@ -263,7 +261,6 @@ class cm_lists_db {
 
 		$ids = array();
 		while ($stmt->fetch()) $ids[] = $id;
-		$stmt->close();
 
 		$match_count = count($ids);
 		if ($length) {

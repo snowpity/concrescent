@@ -124,10 +124,8 @@ class cm_payment_db {
 				'review-link' => $review_link,
 				'search-content' => $search_content
 			);
-			$stmt->close();
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -198,7 +196,6 @@ class cm_payment_db {
 				'search-content' => $search_content
 			);
 		}
-		$stmt->close();
 		return $payments;
 	}
 
@@ -239,7 +236,6 @@ class cm_payment_db {
 			$payment_date, $payment_details
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		return $id;
 	}
 
@@ -282,7 +278,6 @@ class cm_payment_db {
 			$payment['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -294,7 +289,6 @@ class cm_payment_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -312,8 +306,6 @@ class cm_payment_db {
 			$txn_amt, $date, $details, $id
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
-
 }

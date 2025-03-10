@@ -54,10 +54,8 @@ class cm_forms_db {
 		$stmt->execute();
 		$stmt->bind_result($text);
 		if ($stmt->fetch()) {
-			$stmt->close();
 			return $text;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -74,7 +72,6 @@ class cm_forms_db {
 		while ($stmt->fetch()) {
 			$texts[$name] = $text;
 		}
-		$stmt->close();
 		return $texts;
 	}
 
@@ -92,7 +89,6 @@ class cm_forms_db {
 			$this->context, $name, $text
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -104,7 +100,6 @@ class cm_forms_db {
 		);
 		$stmt->bind_param('ss', $this->context, $name);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -139,10 +134,8 @@ class cm_forms_db {
 				'visible' => ($visible ? explode(',', $visible) : array()),
 				'required' => ($required ? explode(',', $required) : array())
 			);
-			$stmt->close();
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -178,7 +171,6 @@ class cm_forms_db {
 				'required' => ($required ? explode(',', $required) : array())
 			);
 		}
-		$stmt->close();
 		return $questions;
 	}
 
@@ -194,7 +186,6 @@ class cm_forms_db {
 		$stmt->execute();
 		$stmt->bind_result($order);
 		$stmt->fetch();
-		$stmt->close();
 		$title = ($question['title'] ?? '');
 		$text = ($question['text'] ?? '');
 		$type = ($question['type'] ?? '');
@@ -217,7 +208,6 @@ class cm_forms_db {
 			$active, $listed, $exposed, $visible, $required
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		$this->cm_db->connection->autocommit(true);
 		return $id;
 	}
@@ -247,7 +237,6 @@ class cm_forms_db {
 			$this->context
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -259,7 +248,6 @@ class cm_forms_db {
 		);
 		$stmt->bind_param('is', $id, $this->context);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -274,7 +262,6 @@ class cm_forms_db {
 		$stmt->execute();
 		$stmt->bind_result($id);
 		while ($stmt->fetch()) $ids[] = $id;
-		$stmt->close();
 		return $ids;
 	}
 
@@ -296,7 +283,6 @@ class cm_forms_db {
 			$ni = $i + 1;
 			$stmt->bind_param('iis', $ni, $id, $this->context);
 			$stmt->execute();
-			$stmt->close();
 		}
 		$this->cm_db->connection->autocommit(true);
 		return $this->get_question_order();
@@ -327,10 +313,8 @@ class cm_forms_db {
 		$stmt->execute();
 		$stmt->bind_result($text);
 		if ($stmt->fetch()) {
-			$stmt->close();
 			return ($text ? explode("\n", $text) : array());
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -348,7 +332,6 @@ class cm_forms_db {
 		while ($stmt->fetch()) {
 			$answers[$question_id] = ($text ? explode("\n", $text) : array());
 		}
-		$stmt->close();
 		return $answers;
 	}
 
@@ -367,7 +350,6 @@ class cm_forms_db {
 			$question_id, $this->context, $context_id, $text
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -392,7 +374,6 @@ class cm_forms_db {
 		);
 		$stmt->bind_param('isi', $question_id, $this->context, $context_id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -404,8 +385,6 @@ class cm_forms_db {
 		);
 		$stmt->bind_param('si', $this->context, $context_id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
-
 }

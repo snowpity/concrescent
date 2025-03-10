@@ -119,10 +119,8 @@ class cm_badge_artwork_db {
 			header('Pragma: no-cache');
 			header('Expires: 0');
 			echo $data;
-			$stmt->close();
 			return true;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -169,12 +167,10 @@ class cm_badge_artwork_db {
 					$result['data'] = $data;
 				}
 			}
-			$stmt->close();
 			$result['fields'] = $this->list_badge_artwork_fields($name);
 			$result['map'] = $this->get_badge_artwork_map(null, null, $name);
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -190,7 +186,6 @@ class cm_badge_artwork_db {
 		while ($stmt->fetch()) {
 			$names[] = $name;
 		}
-		$stmt->close();
 		return $names;
 	}
 
@@ -217,7 +212,6 @@ class cm_badge_artwork_db {
 				'search-content' => $search_content
 			);
 		}
-		$stmt->close();
 		foreach ($badge_artwork as $i => $ba) {
 			$badge_artwork[$i]['fields'] = $this->list_badge_artwork_fields($ba['file-name']);
 			$badge_artwork[$i]['map'] = $this->get_badge_artwork_map(null, null, $ba['file-name']);
@@ -263,7 +257,6 @@ class cm_badge_artwork_db {
 				'background-minors' => $background_minors
 			);
 		}
-		$stmt->close();
 		return $fields;
 	}
 
@@ -298,7 +291,6 @@ class cm_badge_artwork_db {
 			$background, $color_minors, $background_minors
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		return $id;
 	}
 
@@ -335,7 +327,6 @@ class cm_badge_artwork_db {
 			$field['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -347,7 +338,6 @@ class cm_badge_artwork_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -421,7 +411,6 @@ class cm_badge_artwork_db {
 		);
 		$stmt->bind_param('s', $name);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -463,7 +452,6 @@ class cm_badge_artwork_db {
 				'file-name' => $file_name
 			);
 		}
-		$stmt->close();
 		return $map;
 	}
 
@@ -476,14 +464,12 @@ class cm_badge_artwork_db {
 		);
 		$stmt->bind_param('sis', $context, $context_id, $file_name);
 		$stmt->execute();
-		$stmt->close();
 		$stmt = $this->cm_db->connection->prepare(
 			'INSERT INTO `badge_artwork_map`' .
 			' SET `context` = ?, `context_id` = ?, `file_name` = ?'
 		);
 		$stmt->bind_param('sis', $context, $context_id, $file_name);
 		$success = $stmt->execute();
-		$stmt->close();
 		$this->cm_db->connection->autocommit(true);
 		return $success;
 	}
@@ -514,7 +500,6 @@ class cm_badge_artwork_db {
 		$stmt = $this->cm_db->connection->prepare($query);
 		if (!$first) call_user_func_array(array($stmt, 'bind_param'), $bind);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -526,7 +511,6 @@ class cm_badge_artwork_db {
 		);
 		$stmt->bind_param('s', $name);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$stmt = $this->cm_db->connection->prepare(
 				'DELETE FROM `badge_artwork_fields`' .
@@ -534,16 +518,13 @@ class cm_badge_artwork_db {
 			);
 			$stmt->bind_param('s', $name);
 			$stmt->execute();
-			$stmt->close();
 			$stmt = $this->cm_db->connection->prepare(
 				'DELETE FROM `badge_artwork_map`' .
 				' WHERE `file_name` = ?'
 			);
 			$stmt->bind_param('s', $name);
 			$stmt->execute();
-			$stmt->close();
 		}
 		return $success;
 	}
-
 }

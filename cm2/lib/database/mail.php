@@ -224,7 +224,6 @@ class cm_mail_db {
 		$stmt->execute();
 		$stmt->bind_result($contact_address);
 		$result = $stmt->fetch() ? $contact_address : false;
-		$stmt->close();
 		return $result;
 	}
 
@@ -239,7 +238,7 @@ class cm_mail_db {
 		$stmt->execute();
 		$stmt->bind_result($name, $contact_address, $from, $bcc, $subject, $type, $body);
 		if ($stmt->fetch()) {
-			$result = array(
+			return [
 				'name' => $name,
 				'contact-address' => $contact_address,
 				'from' => $from,
@@ -248,11 +247,8 @@ class cm_mail_db {
 				'type' => $type,
 				'body' => $body,
 				'search-content' => array($name, $contact_address, $from, $bcc, $subject)
-			);
-			$stmt->close();
-			return $result;
+			];
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -277,7 +273,6 @@ class cm_mail_db {
 				'search-content' => array($name, $contact_address, $from, $bcc, $subject)
 			);
 		}
-		$stmt->close();
 		return $templates;
 	}
 
@@ -295,7 +290,6 @@ class cm_mail_db {
 			$template['name'], $template['contact-address'], $template['from'], $template['bcc'], $template['subject'], $template['type'], $template['body']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -307,7 +301,6 @@ class cm_mail_db {
 		);
 		$stmt->bind_param('s', $name);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 

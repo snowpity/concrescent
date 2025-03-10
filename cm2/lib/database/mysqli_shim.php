@@ -49,12 +49,6 @@ class mysqli_stmt
 	{
 		return $this->pdo_stmt->fetch(PDO::FETCH_BOUND);
 	}
-
-	// vestigial
-	public function close(): bool
-	{
-		return true;
-	}
 }
 
 class mysqli_result
@@ -69,11 +63,6 @@ class mysqli_result
 	public function fetch_row(): array|false
 	{
 		return $this->pdo_stmt->fetch(PDO::FETCH_NUM);
-	}
-
-	// vestigial
-	public function close(): void
-	{
 	}
 
 	// drop-in PDO compat

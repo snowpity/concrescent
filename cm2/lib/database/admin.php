@@ -45,7 +45,6 @@ class cm_admin_db {
 					$permissions
 				);
 				$stmt->execute();
-				$stmt->close();
 			}
 		}
 	}
@@ -67,16 +66,13 @@ class cm_admin_db {
 		$stmt->bind_result($name, $username, $hash, $permissions);
 		if ($stmt->fetch()) {
 			if (password_verify($password, $hash)) {
-				$result = array(
+				return [
 					'name' => $name,
 					'username' => $username,
 					'permissions' => explode(',', $permissions)
-				);
-				$stmt->close();
-				return $result;
+				];
 			}
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -114,7 +110,6 @@ class cm_admin_db {
 			$http_referer, $http_user_agent
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -164,17 +159,14 @@ class cm_admin_db {
 		$stmt->execute();
 		$stmt->bind_result($name, $username, $active, $permissions);
 		if ($stmt->fetch()) {
-			$result = array(
+			return [
 				'name' => $name,
 				'username' => $username,
 				'active' => !!$active,
 				'permissions' => ($permissions ? explode(',', $permissions) : array()),
 				'search-content' => array($name, $username)
-			);
-			$stmt->close();
-			return $result;
+			];
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -196,7 +188,6 @@ class cm_admin_db {
 				'search-content' => array($name, $username)
 			);
 		}
-		$stmt->close();
 		return $users;
 	}
 
@@ -227,7 +218,6 @@ class cm_admin_db {
 			$permissions
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -276,7 +266,6 @@ class cm_admin_db {
 		);
 		call_user_func_array(array($stmt, 'bind_param'), $bind_params);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -288,7 +277,6 @@ class cm_admin_db {
 		);
 		$stmt->bind_param('s', $username);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -301,8 +289,6 @@ class cm_admin_db {
 		);
 		$stmt->bind_param('is', $active, $username);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
-
 }

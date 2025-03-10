@@ -245,14 +245,12 @@ class cm_application_db {
 				'x2' => $x2,
 				'y2' => $y2
 			);
-			$stmt->close();
 			if ($expand) {
 				$assignments = $this->list_room_and_table_assignments($id);
 				$result['assignments'] = $assignments;
 			}
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -273,7 +271,6 @@ class cm_application_db {
 				'y2' => $y2
 			);
 		}
-		$stmt->close();
 		if ($expand) {
 			foreach ($rooms_and_tables as $i => $room_or_table) {
 				$id = $room_or_table['id'];
@@ -323,7 +320,6 @@ class cm_application_db {
 				'end-time' => $end_time
 			);
 		}
-		$stmt->close();
 		foreach ($assignments as $i => $assignment) {
 			$table_name = strtolower($assignment['context']);
 			$stmt = $this->cm_db->connection->prepare(
@@ -338,7 +334,6 @@ class cm_application_db {
 				$assignments[$i]['business-name'] = $business_name;
 				$assignments[$i]['application-name'] = $application_name;
 			}
-			$stmt->close();
 		}
 		usort($assignments, function($a, $b) {
 			if (($cmp = strnatcasecmp($a['room-or-table-id'], $b['room-or-table-id']))) return $cmp;
@@ -368,7 +363,6 @@ class cm_application_db {
 			$rt['id'], $rt['x1'], $rt['y1'], $rt['x2'], $rt['y2']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -385,7 +379,6 @@ class cm_application_db {
 			$id
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -397,7 +390,6 @@ class cm_application_db {
 		);
 		$stmt->bind_param('s', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -440,7 +432,6 @@ class cm_application_db {
 			'DELETE FROM `rooms_and_tables`'
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -536,10 +527,8 @@ class cm_application_db {
 				'max-birthdate' => $max_birthdate,
 				'search-content' => array($name, $description, $rewards)
 			);
-			$stmt->close();
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -555,7 +544,6 @@ class cm_application_db {
 		while ($stmt->fetch()) {
 			$badge_types[$id] = $name;
 		}
-		$stmt->close();
 		return $badge_types;
 	}
 
@@ -574,7 +562,6 @@ class cm_application_db {
 				'name' => $name
 			);
 		}
-		$stmt->close();
 		return $badge_types;
 	}
 
@@ -682,7 +669,6 @@ class cm_application_db {
 				'search-content' => array($name, $description, $rewards)
 			);
 		}
-		$stmt->close();
 		return $badge_types;
 	}
 
@@ -696,7 +682,6 @@ class cm_application_db {
 		$stmt->execute();
 		$stmt->bind_result($order);
 		$stmt->fetch();
-		$stmt->close();
 		$name = ($badge_type['name'] ?? '');
 		$description = ($badge_type['description'] ?? '');
 		$rewards = (isset($badge_type['rewards']) ? implode("\n", $badge_type['rewards']) : '');
@@ -749,7 +734,6 @@ class cm_application_db {
 			$start_date, $end_date, $min_age, $max_age
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		$this->cm_db->connection->autocommit(true);
 		return $id;
 	}
@@ -810,7 +794,6 @@ class cm_application_db {
 			$badge_type['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -822,7 +805,6 @@ class cm_application_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -835,7 +817,6 @@ class cm_application_db {
 		);
 		$stmt->bind_param('ii', $active, $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -855,7 +836,6 @@ class cm_application_db {
 			$ids[] = $cid;
 			if ($id == $cid) $index = $cindex;
 		}
-		$stmt->close();
 		if ($index >= 0) {
 			while ($direction < 0 && $index > 0) {
 				$ids[$index] = $ids[$index - 1];
@@ -877,7 +857,6 @@ class cm_application_db {
 				$ni = $cindex + 1;
 				$stmt->bind_param('ii', $ni, $cid);
 				$stmt->execute();
-				$stmt->close();
 			}
 		}
 		$this->cm_db->connection->autocommit(true);
@@ -899,7 +878,7 @@ class cm_application_db {
 			$normalized_business_name, $normalized_application_name
 		);
 		if ($stmt->fetch()) {
-			$result = array(
+			return [
 				'id' => $id,
 				'business-name' => $business_name,
 				'application-name' => $application_name,
@@ -908,11 +887,8 @@ class cm_application_db {
 				'normalized-business-name' => $normalized_business_name,
 				'normalized-application-name' => $normalized_application_name,
 				'search-content' => array($business_name, $application_name, $added_by, $notes)
-			);
-			$stmt->close();
-			return $result;
+			];
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -941,7 +917,6 @@ class cm_application_db {
 				'search-content' => array($business_name, $application_name, $added_by, $notes)
 			);
 		}
-		$stmt->close();
 		return $blacklist;
 	}
 
@@ -970,7 +945,6 @@ class cm_application_db {
 			$normalized_business_name, $normalized_application_name
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		return $id;
 	}
 
@@ -1001,7 +975,6 @@ class cm_application_db {
 			$entry['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -1013,7 +986,6 @@ class cm_application_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -1048,7 +1020,6 @@ class cm_application_db {
 		$stmt->execute();
 		$stmt->bind_result($id);
 		$success = $stmt->fetch();
-		$stmt->close();
 		return $success ? $this->get_application_blacklist_entry($id) : false;
 	}
 
@@ -1079,7 +1050,7 @@ class cm_application_db {
 		if ($stmt->fetch()) {
 			$real_name = trim(trim($first_name ?? '') . ' ' . trim($last_name ?? ''));
 			$reversed_name = trim(trim($last_name ?? '') . ' ' . trim($first_name ?? ''));
-			$result = array(
+			return [
 				'id' => $id,
 				'first-name' => $first_name,
 				'last-name' => $last_name,
@@ -1100,11 +1071,8 @@ class cm_application_db {
 					$fandom_name, $email_address, $phone_number,
 					$added_by, $notes
 				)
-			);
-			$stmt->close();
-			return $result;
+			];
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -1157,7 +1125,6 @@ class cm_application_db {
 				)
 			);
 		}
-		$stmt->close();
 		return $blacklist;
 	}
 
@@ -1208,7 +1175,6 @@ class cm_application_db {
 			$normalized_phone_number
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		return $id;
 	}
 
@@ -1261,7 +1227,6 @@ class cm_application_db {
 			$entry['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -1273,7 +1238,6 @@ class cm_application_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -1338,7 +1302,6 @@ class cm_application_db {
 		$stmt->execute();
 		$stmt->bind_result($id);
 		$success = $stmt->fetch();
-		$stmt->close();
 		return $success ? $this->get_applicant_blacklist_entry($id) : false;
 	}
 
@@ -1476,7 +1439,6 @@ class cm_application_db {
 				'review-link' => $review_link,
 				'search-content' => $search_content
 			);
-			$stmt->close();
 
 			if ($expand) {
 				$applicants = $this->list_applicants($id, false, $name_map, $fdb);
@@ -1515,7 +1477,6 @@ class cm_application_db {
 				$result['assigned-end-times'] = array_column_simple($assigned_rooms_and_tables, 'end-time');
 				$result['assigned-rooms-and-tables'] = $assigned_rooms_and_tables;
 			}
-			$stmt->close();
 
 			$answers = $fdb->list_answers($id);
 			if ($answers) {
@@ -1529,7 +1490,6 @@ class cm_application_db {
 			}
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -1672,7 +1632,6 @@ class cm_application_db {
 				'search-content' => $search_content
 			);
 		}
-		$stmt->close();
 		foreach ($applications as $i => $application) {
 			if ($expand) {
 				$applicants = $this->list_applicants($application['id'], false, $name_map, $fdb);
@@ -1711,7 +1670,6 @@ class cm_application_db {
 				$applications[$i]['assigned-end-times'] = array_column_simple($assigned_rooms_and_tables, 'end-time');
 				$applications[$i]['assigned-rooms-and-tables'] = $assigned_rooms_and_tables;
 			}
-			$stmt->close();
 
 			$answers = $fdb->list_answers($application['id']);
 			if ($answers) {
@@ -1786,7 +1744,6 @@ class cm_application_db {
 			$payment_date, $payment_details
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		if ($id !== false) {
 			if (isset($application['assigned-rooms-and-tables'])) {
 				foreach ($application['assigned-rooms-and-tables'] as $art) {
@@ -1805,7 +1762,6 @@ class cm_application_db {
 							$room_or_table_id, $start_time, $end_time
 						);
 						$stmt->execute();
-						$stmt->close();
 					}
 				}
 			}
@@ -1879,7 +1835,6 @@ class cm_application_db {
 			$application['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			if (isset($application['assigned-rooms-and-tables'])) {
 				$stmt = $this->cm_db->connection->prepare(
@@ -1888,7 +1843,6 @@ class cm_application_db {
 				);
 				$stmt->bind_param('si', $this->ctx_uc, $application['id']);
 				$stmt->execute();
-				$stmt->close();
 				foreach ($application['assigned-rooms-and-tables'] as $art) {
 					$room_or_table_id = (isset($art['room-or-table-id']) && $art['room-or-table-id']) ? $art['room-or-table-id'] : null;
 					$start_time = (isset($art['start-time']) && $art['start-time']) ? $art['start-time'] : null;
@@ -1905,7 +1859,6 @@ class cm_application_db {
 							$room_or_table_id, $start_time, $end_time
 						);
 						$stmt->execute();
-						$stmt->close();
 					}
 				}
 			}
@@ -1928,7 +1881,6 @@ class cm_application_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$applicant_ids = array();
 			$stmt = $this->cm_db->connection->prepare(
@@ -1941,7 +1893,6 @@ class cm_application_db {
 			while ($stmt->fetch()) {
 				$applicant_ids[] = $applicant_id;
 			}
-			$stmt->close();
 			foreach ($applicant_ids as $applicant_id) {
 				$this->delete_applicant($applicant_id);
 			}
@@ -1952,7 +1903,6 @@ class cm_application_db {
 			);
 			$stmt->bind_param('si', $this->ctx_uc, $id);
 			$stmt->execute();
-			$stmt->close();
 			$this->cm_anldb->remove_entity($id);
 		}
 		return $success;
@@ -1969,7 +1919,6 @@ class cm_application_db {
 		$stmt->execute();
 		$stmt->bind_result($x);
 		$exists = $stmt->fetch() && $x;
-		$stmt->close();
 		return $exists;
 	}
 
@@ -2112,7 +2061,6 @@ class cm_application_db {
 		);
 		$stmt->bind_param('si', $permit_number, $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$application = $this->get_application($id, null, true);
 			$this->cm_anldb->remove_entity($id);
@@ -2135,7 +2083,6 @@ class cm_application_db {
 			$txn_amt, $date, $details, $id
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$application = $this->get_application($id, null, true);
 			$this->cm_anldb->remove_entity($id);
@@ -2282,7 +2229,6 @@ class cm_application_db {
 				'ice-phone-number' => $ice_phone_number,
 				'search-content' => $search_content
 			);
-			$stmt->close();
 			if ($expand && $application_id) {
 				$application = $this->get_application($application_id, null, false, $name_map, $fdb);
 				if ($application) {
@@ -2293,7 +2239,6 @@ class cm_application_db {
 			}
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -2434,7 +2379,6 @@ class cm_application_db {
 				'search-content' => $search_content
 			);
 		}
-		$stmt->close();
 		if ($expand) {
 			foreach ($applicants as $i => $applicant) {
 				if ($applicant['application-id']) {
@@ -2495,7 +2439,6 @@ class cm_application_db {
 			$ice_email_address, $ice_phone_number
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		if ($id !== false) {
 			$applicant = $this->get_applicant($id, null, true);
 			$this->cm_atldb->add_entity($applicant);
@@ -2550,7 +2493,6 @@ class cm_application_db {
 			$applicant['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$applicant = $this->get_applicant($applicant['id'], null, true);
 			$this->cm_atldb->remove_entity($applicant['id']);
@@ -2567,7 +2509,6 @@ class cm_application_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$this->cm_atldb->remove_entity($id);
 		}
@@ -2582,7 +2523,6 @@ class cm_application_db {
 		);
 		$stmt->bind_param('s', $email);
 		$ancount = $stmt->execute() ? $this->cm_db->affected_rows() : 0;
-		$stmt->close();
 		if ($ancount) {
 			$ids = array();
 			$stmt = $this->cm_db->connection->prepare(
@@ -2593,7 +2533,6 @@ class cm_application_db {
 			$stmt->execute();
 			$stmt->bind_result($id);
 			while ($stmt->fetch()) $ids[] = $id;
-			$stmt->close();
 			foreach ($ids as $id) {
 				$application = $this->get_application($id, null, true);
 				$this->cm_anldb->remove_entity($id);
@@ -2606,7 +2545,6 @@ class cm_application_db {
 		);
 		$stmt->bind_param('s', $email);
 		$atcount = $stmt->execute() ? $this->cm_db->affected_rows() : 0;
-		$stmt->close();
 		if ($atcount) {
 			$ids = array();
 			$stmt = $this->cm_db->connection->prepare(
@@ -2617,7 +2555,6 @@ class cm_application_db {
 			$stmt->execute();
 			$stmt->bind_result($id);
 			while ($stmt->fetch()) $ids[] = $id;
-			$stmt->close();
 			foreach ($ids as $id) {
 				$applicant = $this->get_applicant($id, null, true);
 				$this->cm_atldb->remove_entity($id);
@@ -2644,7 +2581,6 @@ class cm_application_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$applicant = $this->get_applicant($id, null, true);
 			$this->cm_atldb->remove_entity($id);
@@ -2670,7 +2606,6 @@ class cm_application_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$applicant = $this->get_applicant($id, null, true);
 			$this->cm_atldb->remove_entity($id);
@@ -2707,7 +2642,6 @@ class cm_application_db {
 			$timelines[$btid][0][$timestamp] = ++$counters[$btid][0];
 			$timelines['*'][0][$timestamp] = ++$counters['*'][0];
 		}
-		$stmt->close();
 
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT UNIX_TIMESTAMP(an.`payment_date`), an.`badge_type_id`'.
@@ -2727,7 +2661,6 @@ class cm_application_db {
 			$timelines[$btid][1][$timestamp] = ++$counters[$btid][1];
 			$timelines['*'][1][$timestamp] = ++$counters['*'][1];
 		}
-		$stmt->close();
 
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT UNIX_TIMESTAMP(at.`print_first_time`), an.`badge_type_id`'.
@@ -2746,7 +2679,6 @@ class cm_application_db {
 			$timelines[$btid][2][$timestamp] = ++$counters[$btid][2];
 			$timelines['*'][2][$timestamp] = ++$counters['*'][2];
 		}
-		$stmt->close();
 
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT UNIX_TIMESTAMP(at.`checkin_first_time`), an.`badge_type_id`'.
@@ -2765,7 +2697,6 @@ class cm_application_db {
 			$timelines[$btid][3][$timestamp] = ++$counters[$btid][3];
 			$timelines['*'][3][$timestamp] = ++$counters['*'][3];
 		}
-		$stmt->close();
 
 		ksort($timestamps);
 		return array(
@@ -2774,5 +2705,4 @@ class cm_application_db {
 			'timelines' => $timelines
 		);
 	}
-
 }

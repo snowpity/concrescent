@@ -215,10 +215,8 @@ class cm_attendee_db {
 				'max-birthdate' => $max_birthdate,
 				'search-content' => array($name, $description, $rewards)
 			);
-			$stmt->close();
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -234,7 +232,6 @@ class cm_attendee_db {
 		while ($stmt->fetch()) {
 			$badge_types[$id] = $name;
 		}
-		$stmt->close();
 		return $badge_types;
 	}
 
@@ -253,7 +250,6 @@ class cm_attendee_db {
 				'name' => $name
 			);
 		}
-		$stmt->close();
 		return $badge_types;
 	}
 
@@ -331,7 +327,6 @@ class cm_attendee_db {
 				'search-content' => array($name, $description, $rewards)
 			);
 		}
-		$stmt->close();
 		return $badge_types;
 	}
 
@@ -345,7 +340,6 @@ class cm_attendee_db {
 		$stmt->execute();
 		$stmt->bind_result($order);
 		$stmt->fetch();
-		$stmt->close();
 		$name = ($badge_type['name'] ?? '');
 		$description = ($badge_type['description'] ?? '');
 		$rewards = (isset($badge_type['rewards']) ? implode("\n", $badge_type['rewards']) : '');
@@ -371,7 +365,6 @@ class cm_attendee_db {
 			$start_date, $end_date, $min_age, $max_age
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		$this->cm_db->connection->autocommit(true);
 		return $id;
 	}
@@ -405,7 +398,6 @@ class cm_attendee_db {
 			$badge_type['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -417,7 +409,6 @@ class cm_attendee_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -430,7 +421,6 @@ class cm_attendee_db {
 		);
 		$stmt->bind_param('ii', $active, $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -451,7 +441,6 @@ class cm_attendee_db {
 			$ids[] = $cid;
 			if ($id == $cid) $index = $cindex;
 		}
-		$stmt->close();
 		if ($index >= 0) {
 			while ($direction < 0 && $index > 0) {
 				$ids[$index] = $ids[$index - 1];
@@ -473,7 +462,6 @@ class cm_attendee_db {
 				$ni = $cindex + 1;
 				$stmt->bind_param('ii', $ni, $cid);
 				$stmt->execute();
-				$stmt->close();
 			}
 		}
 		$this->cm_db->connection->autocommit(true);
@@ -539,10 +527,8 @@ class cm_attendee_db {
 			foreach ($result['badge-type-ids'] as $btid) {
 				$result['badge-type-names'][] = $name_map[$btid] ?? $btid;
 			}
-			$stmt->close();
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -611,7 +597,6 @@ class cm_attendee_db {
 			}
 			$addons[] = $result;
 		}
-		$stmt->close();
 		return $addons;
 	}
 
@@ -625,7 +610,6 @@ class cm_attendee_db {
 		$stmt->execute();
 		$stmt->bind_result($order);
 		$stmt->fetch();
-		$stmt->close();
 		$name = ($addon['name'] ?? '');
 		$description = ($addon['description'] ?? '');
 		$price = (isset($addon['price']) ? (float)$addon['price'] : 0);
@@ -655,7 +639,6 @@ class cm_attendee_db {
 			$min_age, $max_age
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		$this->cm_db->connection->autocommit(true);
 		return $id;
 	}
@@ -689,7 +672,6 @@ class cm_attendee_db {
 			$min_age, $max_age, $addon['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -701,7 +683,6 @@ class cm_attendee_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -714,7 +695,6 @@ class cm_attendee_db {
 		);
 		$stmt->bind_param('ii', $active, $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -735,7 +715,6 @@ class cm_attendee_db {
 			$ids[] = $cid;
 			if ($id == $cid) $index = $cindex;
 		}
-		$stmt->close();
 		if ($index >= 0) {
 			while ($direction < 0 && $index > 0) {
 				$ids[$index] = $ids[$index - 1];
@@ -757,7 +736,6 @@ class cm_attendee_db {
 				$ni = $cindex + 1;
 				$stmt->bind_param('ii', $ni, $cid);
 				$stmt->execute();
-				$stmt->close();
 			}
 		}
 		$this->cm_db->connection->autocommit(true);
@@ -802,7 +780,6 @@ class cm_attendee_db {
 				'order' => $order
 			);
 		}
-		$stmt->close();
 		foreach ($purchases as $i => $purchase) {
 			$addon = $this->get_addon($purchase['addon-id'], $name_map);
 			if ($addon) $purchases[$i] += $addon;
@@ -837,7 +814,6 @@ class cm_attendee_db {
 				$payment_date, $payment_details
 			);
 			$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-			$stmt->close();
 			$ids[] = $id;
 		}
 		return $ids;
@@ -851,7 +827,6 @@ class cm_attendee_db {
 		);
 		$stmt->bind_param('i', $attendee_id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -1001,10 +976,8 @@ class cm_attendee_db {
 			foreach ($result['badge-type-ids'] as $btid) {
 				$result['badge-type-names'][] = $name_map[$btid] ?? $btid;
 			}
-			$stmt->close();
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -1050,7 +1023,6 @@ class cm_attendee_db {
 			}
 			$promo_codes[] = $result;
 		}
-		$stmt->close();
 		return $promo_codes;
 	}
 
@@ -1077,7 +1049,6 @@ class cm_attendee_db {
 			$badge_type_ids, $limit_per_customer, $start_date, $end_date
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		return $id;
 	}
 
@@ -1107,7 +1078,6 @@ class cm_attendee_db {
 			$promo_code['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -1119,7 +1089,6 @@ class cm_attendee_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -1132,7 +1101,6 @@ class cm_attendee_db {
 		);
 		$stmt->bind_param('ii', $active, $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -1185,10 +1153,8 @@ class cm_attendee_db {
 					$added_by, $notes
 				)
 			);
-			$stmt->close();
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -1241,7 +1207,6 @@ class cm_attendee_db {
 				)
 			);
 		}
-		$stmt->close();
 		return $blacklist;
 	}
 
@@ -1292,7 +1257,6 @@ class cm_attendee_db {
 			$normalized_phone_number
 		);
 		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
-		$stmt->close();
 		return $id;
 	}
 
@@ -1345,7 +1309,6 @@ class cm_attendee_db {
 			$entry['id']
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -1357,7 +1320,6 @@ class cm_attendee_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -1422,7 +1384,6 @@ class cm_attendee_db {
 		$stmt->execute();
 		$stmt->bind_result($id);
 		$success = $stmt->fetch();
-		$stmt->close();
 		return $success ? $this->get_blacklist_entry($id) : false;
 	}
 
@@ -1447,10 +1408,8 @@ class cm_attendee_db {
 		$stmt->execute();
 		$stmt->bind_result($id);
 		if ($stmt->fetch()) {
-			$stmt->close();
 			return $id;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -1478,7 +1437,6 @@ class cm_attendee_db {
 				'&tid=' . $payment_txn_id
 			) : null);
 		}
-		$stmt->close();
 		return $result;
 	}
 
@@ -1647,7 +1605,6 @@ class cm_attendee_db {
 				'review-link' => $review_link,
 				'search-content' => $search_content
 			);
-			$stmt->close();
 			$addons = $this->list_addon_purchases($id, $name_map);
 			$result['addons'] = array();
 			$result['addon-ids'] = array();
@@ -1675,7 +1632,6 @@ class cm_attendee_db {
 			}
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
@@ -1849,7 +1805,6 @@ class cm_attendee_db {
 				'search-content' => $search_content
 			);
 		}
-		$stmt->close();
 		foreach ($attendees as $i => $attendee) {
 			$addons = $this->list_addon_purchases($attendee['id'], $name_map);
 			if ($addons) {
@@ -2057,7 +2012,6 @@ class cm_attendee_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$this->delete_addon_purchases($id);
 			$this->cm_ldb->remove_entity($id);
@@ -2126,7 +2080,6 @@ class cm_attendee_db {
 			$status, $type, $txn, $details
 		);
 		$stmt->fetch();
-		$stmt->close();
 		return $success;
 	}
 
@@ -2138,7 +2091,6 @@ class cm_attendee_db {
 		);
 		$stmt->bind_param('s', $email);
 		$count = $stmt->execute() ? $this->cm_db->affected_rows() : false;
-		$stmt->close();
 		if ($count) {
 			$ids = array();
 			$stmt = $this->cm_db->connection->prepare(
@@ -2149,7 +2101,6 @@ class cm_attendee_db {
 			$stmt->execute();
 			$stmt->bind_result($id);
 			while ($stmt->fetch()) $ids[] = $id;
-			$stmt->close();
 			foreach ($ids as $id) {
 				$attendee = $this->get_attendee($id);
 				$this->cm_ldb->remove_entity($id);
@@ -2176,7 +2127,6 @@ class cm_attendee_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$attendee = $this->get_attendee($id);
 			$this->cm_ldb->remove_entity($id);
@@ -2202,7 +2152,6 @@ class cm_attendee_db {
 		);
 		$stmt->bind_param('i', $id);
 		$success = $stmt->execute();
-		$stmt->close();
 		if ($success) {
 			$attendee = $this->get_attendee($id);
 			$this->cm_ldb->remove_entity($id);
@@ -2237,7 +2186,6 @@ class cm_attendee_db {
 			$timelines[$btid][0][$timestamp] = ++$counters[$btid][0];
 			$timelines['*'][0][$timestamp] = ++$counters['*'][0];
 		}
-		$stmt->close();
 
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT UNIX_TIMESTAMP(`payment_date`), `badge_type_id`'.
@@ -2255,7 +2203,6 @@ class cm_attendee_db {
 			$timelines[$btid][1][$timestamp] = ++$counters[$btid][1];
 			$timelines['*'][1][$timestamp] = ++$counters['*'][1];
 		}
-		$stmt->close();
 
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT UNIX_TIMESTAMP(`print_first_time`), `badge_type_id`'.
@@ -2272,7 +2219,6 @@ class cm_attendee_db {
 			$timelines[$btid][2][$timestamp] = ++$counters[$btid][2];
 			$timelines['*'][2][$timestamp] = ++$counters['*'][2];
 		}
-		$stmt->close();
 
 		$stmt = $this->cm_db->connection->prepare(
 			'SELECT UNIX_TIMESTAMP(`checkin_first_time`), `badge_type_id`'.
@@ -2289,7 +2235,6 @@ class cm_attendee_db {
 			$timelines[$btid][3][$timestamp] = ++$counters[$btid][3];
 			$timelines['*'][3][$timestamp] = ++$counters['*'][3];
 		}
-		$stmt->close();
 
 		ksort($timestamps);
 		return array(
@@ -2298,5 +2243,4 @@ class cm_attendee_db {
 			'timelines' => $timelines
 		);
 	}
-
 }
