@@ -215,7 +215,7 @@ class cm_mail_db {
 
 	public function get_contact_address($name) {
 		if (!$name) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `contact_address`'.
 			' FROM `mail_templates`' .
 			' WHERE `name` = ? LIMIT 1'
@@ -229,7 +229,7 @@ class cm_mail_db {
 
 	public function get_mail_template($name) {
 		if (!$name) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `name`, `contact_address`, `from`, `bcc`, `subject`, `type`, `body`'.
 			' FROM `mail_templates`' .
 			' WHERE `name` = ? LIMIT 1'
@@ -254,7 +254,7 @@ class cm_mail_db {
 
 	public function list_mail_templates() {
 		$templates = array();
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `name`, `contact_address`, `from`, `bcc`, `subject`, `type`, `body`'.
 			' FROM `mail_templates`' .
 			' ORDER BY `name`'
@@ -278,7 +278,7 @@ class cm_mail_db {
 
 	public function set_mail_template($template) {
 		if (!$template || !isset($template['name']) || !$template['name']) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'INSERT INTO `mail_templates` SET '.
 			'`name` = ?, `contact_address` = ?, `from` = ?, `bcc` = ?, `subject` = ?, `type` = ?, `body` = ?'.
 			' ON DUPLICATE KEY UPDATE '.
@@ -295,7 +295,7 @@ class cm_mail_db {
 
 	public function clear_mail_template($name) {
 		if (!$name) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'DELETE FROM `mail_templates`' .
 			' WHERE `name` = ? LIMIT 1'
 		);

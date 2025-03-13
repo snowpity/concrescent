@@ -169,7 +169,7 @@ if ($submitted) {
       } else {
           $changed = $apdb->update_applicant($item);
       }
-  } catch (mysqli_sql_exception|InvalidArgumentException $e) {
+  } catch (PDOException|InvalidArgumentException $e) {
       $errorMessage = $e->getMessage();
   }
 

@@ -140,7 +140,7 @@ if ($submitted) {
 			$id = $atdb->create_attendee($item, $fdb);
 			$new = ($id === false);
 			$changed = ($id !== false);
-		} catch (mysqli_sql_exception|InvalidArgumentException $e) {
+		} catch (PDOException|InvalidArgumentException $e) {
 			$errorMessage = $e->getMessage();
 		}
 	} else {

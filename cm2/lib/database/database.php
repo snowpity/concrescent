@@ -1,24 +1,80 @@
 <?php
 
 require_once __DIR__ .'/../../config/config.php';
-require_once __DIR__ .'/mysqli_shim.php';
+
+// This decorator class provides convenient MySQLi compatibility
+class PDOStatement_wrap
+{
+	public PDOStatement $stmt;
+
+	public function __construct(PDOStatement $stmt)
+	{
+		$this->stmt = $stmt;
+	}
+
+	public function __call($method, $args)
+	{
+		return call_user_func_array([$this->stmt, $method], $args);
+	}
+	public function __get($key)
+	{
+		return $this->stmt->$key;
+	}
+	public function __set($key, $val)
+	{
+		return $this->stmt->$key = $val;
+	}
+
+	public function bind_param(string $types, &...$vars): bool
+	{
+		assert(strlen($types) === count($vars));
+
+		$type_map = [
+			'i' => PDO::PARAM_INT,
+			'd' => PDO::PARAM_STR, // `double` ain't supported by PDO :[
+			's' => PDO::PARAM_STR,
+			'b' => PDO::PARAM_LOB,
+		];
+
+		for($i = 0; $i !== strlen($types); ++$i)
+		{
+			$type = $type_map[$types[$i]];
+			$r = $this->stmt->bindParam($i + 1, $vars[$i], $type);
+			assert($r);
+		}
+
+		return true;
+	}
+
+	public function bind_result(mixed &...$vars): bool
+	{
+		$this->stmt->setFetchMode(PDO::FETCH_BOUND);
+		for($i = 0; $i !== count($vars); ++$i)
+		{
+			$r = $this->stmt->bindColumn($i + 1, $vars[$i]);
+			assert($r);
+		}
+		return true;
+	}
+}
 
 class cm_db {
 
-	public mysqli $connection;
+	public PDO $connection;
 
 	public function __construct() {
 		$config = $GLOBALS['cm_config']['database'];
 
-		$this->connection = new mysqli(
-			$config['host'], $config['username'],
-			$config['password'], $config['database']
+		$host = $config['host'];
+		$dbname = $config['database'];
+		// The charset must be utf8mb4 for full Unicode® support
+		$this->connection = new PDO(
+			"mysql:host=$host;dbname=$dbname;charset=utf8mb4",
+			$config['username'], $config['password']
 		);
 
 		// Set the time zone
-		$stmt = $this->connection->prepare('set time_zone = ?');
-		$stmt->bind_param('s', $config['timezone']);
-		$stmt->execute();
+		$this->connection->prepare('set time_zone = ?')->execute([$config['timezone']]);
 	}
 
 	public function translate_query(string $query): string
@@ -33,17 +89,20 @@ class cm_db {
 
 	public function query(string $query): PDOStatement
 	{
-		return $this->connection->pdo->query($this->translate_query($query));
+		return $this->connection->query($this->translate_query($query));
 	}
 
-	public function prepare(string $query): PDOStatement
+	public function prepare(string $query): PDOStatement_wrap
 	{
-		return $this->connection->pdo->prepare($this->translate_query($query));
+		$stmt = $this->connection->prepare($this->translate_query($query));
+		return new PDOStatement_wrap($stmt);
 	}
 
-	public function execute(string $query, ?array $params = null): PDOStatement
+	public function execute(string $query, ?array $params = null): PDOStatement_wrap
 	{
-		return $this->prepare($query)->execute($params);
+		$stmt = $this->prepare($query);
+		$stmt->execute($params);
+		return $stmt;
 	}
 
 	// The stuff calling this needs to be moved elsewhere, perhaps a separate database-init page.
@@ -93,13 +152,13 @@ class cm_db {
 	public function last_insert_id(): string|false
 	{
 		// TODO (Mr. Metric): Check if other database engines we want compat with return a result the callers can use sanely.
-		return $this->connection->pdo->lastInsertId();
+		return $this->connection->lastInsertId();
 	}
 
 	public function affected_rows(): int
 	{
 		// TODO (Mr. Metric): The documentation says:
 		// This method returns "0" (zero) with the SQLite driver at all times, and with the PostgreSQL driver only when setting the `PDO::ATTR_CURSOR` statement attribute to `PDO::CURSOR_SCROLL`.
-		return $this->connection->pdo->rowCount();
+		return $this->connection->rowCount();
 	}
 }

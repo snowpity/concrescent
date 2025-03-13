@@ -23,7 +23,7 @@ class cm_misc_db {
 
 	public function getval($key, $def = null) {
 		if (!$key) return $def;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `value` FROM `config_misc`' .
 			' WHERE `key` = ? LIMIT 1'
 		);
@@ -36,7 +36,7 @@ class cm_misc_db {
 
 	public function setval($key, $value) {
 		if (!$key) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'INSERT INTO `config_misc`' .
 			' SET `key` = ?, `value` = ?'.
 			' ON DUPLICATE KEY UPDATE `value` = ?'
@@ -48,7 +48,7 @@ class cm_misc_db {
 
 	public function clearval($key) {
 		if (!$key) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'DELETE FROM `config_misc`' .
 			' WHERE `key` = ? LIMIT 1'
 		);
@@ -92,7 +92,7 @@ class cm_misc_db {
 
 	public function download_file($name, $attachment = false) {
 		if (!$name) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `mime_type`, `data`'.
 			' FROM `config_misc_files`' .
 			' WHERE `file_name` = ? LIMIT 1'
@@ -122,7 +122,7 @@ class cm_misc_db {
 
 	public function get_file_image_size($name) {
 		if (!$name) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `image_w`, `image_h`'.
 			' FROM `config_misc_files`' .
 			' WHERE `file_name` = ? LIMIT 1'
@@ -139,7 +139,7 @@ class cm_misc_db {
 
 	public function delete_file($name) {
 		if (!$name) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'DELETE FROM `config_misc_files`' .
 			' WHERE `file_name` = ? LIMIT 1'
 		);
