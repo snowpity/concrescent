@@ -45,7 +45,7 @@ class cm_forms_db {
 
 	public function get_custom_text($name) {
 		if (!$name) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `text`'.
 			' FROM `form_custom_text`' .
 			' WHERE `context` = ? AND `name` = ? LIMIT 1'
@@ -54,16 +54,14 @@ class cm_forms_db {
 		$stmt->execute();
 		$stmt->bind_result($text);
 		if ($stmt->fetch()) {
-			$stmt->close();
 			return $text;
 		}
-		$stmt->close();
 		return false;
 	}
 
 	public function list_custom_text() {
 		$texts = array();
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `name`, `text`'.
 			' FROM `form_custom_text`' .
 			' WHERE `context` = ? ORDER BY `name`'
@@ -74,13 +72,12 @@ class cm_forms_db {
 		while ($stmt->fetch()) {
 			$texts[$name] = $text;
 		}
-		$stmt->close();
 		return $texts;
 	}
 
 	public function set_custom_text($name, $text) {
 		if (!$name) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'INSERT INTO `form_custom_text` SET '.
 			'`context` = ?, `name` = ?, `text` = ?'.
 			' ON DUPLICATE KEY UPDATE '.
@@ -92,25 +89,23 @@ class cm_forms_db {
 			$this->context, $name, $text
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
 	public function clear_custom_text($name) {
 		if (!$name) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'DELETE FROM `form_custom_text`' .
 			' WHERE `context` = ? AND `name` = ? LIMIT 1'
 		);
 		$stmt->bind_param('ss', $this->context, $name);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
 	public function get_question($id) {
 		if (!$id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `question_id`, `context`, `order`,'.
 			' `title`, `text`, `type`, `values`,'.
 			' `active`, `listed`, `exposed`, `visible`, `required`'.
@@ -139,16 +134,14 @@ class cm_forms_db {
 				'visible' => ($visible ? explode(',', $visible) : array()),
 				'required' => ($required ? explode(',', $required) : array())
 			);
-			$stmt->close();
 			return $result;
 		}
-		$stmt->close();
 		return false;
 	}
 
 	public function list_questions() {
 		$questions = array();
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `question_id`, `context`, `order`,'.
 			' `title`, `text`, `type`, `values`,'.
 			' `active`, `listed`, `exposed`, `visible`, `required`'.
@@ -178,14 +171,13 @@ class cm_forms_db {
 				'required' => ($required ? explode(',', $required) : array())
 			);
 		}
-		$stmt->close();
 		return $questions;
 	}
 
 	public function create_question($question) {
 		if (!$question) return false;
-		$this->cm_db->connection->autocommit(false);
-		$stmt = $this->cm_db->connection->prepare(
+		$this->cm_db->connection->beginTransaction();
+		$stmt = $this->cm_db->prepare(
 			'SELECT IFNULL(MAX(`order`),0)+1 FROM '.
 			'`form_questions`' .
 			' WHERE `context` = ?'
@@ -194,7 +186,6 @@ class cm_forms_db {
 		$stmt->execute();
 		$stmt->bind_result($order);
 		$stmt->fetch();
-		$stmt->close();
 		$title = ($question['title'] ?? '');
 		$text = ($question['text'] ?? '');
 		$type = ($question['type'] ?? '');
@@ -204,7 +195,7 @@ class cm_forms_db {
 		$exposed = (isset($question['exposed']) ? ($question['exposed'] ? 1 : 0) : 0);
 		$visible = (isset($question['visible']) ? implode(',', $question['visible']) : '*');
 		$required = (isset($question['required']) ? implode(',', $question['required']) : '');
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'INSERT INTO `form_questions` SET '.
 			'`context` = ?, `order` = ?, '.
 			'`title` = ?, `text` = ?, `type` = ?, `values` = ?, '.
@@ -216,9 +207,8 @@ class cm_forms_db {
 			$title, $text, $type, $values,
 			$active, $listed, $exposed, $visible, $required
 		);
-		$id = $stmt->execute() ? $this->cm_db->connection->insert_id : false;
-		$stmt->close();
-		$this->cm_db->connection->autocommit(true);
+		$id = $stmt->execute() ? $this->cm_db->last_insert_id() : false;
+		$this->cm_db->connection->commit();
 		return $id;
 	}
 
@@ -233,7 +223,7 @@ class cm_forms_db {
 		$exposed = (isset($question['exposed']) ? ($question['exposed'] ? 1 : 0) : 0);
 		$visible = (isset($question['visible']) ? implode(',', $question['visible']) : '*');
 		$required = (isset($question['required']) ? implode(',', $question['required']) : '');
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `form_questions` SET '.
 			'`title` = ?, `text` = ?, `type` = ?, `values` = ?, '.
 			'`active` = ?, `listed` = ?, `exposed` = ?, `visible` = ?, `required` = ?'.
@@ -247,25 +237,23 @@ class cm_forms_db {
 			$this->context
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
 	public function delete_question($id) {
 		if (!$id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'DELETE FROM `form_questions`' .
 			' WHERE `question_id` = ? AND `context` = ? LIMIT 1'
 		);
 		$stmt->bind_param('is', $id, $this->context);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
 	public function get_question_order() {
 		$ids = array();
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `question_id`'.
 			' FROM `form_questions`' .
 			' WHERE `context` = ? ORDER BY `order`'
@@ -274,13 +262,12 @@ class cm_forms_db {
 		$stmt->execute();
 		$stmt->bind_result($id);
 		while ($stmt->fetch()) $ids[] = $id;
-		$stmt->close();
 		return $ids;
 	}
 
 	public function set_question_order($newids) {
 		if (!$newids) return false;
-		$this->cm_db->connection->autocommit(false);
+		$this->cm_db->connection->beginTransaction();
 		$oldids = $this->get_question_order();
 		foreach ($oldids as $id) {
 			if (!in_array($id, $newids)) {
@@ -288,7 +275,7 @@ class cm_forms_db {
 			}
 		}
 		foreach ($newids as $i => $id) {
-			$stmt = $this->cm_db->connection->prepare(
+			$stmt = $this->cm_db->prepare(
 				'UPDATE `form_questions`' .
 				' SET `order` = ?'.
 				' WHERE `question_id` = ? AND `context` = ? LIMIT 1'
@@ -296,9 +283,8 @@ class cm_forms_db {
 			$ni = $i + 1;
 			$stmt->bind_param('iis', $ni, $id, $this->context);
 			$stmt->execute();
-			$stmt->close();
 		}
-		$this->cm_db->connection->autocommit(true);
+		$this->cm_db->connection->commit();
 		return $this->get_question_order();
 	}
 
@@ -318,7 +304,7 @@ class cm_forms_db {
 
 	public function get_answer($context_id, $question_id) {
 		if (!$context_id || !$question_id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `answer`'.
 			' FROM `form_answers`' .
 			' WHERE `question_id` = ? AND `context` = ? AND `context_id` = ? LIMIT 1'
@@ -327,17 +313,15 @@ class cm_forms_db {
 		$stmt->execute();
 		$stmt->bind_result($text);
 		if ($stmt->fetch()) {
-			$stmt->close();
 			return ($text ? explode("\n", $text) : array());
 		}
-		$stmt->close();
 		return false;
 	}
 
 	public function list_answers($context_id) {
 		if (!$context_id) return false;
 		$answers = array();
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `question_id`, `answer`'.
 			' FROM `form_answers`' .
 			' WHERE `context` = ? AND `context_id` = ? ORDER BY `question_id`'
@@ -348,13 +332,12 @@ class cm_forms_db {
 		while ($stmt->fetch()) {
 			$answers[$question_id] = ($text ? explode("\n", $text) : array());
 		}
-		$stmt->close();
 		return $answers;
 	}
 
 	public function set_answer($context_id, $question_id, $answer) {
 		if (!$context_id || !$question_id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'INSERT INTO `form_answers` SET '.
 			'`question_id` = ?, `context` = ?, `context_id` = ?, `answer` = ?'.
 			' ON DUPLICATE KEY UPDATE '.
@@ -367,7 +350,6 @@ class cm_forms_db {
 			$question_id, $this->context, $context_id, $text
 		);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
@@ -386,26 +368,23 @@ class cm_forms_db {
 
 	public function clear_answer($context_id, $question_id) {
 		if (!$context_id || !$question_id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'DELETE FROM `form_answers`' .
 			' WHERE `question_id` = ? AND `context` = ? AND `context_id` = ? LIMIT 1'
 		);
 		$stmt->bind_param('isi', $question_id, $this->context, $context_id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
 
 	public function clear_answers($context_id) {
 		if (!$context_id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'DELETE FROM `form_answers`' .
 			' WHERE `context` = ? AND `context_id` = ?'
 		);
 		$stmt->bind_param('si', $this->context, $context_id);
 		$success = $stmt->execute();
-		$stmt->close();
 		return $success;
 	}
-
 }
