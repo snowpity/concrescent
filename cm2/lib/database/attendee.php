@@ -171,7 +171,7 @@ class cm_attendee_db {
 
 	public function get_badge_type($id) {
 		if (!$id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT b.`id`, b.`order`, b.`name`, b.`description`, b.`rewards`,'.
 			' b.`price`, b.`sales_tax`, b.`payable_onsite`, b.`active`, b.`quantity`,'.
 			' b.`start_date`, b.`end_date`, b.`min_age`, b.`max_age`,'.
@@ -222,7 +222,7 @@ class cm_attendee_db {
 
 	public function get_badge_type_name_map() {
 		$badge_types = array();
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `id`, `name`'.
 			' FROM `attendee_badge_types`' .
 			' ORDER BY `order`'
@@ -237,7 +237,7 @@ class cm_attendee_db {
 
 	public function list_badge_type_names() {
 		$badge_types = array();
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `id`, `name`'.
 			' FROM `attendee_badge_types`' .
 			' ORDER BY `order`'
@@ -284,7 +284,7 @@ class cm_attendee_db {
 			$query .= ' WHERE '. implode(' ', $whereClause);
 		}
 
-		$stmt = $this->cm_db->connection->prepare($query . ' ORDER BY b.`order`');
+		$stmt = $this->cm_db->prepare($query . ' ORDER BY b.`order`');
 		if ($active_only) {
 			$stmt->bind_param(
 				's',
@@ -333,7 +333,7 @@ class cm_attendee_db {
 	public function create_badge_type($badge_type) {
 		if (!$badge_type) return false;
 		$this->cm_db->connection->beginTransaction();
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT IFNULL(MAX(`order`),0)+1 FROM '.
 			'`attendee_badge_types`'
 		);
@@ -352,7 +352,7 @@ class cm_attendee_db {
 		$end_date = ($badge_type['end-date'] ?? null);
 		$min_age = ($badge_type['min-age'] ?? null);
 		$max_age = ($badge_type['max-age'] ?? null);
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'INSERT INTO `attendee_badge_types` SET '.
 			'`order` = ?, `name` = ?, `description` = ?, `rewards` = ?, '.
 			'`price` = ?, `sales_tax` = ?, `payable_onsite` = ?, `active` = ?, `quantity` = ?, '.
@@ -383,7 +383,7 @@ class cm_attendee_db {
 		$end_date = ($badge_type['end-date'] ?? null);
 		$min_age = ($badge_type['min-age'] ?? null);
 		$max_age = ($badge_type['max-age'] ?? null);
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `attendee_badge_types` SET '.
 			'`name` = ?, `description` = ?, `rewards` = ?, '.
 			'`price` = ?, `sales_tax` = ?,`payable_onsite` = ?, `active` = ?, `quantity` = ?, '.
@@ -403,7 +403,7 @@ class cm_attendee_db {
 
 	public function delete_badge_type($id) {
 		if (!$id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'DELETE FROM `attendee_badge_types`' .
 			' WHERE `id` = ? LIMIT 1'
 		);
@@ -415,7 +415,7 @@ class cm_attendee_db {
 	public function activate_badge_type($id, $active) {
 		if (!$id) return false;
 		$active = $active ? 1 : 0;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `attendee_badge_types`' .
 			' SET `active` = ? WHERE `id` = ? LIMIT 1'
 		);
@@ -429,7 +429,7 @@ class cm_attendee_db {
 		$this->cm_db->connection->beginTransaction();
 		$ids = array();
 		$index = -1;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `id` FROM '.
 			'`attendee_badge_types`' .
 			' ORDER BY `order`'
@@ -455,7 +455,7 @@ class cm_attendee_db {
 				$index++;
 			}
 			foreach ($ids as $cindex => $cid) {
-				$stmt = $this->cm_db->connection->prepare(
+				$stmt = $this->cm_db->prepare(
 					'UPDATE `attendee_badge_types`' .
 					' SET `order` = ? WHERE `id` = ? LIMIT 1'
 				);
@@ -478,7 +478,7 @@ class cm_attendee_db {
 	public function get_addon($id, $name_map = null) {
 		if (!$id) return false;
 		if (!$name_map) $name_map = $this->get_badge_type_name_map();
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT b.`id`, b.`order`, b.`name`, b.`description`, b.`price`,'.
             ' b.`sales_tax`, '.
 			' b.`payable_onsite`, b.`active`, b.`badge_type_ids`, b.`quantity`,'.
@@ -556,7 +556,7 @@ class cm_attendee_db {
 			$query .= ($first ? ' WHERE' : ' AND').' b.`payable_onsite`';
 			$first = false;
 		}
-		$stmt = $this->cm_db->connection->prepare($query . ' ORDER BY b.`order`');
+		$stmt = $this->cm_db->prepare($query . ' ORDER BY b.`order`');
 		$stmt->execute();
 		$stmt->bind_result(
 			$id, $order, $name, $description, $price, $salesTax,
@@ -603,7 +603,7 @@ class cm_attendee_db {
 	public function create_addon($addon) {
 		if (!$addon) return false;
 		$this->cm_db->connection->beginTransaction();
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT IFNULL(MAX(`order`),0)+1 FROM '.
 			'`attendee_addons`'
 		);
@@ -622,7 +622,7 @@ class cm_attendee_db {
 		$end_date = ($addon['end-date'] ?? null);
 		$min_age = ($addon['min-age'] ?? null);
 		$max_age = ($addon['max-age'] ?? null);
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'INSERT INTO `attendee_addons` SET '.
 			'`order` = ?, `name` = ?, `description` = ?, `price` = ?, '.
             '`sales_tax` = ?, '.
@@ -657,7 +657,7 @@ class cm_attendee_db {
 		$end_date = ($addon['end-date'] ?? null);
 		$min_age = ($addon['min-age'] ?? null);
 		$max_age = ($addon['max-age'] ?? null);
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `attendee_addons` SET '.
 			'`name` = ?, `description` = ?, `price` = ?, `sales_tax` = ?,'.
 			'`payable_onsite` = ?, `active` = ?, `badge_type_ids` = ?, '.
@@ -677,7 +677,7 @@ class cm_attendee_db {
 
 	public function delete_addon($id) {
 		if (!$id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'DELETE FROM `attendee_addons`' .
 			' WHERE `id` = ? LIMIT 1'
 		);
@@ -689,7 +689,7 @@ class cm_attendee_db {
 	public function activate_addon($id, $active) {
 		if (!$id) return false;
 		$active = $active ? 1 : 0;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `attendee_addons`' .
 			' SET `active` = ? WHERE `id` = ? LIMIT 1'
 		);
@@ -703,7 +703,7 @@ class cm_attendee_db {
 		$this->cm_db->connection->beginTransaction();
 		$ids = array();
 		$index = -1;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `id` FROM '.
 			'`attendee_addons`' .
 			' ORDER BY `order`'
@@ -729,7 +729,7 @@ class cm_attendee_db {
 				$index++;
 			}
 			foreach ($ids as $cindex => $cid) {
-				$stmt = $this->cm_db->connection->prepare(
+				$stmt = $this->cm_db->prepare(
 					'UPDATE `attendee_addons`' .
 					' SET `order` = ? WHERE `id` = ? LIMIT 1'
 				);
@@ -746,7 +746,7 @@ class cm_attendee_db {
 		if (!$attendee_id) return false;
 		if (!$name_map) $name_map = $this->get_badge_type_name_map();
 		$purchases = array();
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT b.`id`, b.`attendee_id`, b.`addon_id`,'.
 			' b.`payment_price`, b.`payment_status`, b.`payment_type`,'.
 			' b.`payment_txn_id`, b.`payment_txn_amt`,'.
@@ -799,7 +799,7 @@ class cm_attendee_db {
 			$payment_txn_amt = ($addon['payment-txn-amt'] ?? null);
 			$payment_date = ($addon['payment-date'] ?? null);
 			$payment_details = ($addon['payment-details'] ?? null);
-			$stmt = $this->cm_db->connection->prepare(
+			$stmt = $this->cm_db->prepare(
 				'INSERT INTO `attendee_addon_purchases` SET '.
 				'`attendee_id` = ?, `addon_id` = ?, `payment_price` = ?, '.
 				'`payment_status` = ?, `payment_type` = ?, '.
@@ -821,7 +821,7 @@ class cm_attendee_db {
 
 	public function delete_addon_purchases($attendee_id) {
 		if (!$attendee_id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'DELETE FROM `attendee_addon_purchases`' .
 			' WHERE `attendee_id` = ?'
 		);
@@ -832,7 +832,7 @@ class cm_attendee_db {
 
 	public function update_addon_purchase_payment_status($attendee_id, $status, $type, $txn, $details) {
 		if (!$attendee_id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `attendee_addon_purchases` SET '.
 			'`payment_date` = case when `payment_status` = \'Completed\' then `payment_date` when `payment_status` != \'Completed\' and ? = \'Completed\' then UTC_TIMESTAMP() else NULL end,'.
 			'`payment_status` = ?, `payment_type` = ?, '.
@@ -947,7 +947,7 @@ class cm_attendee_db {
 				' WHERE p.`'.($is_code ? 'code' : 'id').'` = ? LIMIT 1'
 			);
 		}
-		$stmt = $this->cm_db->connection->prepare($query);
+		$stmt = $this->cm_db->prepare($query);
 		$stmt->bind_param(($is_code ? 's' : 'i'), $id);
 		$stmt->execute();
 		$stmt->bind_result(
@@ -984,7 +984,7 @@ class cm_attendee_db {
 	public function list_promo_codes($name_map = null) {
 		if (!$name_map) $name_map = $this->get_badge_type_name_map();
 		$promo_codes = array();
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT p.`id`, p.`code`, p.`description`, p.`price`,'.
 			' p.`percentage`, p.`active`, p.`badge_type_ids`,'.
 			' p.`limit_per_customer`, p.`start_date`, p.`end_date`,'.
@@ -1037,7 +1037,7 @@ class cm_attendee_db {
 		$limit_per_customer = ($promo_code['limit-per-customer'] ?? null);
 		$start_date = ($promo_code['start-date'] ?? null);
 		$end_date = ($promo_code['end-date'] ?? null);
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'INSERT INTO `attendee_promo_codes` SET '.
 			'`code` = ?, `description` = ?, `price` = ?, '.
 			'`percentage` = ?, `active` = ?, `badge_type_ids` = ?, '.
@@ -1064,7 +1064,7 @@ class cm_attendee_db {
 		$limit_per_customer = ($promo_code['limit-per-customer'] ?? null);
 		$start_date = ($promo_code['start-date'] ?? null);
 		$end_date = ($promo_code['end-date'] ?? null);
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `attendee_promo_codes` SET '.
 			'`code` = ?, `description` = ?, `price` = ?, '.
 			'`percentage` = ?, `active` = ?, `badge_type_ids` = ?, '.
@@ -1083,7 +1083,7 @@ class cm_attendee_db {
 
 	public function delete_promo_code($id) {
 		if (!$id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'DELETE FROM `attendee_promo_codes`' .
 			' WHERE `id` = ? LIMIT 1'
 		);
@@ -1095,7 +1095,7 @@ class cm_attendee_db {
 	public function activate_promo_code($id, $active) {
 		if (!$id) return false;
 		$active = $active ? 1 : 0;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `attendee_promo_codes`' .
 			' SET `active` = ? WHERE `id` = ? LIMIT 1'
 		);
@@ -1106,7 +1106,7 @@ class cm_attendee_db {
 
 	public function get_blacklist_entry($id) {
 		if (!$id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `id`, `first_name`, `last_name`, `fandom_name`,'.
 			' `email_address`, `phone_number`, `added_by`, `notes`,'.
 			' `normalized_real_name`,'.
@@ -1160,7 +1160,7 @@ class cm_attendee_db {
 
 	public function list_blacklist_entries() {
 		$blacklist = array();
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `id`, `first_name`, `last_name`, `fandom_name`,'.
 			' `email_address`, `phone_number`, `added_by`, `notes`,'.
 			' `normalized_real_name`,'.
@@ -1236,7 +1236,7 @@ class cm_attendee_db {
 		if (!$normalized_fandom_name) $normalized_fandom_name = '';
 		if (!$normalized_email_address) $normalized_email_address = '';
 		if (!$normalized_phone_number) $normalized_phone_number = '';
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'INSERT INTO `attendee_blacklist` SET '.
 			'`first_name` = ?, `last_name` = ?, `fandom_name` = ?, '.
 			'`email_address` = ?, `phone_number` = ?, `added_by` = ?, `notes` = ?, '.
@@ -1286,7 +1286,7 @@ class cm_attendee_db {
 		if (!$normalized_fandom_name) $normalized_fandom_name = '';
 		if (!$normalized_email_address) $normalized_email_address = '';
 		if (!$normalized_phone_number) $normalized_phone_number = '';
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `attendee_blacklist` SET '.
 			'`first_name` = ?, `last_name` = ?, `fandom_name` = ?, '.
 			'`email_address` = ?, `phone_number` = ?, `added_by` = ?, `notes` = ?, '.
@@ -1314,7 +1314,7 @@ class cm_attendee_db {
 
 	public function delete_blacklist_entry($id) {
 		if (!$id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'DELETE FROM `attendee_blacklist`' .
 			' WHERE `id` = ? LIMIT 1'
 		);
@@ -1375,7 +1375,7 @@ class cm_attendee_db {
 			$bind_params[] = &$normalized_phone_number;
 		}
 		if (!$query_params) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `id` FROM '.
 			'`attendee_blacklist`' .
 			' WHERE '.implode(' OR ', $query_params).' LIMIT 1'
@@ -1389,7 +1389,7 @@ class cm_attendee_db {
 
 	public function lookup_attendee($person) {
 		if (!$person) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `id` FROM `attendees`' .
 			' WHERE LCASE(`first_name`) = LCASE(?)'.
 			' AND LCASE(`last_name`) = LCASE(?)'.
@@ -1418,7 +1418,7 @@ class cm_attendee_db {
 	public function retrieve_attendee_reviewlinks($email) {
 		if (!$email) return false;
 		$result = array();
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT `payment_group_uuid`,  `payment_txn_id` FROM `attendees`' .
 			' WHERE LCASE(`email_address`) = LCASE(?)'.
 			' AND `payment_status` = "Completed"'.
@@ -1467,7 +1467,7 @@ class cm_attendee_db {
 		} else {
 			$query .= ' WHERE `uuid` = ? LIMIT 1';
 		}
-		$stmt = $this->cm_db->connection->prepare($query);
+		$stmt = $this->cm_db->prepare($query);
 		if ($id) {
 			if ($uuid) $stmt->bind_param('is', $id, $uuid);
 			else $stmt->bind_param('i', $id);
@@ -1670,7 +1670,7 @@ class cm_attendee_db {
 			$bind[0] .= 's';
 			$bind[] = &$tid;
 		}
-		$stmt = $this->cm_db->connection->prepare($query . ' ORDER BY `id`');
+		$stmt = $this->cm_db->prepare($query . ' ORDER BY `id`');
 		if (!$first) call_user_func_array(array($stmt, 'bind_param'), $bind);
 		$stmt->execute();
 		$stmt->bind_result(
@@ -1866,7 +1866,7 @@ class cm_attendee_db {
 		$payment_txn_amt = ($attendee['payment-txn-amt'] ?? null);
 		$payment_date = ($attendee['payment-date'] ?? null);
 		$payment_details = ($attendee['payment-details'] ?? null);
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'INSERT INTO `attendees` SET '.
 			'`uuid` = UUID(), `date_created` = NOW(), `date_modified` = NOW(), '.
 			'`badge_type_id` = ?, `notes` = ?, `first_name` = ?, `last_name` = ?, '.
@@ -1949,7 +1949,7 @@ class cm_attendee_db {
 		$payment_txn_amt = ($attendee['payment-txn-amt'] ?? null);
 		$payment_date = ($attendee['payment-date'] ?? null);
 		$payment_details = ($attendee['payment-details'] ?? null);
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `attendees` SET '.
 			'`date_modified` = NOW(), '.
 			'`badge_type_id` = ?, `notes` = ?, `first_name` = ?, `last_name` = ?, '.
@@ -2006,7 +2006,7 @@ class cm_attendee_db {
 
 	public function delete_attendee($id) {
 		if (!$id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'DELETE FROM `attendees`' .
 			' WHERE `id` = ? LIMIT 1'
 		);
@@ -2021,7 +2021,7 @@ class cm_attendee_db {
 
 	public function update_attendee_notes($id, $newnote){
 		if (!$id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `attendees` SET '.
 			'`notes` = ?'.
 			' WHERE `id` = ? LIMIT 1'
@@ -2041,7 +2041,7 @@ class cm_attendee_db {
 	}
 	public function update_payment_status($id, $status, $type, $txn, $details) {
 		if (!$id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `attendees` SET '.
 			'`payment_date` = case when  `payment_status` = \'Completed\' then `payment_date` when `payment_status` != \'Completed\' and ? = \'Completed\' then UTC_TIMESTAMP() else  `payment_date` end ,'.
 			'`payment_status` = ?, `payment_type` = ?, '.
@@ -2067,7 +2067,7 @@ class cm_attendee_db {
 	}
 	public function get_payment_status($id, &$status, &$type, &$txn, &$details) {
 		if (!$id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'select '.
 			'`payment_status`, `payment_type`, '.
 			'`payment_txn_id`, `payment_details`'.
@@ -2085,7 +2085,7 @@ class cm_attendee_db {
 
 	public function unsubscribe_email_address($email) {
 		if (!$email) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `attendees` SET '.
 			'`subscribed` = FALSE WHERE LCASE(`email_address`) = LCASE(?)'
 		);
@@ -2093,7 +2093,7 @@ class cm_attendee_db {
 		$count = $stmt->execute() ? $this->cm_db->affected_rows() : false;
 		if ($count) {
 			$ids = array();
-			$stmt = $this->cm_db->connection->prepare(
+			$stmt = $this->cm_db->prepare(
 				'SELECT `id` FROM `attendees`' .
 				' WHERE LCASE(`email_address`) = LCASE(?)'
 			);
@@ -2112,7 +2112,7 @@ class cm_attendee_db {
 
 	public function attendee_printed($id, $reset = false) {
 		if (!$id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `attendees` SET '.
 			($reset ? (
 				'`print_count` = NULL, '.
@@ -2137,7 +2137,7 @@ class cm_attendee_db {
 
 	public function attendee_checked_in($id, $reset = false) {
 		if (!$id) return false;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'UPDATE `attendees` SET '.
 			($reset ? (
 				'`checkin_count` = NULL, '.
@@ -2172,7 +2172,7 @@ class cm_attendee_db {
 		$counters['*'] = array(0, 0, 0, 0);
 		$timelines['*'] = array(array(), array(), array(), array());
 
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT UNIX_TIMESTAMP(`date_created`), `badge_type_id`'.
 			' FROM `attendees`' .
 			' ORDER BY `date_created`'
@@ -2187,7 +2187,7 @@ class cm_attendee_db {
 			$timelines['*'][0][$timestamp] = ++$counters['*'][0];
 		}
 
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT UNIX_TIMESTAMP(`payment_date`), `badge_type_id`'.
 			' FROM `attendees`' .
 			' WHERE `payment_status` = \'Completed\''.
@@ -2204,7 +2204,7 @@ class cm_attendee_db {
 			$timelines['*'][1][$timestamp] = ++$counters['*'][1];
 		}
 
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT UNIX_TIMESTAMP(`print_first_time`), `badge_type_id`'.
 			' FROM `attendees`' .
 			' WHERE `print_first_time` IS NOT NULL'.
@@ -2220,7 +2220,7 @@ class cm_attendee_db {
 			$timelines['*'][2][$timestamp] = ++$counters['*'][2];
 		}
 
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'SELECT UNIX_TIMESTAMP(`checkin_first_time`), `badge_type_id`'.
 			' FROM `attendees`' .
 			' WHERE `checkin_first_time` IS NOT NULL'.
