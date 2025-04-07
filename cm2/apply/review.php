@@ -55,12 +55,13 @@ foreach ($applications as $application) {
 		$item['application-status'] = $application['application-status'];
 		$item['payment-status'] = $application['payment-status'];
 		$items[] = $item;
-		$salesTaxPart = $item['sales-tax'] ? $item['price'] * $salesTax : 0;
+        // Some pseudo-items don't have a sales tax.
+		$salesTaxPart = ($item['sales-tax']?? false) ? $item['price'] * $salesTax : 0;
         $items_total += $item['price'] + $salesTaxPart;
         $items_total_sales_tax += $salesTaxPart;
 		if ($add_to_cart) {
 			$cart_items[] = $item;
-            $salesTaxPart = $item['sales-tax'] ? $item['price'] * $salesTax : 0;
+            $salesTaxPart = ($item['sales-tax']?? false) ? $item['price'] * $salesTax : 0;
             $cart_items_total += $item['price'] + $salesTaxPart;
             $cart_items_total_sales_tax += $salesTaxPart;
 		}
