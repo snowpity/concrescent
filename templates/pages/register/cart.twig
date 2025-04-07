@@ -49,8 +49,8 @@
                 {% set badge_type_id = item['badge-type-id'] %}
                 {% set badge_type_name = name_map[badge_type_id] ?? badge_type_id %}
                 <div>{{ badge_type_name|e }}</div>
-                {% if errors[i] is defined %}
-                  <div class="error">{{ errors[i]|e }}</div>
+                {% if errors[loop.index0] is defined %}
+                  <div class="error">{{ errors[loop.index0]|e }}</div>
                 {% endif %}
               </td>
               <td class="td-numeric">
@@ -64,10 +64,10 @@
                 {% endif %}
               </td>
               <td class="td-actions">
-                <a href="edit.php?index={{ i }}" role="button" class="button edit-button">Edit</a>
+                <a href="edit.php?index={{ loop.index0 }}" role="button" class="button edit-button">Edit</a>
                 <form action="cart.php" method="post">
                   <input type="hidden" name="action" value="remove">
-                  <input type="hidden" name="index" value="{{ i }}">
+                  <input type="hidden" name="index" value="{{ loop.index0 }}">
                   <input type="submit" name="submit" value="Remove">
                 </form>
               </td>
@@ -77,8 +77,8 @@
                 <tr>
                   <td>
                     <div class="cm-cart-addon-name">{{ addon.name|e }}</div>
-                    {% if errors[i ~ 'a' ~ addon.id] is defined %}
-                      <div class="cm-cart-addon-error error">{{ errors[i ~ 'a' ~ addon.id]|e }}</div>
+                    {% if errors[loop.index0 ~ 'a' ~ addon.id] is defined %}
+                      <div class="cm-cart-addon-error error">{{ errors[loop.index0 ~ 'a' ~ addon.id]|e }}</div>
                     {% endif %}
                   </td>
                   <td><div>Addon</div></td>
