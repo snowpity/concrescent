@@ -27,10 +27,12 @@ usort($staff, function($a, $b) {
 function echo_staff_member($level, $position_name, $other, $member) {
 	global $can_edit, $can_view, $can_review, $has_actions;
 	echo '<tr class="cm-orgchart-staff-level-'.(int)$level.'">';
-		echo '<td>';
-			if ($other) echo '<i>';
-			echo htmlspecialchars($position_name);
-			if ($other) echo '</i>';
+        echo '<td>';
+		if ($position_name) {
+            if ($other) echo '<i>';
+            echo htmlspecialchars($position_name);
+            if ($other) echo '</i>';
+        }
 		echo '</td>';
 		echo '<td>' . htmlspecialchars($member['real-name']) . '</td>';
 		echo '<td>' . htmlspecialchars($member['fandom-name']) . '</td>';
