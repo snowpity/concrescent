@@ -55,14 +55,13 @@ class cm_lists_db {
 		} else {
 			$key = $this->normalize_key($key);
 			$value = $this->normalize_value($value);
-			$stmt = $this->cm_db->connection->prepare(
+			$stmt = $this->cm_db->prepare(
 				'INSERT INTO '.
 				"`$this->index_table_name`" .
 				' SET `id` = ?, `key` = ?, `value` = ?'
 			);
 			$stmt->bind_param('iss', $id, $key, $value);
 			$stmt->execute();
-			$stmt->close();
 		}
 	}
 
@@ -72,18 +71,17 @@ class cm_lists_db {
 
 	public function remove_entity($id) {
 		if (!$id) return;
-		$stmt = $this->cm_db->connection->prepare(
+		$stmt = $this->cm_db->prepare(
 			'DELETE FROM '.
 			"`$this->index_table_name`" .
 			' WHERE `id` = ?'
 		);
 		$stmt->bind_param('i', $id);
 		$stmt->execute();
-		$stmt->close();
 	}
 
 	public function drop_index() {
-		$this->cm_db->connection->query(
+		$this->cm_db->query(
 			'TRUNCATE TABLE '.
 			"`$this->index_table_name`"
 		);
@@ -239,7 +237,7 @@ class cm_lists_db {
 		if (is_null($length)) $length = (int)$_POST['cm-list-page-length'];
 
 		list($sqlquery, $bindtype, $bindvalue) = $this->construct_sql($list_def, $query, $sort_order);
-		$stmt = $this->cm_db->connection->prepare($sqlquery);
+		$stmt = $this->cm_db->prepare($sqlquery);
 
 		$bindparam = array($bindtype);
 		if ($bindvalue) {
@@ -263,7 +261,6 @@ class cm_lists_db {
 
 		$ids = array();
 		while ($stmt->fetch()) $ids[] = $id;
-		$stmt->close();
 
 		$match_count = count($ids);
 		if ($length) {
