@@ -51,10 +51,39 @@ foreach ($applications as $application) {
     global $cm_config;
     $salesTax = ($cm_config['payment']['sales_tax'] ?? 0);
 
+    $preregistrationDiscounts = [];
+
+    foreach ($application_items as &$item) {
+        if ($item['type'] === 'reg-discount') {
+            $preregistrationDiscounts[$item['attendee-id']] = &$item;
+        }
+    }
+    unset($item);
+
+    foreach ($application_items as &$item) {
+        foreach ($preregistrationDiscounts as &$discount) {
+            if ($item['type'] === $discount['target']
+            ) {
+                if (($discount['target'] === 'applicant' && $item['attendee-id'] === $discount['attendee-id'])
+                    || $discount['target'] === 'assignment'
+                ) {
+                    if ($item['price'] > 0) {
+                        $item['price'] = max(0, $item['price'] + $discount['price']);
+                        $discount['price'] = 0;
+                        break;
+                    }
+                }
+            }
+        }
+        unset($discount);
+    }
+    unset($item);
+
 	foreach ($application_items as $item) {
-		$item['application-status'] = $application['application-status'];
+        $item['application-status'] = $application['application-status'];
 		$item['payment-status'] = $application['payment-status'];
 		$items[] = $item;
+
         // Some pseudo-items don't have a sales tax.
 		$salesTaxPart = ($item['sales-tax']?? false) ? $item['price'] * $salesTax : 0;
         $items_total += $item['price'] + $salesTaxPart;
@@ -66,6 +95,7 @@ foreach ($applications as $application) {
             $cart_items_total_sales_tax += $salesTaxPart;
 		}
 	}
+
 	$badge = $apdb->get_badge_type($application['badge-type-id']);
 	if ($badge) {
 		if ($badge['use-permit']) $use_permit = true;

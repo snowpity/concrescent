@@ -1934,6 +1934,7 @@ class cm_application_db {
 		$discounts = array();
 
 		$applications[] = array(
+            'type' => 'application',
 			'application-id' => $application['id'],
 			'name' => $ctx_info['nav_prefix'] . ' Application Fee',
 			'details' => $badge['name'],
@@ -1947,6 +1948,7 @@ class cm_application_db {
 			$count = count($application['assigned-rooms-and-tables']);
 			foreach ($application['assigned-rooms-and-tables'] as $index => $art) {
 				$assignments[] = array(
+                    'type' => 'assignment',
 					'application-id' => $application['id'],
 					'name' => $ctx_info['nav_prefix'] . ' ' . $ctx_info['assignment_term'][0] . ' Fee',
 					'details' => $art['room-or-table-id'] . ' (' . ($index + 1) . ' of ' . $count . ')',
@@ -1960,6 +1962,7 @@ class cm_application_db {
 			if ((float)$badge['price-per-assignment']) {
 				for ($index = 0; $index < $count; $index++) {
 					$assignments[] = array(
+                        'type' => 'assignment',
 						'application-id' => $application['id'],
 						'name' => $ctx_info['nav_prefix'] . ' ' . $ctx_info['assignment_term'][0] . ' Fee',
 						'details' => '(' . ($index + 1) . ' of ' . $count . ')',
@@ -1976,9 +1979,11 @@ class cm_application_db {
 			$count = count($application['applicants']);
 			foreach ($application['applicants'] as $index => $applicant) {
 				$applicants[] = array(
+                    'type' => 'applicant',
 					'application-id' => $application['id'],
 					'name' => $ctx_info['nav_prefix'] . ' Badge Fee',
 					'details' => $applicant['display-name'] . ' (' . ($index + 1) . ' of ' . $count . ')',
+					'attendee-id' => $applicant['attendee-id'],
 					'price' => ($index < $free_applicants) ? 0 : $badge['price-per-applicant'],
 					'sales-tax' => $badge['price-per-applicant-sales-tax'],
 					'price-string' => ($index < $free_applicants) ? 'INCLUDED' : price_string($badge['price-per-applicant'])
@@ -1989,6 +1994,7 @@ class cm_application_db {
 			if ((float)$badge['price-per-applicant']) {
 				for ($index = 0; $index < $count; $index++) {
 					$applicants[] = array(
+                        'type' => 'misc',
 						'application-id' => $application['id'],
 						'name' => $ctx_info['nav_prefix'] . ' Badge Fee',
 						'details' => '(' . ($index + 1) . ' of ' . $count . ')',
@@ -2022,23 +2028,32 @@ class cm_application_db {
                 $total_price += $a['price'] + $salesTaxPart;
             }
 
-			$max_discount = 0;
-			switch ($badge['max-prereg-discount']) {
-				case 'Price per Applicant' : $max_discount = $badge['price-per-applicant' ]; break;
-				case 'Price per Assignment': $max_discount = $badge['price-per-assignment']; break;
-				case 'Total Price'         : $max_discount = $total_price                  ; break;
-			}
+            $max_discount = match ($badge['max-prereg-discount']) {
+                'Price per Applicant' => $badge['price-per-applicant'],
+                'Price per Assignment' => $badge['price-per-assignment'],
+                'Total Price' => $total_price,
+                default => 0,
+            };
+            $discountTarget = match ($badge['max-prereg-discount']) {
+                'Price per Applicant' => 'applicant',
+                'Price per Assignment' => 'assignment',
+                'Total Price' => 'total',
+                default => 'none',
+            };
 
-			foreach ($application['applicants'] as $applicant) {
+            foreach ($application['applicants'] as $applicant) {
 				if (isset($applicant['attendee-id']) && $applicant['attendee-id']) {
 					$attendee = $atdb->get_attendee($applicant['attendee-id'], false, $name_map, $fdb);
 					if ($attendee && $attendee['payment-status'] == 'Completed') {
 						$discount = min($attendee['payment-txn-amt'], $max_discount, $total_price);
 						if ($discount > 0) {
 							$discounts[] = array(
+                                'type' => 'reg-discount',
+                                'target' => $discountTarget,
 								'application-id' => $application['id'],
 								'name' => 'Attendee Preregistration Discount',
 								'details' => $attendee['display-name'],
+                                'attendee-id' => $applicant['attendee-id'],
 								'price' => -$discount,
 								'price-string' => '-' . price_string($discount)
 							);
