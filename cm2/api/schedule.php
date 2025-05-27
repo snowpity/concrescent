@@ -48,7 +48,7 @@ foreach ($assignments as &$assignment) {
                 "title" => $question['title'],
                 "answer" => implode(
                     "\n",
-                    $fdb->get_answer($assignment["context-id"], $question["question-id"])
+                    $fdb->get_answer($assignment["context-id"], $question["question-id"]) ?: []
                 )
             ];
         }
