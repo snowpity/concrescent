@@ -37,6 +37,7 @@ RUN apk add --no-cache php84-pecl-xdebug
 # Add configuration
 COPY --chown=root:root ./config/php/90-40-xdebug.ini /etc/php84/conf.d/
 COPY --chown=root:root ./config/php/90-20-dev.ini /etc/php84/conf.d/
+COPY --chown=root:root ./config/nginx/dev.conf /etc/nginx/conf.d/default.conf
 
 # Switch back to non-root user
 USER nobody
@@ -56,6 +57,7 @@ RUN mkdir /srv/app/vendor /srv/app/var \
   && chown nobody /srv/app/vendor /srv/app/var
 COPY --chown=nobody composer /usr/bin/
 COPY --chown=root:root ./config/php/90-20-prod.ini /etc/php84/conf.d/
+COPY --chown=root:root ./config/nginx/prod.conf /etc/nginx/conf.d/default.conf
 
 USER nobody
 

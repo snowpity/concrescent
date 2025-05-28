@@ -16,3 +16,6 @@ logs/
 cm3/backend/logs
 cm3/frontend/.yarn
 cm3/backend/.php-cs-fixer.cache
+
+/node_modules
+/cm2/next/public/main.css
