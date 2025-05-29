@@ -100,13 +100,13 @@ $salesTax = ($cm_config['payment']['sales_tax'] ?? 0);
 foreach ($_SESSION['cart'] as $i => $item) {
     $badge_price_total += (float)$item['payment-badge-price'];
     $promo_price_total += (float)$item['payment-promo-price'];
-    if ($item['sales-tax'] === 1) {
+    if ($item['sales-tax'] == 1) {
         $salesTaxSubTotal += $item['payment-promo-price'] * $salesTax;
     }
     foreach ($item['addons'] ?? [] as $addon) {
         $badge_price_total += (float)$addon['price'];
         $promo_price_total += (float)$addon['price'];
-        if ($addon['sales-tax'] === 1) {
+        if ($addon['sales-tax'] == 1) {
             $salesTaxSubTotal += $addon['price'] * $salesTax;
         }
     }
