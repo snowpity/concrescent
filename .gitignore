@@ -1,18 +1,15 @@
-# Config Files
+# Local data
 /init/concrescent-reg.sql
+
+# Config
 /concrescent.php
 /msmtprc
 /.env
-/vendor
 /docker-compose.local.yaml
 
-# Data directories
+# Transient data
 /var
 
-#CM3 logs directory
-logs/
-
-# Concrescent 3 files
-cm3/backend/logs
-cm3/frontend/.yarn
-cm3/backend/.php-cs-fixer.cache
+# Vendors
+/vendor
+/node_modules
