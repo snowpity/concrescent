@@ -36,7 +36,9 @@
         "ext-apcu": "*",
         "symfony/http-client": "^7.3.4",
         "monolog/monolog": "^3.9.0",
-        "symfony/http-foundation": "^7.3"
+        "symfony/http-foundation": "^7.3",
+        "doctrine/orm": "^3.5",
+        "symfony/cache": "^7.3"
     },
     "require-dev": {
         "roave/security-advisories": "dev-latest",

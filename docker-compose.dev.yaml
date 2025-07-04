@@ -12,10 +12,13 @@ services:
     volumes:
       - ./cm2:/srv/app/cm2:ro
       - ./src:/srv/app/src:ro
+      - ./tests:/srv/app/tests:ro
+      - ./bin:/srv/app/bin:ro
       - ./vendor:/srv/app/vendor:ro
       - ./templates:/srv/app/templates:ro
       - ./config/msmtprc:/etc/msmtprc:ro
       - ./config/concrescent.php:/srv/app/config/concrescent.php:ro
+      - ./var/db:/srv/app/var/db
       - ./var/cache:/srv/app/var/cache
       - ./var/log/concrescent:/srv/app/var/log/concrescent
       - ./.env:/srv/app/.env

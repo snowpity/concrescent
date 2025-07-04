@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+docker compose exec -it -w /srv/app -e PHP_IDE_CONFIG="serverName=_" concrescent php "${@:1}"

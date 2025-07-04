@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+docker compose exec -it -w /srv/app concrescent php -dxdebug.mode=off "${@:1}"

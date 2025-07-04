@@ -9,8 +9,8 @@ RUN apk add \
     php84-exif \
     php84-pecl-apcu \
     php84-pdo \
-    php84-mysqli php84-pdo_mysql
-    #php84-sqlite3 php84-pdo_sqlite
+    php84-mysqli php84-pdo_mysql \
+    php84-sqlite3 php84-pdo_sqlite
     #php84-pgsql php84-pdo_pgsql
 # Install a mail transfer agent
 RUN apk add msmtp && echo 'sendmail_path = "/usr/bin/msmtp -t"' >> /etc/php84/php.ini;
@@ -43,6 +43,7 @@ USER nobody
 
 VOLUME /srv/app/cm2
 VOLUME /srv/app/src
+VOLUME /srv/app/bin
 VOLUME /srv/app/vendor
 VOLUME /srv/app/templates
 VOLUME /srv/app/var/log
@@ -70,6 +71,7 @@ COPY --chown=nobody composer.lock /srv/app/
 COPY --chown=nobody ./templates /srv/app/templates
 COPY --chown=nobody ./cm2 /srv/app/cm2
 COPY --chown=nobody ./src /srv/app/src
+COPY --chown=nobody ./bin /srv/app/bin
 
 RUN cd /srv/app \
     && composer check-platform-reqs \

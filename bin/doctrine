@@ -1,0 +1,21 @@
+#!/usr/bin/env php
+<?php
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use App\Common\DatabaseCore;
+
+// replace with mechanism to retrieve EntityManager in your app
+$entityManager = DatabaseCore::createSingleInstance()->entityManager;
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+];
+
+ConsoleRunner::run(
+    new SingleManagerProvider($entityManager),
+    $commands
+);
