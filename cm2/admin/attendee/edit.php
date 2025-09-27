@@ -1,14 +1,16 @@
 <?php
 
+use App\Lib\Hook\CloudflareApi;
+use App\Lib\Task\SponsorPublishableTask;
+
+require_once __DIR__ .'/../../lib/util/res.php';
 require_once __DIR__ .'/../../lib/database/attendee.php';
 require_once __DIR__ .'/../../lib/database/forms.php';
 require_once __DIR__ .'/../../lib/database/mail.php';
 require_once __DIR__ .'/../../lib/database/misc.php';
 require_once __DIR__ .'/../../lib/util/util.php';
-require_once __DIR__ .'/../../lib/util/res.php';
 require_once __DIR__ .'/../../lib/util/cmforms.php';
 require_once __DIR__ .'/../admin.php';
-require_once __DIR__ .'/../../../vendor/autoload.php';
 
 global $log;
 
@@ -23,9 +25,9 @@ $fdb = new cm_forms_db($db, 'attendee');
 $questions = $fdb->list_questions();
 
 $miscDb = new cm_misc_db($db);
-$taskSponsorPublishable = new \App\Task\SponsorPublishableTask(
+$taskSponsorPublishable = new SponsorPublishableTask(
     $miscDb,
-    new \App\Hook\CloudflareApi(
+    new CloudflareApi(
         $log
     ),
     $log,

@@ -1,26 +1,21 @@
 <?php
 
-require_once __DIR__ .'/../../config/config.php';
+use App\Kernel;
+
+include_once __DIR__ .'/../../../config/concrescent.php';
+
+if (!isset($cm_config)) {
+    die('Config file not found.');
+}
+
 require_once __DIR__ .'/util.php';
 require_once __DIR__.'/../../../vendor/autoload.php';
 
-$log = \App\Log\LogLibrary::createSingleInstance();
+$kernel = new Kernel();
 
-$isAppDebug = getenv('APP_DEBUG');
+$log = $kernel->log;
+$twig = $kernel->twig;
 
-$twig = new \Twig\Environment(
-	new \Twig\Loader\FilesystemLoader(__DIR__.'/../../../templates'),
-	[
-        'debug' => $isAppDebug,
-        'strict_variables' => $isAppDebug,
-        'cache' => __DIR__.'/../../../var/cache/twig',
-    ],
-);
-$twig->addFunction(new \Twig\TwigFunction('theme_file_url', theme_file_url(...)));
-$twig->addFunction(new \Twig\TwigFunction('resource_file_url', resource_file_url(...)));
-$twig->addFunction(new \Twig\TwigFunction('get_site_url', get_site_url(...)));
-$twig->addFilter(new \Twig\TwigFilter('price_string', price_string(...)));
-$twig->addFilter(new \Twig\TwigFilter('cm_status_label', cm_status_label(...)));
 
 function config_file_path($file) {
 	return realpath(__DIR__ . '/../../config') . '/' . $file;
@@ -38,18 +33,6 @@ function resource_file_url($file, $full) {
 	return get_site_url($full) . '/lib/res/' . $file;
 }
 
-function theme_location() {
-	if (isset($_COOKIE['theme_location']) && $_COOKIE['theme_location']) {
-		return $_COOKIE['theme_location'];
-	} else {
-		return $GLOBALS['cm_config']['theme']['location'];
-	}
-}
-
-function theme_file_path($file) {
-	return realpath(__DIR__ . '/../../' . theme_location()) . '/' . $file;
-}
-
 function theme_file_url($file, $full) {
-	return get_site_url($full) . '/' . theme_location() . '/' . $file;
+	return get_site_url($full) . '/' . $GLOBALS['cm_config']['theme']['location'] . '/' . $file;
 }

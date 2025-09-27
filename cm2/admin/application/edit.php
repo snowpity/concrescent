@@ -1,6 +1,9 @@
 <?php
 
-require_once __DIR__ .'/../../config/config.php';
+use App\Lib\Hook\CloudflareApi;
+use App\Lib\Task\SchedulePublishableTask;
+
+require_once __DIR__ .'/../admin.php';
 require_once __DIR__ .'/../../lib/database/application.php';
 require_once __DIR__ .'/../../lib/database/forms.php';
 require_once __DIR__ .'/../../lib/database/attendee.php';
@@ -10,8 +13,6 @@ require_once __DIR__ .'/../../lib/util/util.php';
 require_once __DIR__ .'/../../lib/util/cmlists.php';
 require_once __DIR__ .'/../../lib/util/cmforms.php';
 require_once __DIR__ .'/../../lib/util/slack.php';
-require_once __DIR__ .'/../admin.php';
-require_once __DIR__ .'/../../../vendor/autoload.php';
 
 global $log;
 
@@ -60,8 +61,8 @@ $atdb = new cm_attendee_db($db);
 $mdb = new cm_mail_db($db);
 $midb = new cm_misc_db($db);
 
-$taskSchedulePublishable = new \App\Task\SchedulePublishableTask(
-    new \App\Hook\CloudflareApi(
+$taskSchedulePublishable = new SchedulePublishableTask(
+    new CloudflareApi(
         $log
     ),
 );

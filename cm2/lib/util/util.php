@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ .'/../../config/config.php';
+require_once __DIR__ .'/../../../config/concrescent.php';
 
 function get_domain_url() {
 	global $cm_config;
@@ -340,10 +340,4 @@ function dieWithErrorLog(string $message, int $statusCode = 400, bool $printErro
 	die($statusCode);
 }
 
-
-//Are we an AJAX call?
-$_SERVER['IS_AJAX'] = false;
-if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-	$_SERVER['IS_AJAX'] = true;
-}
 

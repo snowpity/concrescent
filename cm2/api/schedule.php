@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-require_once __DIR__ . "/../config/config.php";
+require_once __DIR__ . "/../../config/concrescent.php";
 require_once __DIR__ . "/../lib/database/application.php";
 require_once __DIR__ . "/../lib/database/forms.php";
 

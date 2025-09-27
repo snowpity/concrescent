@@ -17,8 +17,8 @@ RUN apk add msmtp && echo 'sendmail_path = "/usr/bin/msmtp -t"' >> /etc/php84/ph
 
 # Create nginx config directory and increase upload size for files via entity-size.conf and php-upload-size.ini
 
-COPY --chown=root:root ./config/nginx/entity-size.conf /etc/nginx/conf.d/
-COPY --chown=root:root ./config/php/90-10-common.ini /etc/php84/conf.d/
+COPY --chown=root:root ./build/config/nginx/entity-size.conf /etc/nginx/conf.d/
+COPY --chown=root:root ./build/config/php/90-10-common.ini /etc/php84/conf.d/
 
 RUN ln -s /usr/bin/php84 /usr/bin/php
 
@@ -35,16 +35,20 @@ USER root
 # Install xdebug
 RUN apk add --no-cache php84-pecl-xdebug
 # Add configuration
-COPY --chown=root:root ./config/php/90-40-xdebug.ini /etc/php84/conf.d/
-COPY --chown=root:root ./config/php/90-20-dev.ini /etc/php84/conf.d/
+COPY --chown=root:root ./build/config/php/90-40-xdebug.ini /etc/php84/conf.d/
+COPY --chown=root:root ./build/config/php/90-20-dev.ini /etc/php84/conf.d/
 
 # Switch back to non-root user
 USER nobody
 
 VOLUME /srv/app/cm2
+VOLUME /srv/app/src
 VOLUME /srv/app/vendor
 VOLUME /srv/app/templates
-VOLUME /srv/host/config.php
+VOLUME /srv/app/var/log
+VOLUME /srv/app/config/concrescent.php
+VOLUME /srv/app/.env
+VOLUME /srv/app/.env.dev
 
 EXPOSE 8080
 
@@ -55,7 +59,7 @@ USER root
 RUN mkdir /srv/app/vendor /srv/app/var \
   && chown nobody /srv/app/vendor /srv/app/var
 COPY --chown=nobody composer /usr/bin/
-COPY --chown=root:root ./config/php/90-20-prod.ini /etc/php84/conf.d/
+COPY --chown=root:root ./build/config/php/90-20-prod.ini /etc/php84/conf.d/
 
 USER nobody
 
@@ -64,11 +68,15 @@ COPY --chown=nobody composer.lock /srv/app/
 # Copy concrescent over to the image so the image is standalone.
 COPY --chown=nobody ./templates /srv/app/templates
 COPY --chown=nobody ./cm2 /srv/app/cm2
+COPY --chown=nobody ./src /srv/app/src
 
 RUN cd /srv/app \
     && composer check-platform-reqs \
-    && composer install --no-dev --classmap-authoritative --no-interaction --no-progress
+    && composer install --no-dev --classmap-authoritative --no-interaction --no-progress --strict-psr
 
-VOLUME /srv/app/cm2/config/config.php
+VOLUME /srv/app/var/log
+VOLUME /srv/app/config/concrescent.php
+VOLUME /srv/app/.env
+VOLUME /srv/app/.env.prod
 
 EXPOSE 8080

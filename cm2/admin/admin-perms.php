@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ .'/../config/config.php';
+require_once __DIR__ .'/../../config/concrescent.php';
 
 $cm_admin_perms_home = (
 	array(

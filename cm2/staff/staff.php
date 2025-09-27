@@ -5,7 +5,7 @@ use JetBrains\PhpStorm\NoReturn;
 session_name('PHPSESSID_CMAPPLYSTAFF');
 session_start();
 
-require_once __DIR__ .'/../config/config.php';
+require_once __DIR__ .'/../../config/concrescent.php';
 require_once __DIR__ .'/../lib/database/database.php';
 require_once __DIR__ .'/../lib/database/staff.php';
 require_once __DIR__ .'/../lib/database/forms.php';

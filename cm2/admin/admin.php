@@ -1,13 +1,15 @@
 <?php
 
+use Twig\TwigFunction;
+
 session_name('PHPSESSID_CMADMIN');
 session_start();
 
+require_once __DIR__ .'/../lib/util/res.php';
 require_once __DIR__ .'/../lib/database/database.php';
 require_once __DIR__ .'/../lib/database/admin.php';
-require_once __DIR__ .'/../lib/util/util.php';
-require_once __DIR__ .'/../lib/util/res.php';
 require_once __DIR__ .'/admin-nav.php';
+
 global $twig;
 
 $db = new cm_db();
@@ -41,7 +43,7 @@ $cm_admin_nav_Filtered = array_map(function (array $group) use ($adb, $admin_use
 	return $authorizedLinks;
 }, $cm_admin_nav);
 
-$twig->addFunction(new \Twig\TwigFunction(
+$twig->addFunction(new TwigFunction(
 	'user_has_permission',
 	fn (...$args) => $adb->user_has_permission($admin_user,...$args)
 ));

@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ .'/../config/config.php';
+require_once __DIR__ .'/../../config/concrescent.php';
 require_once __DIR__ .'/../lib/database/database.php';
 require_once __DIR__ .'/../lib/database/attendee.php';
 require_once __DIR__ .'/../lib/database/forms.php';

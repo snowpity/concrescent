@@ -2,7 +2,7 @@
 
 use JetBrains\PhpStorm\NoReturn;
 
-require_once __DIR__ .'/../config/config.php';
+require_once __DIR__ .'/../../config/concrescent.php';
 
 $context = (isset($_GET['c']) ? trim($_GET['c']) : null);
 if (!$context) {

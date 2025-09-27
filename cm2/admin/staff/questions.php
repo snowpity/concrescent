@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ .'/../../config/config.php';
+require_once __DIR__ .'/../../../config/concrescent.php';
 require_once __DIR__ .'/../../lib/database/staff.php';
 require_once __DIR__ .'/../../lib/database/forms.php';
 require_once __DIR__ .'/../../lib/util/util.php';

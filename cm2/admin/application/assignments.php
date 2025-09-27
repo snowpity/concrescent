@@ -1,13 +1,14 @@
 <?php
 
-require_once __DIR__ .'/../../config/config.php';
+use App\Lib\Hook\CloudflareApi;
+use App\Lib\Task\SchedulePublishableTask;
+
+require_once __DIR__ .'/../admin.php';
 require_once __DIR__ .'/../../lib/database/application.php';
 require_once __DIR__ .'/../../lib/database/misc.php';
 require_once __DIR__ .'/../../lib/database/forms.php';
 require_once __DIR__ .'/../../lib/util/util.php';
 require_once __DIR__ .'/../../lib/util/cmlists.php';
-require_once __DIR__ .'/../admin.php';
-require_once __DIR__ .'/../../../vendor/autoload.php';
 
 global $log;
 
@@ -33,8 +34,8 @@ cm_admin_check_permission('application-assignments-'.$ctx_lc, 'application-assig
 $apdb = new cm_application_db($db, $context);
 $midb = new cm_misc_db($db);
 
-$taskSchedulePublishable = new \App\Task\SchedulePublishableTask(
-    new \App\Hook\CloudflareApi(
+$taskSchedulePublishable = new SchedulePublishableTask(
+    new CloudflareApi(
         $log,
     ),
 );

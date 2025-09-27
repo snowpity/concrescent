@@ -1,16 +1,14 @@
 <?php
 
-/* Time zone PHP should use for date calculations (e.g. when badges are available). */
-date_default_timezone_set(getenv("TZ"));
-
 /* This is the default configuration for CONcrescent. Replace all values in this file. */
 $cm_config = [
+    'timezone' => getenv('TZ'),
 
-	/* Override the site's base URL.
-	   This is required if due to proxy shenanigans
-	   the actual server URL cannot be properly determined.
-	   Otherwise, this should be left blank. */
-	'site-override' => '',
+    /* Override the site's base URL.
+       This is required if due to proxy shenanigans
+       the actual server URL cannot be properly determined.
+       Otherwise, this should be left blank. */
+    'site-override' => getenv('PUBLIC_URL'),
 
 	/* Database Configuration */
 	'database' => [
@@ -52,7 +50,8 @@ $cm_config = [
     ],
 
     'logging' => [
-        'log_dir' => '/var/www/log',
+        // a relative path is relative to <log dir>, which is <project dir>/var/log. null will default to "var/log".
+        'log_dir' => 'concrescent',
     ],
 
 	/* Slack Integration Configuration */

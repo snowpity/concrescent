@@ -2,9 +2,13 @@
 /init/concrescent-reg.sql
 
 # Config
+/config/concrescent.php
 /concrescent.php
+/config/msmtprc
 /msmtprc
 /.env
+/.env.prod.local
+/.env.dev.local
 /docker-compose.local.yaml
 
 # Transient data

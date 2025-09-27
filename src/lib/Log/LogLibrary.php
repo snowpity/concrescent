@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Log;
+namespace App\Lib\Log;
 
 use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\StreamHandler;
@@ -15,11 +15,10 @@ readonly class LogLibrary
     public Logger $cloudflare;
     public Logger $system;
 
-    private function __construct()
+    public function __construct(
+        public readonly string $logDir = '',
+    )
     {
-        global $cm_config;
-        $logDir = $cm_config['logging']['log_dir'];
-
         $debugStdoutHandler = new StreamHandler(
             'php://stdout',
             Level::Debug
@@ -31,9 +30,9 @@ readonly class LogLibrary
             $this->audit->pushProcessor(new WebProcessor());
             $this->audit->pushProcessor(new PsrLogMessageProcessor());
 
-            if ($logDir) {
+            if ($this->logDir) {
                 $logfileHandler = new StreamHandler(
-                    $logDir . '/audit.log',
+                    $this->logDir . '/audit.log',
                     Level::Info
                 );
                 $logfileHandler->setFormatter(new JsonFormatter());
@@ -47,10 +46,10 @@ readonly class LogLibrary
             $this->cloudflare->pushProcessor(new WebProcessor());
             $this->cloudflare->pushProcessor(new PsrLogMessageProcessor());
 
-            if ($logDir) {
+            if ($this->logDir) {
                 $this->cloudflare->pushHandler($logfileHandler);
                 $logfileHandler = new StreamHandler(
-                    $logDir . '/cloudflare.log',
+                    $this->logDir . '/cloudflare.log',
                     Level::Info
                 );
                 $logfileHandler->setFormatter(new JsonFormatter());
@@ -63,22 +62,14 @@ readonly class LogLibrary
             $this->system->pushProcessor(new WebProcessor());
             $this->system->pushProcessor(new PsrLogMessageProcessor());
 
-            if ($logDir) {
+            if ($this->logDir) {
                 $this->system->pushHandler($logfileHandler);
                 $logfileHandler = new StreamHandler(
-                    $logDir . '/system.log',
+                    $this->logDir . '/system.log',
                     Level::Info
                 );
                 $logfileHandler->setFormatter(new JsonFormatter());
             }
         }
-    }
-
-    public static function createSingleInstance(): LogLibrary {
-        static $instance = null;
-        if ($instance === null) {
-            $instance = new LogLibrary();
-        }
-        return $instance;
     }
 }

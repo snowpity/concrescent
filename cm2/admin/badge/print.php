@@ -2,7 +2,7 @@
 
 use JetBrains\PhpStorm\NoReturn;
 
-require_once __DIR__ .'/../../config/config.php';
+require_once __DIR__ .'/../../../config/concrescent.php';
 require_once __DIR__ .'/../../lib/database/badge-artwork.php';
 require_once __DIR__ .'/../../lib/database/badge-holder.php';
 require_once __DIR__ .'/../../lib/util/res.php';

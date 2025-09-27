@@ -19,7 +19,6 @@ $tests = [
     "paypal" =>  'Checking PayPal connection...',
     "mail" =>  'Checking email sending capability...',
     "gd" => 'Checking GD library.',
-    "theme" =>  'Checking theme stylesheet...',
 ];
 ?>
 <!DOCTYPE html>
@@ -36,7 +35,7 @@ $tests = [
 	.FAILED { background: red; color: white; }
 	.htmx-request { opacity: 0; }
 </style>
-<script src="/htmx.min.v204.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js" integrity="sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ" crossorigin="anonymous"></script>
 </head>
 <body>
   <table hx-sync="tr:queue all">

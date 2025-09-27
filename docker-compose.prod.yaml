@@ -1,7 +1,7 @@
 services:
   concrescent:
     build:
-      dockerfile: Dockerfile
+      dockerfile: ./build/concrescent/Dockerfile
       target: prod
     restart: unless-stopped
     ports:
@@ -11,8 +11,8 @@ services:
       mysql:
         condition: service_healthy
     volumes:
-      - ./msmtprc:/etc/msmtprc:ro
-      - ./concrescent.php:/srv/app/cm2/config/config.php:ro
+      - ./config/msmtprc:/etc/msmtprc:ro
+      - ./config/concrescent.php:/srv/app/config/concrescent.php:ro
     env_file:
     - .env.prod
     - .env
