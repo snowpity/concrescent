@@ -17,18 +17,6 @@ $log = $kernel->log;
 $twig = $kernel->twig;
 
 
-function config_file_path($file) {
-	return realpath(__DIR__ . '/../../config') . '/' . $file;
-}
-
-function config_file_url($file, $full) {
-	return get_site_url($full) . '/config/' . $file;
-}
-
-function resource_file_path($file) {
-	return realpath(__DIR__ . '/../res') . '/' . $file;
-}
-
 function resource_file_url($file, $full) {
 	return get_site_url($full) . '/lib/res/' . $file;
 }

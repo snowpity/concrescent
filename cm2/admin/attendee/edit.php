@@ -3,13 +3,11 @@
 use App\Lib\Hook\CloudflareApi;
 use App\Lib\Task\SponsorPublishableTask;
 
-require_once __DIR__ .'/../../lib/util/res.php';
 require_once __DIR__ .'/../../lib/database/attendee.php';
 require_once __DIR__ .'/../../lib/database/forms.php';
 require_once __DIR__ .'/../../lib/database/mail.php';
 require_once __DIR__ .'/../../lib/database/misc.php';
-require_once __DIR__ .'/../../lib/util/util.php';
-require_once __DIR__ .'/../../lib/util/cmforms.php';
+require_once __DIR__ .'/../../../src/lib/util/cmforms.php';
 require_once __DIR__ .'/../admin.php';
 
 global $log;

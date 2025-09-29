@@ -10,8 +10,8 @@ require_once __DIR__ .'/../lib/database/database.php';
 require_once __DIR__ .'/../lib/database/staff.php';
 require_once __DIR__ .'/../lib/database/forms.php';
 require_once __DIR__ .'/../lib/database/mail.php';
-require_once __DIR__ .'/../lib/util/res.php';
-require_once __DIR__ .'/../lib/util/util.php';
+require_once __DIR__ .'/../../src/lib/util/res.php';
+require_once __DIR__ .'/../../src/lib/util/util.php';
 
 $event_name = $cm_config['event']['name'];
 $db = new cm_db();

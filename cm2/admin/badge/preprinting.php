@@ -2,7 +2,7 @@
 
 require_once __DIR__ .'/../../lib/database/badge-artwork.php';
 require_once __DIR__ .'/../../lib/database/badge-holder.php';
-require_once __DIR__ .'/../../lib/util/cmlists.php';
+require_once __DIR__ .'/../../../src/lib/util/cmlists.php';
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('badge-preprinting', 'badge-preprinting');

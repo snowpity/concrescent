@@ -1,7 +1,7 @@
 <?php
 
-require_once __DIR__ .'/../lib/util/util.php';
-require_once __DIR__ .'/../lib/util/cmforms.php';
+require_once __DIR__ .'/../../src/lib/util/util.php';
+require_once __DIR__ .'/../../src/lib/util/cmforms.php';
 require_once __DIR__ .'/register.php';
 
 $onsite_only = isset($_COOKIE['onsite_only']) && $_COOKIE['onsite_only'];

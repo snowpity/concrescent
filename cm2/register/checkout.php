@@ -1,8 +1,8 @@
 <?php
 
-require_once __DIR__ .'/../lib/util/util.php';
-require_once __DIR__ .'/../lib/util/slack.php';
-require_once __DIR__ .'/../lib/util/paypal.php';
+require_once __DIR__ .'/../../src/lib/util/util.php';
+require_once __DIR__ .'/../../src/lib/util/slack.php';
+require_once __DIR__ .'/../../src/lib/util/paypal.php';
 require_once __DIR__ .'/register.php';
 
 $site_url = get_site_url(true);

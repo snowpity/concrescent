@@ -1,9 +1,9 @@
 <?php
 
 require_once __DIR__ .'/../lib/database/attendee.php';
-require_once __DIR__ .'/../lib/util/util.php';
-require_once __DIR__ .'/../lib/util/cmforms.php';
-require_once __DIR__ .'/../lib/util/slack.php';
+require_once __DIR__ .'/../../src/lib/util/util.php';
+require_once __DIR__ .'/../../src/lib/util/cmforms.php';
+require_once __DIR__ .'/../../src/lib/util/slack.php';
 require_once __DIR__ .'/apply.php';
 
 function applicant_form($apdb, $i, $applicant, $errors) {

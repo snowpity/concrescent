@@ -1,6 +1,5 @@
 <?php
 
-require_once __DIR__ .'/../lib/util/util.php';
 require_once __DIR__ .'/admin.php';
 
 global $twig, $adb, $admin_user;

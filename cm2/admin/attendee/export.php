@@ -3,7 +3,7 @@
 require_once __DIR__ .'/../../lib/database/attendee.php';
 require_once __DIR__ .'/../../lib/database/forms.php';
 require_once __DIR__ .'/../../lib/database/misc.php';
-require_once __DIR__ . '/../../lib/util/cmexport.php';
+require_once __DIR__ . '/../../../src/lib/util/cmexport.php';
 require_once __DIR__ .'/../admin.php';
 
 global $twig;

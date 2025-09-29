@@ -2,8 +2,7 @@
 
 require_once __DIR__ .'/../../lib/database/staff.php';
 require_once __DIR__ .'/../../lib/database/misc.php';
-require_once __DIR__ .'/../../lib/util/util.php';
-require_once __DIR__ .'/../../lib/util/cmlists.php';
+require_once __DIR__ .'/../../../src/lib/util/cmlists.php';
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('staff-departments', 'staff-departments');

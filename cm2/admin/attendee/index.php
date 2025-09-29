@@ -2,8 +2,7 @@
 
 require_once __DIR__ .'/../../lib/database/attendee.php';
 require_once __DIR__ .'/../../lib/database/forms.php';
-require_once __DIR__ .'/../../lib/util/util.php';
-require_once __DIR__ .'/../../lib/util/cmlists.php';
+require_once __DIR__ .'/../../../src/lib/util/cmlists.php';
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('attendees', array('||', 'attendees', 'attendees-view', 'attendees-edit', 'attendees-delete'));

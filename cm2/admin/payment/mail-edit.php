@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ .'/../../lib/database/mail.php';
-require_once __DIR__ .'/../../lib/util/cmmail.php';
+require_once __DIR__ .'/../../../src/lib/util/cmmail.php';
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('payment-mail', 'payment-mail');

@@ -1,12 +1,9 @@
 <?php
 
-require_once __DIR__ .'/../../../config/concrescent.php';
-require_once __DIR__ .'/../../lib/database/application.php';
 require_once __DIR__ .'/../../lib/database/attendee.php';
+require_once __DIR__ .'/../../lib/database/application.php';
 require_once __DIR__ .'/../../lib/database/forms.php';
-require_once __DIR__ .'/../../lib/util/util.php';
-require_once __DIR__ .'/../../lib/util/res.php';
-require_once __DIR__ .'/../../lib/util/cmlists.php';
+require_once __DIR__ .'/../../../src/lib/util/cmlists.php';
 require_once __DIR__ .'/../admin.php';
 
 $context = (isset($_GET['c']) ? trim($_GET['c']) : null);

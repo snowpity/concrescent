@@ -1,7 +1,7 @@
 <?php
 
 
-require_once __DIR__ .'/../lib/util/util.php';
+require_once __DIR__ .'/../../src/lib/util/util.php';
 require_once __DIR__ .'/register.php';
 
 $gid = isset($_GET['gid']) ? trim($_GET['gid']) : null;
