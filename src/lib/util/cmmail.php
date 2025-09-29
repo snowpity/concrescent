@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__ .'/res.php';
-require_once __DIR__ .'/util.php';
 
 function cm_mail_head() {
 	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_url('cmmail.js', false)) . '"></script>';

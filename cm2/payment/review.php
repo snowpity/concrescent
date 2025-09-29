@@ -1,6 +1,5 @@
 <?php
 
-require_once __DIR__ .'/../../src/lib/util/util.php';
 require_once __DIR__ .'/payment.php';
 
 $uid = isset($_GET['uid']) ? trim($_GET['uid']) : null;

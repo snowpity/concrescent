@@ -1,6 +1,5 @@
 <?php
 
-require_once __DIR__ .'/../../src/lib/util/util.php';
 require_once __DIR__ .'/../../src/lib/util/cmforms.php';
 require_once __DIR__ .'/../register/register.php';
 

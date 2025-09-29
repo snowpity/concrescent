@@ -5,13 +5,12 @@ use JetBrains\PhpStorm\NoReturn;
 session_name('PHPSESSID_CMREG');
 session_start();
 
-require_once __DIR__ .'/../../config/concrescent.php';
+require_once __DIR__ .'/../../src/lib/util/res.php';
+
 require_once __DIR__ .'/../lib/database/database.php';
 require_once __DIR__ .'/../lib/database/attendee.php';
 require_once __DIR__ .'/../lib/database/forms.php';
 require_once __DIR__ .'/../lib/database/mail.php';
-require_once __DIR__ .'/../../src/lib/util/res.php';
-require_once __DIR__ .'/../../src/lib/util/util.php';
 
 global $cm_config;
 

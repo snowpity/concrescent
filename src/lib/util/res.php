@@ -7,9 +7,9 @@ include_once __DIR__ .'/../../../config/concrescent.php';
 if (!isset($cm_config)) {
     die('Config file not found.');
 }
+require_once __DIR__.'/../../../vendor/autoload.php';
 
 require_once __DIR__ .'/util.php';
-require_once __DIR__.'/../../../vendor/autoload.php';
 
 $kernel = new Kernel();
 

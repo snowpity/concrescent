@@ -1,10 +1,10 @@
 <?php
 
+require_once __DIR__ .'/staff.php';
+
 require_once __DIR__ .'/../lib/database/attendee.php';
-require_once __DIR__ .'/../../src/lib/util/util.php';
 require_once __DIR__ .'/../../src/lib/util/cmforms.php';
 require_once __DIR__ .'/../../src/lib/util/slack.php';
-require_once __DIR__ .'/staff.php';
 
 $sellable_badge_types = $sdb->list_badge_types(true, true);
 if (!$sellable_badge_types) {

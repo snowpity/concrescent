@@ -3,9 +3,10 @@
 session_name('PHPSESSID_CMADMIN');
 session_start();
 
+require_once __DIR__ .'/../../src/lib/util/res.php';
+
 require_once __DIR__ .'/../lib/database/database.php';
 require_once __DIR__ .'/../lib/database/admin.php';
-require_once __DIR__ .'/../../src/lib/util/res.php';
 global $twig;
 
 $db = new cm_db();

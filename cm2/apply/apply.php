@@ -2,7 +2,7 @@
 
 use JetBrains\PhpStorm\NoReturn;
 
-require_once __DIR__ .'/../../config/concrescent.php';
+require_once __DIR__ .'/../../src/lib/util/res.php';
 
 $context = (isset($_GET['c']) ? trim($_GET['c']) : null);
 if (!$context) {
@@ -28,8 +28,6 @@ require_once __DIR__ .'/../lib/database/database.php';
 require_once __DIR__ .'/../lib/database/application.php';
 require_once __DIR__ .'/../lib/database/forms.php';
 require_once __DIR__ .'/../lib/database/mail.php';
-require_once __DIR__ .'/../../src/lib/util/res.php';
-require_once __DIR__ .'/../../src/lib/util/util.php';
 
 $event_name = $cm_config['event']['name'];
 $db = new cm_db();
