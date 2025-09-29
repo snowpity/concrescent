@@ -45,7 +45,7 @@ if (isset($_POST['submit'])) {
 	$new_password = (isset($_POST['ea-password']) ? trim($_POST['ea-password']) : '');
 	if ($old_username && $old_password) {
 		if (!($admin_user = $adb->log_in($old_username, $old_password))) {
-			$url = get_site_url(false) . '/admin/login.php?page=';
+			$url = get_site_path() . '/admin/login.php?page=';
 			$url .= urlencode($_SERVER['REQUEST_URI']);
 			header('Location: ' . $url);
 			exit(0);
@@ -84,7 +84,7 @@ if (isset($_POST['submit'])) {
 			}
 		}
 		if (!($admin_user = $adb->log_in($old_username, $old_password))) {
-			$url = get_site_url(false) . '/admin/login.php?page=';
+			$url = get_site_path() . '/admin/login.php?page=';
 			$url .= urlencode($_SERVER['REQUEST_URI']);
 			header('Location: ' . $url);
 			exit(0);

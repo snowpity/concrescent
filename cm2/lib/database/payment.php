@@ -83,10 +83,10 @@ class cm_payment_db {
 			$payment_date, $payment_details
 		);
 		if ($stmt->fetch()) {
-			$reg_url = get_site_url(true) . '/payment';
+			$reg_url = get_site_url() . '/payment';
 			$id_string = 'P' . $id;
 			$qr_data = 'CM*' . $id_string . '*' . strtoupper($uuid);
-			$qr_url = resource_file_url('barcode.php', true) . '?s=qr&w=300&h=300&d=' . $qr_data;
+			$qr_url = resource_file_url('barcode.php') . '?s=qr&w=300&h=300&d=' . $qr_data;
 			$real_name = trim(trim($first_name) . ' ' . trim($last_name));
 			$payment_price_string = price_string($payment_price);
 			$review_link = $reg_url . '/review.php?uid=' . $uuid;
@@ -151,8 +151,8 @@ class cm_payment_db {
 			$payment_txn_id, $payment_txn_amt,
 			$payment_date, $payment_details
 		);
-		$reg_url = get_site_url(true) . '/payment';
-		$qr_base_url = resource_file_url('barcode.php', true) . '?s=qr&w=300&h=300&d=';
+		$reg_url = get_site_url() . '/payment';
+		$qr_base_url = resource_file_url('barcode.php') . '?s=qr&w=300&h=300&d=';
 		while ($stmt->fetch()) {
 			$id_string = 'P' . $id;
 			$qr_data = 'CM*' . $id_string . '*' . strtoupper($uuid);

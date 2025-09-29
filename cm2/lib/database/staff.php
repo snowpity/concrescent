@@ -1197,10 +1197,10 @@ class cm_staff_db {
 			$payment_date, $payment_details
 		);
 		if ($stmt->fetch()) {
-			$reg_url = get_site_url(true) . '/staff';
+			$reg_url = get_site_url() . '/staff';
 			$id_string = 'S' . $id;
 			$qr_data = 'CM*' . $id_string . '*' . strtoupper($uuid);
-			$qr_url = resource_file_url('barcode.php', true) . '?s=qr&w=300&h=300&d=' . $qr_data;
+			$qr_url = resource_file_url('barcode.php') . '?s=qr&w=300&h=300&d=' . $qr_data;
 			$badge_type_id_string = 'SB' . $badge_type_id;
 			$badge_type_name = ($name_map[$badge_type_id] ?? $badge_type_id);
 			$real_name = trim(trim($first_name) . ' ' . trim($last_name));
@@ -1438,8 +1438,8 @@ class cm_staff_db {
 			$payment_txn_id, $payment_txn_amt,
 			$payment_date, $payment_details
 		);
-		$reg_url = get_site_url(true) . '/staff';
-		$qr_base_url = resource_file_url('barcode.php', true) . '?s=qr&w=300&h=300&d=';
+		$reg_url = get_site_url() . '/staff';
+		$qr_base_url = resource_file_url('barcode.php') . '?s=qr&w=300&h=300&d=';
 		while ($stmt->fetch()) {
 			$id_string = 'S' . $id;
 			$qr_data = 'CM*' . $id_string . '*' . strtoupper($uuid);

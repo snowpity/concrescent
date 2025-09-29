@@ -44,7 +44,7 @@ if (isset($_POST['action'])) {
 }
 
 cm_admin_head('Rebuild Staff Search Index');
-echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_url('cmreindex.js', false)) . '"></script>';
+echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_path('cmreindex.js')) . '"></script>';
 
 cm_admin_body('Rebuild Staff Search Index');
 cm_admin_nav('staff-reindex');

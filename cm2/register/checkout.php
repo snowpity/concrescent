@@ -5,7 +5,7 @@ require_once __DIR__ .'/register.php';
 require_once __DIR__ .'/../../src/lib/util/slack.php';
 require_once __DIR__ .'/../../src/lib/util/paypal.php';
 
-$site_url = get_site_url(true);
+$site_url = get_site_url();
 
 if (!$_GET) {
 	if (!cm_reg_cart_check_state('ready')) {

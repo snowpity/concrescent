@@ -9,7 +9,7 @@ cm_admin_check_permission('payment-mail', 'payment-mail');
 $mdb = new cm_mail_db($db);
 
 $list_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/payment/mail-index.php',
+	'ajax-url' => get_site_path() . '/admin/payment/mail-index.php',
 	'entity-type' => 'form letter',
 	'entity-type-pl' => 'form letters',
 	'search-criteria' => 'name, subject, or body',
@@ -25,8 +25,8 @@ $list_def = array(
 	'name-key' => 'name',
 	'row-actions' => array('edit', 'delete'),
 	'table-actions' => array('add'),
-	'add-url' => get_site_url(false) . '/admin/payment/mail-edit.php',
-	'edit-url' => get_site_url(false) . '/admin/payment/mail-edit.php?name=',
+	'add-url' => get_site_path() . '/admin/payment/mail-edit.php',
+	'edit-url' => get_site_path() . '/admin/payment/mail-edit.php?name=',
 	'delete-title' => 'Delete Form Letter'
 );
 

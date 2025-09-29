@@ -216,7 +216,7 @@ function cm_form_review_row($question, $answer, $can_edit = true) {
 
 function cm_form_edit_head(&$form_def) {
 	echo '<script type="text/javascript">cm_form_def = (' . json_encode($form_def) . ');</script>';
-	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_url('cmforms.js', false)) . '"></script>';
+	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_path('cmforms.js')) . '"></script>';
 }
 
 function cm_form_edit_start() {

@@ -15,7 +15,7 @@
 {% for link in group | filter(l => l.id != 'home') %}
   {% if loop.first and not loop.parent.loop.first %}<hr>{% endif %}
       <h3>
-        <a href="{{ get_site_url(false) ~ link.href }}">{{ link.name }}</a>
+        <a href="{{ get_site_path() ~ link.href }}">{{ link.name }}</a>
       </h3>
 {% if link.description is defined and link.description %}
       <p>{{ link.description }}</p>

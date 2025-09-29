@@ -11,7 +11,7 @@ $sdb = new cm_staff_db($db);
 $name_list = $sdb->list_badge_type_names();
 
 $form_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/staff/questions.php',
+	'ajax-url' => get_site_path() . '/admin/staff/questions.php',
 	'context' => 'staff',
 	'subcontext' => $name_list
 );

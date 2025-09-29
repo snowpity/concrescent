@@ -26,7 +26,7 @@ cm_admin_check_permission('application-badge-types-'.$ctx_lc, 'application-badge
 $apdb = new cm_application_db($db, $context);
 
 $list_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/application/badge-types.php?c=' . $ctx_lc,
+	'ajax-url' => get_site_path() . '/admin/application/badge-types.php?c=' . $ctx_lc,
 	'entity-type' => 'badge type',
 	'entity-type-pl' => 'badge types',
 	'search-criteria' => 'name or description',

@@ -16,11 +16,46 @@ $kernel = new Kernel();
 $log = $kernel->log;
 $twig = $kernel->twig;
 
-
-function resource_file_url($file, $full) {
-	return get_site_url($full) . '/lib/res/' . $file;
+function resource_file_url($file) {
+	return get_site_url(). '/lib/res/' . $file;
 }
 
-function theme_file_url($file, $full) {
-	return get_site_url($full) . '/' . $GLOBALS['cm_config']['theme']['location'] . '/' . $file;
+function resource_file_path($file) {
+    global $kernel;
+    return $kernel->resPath .'/'. $file;
+}
+
+function theme_file_path($file) {
+    global $kernel;
+	return $kernel->themePath .'/'. $file;
+}
+
+
+function get_domain_url(): string
+{
+    global $kernel;
+
+    $siteOverride = $kernel->config['site-override'] ?? null;
+    if ($siteOverride) {
+        return $siteOverride;
+    }
+
+    $https = ($_SERVER['HTTPS'] ?? 'off') === 'on';
+    $url = ($https ? 'https' : 'http') . '://' . $_SERVER['SERVER_NAME'];
+    if ($_SERVER['SERVER_PORT'] != ($https ? '443' : '80')) {
+        $url .= ':' . $_SERVER['SERVER_PORT'];
+    }
+    return $url;
+}
+
+function get_site_path(): string
+{
+    global $kernel;
+
+    return $kernel->publicPath;
+}
+
+function get_site_url(): string
+{
+    return get_domain_url() . get_site_path();
 }

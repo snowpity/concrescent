@@ -114,18 +114,18 @@ if (isset($_POST['submit'])) {
 		if ($blacklisted) {
 			if ($contact_address) {
 				$body = 'The following staff application which was just submitted matched the blacklist:';
-				$body .= "\r\n\r\n".get_site_url(true).'/admin/staff/edit.php?id='.$id;
+				$body .= "\r\n\r\n".get_site_url().'/admin/staff/edit.php?id='.$id;
 				mail($contact_address, 'Blacklisted Staff Application', $body, 'From: '.$contact_address);
 			}
 			if ($slack->get_hook_url('staff-blacklisted')) {
 				$body = 'The following staff application which was just submitted matched the blacklist: ';
-				$body .= $slack->make_link(get_site_url(true).'/admin/staff/edit.php?id='.$id, 'S'.$id);
+				$body .= $slack->make_link(get_site_url().'/admin/staff/edit.php?id='.$id, 'S'.$id);
 				$slack->post_message('staff-blacklisted', $body);
 			}
 		} else {
 			if ($slack->get_hook_url('staff-submitted')) {
 				$body = 'A new staff application has been submitted: ';
-				$body .= $slack->make_link(get_site_url(true).'/admin/staff/edit.php?review&id='.$id, $item['display-name'].' (S'.$id.')');
+				$body .= $slack->make_link(get_site_url().'/admin/staff/edit.php?review&id='.$id, $item['display-name'].' (S'.$id.')');
 				$slack->post_message('staff-submitted', $body);
 			}
 		}

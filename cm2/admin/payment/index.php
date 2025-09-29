@@ -12,7 +12,7 @@ $can_delete = $adb->user_has_permission($admin_user, 'payments-delete');
 $pdb = new cm_payment_db($db);
 
 $list_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/payment/index.php',
+	'ajax-url' => get_site_path() . '/admin/payment/index.php',
 	'entity-type' => 'payment request',
 	'entity-type-pl' => 'payment requests',
 	'search-criteria' => 'name, contact info, or transaction ID',
@@ -62,8 +62,8 @@ $list_def = array(
 	),
 	'table-actions' => array(($can_edit ? 'add' : null)),
 	'edit-label' => ($can_edit ? 'Edit' : 'View'),
-	'add-url' => get_site_url(false) . '/admin/payment/edit.php',
-	'edit-url' => get_site_url(false) . '/admin/payment/edit.php?id=',
+	'add-url' => get_site_path() . '/admin/payment/edit.php',
+	'edit-url' => get_site_path() . '/admin/payment/edit.php?id=',
 	'delete-title' => 'Delete Payment Request'
 );
 

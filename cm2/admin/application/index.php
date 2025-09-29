@@ -106,8 +106,8 @@ $columns = array_merge(
 
 $list_def = array(
 	'loader' => 'server-side',
-	'ajax-url' => get_site_url(false) . '/admin/application/index.php?c='.$ctx_lc,
-	'reindex-url' => get_site_url(false) . '/admin/application/reindex.php?c='.$ctx_lc,
+	'ajax-url' => get_site_path() . '/admin/application/index.php?c='.$ctx_lc,
+	'reindex-url' => get_site_path() . '/admin/application/reindex.php?c='.$ctx_lc,
 	'entity-type' => $ctx_name_lc.' application',
 	'entity-type-pl' => $ctx_name_lc.' applications',
 	'search-criteria' => 'name, badge type, contact info, or transaction ID',
@@ -124,9 +124,9 @@ $list_def = array(
 	),
 	'table-actions' => array(($can_edit ? 'add' : null)),
 	'edit-label' => ($can_edit ? 'Edit' : 'View'),
-	'add-url' => get_site_url(false) . '/admin/application/edit.php?c='.$ctx_lc,
-	'edit-url' => get_site_url(false) . '/admin/application/edit.php?c='.$ctx_lc.'&id=',
-	'review-url' => get_site_url(false) . '/admin/application/edit.php?c='.$ctx_lc.'&review&id=',
+	'add-url' => get_site_path() . '/admin/application/edit.php?c='.$ctx_lc,
+	'edit-url' => get_site_path() . '/admin/application/edit.php?c='.$ctx_lc.'&id=',
+	'review-url' => get_site_path() . '/admin/application/edit.php?c='.$ctx_lc.'&review&id=',
 	'delete-title' => 'Delete '.$ctx_name.' Application'
 );
 

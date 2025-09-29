@@ -9,7 +9,7 @@ cm_admin_check_permission('attendee-blacklist', 'attendee-blacklist');
 $atdb = new cm_attendee_db($db);
 
 $list_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/attendee/blacklist.php',
+	'ajax-url' => get_site_path() . '/admin/attendee/blacklist.php',
 	'entity-type' => 'blacklist entry',
 	'entity-type-pl' => 'blacklist entries',
 	'search-criteria' => 'name or contact info',

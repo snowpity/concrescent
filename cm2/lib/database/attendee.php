@@ -1429,7 +1429,7 @@ class cm_attendee_db {
 		);
 		$stmt->execute();
 		$stmt->bind_result($payment_group_uuid, $payment_txn_id);
-		$reg_url = get_site_url(true) . '/register';
+		$reg_url = get_site_url() . '/register';
 		while ($stmt->fetch()) {
 			$result[] =  (($payment_group_uuid && $payment_txn_id) ? (
 				$reg_url . '/review.php' .
@@ -1492,10 +1492,10 @@ class cm_attendee_db {
 			$payment_date, $payment_details
 		);
 		if ($stmt->fetch()) {
-			$reg_url = get_site_url(true) . '/register';
+			$reg_url = get_site_url() . '/register';
 			$id_string = 'A' . $id;
 			$qr_data = 'CM*' . $id_string . '*' . strtoupper($uuid);
-			$qr_url = resource_file_url('barcode.php', true) . '?s=qr&w=300&h=300&d=' . $qr_data;
+			$qr_url = resource_file_url('barcode.php') . '?s=qr&w=300&h=300&d=' . $qr_data;
 			$badge_type_id_string = 'AB' . $badge_type_id;
 			$badge_type_name = ($name_map[$badge_type_id] ?? $badge_type_id);
 			$real_name = trim(trim($first_name) . ' ' . trim($last_name));
@@ -1689,8 +1689,8 @@ class cm_attendee_db {
 			$payment_txn_id, $payment_txn_amt,
 			$payment_date, $payment_details
 		);
-		$reg_url = get_site_url(true) . '/register';
-		$qr_base_url = resource_file_url('barcode.php', true) . '?s=qr&w=300&h=300&d=';
+		$reg_url = get_site_url() . '/register';
+		$qr_base_url = resource_file_url('barcode.php') . '?s=qr&w=300&h=300&d=';
 		while ($stmt->fetch()) {
 			$id_string = 'A' . $id;
 			$qr_data = 'CM*' . $id_string . '*' . strtoupper($uuid);

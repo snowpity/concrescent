@@ -97,8 +97,8 @@ $columns = array(
 
 $list_def = array(
 	'loader' => 'server-side',
-	'ajax-url' => get_site_url(false) . '/admin/application/badge-index.php?c='.$ctx_lc,
-	'reindex-url' => get_site_url(false) . '/admin/application/reindex.php?c='.$ctx_lc,
+	'ajax-url' => get_site_path() . '/admin/application/badge-index.php?c='.$ctx_lc,
+	'reindex-url' => get_site_path() . '/admin/application/reindex.php?c='.$ctx_lc,
 	'entity-type' => $ctx_name_lc.' badge',
 	'entity-type-pl' => $ctx_name_lc.' badges',
 	'search-criteria' => 'name, badge type, contact info, or transaction ID',
@@ -113,7 +113,7 @@ $list_def = array(
 		($can_delete ? 'delete' : null)
 	),
 	'edit-label' => ($can_edit ? 'Edit' : 'View'),
-	'edit-url' => get_site_url(false) . '/admin/application/badge-edit.php?c='.$ctx_lc.'&id=',
+	'edit-url' => get_site_path() . '/admin/application/badge-edit.php?c='.$ctx_lc.'&id=',
 	'delete-title' => 'Delete '.$ctx_name.' Badge'
 );
 

@@ -62,7 +62,7 @@ if ($read_only) $action_url .= '&ro';
 
 $list_def = array(
 	'loader' => 'server-side',
-	'ajax-url' => get_site_url(false) . '/admin/application/' . $action_url,
+	'ajax-url' => get_site_path() . '/admin/application/' . $action_url,
 	'entity-type' => 'attendee',
 	'entity-type-pl' => 'attendees',
 	'search-delay' => 500,
@@ -161,7 +161,7 @@ if ($submitted) {
           $changed = ($id !== false);
           if ($changed) {
               $action_url = 'badge-edit.php?c=' . $ctx_lc . '&id=' . $id;
-              $list_def['ajax-url'] = get_site_url(false) . '/admin/application/' . $action_url;
+              $list_def['ajax-url'] = get_site_path() . '/admin/application/' . $action_url;
           }
       } else {
           $changed = $apdb->update_applicant($item);
@@ -527,7 +527,7 @@ echo '<article>';
 				if ($value) {
 					echo '<tr>';
 						echo '<th><label>QR Code</label></th>';
-						$qr_url = htmlspecialchars(resource_file_url('barcode.php', false) . '?s=qr&w=150&h=150&d=');
+						$qr_url = htmlspecialchars(resource_file_path('barcode.php') . '?s=qr&w=150&h=150&d=');
 						echo '<td><img src="' . $qr_url . $value . '" width="150" height="150"></td>';
 					echo '</tr>';
 				}

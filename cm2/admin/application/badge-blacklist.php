@@ -25,7 +25,7 @@ cm_admin_check_permission('applicant-blacklist-'.$ctx_lc, 'applicant-blacklist-'
 $apdb = new cm_application_db($db, $context);
 
 $list_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/application/badge-blacklist.php?c=' . $ctx_lc,
+	'ajax-url' => get_site_path() . '/admin/application/badge-blacklist.php?c=' . $ctx_lc,
 	'entity-type' => 'blacklist entry',
 	'entity-type-pl' => 'blacklist entries',
 	'search-criteria' => 'name or contact info',

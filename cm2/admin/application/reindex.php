@@ -72,7 +72,7 @@ if (isset($_POST['action'])) {
 }
 
 cm_admin_head('Rebuild '.$ctx_name.' Search Index');
-echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_url('cmreindex.js', false)) . '"></script>';
+echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_path('cmreindex.js')) . '"></script>';
 cm_admin_body('Rebuild '.$ctx_name.' Search Index');
 cm_admin_nav('application-reindex-'.$ctx_lc);
 

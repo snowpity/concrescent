@@ -56,11 +56,11 @@ function cm_app_head($title) {
 	echo '<head>';
 	echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">';
 	echo '<title>' . htmlspecialchars($title) . '</title>';
-	echo '<link rel="shortcut icon" href="' . htmlspecialchars(theme_file_url('favicon.ico', false)) . '">';
-	echo '<link rel="stylesheet" href="' . htmlspecialchars(resource_file_url('cm.css', false)) . '">';
-	echo '<link rel="stylesheet" href="' . htmlspecialchars(theme_file_url('theme.css', false)) . '">';
-	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_url('jquery.js', false)) . '"></script>';
-	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_url('cmui.js', false)) . '"></script>';
+	echo '<link rel="shortcut icon" href="' . htmlspecialchars(theme_file_path('favicon.ico')) . '">';
+	echo '<link rel="stylesheet" href="' . htmlspecialchars(resource_file_path('cm.css')) . '">';
+	echo '<link rel="stylesheet" href="' . htmlspecialchars(theme_file_path('theme.css')) . '">';
+	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_path('jquery.js')) . '"></script>';
+	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_path('cmui.js')) . '"></script>';
 }
 
 function cm_app_body($title) {

@@ -11,7 +11,7 @@ cm_admin_check_permission('attendee-badge-types', 'attendee-badge-types');
 $atdb = new cm_attendee_db($db);
 
 $list_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/attendee/badge-types.php',
+	'ajax-url' => get_site_path() . '/admin/attendee/badge-types.php',
 	'entity-type' => 'badge type',
 	'entity-type-pl' => 'badge types',
 	'search-criteria' => 'name or description',

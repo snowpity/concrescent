@@ -419,9 +419,9 @@ function cm_reg_head(string $title): void {
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                 <title>Register {{ title|e }} </title>
-                <link rel="shortcut icon" href="{{ theme_file_url('favicon.ico', false)|e }}">
+                <link rel="shortcut icon" href="{{ theme_file_path('favicon.ico')|e }}">
                 <link rel="stylesheet" href="{{ resource_file_url('cm.css', false)|e }}">
-                <link rel="stylesheet" href="{{ theme_file_url('theme.css', false)|e }}">
+                <link rel="stylesheet" href="{{ theme_file_path('theme.css')|e }}">
                 <script type="text/javascript" src="{{ resource_file_url('jquery.js', false)|e }}"></script>
                 <script type="text/javascript" src="{{ resource_file_url('cmui.js', false)|e }}"></script>
         HEREDOC
@@ -442,7 +442,7 @@ function cm_reg_body(string $title, bool $show_cart = true): void {
             {% if show_cart == true %}
             <div class="header-items">
               <div class="header-item">
-              <a href="{{ get_site_url(false) ~ '/register/cart.php'}}">Shopping Cart: {{ count }} item{{ count == 1 ? '' : 's' }}</a>
+              <a href="{{ get_site_path() ~ '/register/cart.php'}}">Shopping Cart: {{ count }} item{{ count == 1 ? '' : 's' }}</a>
               </div>
             </div>
             {% endif %}

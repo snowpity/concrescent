@@ -41,7 +41,7 @@ $taskSchedulePublishable = new SchedulePublishableTask(
 
 $list_def = array(
 	'loader' => 'server-side',
-	'ajax-url' => get_site_url(false) . '/admin/application/assignments.php?c='.$ctx_lc,
+	'ajax-url' => get_site_path() . '/admin/application/assignments.php?c='.$ctx_lc,
 	'entity-type' => $ctx_name_lc.' application',
 	'entity-type-pl' => $ctx_name_lc.' applications',
 	'search-delay' => 500,

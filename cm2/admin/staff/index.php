@@ -92,8 +92,8 @@ $columns = array_merge(
 
 $list_def = array(
 	'loader' => 'server-side',
-	'ajax-url' => get_site_url(false) . '/admin/staff/index.php',
-	'reindex-url' => get_site_url(false) . '/admin/staff/reindex.php',
+	'ajax-url' => get_site_path() . '/admin/staff/index.php',
+	'reindex-url' => get_site_path() . '/admin/staff/reindex.php',
 	'entity-type' => 'staff application',
 	'entity-type-pl' => 'staff applications',
 	'search-criteria' => 'name, badge type, contact info, or transaction ID',
@@ -110,9 +110,9 @@ $list_def = array(
 	),
 	'table-actions' => array(($can_edit ? 'add' : null)),
 	'edit-label' => ($can_edit ? 'Edit' : 'View'),
-	'add-url' => get_site_url(false) . '/admin/staff/edit.php',
-	'edit-url' => get_site_url(false) . '/admin/staff/edit.php?id=',
-	'review-url' => get_site_url(false) . '/admin/staff/edit.php?review&id=',
+	'add-url' => get_site_path() . '/admin/staff/edit.php',
+	'edit-url' => get_site_path() . '/admin/staff/edit.php?id=',
+	'review-url' => get_site_path() . '/admin/staff/edit.php?review&id=',
 	'delete-title' => 'Delete Staff Application'
 );
 

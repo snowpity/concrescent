@@ -76,8 +76,8 @@ $columns = array_merge(
 
 $list_def = array(
 	'loader' => 'server-side',
-	'ajax-url' => get_site_url(false) . '/admin/attendee/index.php',
-	'reindex-url' => get_site_url(false) . '/admin/attendee/reindex.php',
+	'ajax-url' => get_site_path() . '/admin/attendee/index.php',
+	'reindex-url' => get_site_path() . '/admin/attendee/reindex.php',
 	'entity-type' => 'attendee',
 	'entity-type-pl' => 'attendees',
 	'search-criteria' => 'name, badge type, contact info, or transaction ID',
@@ -93,8 +93,8 @@ $list_def = array(
 	),
 	'table-actions' => array(($can_edit ? 'add' : null)),
 	'edit-label' => ($can_edit ? 'Edit' : 'View'),
-	'add-url' => get_site_url(false) . '/admin/attendee/edit.php',
-	'edit-url' => get_site_url(false) . '/admin/attendee/edit.php?id=',
+	'add-url' => get_site_path() . '/admin/attendee/edit.php',
+	'edit-url' => get_site_path() . '/admin/attendee/edit.php?id=',
 	'delete-title' => 'Delete Attendee'
 );
 

@@ -1356,10 +1356,10 @@ class cm_application_db {
 			$payment_date, $payment_details
 		);
 		if ($stmt->fetch()) {
-			$reg_url = get_site_url(true) . '/apply';
+			$reg_url = get_site_url() . '/apply';
 			$id_string = $this->ctx_uc . 'A' . $id;
 			$qr_data = 'CM*' . $id_string . '*' . strtoupper($uuid);
-			$qr_url = resource_file_url('barcode.php', true) . '?s=qr&w=300&h=300&d=' . $qr_data;
+			$qr_url = resource_file_url('barcode.php') . '?s=qr&w=300&h=300&d=' . $qr_data;
 			$badge_type_id_string = $this->ctx_uc . 'B' . $badge_type_id;
 			$badge_type_name = ($name_map[$badge_type_id] ?? $badge_type_id);
 			$contact_real_name = trim(trim($contact_first_name) . ' ' . trim($contact_last_name));
@@ -1546,8 +1546,8 @@ class cm_application_db {
 			$payment_txn_id, $payment_txn_amt,
 			$payment_date, $payment_details
 		);
-		$reg_url = get_site_url(true) . '/apply';
-		$qr_base_url = resource_file_url('barcode.php', true) . '?s=qr&w=300&h=300&d=';
+		$reg_url = get_site_url() . '/apply';
+		$qr_base_url = resource_file_url('barcode.php') . '?s=qr&w=300&h=300&d=';
 		while ($stmt->fetch()) {
 			$id_string = $this->ctx_uc . 'A' . $id;
 			$qr_data = 'CM*' . $id_string . '*' . strtoupper($uuid);
@@ -2148,10 +2148,10 @@ class cm_application_db {
 			$ice_email_address, $ice_phone_number
 		);
 		if ($stmt->fetch()) {
-			$reg_url = get_site_url(true) . '/apply';
+			$reg_url = get_site_url() . '/apply';
 			$id_string = $this->ctx_uc . $id;
 			$qr_data = 'CM*' . $id_string . '*' . strtoupper($uuid);
-			$qr_url = resource_file_url('barcode.php', true) . '?s=qr&w=300&h=300&d=' . $qr_data;
+			$qr_url = resource_file_url('barcode.php') . '?s=qr&w=300&h=300&d=' . $qr_data;
 			$application_id_string = $application_id ? ($this->ctx_uc . 'A' . $application_id) : null;
 			$attendee_id_string = $attendee_id ? ('A' . $attendee_id) : null;
 			$real_name = trim(trim($first_name) . ' ' . trim($last_name));
@@ -2295,8 +2295,8 @@ class cm_application_db {
 			$country, $ice_name, $ice_relationship,
 			$ice_email_address, $ice_phone_number
 		);
-		$reg_url = get_site_url(true) . '/apply';
-		$qr_base_url = resource_file_url('barcode.php', true) . '?s=qr&w=300&h=300&d=';
+		$reg_url = get_site_url() . '/apply';
+		$qr_base_url = resource_file_url('barcode.php') . '?s=qr&w=300&h=300&d=';
 		while ($stmt->fetch()) {
 			$id_string = $this->ctx_uc . $id;
 			$qr_data = 'CM*' . $id_string . '*' . strtoupper($uuid);

@@ -179,7 +179,7 @@ if ($submitted) {
 				if ($slack->get_hook_url($template_name)) {
 					$body = 'The staff application for ';
 					$body .= $slack->make_link(
-						get_site_url(true).'/admin/staff/edit.php?review&id='.$id,
+						get_site_url().'/admin/staff/edit.php?review&id='.$id,
 						$item['display-name'].' ('.$item['id-string'].')'
 					);
 					$body .= ' has been '.$application_status;
@@ -914,7 +914,7 @@ echo '<article>';
 					if ($value) {
 						echo '<tr>';
 							echo '<th><label>QR Code</label></th>';
-							$qr_url = htmlspecialchars(resource_file_url('barcode.php', false) . '?s=qr&w=150&h=150&d=');
+							$qr_url = htmlspecialchars(resource_file_path('barcode.php') . '?s=qr&w=150&h=150&d=');
 							echo '<td><img src="' . $qr_url . $value . '" width="150" height="150"></td>';
 						echo '</tr>';
 					}

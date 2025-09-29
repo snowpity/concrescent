@@ -10,8 +10,12 @@ use Twig\TwigFunction;
 
 final class Kernel
 {
+    /**
+     * @see config/concrescent.php
+     */
     public readonly array $config;
     public readonly bool $isAppDebug;
+    public readonly string $themeLocation;
 
     public function __construct(
         string $configFile = '',
@@ -34,6 +38,8 @@ final class Kernel
             $this->config = $cm_config;
         }
 
+        $this->themeLocation = $this->config['theme']['location'];
+
         if ($this->config['timezone']) {
             date_default_timezone_set($this->config['timezone']);
         }
@@ -46,28 +52,23 @@ final class Kernel
         }
     }
 
-    private(set) string $projectDir {
-        get => $this->projectDir = dirname(__DIR__);
-    }
-
-    private(set) string $configDir {
-        get => $this->configDir = $this->projectDir.'/config';
-    }
-
-    private(set) string $cacheDir {
-        get => $this->cacheDir = $this->projectDir.'/var/cache';
-    }
-
-    private(set) string $logDir {
-        get => $this->logDir ??= $this->projectDir.'/var/log';
-    }
+    private(set) string $projectDir { get => $this->projectDir = dirname(__DIR__); }
+    private(set) string $configDir { get => $this->configDir = $this->projectDir.'/config'; }
+    private(set) string $cacheDir { get => $this->cacheDir = $this->projectDir.'/var/cache'; }
+    private(set) string $logDir { get => $this->logDir ??= $this->projectDir.'/var/log'; }
+    private(set) string $publicDir { get => $this->publicDir ??= $this->projectDir.'/cm2'; }
+    private(set) string $themeDir { get => $this->themeDir ??= $this->publicDir.'/'.$this->themeLocation; }
+    private(set) string $resDir { get => $this->resDir ??= $this->publicDir.'/lib/res'; }
+    private(set) string $publicPath { get => $this->publicPath ??= ''; }
+    private(set) string $themePath { get => $this->themePath ??= $this->publicPath.'/'.$this->themeLocation; }
+    private(set) string $resPath { get => $this->resPath ??= $this->publicPath.'/lib/res'; }
 
 
-    private(set) LogLibrary $log {
+    protected(set) LogLibrary $log {
         get => $this->log = new LogLibrary($this->logDir);
     }
 
-    private(set) Environment $twig {
+    protected(set) Environment $twig {
         get {
             if (isset($this->twig)) {
                 return $this->twig;
@@ -81,9 +82,11 @@ final class Kernel
                     'cache' => $this->cacheDir.'/twig',
                 ],
             );
-            $this->twig->addFunction(new TwigFunction('theme_file_url', theme_file_url(...)));
+            $this->twig->addFunction(new TwigFunction('theme_file_path', theme_file_path(...)));
             $this->twig->addFunction(new TwigFunction('resource_file_url', resource_file_url(...)));
+            $this->twig->addFunction(new TwigFunction('resource_file_path', resource_file_path(...)));
             $this->twig->addFunction(new TwigFunction('get_site_url', get_site_url(...)));
+            $this->twig->addFunction(new TwigFunction('get_site_path', get_site_path(...)));
             $this->twig->addFilter(new TwigFilter('price_string', price_string(...)));
             $this->twig->addFilter(new TwigFilter('cm_status_label', cm_status_label(...)));
 

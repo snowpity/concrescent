@@ -9,7 +9,7 @@ cm_admin_check_permission('staff-blacklist', 'staff-blacklist');
 $sdb = new cm_staff_db($db);
 
 $list_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/staff/blacklist.php',
+	'ajax-url' => get_site_path() . '/admin/staff/blacklist.php',
 	'entity-type' => 'blacklist entry',
 	'entity-type-pl' => 'blacklist entries',
 	'search-criteria' => 'name or contact info',

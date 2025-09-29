@@ -132,8 +132,8 @@ echo '<html>';
 			}
 		}
 
-		echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_url('jquery.js', false)) . '"></script>';
-		echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_url('cmui.js', false)) . '"></script>';
+		echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_path('jquery.js')) . '"></script>';
+		echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_path('cmui.js')) . '"></script>';
 
 		echo '<script type="text/javascript">';
 			echo 'cm_print_global_config = (' . json_encode($bp_config) . ');';

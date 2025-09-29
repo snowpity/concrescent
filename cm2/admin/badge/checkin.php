@@ -59,7 +59,7 @@ $columns = array(
 );
 $list_def = array(
 	'loader' => 'server-side',
-	'ajax-url' => get_site_url(false) . '/admin/badge/checkin.php',
+	'ajax-url' => get_site_path() . '/admin/badge/checkin.php',
 	'entity-type' => 'badge holder',
 	'entity-type-pl' => 'badge holders',
 	'search-criteria' => 'name, badge type, contact info, or transaction ID',

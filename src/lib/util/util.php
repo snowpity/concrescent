@@ -2,28 +2,6 @@
 
 require_once __DIR__ .'/../../../config/concrescent.php';
 
-function get_domain_url() {
-	global $cm_config;
-	if (isset($cm_config['site-override']) && $cm_config['site-override'] != '') return $cm_config['site-override'];
-	$https = (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on'));
-	$url = ($https ? 'https' : 'http') . '://' . $_SERVER['SERVER_NAME'];
-	if ($_SERVER['SERVER_PORT'] != ($https ? '443' : '80')) {
-		$url .= ':' . $_SERVER['SERVER_PORT'];
-	}
-	return $url;
-}
-
-function get_site_url(bool $full = true) {
-	$uriroot = realpath(__FILE__);
-	$o = strpos($uriroot, '/lib/util/util.php');
-	if ($o !== FALSE) $uriroot = substr($uriroot, 0, $o);
-	$docroot = realpath($_SERVER['DOCUMENT_ROOT']);
-	$o = strpos($uriroot, $docroot);
-	if ($o !== FALSE) $uriroot = substr($uriroot, $o + strlen($docroot));
-	if (!$full) return $uriroot;
-	return get_domain_url() . $uriroot;
-}
-
 function ua(string $x): bool
 {
 	return (str_contains($_SERVER['HTTP_USER_AGENT'] ?? '', $x));

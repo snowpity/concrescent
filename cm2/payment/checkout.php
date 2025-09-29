@@ -4,7 +4,7 @@ require_once __DIR__ .'/payment.php';
 
 require_once __DIR__ .'/../../src/lib/util/paypal.php';
 
-$site_url = get_site_url(true);
+$site_url = get_site_url();
 
 if (!$_GET) {
 	if (!cm_payment_cart_check_state('ready')) {

@@ -7,7 +7,7 @@ require_once __DIR__ .'/admin-perms.php';
 cm_admin_check_permission('admin-users', 'admin-users');
 
 $list_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/users.php',
+	'ajax-url' => get_site_path() . '/admin/users.php',
 	'entity-type' => 'user',
 	'entity-type-pl' => 'users',
 	'search-criteria' => 'display name or user name',

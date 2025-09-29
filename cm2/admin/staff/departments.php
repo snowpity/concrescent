@@ -13,7 +13,7 @@ $midb = new cm_misc_db($db);
 $domain = $midb->getval('mail-default-domain', $_SERVER['SERVER_NAME']);
 
 $list_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/staff/departments.php',
+	'ajax-url' => get_site_path() . '/admin/staff/departments.php',
 	'entity-type' => 'department',
 	'entity-type-pl' => 'departments',
 	'search-criteria' => 'name or description',

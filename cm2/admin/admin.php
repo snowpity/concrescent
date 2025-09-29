@@ -17,7 +17,7 @@ $db = new cm_db();
 $adb = new cm_admin_db($db);
 $admin_user = $adb->logged_in_user();
 if (!$admin_user) {
-	$url = get_site_url(false) . '/admin/login.php?page=';
+	$url = get_site_path() . '/admin/login.php?page=';
 	$url .= urlencode($_SERVER['REQUEST_URI']);
 	header('Location: ' . $url);
 	exit(0);

@@ -11,7 +11,7 @@ $atdb = new cm_attendee_db($db);
 $name_list = $atdb->list_badge_type_names();
 
 $form_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/attendee/questions.php',
+	'ajax-url' => get_site_path() . '/admin/attendee/questions.php',
 	'context' => 'attendee',
 	'subcontext' => $name_list
 );

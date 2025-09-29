@@ -36,7 +36,7 @@ $search_criteria = (
 );
 
 $list_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/application/app-blacklist.php?c=' . $ctx_lc,
+	'ajax-url' => get_site_path() . '/admin/application/app-blacklist.php?c=' . $ctx_lc,
 	'entity-type' => 'blacklist entry',
 	'entity-type-pl' => 'blacklist entries',
 	'search-criteria' => $search_criteria,

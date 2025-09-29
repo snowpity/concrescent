@@ -78,7 +78,7 @@ if (!$new) $action_url .= '&id=' . $id;
 if ($read_only) $action_url .= '&ro';
 
 $list_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/application/' . $action_url,
+	'ajax-url' => get_site_path() . '/admin/application/' . $action_url,
 	'entity-type' => $ctx_name_lc . ' badge',
 	'entity-type-pl' => $ctx_name_lc . ' badges',
 	'columns' => array(
@@ -127,8 +127,8 @@ $list_def = array(
 	),
 	'table-actions' => array(($can_edit_applicants ? 'add' : null)),
 	'edit-label' => ($can_edit_applicants ? 'Edit' : 'View'),
-	'add-url' => get_site_url(false) . '/admin/application/badge-edit.php?c='.$ctx_lc.'&pid='.$id,
-	'edit-url' => get_site_url(false) . '/admin/application/badge-edit.php?c='.$ctx_lc.'&id=',
+	'add-url' => get_site_path() . '/admin/application/badge-edit.php?c='.$ctx_lc.'&pid='.$id,
+	'edit-url' => get_site_path() . '/admin/application/badge-edit.php?c='.$ctx_lc.'&id=',
 	'delete-title' => 'Delete ' . $ctx_name . ' Badge'
 );
 
@@ -239,8 +239,8 @@ if ($submitted) {
 		$changed = ($id !== false);
 		if ($changed) {
 			$action_url .= '&id=' . $id;
-			$list_def['ajax-url'] = get_site_url(false) . '/admin/application/' . $action_url;
-			$list_def['add-url'] = get_site_url(false) . '/admin/application/badge-edit.php?c='.$ctx_lc.'&pid='.$id;
+			$list_def['ajax-url'] = get_site_path() . '/admin/application/' . $action_url;
+			$list_def['add-url'] = get_site_path() . '/admin/application/badge-edit.php?c='.$ctx_lc.'&pid='.$id;
 		}
 	} else {
 		$changed = $apdb->update_application($item, $fdb);
@@ -272,7 +272,7 @@ if ($submitted) {
 				if ($slack->get_hook_url($template_name)) {
 					$body = 'The ' . $ctx_name_lc . ' application for ';
 					$body .= $slack->make_link(
-						get_site_url(true).'/admin/application/edit.php?c='.$ctx_lc.'&review&id='.$id,
+						get_site_url().'/admin/application/edit.php?c='.$ctx_lc.'&review&id='.$id,
 						$item['application-name'].' ('.$item['id-string'].')'
 					);
 					$body .= ' has been '.$application_status;

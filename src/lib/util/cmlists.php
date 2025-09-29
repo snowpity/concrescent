@@ -59,7 +59,7 @@ function cm_list_head(&$list_def) {
 			echo " cm_list_def['" . $k . "'] = (" . $v . ');';
 		}
 	echo '</script>';
-	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_url('cmlists.js', false)) . '"></script>';
+	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_path('cmlists.js')) . '"></script>';
 }
 
 function cm_list_search_box(&$list_def) {

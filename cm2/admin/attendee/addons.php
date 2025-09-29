@@ -10,7 +10,7 @@ $atdb = new cm_attendee_db($db);
 $name_map = $atdb->get_badge_type_name_map();
 
 $list_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/attendee/addons.php',
+	'ajax-url' => get_site_path() . '/admin/attendee/addons.php',
 	'entity-type' => 'addon',
 	'entity-type-pl' => 'addons',
 	'search-criteria' => 'name or description',

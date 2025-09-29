@@ -256,18 +256,18 @@ if (isset($_POST['submit'])) {
 		if ($blacklisted) {
 			if ($contact_address) {
 				$body = 'The following '.$ctx_name_lc.' application which was just submitted matched the blacklist:';
-				$body .= "\r\n\r\n".get_site_url(true).'/admin/application/edit.php?c='.$ctx_lc.'&id='.$id;
+				$body .= "\r\n\r\n".get_site_url().'/admin/application/edit.php?c='.$ctx_lc.'&id='.$id;
 				mail($contact_address, 'Blacklisted '.$ctx_name.' Application', $body, 'From: '.$contact_address);
 			}
 			if ($slack->get_hook_url(array('application-blacklisted', $ctx_uc))) {
 				$body = 'The following '.$ctx_name_lc.' application which was just submitted matched the blacklist: ';
-				$body .= $slack->make_link(get_site_url(true).'/admin/application/edit.php?c='.$ctx_lc.'&id='.$id, $ctx_uc.'A'.$id);
+				$body .= $slack->make_link(get_site_url().'/admin/application/edit.php?c='.$ctx_lc.'&id='.$id, $ctx_uc.'A'.$id);
 				$slack->post_message(array('application-blacklisted', $ctx_uc), $body);
 			}
 		} else {
 			if ($slack->get_hook_url(array('application-submitted', $ctx_uc))) {
 				$body = 'A new '.$ctx_name_lc.' application has been submitted: ';
-				$body .= $slack->make_link(get_site_url(true).'/admin/application/edit.php?c='.$ctx_lc.'&review&id='.$id, $item['application-name'].' ('.$ctx_uc.'A'.$id.')');
+				$body .= $slack->make_link(get_site_url().'/admin/application/edit.php?c='.$ctx_lc.'&review&id='.$id, $item['application-name'].' ('.$ctx_uc.'A'.$id.')');
 				$slack->post_message(array('application-submitted', $ctx_uc), $body);
 			}
 		}

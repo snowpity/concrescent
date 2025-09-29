@@ -3,7 +3,7 @@
 require_once __DIR__ .'/res.php';
 
 function cm_mail_head() {
-	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_url('cmmail.js', false)) . '"></script>';
+	echo '<script type="text/javascript" src="' . htmlspecialchars(resource_file_path('cmmail.js')) . '"></script>';
 }
 
 function cm_mail_notification($success) {

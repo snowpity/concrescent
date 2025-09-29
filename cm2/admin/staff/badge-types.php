@@ -9,7 +9,7 @@ cm_admin_check_permission('staff-badge-types', 'staff-badge-types');
 $sdb = new cm_staff_db($db);
 
 $list_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/staff/badge-types.php',
+	'ajax-url' => get_site_path() . '/admin/staff/badge-types.php',
 	'entity-type' => 'badge type',
 	'entity-type-pl' => 'badge types',
 	'search-criteria' => 'name or description',

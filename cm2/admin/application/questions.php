@@ -28,7 +28,7 @@ $apdb = new cm_application_db($db, $context);
 $name_list = $apdb->list_badge_type_names();
 
 $form_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/application/questions.php?c=' . $ctx_lc,
+	'ajax-url' => get_site_path() . '/admin/application/questions.php?c=' . $ctx_lc,
 	'context' => 'application-' . $ctx_lc,
 	'subcontext' => $name_list
 );

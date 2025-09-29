@@ -9,7 +9,7 @@ cm_admin_check_permission('badge-artwork', 'badge-artwork');
 $badb = new cm_badge_artwork_db($db);
 
 $list_def = array(
-	'ajax-url' => get_site_url(false) . '/admin/badge/artwork.php',
+	'ajax-url' => get_site_path() . '/admin/badge/artwork.php',
 	'entity-type' => 'badge artwork',
 	'entity-type-pl' => 'badge artwork',
 	'search-criteria' => 'file name',
@@ -26,7 +26,7 @@ $list_def = array(
 	'row-actions' => array('edit', 'delete'),
 	'table-actions' => array('add'),
 	'add-label' => 'Upload',
-	'edit-url' => get_site_url(false) . '/admin/badge/artwork-edit.php?name=',
+	'edit-url' => get_site_path() . '/admin/badge/artwork-edit.php?name=',
 	'add-title' => 'Upload Badge Artwork',
 	'delete-title' => 'Delete Badge Artwork'
 );
