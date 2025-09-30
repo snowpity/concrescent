@@ -1,6 +1,10 @@
 <?php
 
 // Allow from any origin
+use App\Lib\Database\cm_application_db;
+use App\Lib\Database\cm_db;
+use App\Lib\Database\cm_forms_db;
+
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     // Decide if the origin in $_SERVER['HTTP_ORIGIN'] is one
     // you want to allow, and if so:
@@ -22,9 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-require_once __DIR__ . "/../../config/concrescent.php";
-require_once __DIR__ . "/../lib/database/application.php";
-require_once __DIR__ . "/../lib/database/forms.php";
+require_once __DIR__ . "/../../src/lib/util/res.php";
 
 $context = isset($_GET["c"]) ? trim($_GET["c"]) : null;
 

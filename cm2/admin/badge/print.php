@@ -1,9 +1,9 @@
 <?php
 
+use App\Lib\Database\cm_badge_artwork_db;
+use App\Lib\Database\cm_badge_holder_db;
 use JetBrains\PhpStorm\NoReturn;
 
-require_once __DIR__ .'/../../lib/database/badge-artwork.php';
-require_once __DIR__ .'/../../lib/database/badge-holder.php';
 require_once __DIR__ .'/../admin.php';
 
 function get_config($p, $g, $c, $k) {

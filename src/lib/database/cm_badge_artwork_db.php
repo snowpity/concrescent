@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ .'/database.php';
+namespace App\Lib\Database;
 
 class cm_badge_artwork_db {
 

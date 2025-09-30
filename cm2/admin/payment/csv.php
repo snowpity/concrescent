@@ -1,6 +1,7 @@
 <?php
 
-require_once __DIR__ .'/../../lib/database/payment.php';
+use App\Lib\Database\cm_payment_db;
+
 require_once __DIR__ . '/../../../src/lib/util/cmexport.php';
 require_once __DIR__ .'/../admin.php';
 

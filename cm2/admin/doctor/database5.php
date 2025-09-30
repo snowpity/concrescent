@@ -1,8 +1,10 @@
 <?php
 
+use App\Lib\Database\cm_admin_db;
+use App\Lib\Database\cm_db;
+
 require_once 'util.php';
-require_once __DIR__ .'/../../lib/database/database.php';
-require_once __DIR__ .'/../../lib/database/admin.php';
+require_once __DIR__ . '/../../../vendor/autoload.php';
 error_reporting(0);
 
 $db = new cm_db();

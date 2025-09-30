@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ .'/../../../config/concrescent.php';
+namespace App\Lib\Util;
 
 class cm_slack {
 

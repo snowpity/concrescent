@@ -1,10 +1,6 @@
 <?php
 
-require_once __DIR__ .'/../../../config/concrescent.php';
-require_once __DIR__ .'/database.php';
-require_once __DIR__ .'/attendee.php';
-require_once __DIR__ .'/application.php';
-require_once __DIR__ .'/staff.php';
+namespace App\Lib\Database;
 
 class cm_badge_holder_db {
 

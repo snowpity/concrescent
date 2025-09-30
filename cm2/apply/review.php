@@ -1,8 +1,8 @@
 <?php
 
-require_once __DIR__ .'/apply.php';
+use App\Lib\Database\cm_attendee_db;
 
-require_once __DIR__ .'/../lib/database/attendee.php';
+require_once __DIR__ .'/apply.php';
 
 $gid = isset($_GET['gid']) ? trim($_GET['gid']) : null;
 $tid = isset($_GET['tid']) ? trim($_GET['tid']) : null;

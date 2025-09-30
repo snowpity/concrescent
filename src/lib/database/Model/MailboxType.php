@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Database\Model;
+namespace App\Lib\Database\Model;
 
 enum MailboxType: string
 {

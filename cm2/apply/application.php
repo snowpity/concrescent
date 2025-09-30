@@ -1,10 +1,11 @@
 <?php
 
+use App\Lib\Database\cm_attendee_db;
+use App\Lib\Util\cm_slack;
+
 require_once __DIR__ .'/apply.php';
 
-require_once __DIR__ .'/../lib/database/attendee.php';
 require_once __DIR__ .'/../../src/lib/util/cmforms.php';
-require_once __DIR__ .'/../../src/lib/util/slack.php';
 
 function applicant_form($apdb, $i, $applicant, $errors) {
 	$out = '<tbody class="applicant-rows applicant-rows-'.$i.'">';

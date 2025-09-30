@@ -57,10 +57,11 @@
     "autoload": {
         "psr-4": {
             "App\\": "src",
-            "App\\Lib\\Task\\": "src/lib/Task",
+            "App\\Lib\\Database\\": "src/lib/database",
             "App\\Lib\\Hook\\": "src/lib/Hook",
             "App\\Lib\\Log\\": "src/lib/Log",
-            "App\\Database\\Model\\": "cm2/lib/database/Model"
+            "App\\Lib\\Task\\": "src/lib/Task",
+            "App\\Lib\\Util\\": "src/lib/util"
         }
     }
 }

@@ -1,7 +1,8 @@
 <?php
 
-require_once __DIR__ .'/../../lib/database/badge-artwork.php';
-require_once __DIR__ .'/../../lib/database/badge-holder.php';
+use App\Lib\Database\cm_badge_artwork_db;
+use App\Lib\Database\cm_badge_holder_db;
+
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('badge-artwork', 'badge-artwork');

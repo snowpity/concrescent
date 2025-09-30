@@ -1,13 +1,8 @@
 <?php
 
-use JetBrains\PhpStorm\NoReturn;
+namespace App\Lib\Database;
 
-require_once __DIR__ .'/../../../config/concrescent.php';
-require_once __DIR__ .'/../util/util.php';
-require_once __DIR__ .'/../util/res.php';
-require_once __DIR__ .'/database.php';
-require_once __DIR__ .'/lists.php';
-require_once __DIR__ .'/forms.php';
+use JetBrains\PhpStorm\NoReturn;
 
 class cm_application_db {
 

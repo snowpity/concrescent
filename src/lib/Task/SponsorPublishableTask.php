@@ -2,13 +2,14 @@
 
 namespace App\Lib\Task;
 
+use App\Lib\Database\cm_misc_db;
 use App\Lib\Hook\CloudflareApi;
 use App\Lib\Log\LogLibrary;
 
 readonly class SponsorPublishableTask
 {
     public function __construct(
-        private \cm_misc_db $miscDb,
+        private cm_misc_db $miscDb,
         private CloudflareApi $cloudflareApi,
         private LogLibrary   $log,
     ) {

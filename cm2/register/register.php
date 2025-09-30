@@ -1,16 +1,15 @@
 <?php
 
+use App\Lib\Database\cm_attendee_db;
+use App\Lib\Database\cm_db;
+use App\Lib\Database\cm_forms_db;
+use App\Lib\Database\cm_mail_db;
 use JetBrains\PhpStorm\NoReturn;
 
 session_name('PHPSESSID_CMREG');
 session_start();
 
 require_once __DIR__ .'/../../src/lib/util/res.php';
-
-require_once __DIR__ .'/../lib/database/database.php';
-require_once __DIR__ .'/../lib/database/attendee.php';
-require_once __DIR__ .'/../lib/database/forms.php';
-require_once __DIR__ .'/../lib/database/mail.php';
 
 global $cm_config;
 

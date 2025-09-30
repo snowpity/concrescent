@@ -1,6 +1,7 @@
 <?php
 
-require_once __DIR__ .'/../../lib/database/attendee.php';
+use App\Lib\Database\cm_attendee_db;
+
 require_once __DIR__ .'/../../../src/lib/util/cmlists.php';
 require_once __DIR__ .'/../admin.php';
 

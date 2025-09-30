@@ -1,6 +1,7 @@
 <?php
 
-require_once __DIR__ .'/../../lib/database/forms.php';
+use App\Lib\Database\cm_forms_db;
+
 require_once __DIR__ .'/../admin.php';
 
 global $twig, $fdb;

@@ -1,8 +1,9 @@
 <?php
 
-require_once __DIR__ .'/../lib/database/attendee.php';
-require_once __DIR__ .'/../lib/database/application.php';
-require_once __DIR__ .'/../lib/database/staff.php';
+use App\Lib\Database\cm_application_db;
+use App\Lib\Database\cm_attendee_db;
+use App\Lib\Database\cm_staff_db;
+
 require_once __DIR__ .'/admin.php';
 
 cm_admin_check_permission('statistics', 'statistics');

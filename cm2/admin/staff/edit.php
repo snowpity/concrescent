@@ -1,12 +1,13 @@
 <?php
 
-require_once __DIR__ .'/../../lib/database/staff.php';
-require_once __DIR__ .'/../../lib/database/forms.php';
-require_once __DIR__ .'/../../lib/database/attendee.php';
-require_once __DIR__ .'/../../lib/database/mail.php';
-require_once __DIR__ .'/../../lib/database/misc.php';
+use App\Lib\Database\cm_attendee_db;
+use App\Lib\Database\cm_forms_db;
+use App\Lib\Database\cm_mail_db;
+use App\Lib\Database\cm_misc_db;
+use App\Lib\Database\cm_staff_db;
+use App\Lib\Util\cm_slack;
+
 require_once __DIR__ .'/../../../src/lib/util/cmforms.php';
-require_once __DIR__ .'/../../../src/lib/util/slack.php';
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('staff', array('||', 'staff-view', 'staff-review', 'staff-edit'));

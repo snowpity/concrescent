@@ -1,6 +1,7 @@
 <?php
 
-require_once __DIR__ .'/../../lib/database/staff.php';
+use App\Lib\Database\cm_staff_db;
+
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('staff-orgchart', 'staff-orgchart');

@@ -1,8 +1,6 @@
 <?php
 
-require_once __DIR__ .'/../util/util.php';
-require_once __DIR__ .'/../util/res.php';
-require_once __DIR__ .'/database.php';
+namespace App\Lib\Database;
 
 class cm_payment_db {
 

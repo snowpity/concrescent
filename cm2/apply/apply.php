@@ -1,5 +1,9 @@
 <?php
 
+use App\Lib\Database\cm_application_db;
+use App\Lib\Database\cm_db;
+use App\Lib\Database\cm_forms_db;
+use App\Lib\Database\cm_mail_db;
 use JetBrains\PhpStorm\NoReturn;
 
 require_once __DIR__ .'/../../src/lib/util/res.php';
@@ -23,11 +27,6 @@ $ctx_name_lc = strtolower($ctx_name);
 
 session_name('PHPSESSID_CMAPPLYAPP_' . $ctx_uc);
 session_start();
-
-require_once __DIR__ .'/../lib/database/database.php';
-require_once __DIR__ .'/../lib/database/application.php';
-require_once __DIR__ .'/../lib/database/forms.php';
-require_once __DIR__ .'/../lib/database/mail.php';
 
 $event_name = $cm_config['event']['name'];
 $db = new cm_db();

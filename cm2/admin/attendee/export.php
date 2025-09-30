@@ -1,8 +1,9 @@
 <?php
 
-require_once __DIR__ .'/../../lib/database/attendee.php';
-require_once __DIR__ .'/../../lib/database/forms.php';
-require_once __DIR__ .'/../../lib/database/misc.php';
+use App\Lib\Database\cm_attendee_db;
+use App\Lib\Database\cm_forms_db;
+use App\Lib\Database\cm_misc_db;
+
 require_once __DIR__ . '/../../../src/lib/util/cmexport.php';
 require_once __DIR__ .'/../admin.php';
 

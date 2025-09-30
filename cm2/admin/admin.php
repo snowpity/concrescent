@@ -1,14 +1,13 @@
 <?php
 
+use App\Lib\Database\cm_admin_db;
+use App\Lib\Database\cm_db;
 use Twig\TwigFunction;
 
 session_name('PHPSESSID_CMADMIN');
 session_start();
 
 require_once __DIR__ .'/../../src/lib/util/res.php';
-
-require_once __DIR__ .'/../lib/database/database.php';
-require_once __DIR__ .'/../lib/database/admin.php';
 require_once __DIR__ .'/admin-nav.php';
 
 global $twig;

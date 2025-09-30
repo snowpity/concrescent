@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Database\Model;
+namespace App\Lib\Database\Model;
 
 class ShortAttendee {
     private(set) string $type = 'attendee';

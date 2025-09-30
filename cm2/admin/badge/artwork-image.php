@@ -1,6 +1,7 @@
 <?php
 
-require_once __DIR__ .'/../../lib/database/badge-artwork.php';
+use App\Lib\Database\cm_badge_artwork_db;
+
 require_once __DIR__ .'/../admin.php';
 
 $badb = new cm_badge_artwork_db($db);

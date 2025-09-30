@@ -1,7 +1,6 @@
 <?php
 
-require_once __DIR__ .'/../../../config/concrescent.php';
-require_once __DIR__ .'/database.php';
+namespace App\Lib\Database;
 
 class cm_admin_db {
 

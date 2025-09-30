@@ -1,6 +1,8 @@
 <?php
 
-require_once __DIR__ .'/database.php';
+namespace App\Lib\Database;
+
+use PDO;
 
 class cm_misc_db {
 

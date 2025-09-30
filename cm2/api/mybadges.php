@@ -1,6 +1,7 @@
 <?php
 
-require_once __DIR__ .'/../lib/database/mail.php';
+use App\Lib\Database\cm_mail_db;
+
 require_once __DIR__ .'/../register/register.php';
 
 //Assume we got something

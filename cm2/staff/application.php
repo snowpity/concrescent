@@ -1,10 +1,11 @@
 <?php
 
+use App\Lib\Database\cm_attendee_db;
+use App\Lib\Util\cm_slack;
+
 require_once __DIR__ .'/staff.php';
 
-require_once __DIR__ .'/../lib/database/attendee.php';
 require_once __DIR__ .'/../../src/lib/util/cmforms.php';
-require_once __DIR__ .'/../../src/lib/util/slack.php';
 
 $sellable_badge_types = $sdb->list_badge_types(true, true);
 if (!$sellable_badge_types) {

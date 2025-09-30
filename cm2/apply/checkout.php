@@ -1,8 +1,8 @@
 <?php
 
-require_once __DIR__ .'/apply.php';
+use App\Lib\Util\cm_paypal;
 
-require_once __DIR__ .'/../../src/lib/util/paypal.php';
+require_once __DIR__ .'/apply.php';
 
 $site_url = get_site_url();
 
