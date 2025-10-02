@@ -2087,7 +2087,7 @@ class cm_attendee_db {
 			'`subscribed` = FALSE WHERE LCASE(`email_address`) = LCASE(?)'
 		);
 		$stmt->bind_param('s', $email);
-		$count = $stmt->execute() ? $this->cm_db->affected_rows() : false;
+		$count = $stmt->execute() ? $stmt->rowCount() : false;
 		if ($count) {
 			$ids = array();
 			$stmt = $this->cm_db->prepare(

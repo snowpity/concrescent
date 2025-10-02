@@ -39,12 +39,18 @@ class cm_db {
 		return $this->connection->query($this->translate_query($query));
 	}
 
+    /**
+     * @return PDOStatement_wrap&PDOStatement
+     */
 	public function prepare(string $query): PDOStatement_wrap
 	{
 		$stmt = $this->connection->prepare($this->translate_query($query));
 		return new PDOStatement_wrap($stmt);
 	}
 
+    /**
+     * @return PDOStatement_wrap&PDOStatement
+     */
 	public function execute(string $query, ?array $params = null): PDOStatement_wrap
 	{
 		$stmt = $this->prepare($query);
@@ -100,12 +106,5 @@ class cm_db {
 	{
 		// TODO (Mr. Metric): Check if other database engines we want compat with return a result the callers can use sanely.
 		return $this->connection->lastInsertId();
-	}
-
-	public function affected_rows(): int
-	{
-		// TODO (Mr. Metric): The documentation says:
-		// This method returns "0" (zero) with the SQLite driver at all times, and with the PostgreSQL driver only when setting the `PDO::ATTR_CURSOR` statement attribute to `PDO::CURSOR_SCROLL`.
-		return $this->connection->rowCount();
 	}
 }

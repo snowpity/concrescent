@@ -6,13 +6,14 @@ namespace App\Lib\Database;
 use PDO;
 use PDOStatement;
 
-class PDOStatement_wrap
+/**
+ * @extends PDOStatement
+ */
+readonly class PDOStatement_wrap
 {
-	public PDOStatement $stmt;
-
-	public function __construct(PDOStatement $stmt)
-	{
-		$this->stmt = $stmt;
+	public function __construct(
+        public PDOStatement $stmt
+    ) {
 	}
 
 	public function __call($method, $args)
@@ -27,6 +28,10 @@ class PDOStatement_wrap
 	{
 		return $this->stmt->$key = $val;
 	}
+    public function __isset($key)
+    {
+        return isset($this->stmt->$key);
+    }
 
 	public function bind_param(string $types, &...$vars): bool
 	{
@@ -39,8 +44,7 @@ class PDOStatement_wrap
 			'b' => PDO::PARAM_LOB,
 		];
 
-		for($i = 0; $i !== strlen($types); ++$i)
-		{
+		for($i = 0, $iMax = strlen($types); $i !== $iMax; ++$i) {
 			$type = $type_map[$types[$i]];
 			$r = $this->stmt->bindParam($i + 1, $vars[$i], $type);
 			assert($r);
@@ -52,11 +56,10 @@ class PDOStatement_wrap
 	public function bind_result(mixed &...$vars): bool
 	{
 		$this->stmt->setFetchMode(PDO::FETCH_BOUND);
-		for($i = 0; $i !== count($vars); ++$i)
-		{
-			$r = $this->stmt->bindColumn($i + 1, $vars[$i]);
-			assert($r);
-		}
-		return true;
+        foreach ($vars as $i => $iValue) {
+            $r = $this->stmt->bindColumn($i + 1, $vars[$i]);
+            assert($r);
+        }
+        return true;
 	}
 }

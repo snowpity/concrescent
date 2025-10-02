@@ -2532,7 +2532,7 @@ class cm_application_db {
 			'`contact_subscribed` = FALSE WHERE LCASE(`contact_email_address`) = LCASE(?)'
 		);
 		$stmt->bind_param('s', $email);
-		$ancount = $stmt->execute() ? $this->cm_db->affected_rows() : 0;
+		$ancount = $stmt->execute() ? $stmt->rowCount() : 0;
 		if ($ancount) {
 			$ids = array();
 			$stmt = $this->cm_db->prepare(
@@ -2554,7 +2554,7 @@ class cm_application_db {
 			'`subscribed` = FALSE WHERE LCASE(`email_address`) = LCASE(?)'
 		);
 		$stmt->bind_param('s', $email);
-		$atcount = $stmt->execute() ? $this->cm_db->affected_rows() : 0;
+		$atcount = $stmt->execute() ? $stmt->rowCount() : 0;
 		if ($atcount) {
 			$ids = array();
 			$stmt = $this->cm_db->prepare(
