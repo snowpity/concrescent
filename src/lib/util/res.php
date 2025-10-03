@@ -1,6 +1,7 @@
 <?php
 
 use App\Kernel;
+use Symfony\Component\HttpFoundation\Request;
 
 include_once __DIR__ .'/../../../config/concrescent.php';
 
@@ -16,16 +17,28 @@ $kernel = new Kernel();
 $log = $kernel->log;
 $twig = $kernel->twig;
 
-function resource_file_url($file) {
+$request = new Request(
+    $_GET,
+    $_POST,
+    $_SERVER,
+    $_COOKIE,
+    $_FILES,
+    $_SERVER,
+);
+
+function resource_file_url($file): string
+{
 	return get_site_url(). '/lib/res/' . $file;
 }
 
-function resource_file_path($file) {
+function resource_file_path($file): string
+{
     global $kernel;
     return $kernel->resPath .'/'. $file;
 }
 
-function theme_file_path($file) {
+function theme_file_path($file): string
+{
     global $kernel;
 	return $kernel->themePath .'/'. $file;
 }

@@ -35,7 +35,8 @@
         "ext-mysqli": "*",
         "ext-apcu": "*",
         "symfony/http-client": "^7.3.4",
-        "monolog/monolog": "^3.9.0"
+        "monolog/monolog": "^3.9.0",
+        "symfony/http-foundation": "^7.3"
     },
     "require-dev": {
         "roave/security-advisories": "dev-latest",

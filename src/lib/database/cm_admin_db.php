@@ -75,7 +75,8 @@ class cm_admin_db {
 		return false;
 	}
 
-	public function log_in($username, $password) {
+	public function log_in($username, $password): false|array
+    {
 		$_SESSION['admin_username'] = $username;
 		$_SESSION['admin_password'] = $password;
 		return $this->logged_in_user();
