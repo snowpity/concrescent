@@ -26,9 +26,9 @@ $miscDb = new cm_misc_db($db);
 $taskSponsorPublishable = new SponsorPublishableTask(
     $miscDb,
     new CloudflareApi(
-        $log
+        $log->cloudflare
     ),
-    $log,
+    $log->system,
 );
 
 $new = !isset($_GET['id']);

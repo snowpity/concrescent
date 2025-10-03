@@ -2,7 +2,7 @@
 
 namespace App\Lib\Hook;
 
-use App\Lib\Log\LogLibrary;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -11,7 +11,7 @@ readonly class CloudflareApi
     private HttpClientInterface $client;
 
     public function __construct(
-        private LogLibrary   $log,
+        private LoggerInterface $loggerCloudflare,
         ?HttpClientInterface $client = null
     ) {
         $this->client = $client ?? HttpClient::create();
@@ -42,12 +42,12 @@ readonly class CloudflareApi
                 ]
             );
 
-            $this->log->cloudflare->info(
+            $this->loggerCloudflare->info(
                 'Purging Cloudflare zone {zoneId} for URLs {files} resulted in ' . $response->getContent(),
                 ['sub' => 'cloudflare', 'zoneId' => $zoneId, 'files' => $files]
             );
         } catch (\Throwable $e) {
-            $this->log->cloudflare->error(
+            $this->loggerCloudflare->error(
                 'Failed to execute Cloudflare purge : '. $e->getMessage(),
                 ['sub' => 'cloudflare']
             );

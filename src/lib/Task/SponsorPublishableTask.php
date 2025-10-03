@@ -5,13 +5,14 @@ namespace App\Lib\Task;
 use App\Lib\Database\cm_misc_db;
 use App\Lib\Hook\CloudflareApi;
 use App\Lib\Log\LogLibrary;
+use Psr\Log\LoggerInterface;
 
 readonly class SponsorPublishableTask
 {
     public function __construct(
         private cm_misc_db $miscDb,
         private CloudflareApi $cloudflareApi,
-        private LogLibrary   $log,
+        private LoggerInterface $loggerSystem,
     ) {
     }
 
@@ -48,7 +49,7 @@ readonly class SponsorPublishableTask
 
             $this->cloudflareApi->purgeSponsors();
         } catch (\Throwable $e) {
-            $this->log->system->error('Failed to execute task '. __METHOD__ .' : '. $e->getMessage());
+            $this->loggerSystem->error('Failed to execute task '. __METHOD__ .' : '. $e->getMessage());
         }
     }
 }

@@ -3,11 +3,13 @@
 namespace App\Lib\Task;
 
 use App\Lib\Hook\CloudflareApi;
+use Psr\Log\LoggerInterface;
 
 readonly class SchedulePublishableTask
 {
     public function __construct(
         private CloudflareApi $cloudflareApi,
+        private LoggerInterface $loggerSystem,
     ) {
     }
 
@@ -16,7 +18,7 @@ readonly class SchedulePublishableTask
         try {
             $this->cloudflareApi->purgeSchedule();
         } catch (\Throwable $e) {
-            \error_log('Failed to execute task '. self::class. ': '. $e->getMessage());
+            $this->loggerSystem->error('Failed to execute task '. __METHOD__ .' : '. $e->getMessage());
         }
     }
 }

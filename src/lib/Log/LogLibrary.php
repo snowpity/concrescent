@@ -16,7 +16,7 @@ readonly class LogLibrary
     public Logger $system;
 
     public function __construct(
-        public readonly string $logDir = '',
+        public string $logDir = '',
     )
     {
         $debugStdoutHandler = new StreamHandler(
@@ -47,12 +47,12 @@ readonly class LogLibrary
             $this->cloudflare->pushProcessor(new PsrLogMessageProcessor());
 
             if ($this->logDir) {
-                $this->cloudflare->pushHandler($logfileHandler);
                 $logfileHandler = new StreamHandler(
                     $this->logDir . '/cloudflare.log',
                     Level::Info
                 );
                 $logfileHandler->setFormatter(new JsonFormatter());
+                $this->cloudflare->pushHandler($logfileHandler);
             }
         }
 
@@ -63,12 +63,12 @@ readonly class LogLibrary
             $this->system->pushProcessor(new PsrLogMessageProcessor());
 
             if ($this->logDir) {
-                $this->system->pushHandler($logfileHandler);
                 $logfileHandler = new StreamHandler(
                     $this->logDir . '/system.log',
                     Level::Info
                 );
                 $logfileHandler->setFormatter(new JsonFormatter());
+                $this->system->pushHandler($logfileHandler);
             }
         }
     }

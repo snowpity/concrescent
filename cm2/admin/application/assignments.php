@@ -35,8 +35,9 @@ $midb = new cm_misc_db($db);
 
 $taskSchedulePublishable = new SchedulePublishableTask(
     new CloudflareApi(
-        $log,
+        $log->cloudflare,
     ),
+    $log->system,
 );
 
 $list_def = array(
