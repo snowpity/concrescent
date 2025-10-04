@@ -49,6 +49,7 @@ VOLUME /srv/app/var/log
 VOLUME /srv/app/config/concrescent.php
 VOLUME /srv/app/.env
 VOLUME /srv/app/.env.dev
+VOLUME /srv/app/.env.dev.local
 
 EXPOSE 8080
 
@@ -78,5 +79,6 @@ VOLUME /srv/app/var/log
 VOLUME /srv/app/config/concrescent.php
 VOLUME /srv/app/.env
 VOLUME /srv/app/.env.prod
+VOLUME /srv/app/.env.prod.local
 
 EXPOSE 8080
