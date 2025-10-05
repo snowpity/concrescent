@@ -21,3 +21,6 @@
 
 # Developement cache
 /.phpunit.cache
+
+# Build files
+/target
