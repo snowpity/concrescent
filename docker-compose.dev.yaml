@@ -20,7 +20,9 @@ services:
       - ./var/log/concrescent:/srv/app/var/log/concrescent
       - ./.env:/srv/app/.env
       - ./.env.dev:/srv/app/.env.dev
+      - ./.env.dev.local:/srv/app/.env.dev.local
     env_file:
+      - .env.dev.local
       - .env.dev
       - .env
   mysql:
@@ -37,6 +39,7 @@ services:
       - ./var/mysql-data:/var/lib/mysql:delegated
       - ./var/log/mysql:/var/log/mysql:delegated
     env_file:
+    - .env.dev.local
     - .env.dev
     - .env
   mail:
