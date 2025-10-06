@@ -5,6 +5,9 @@ USER root
 RUN apk update
 # Install the missing php modules
 RUN apk add \
+    php84-ctype \
+    php84-mbstring \
+    php84-iconv \
     php84-gd \
     php84-exif \
     php84-pecl-apcu \

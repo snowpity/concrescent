@@ -33,6 +33,10 @@
         "ext-gd": "*",
         "ext-pdo": "*",
         "ext-mysqli": "*",
+        "ext-mbstring": "*",
+        "ext-iconv": "*",
+        "ext-ctype": "*",
+        "ext-mysqli": "*",
         "ext-apcu": "*",
         "symfony/http-client": "^7.3.4",
         "monolog/monolog": "^3.9.0",
@@ -69,5 +73,10 @@
             "App\\Lib\\Task\\": "src/lib/Task",
             "App\\Lib\\Util\\": "src/lib/util"
         }
+    },
+    "replace": {
+        "symfony/polyfill-mbstring": "*",
+        "symfony/polyfill-ctype": "*"
     }
+
 }
