@@ -33,12 +33,13 @@ cm_admin_check_permission('application-assignments-'.$ctx_lc, 'application-assig
 $apdb = new cm_application_db($db, $context);
 $midb = new cm_misc_db($db);
 
-$taskSchedulePublishable = new SchedulePublishableTask(
+$taskSchedulePublishable = $kernel->config->cloudflare ? new SchedulePublishableTask(
     new CloudflareApi(
+        $kernel->config->cloudflare,
         $log->cloudflare,
     ),
     $log->system,
-);
+) : null;
 
 $list_def = array(
 	'loader' => 'server-side',
@@ -180,7 +181,7 @@ if (isset($_POST['action'])) {
 				}
 			}
 			echo json_encode($response);
-			if ($response['ok']) $taskSchedulePublishable->onScheduleManualUpdate();
+			if ($response['ok']) $taskSchedulePublishable?->onScheduleManualUpdate();
 			break;
 	}
 	exit(0);

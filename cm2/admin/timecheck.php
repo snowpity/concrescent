@@ -22,7 +22,7 @@ echo '<article>';
 				echo '</p>';
 				echo '<p>';
 					echo '<b>PHP Date &amp; Time:</b> ';
-					echo date('Y-m-d H:i:s Z');
+					echo date('Y-m-d H:i:s O');
 				echo '</p>';
 				echo '<p>';
 					echo '<b>PHP Time Zone:</b> ';

@@ -60,12 +60,13 @@ $atdb = new cm_attendee_db($db);
 $mdb = new cm_mail_db($db);
 $midb = new cm_misc_db($db);
 
-$taskSchedulePublishable = new SchedulePublishableTask(
+$taskSchedulePublishable = $kernel->config->cloudflare ? new SchedulePublishableTask(
     new CloudflareApi(
-        $log->cloudflare
+        $kernel->config->cloudflare,
+        $log->cloudflare,
     ),
     $log->system,
-);
+) : null;
 
 $new = !isset($_GET['id']);
 $id = $new ? -1 : (int)$_GET['id'];
@@ -261,7 +262,7 @@ if ($submitted) {
 			}
 		}
 		if ($can_edit_status) {
-			$taskSchedulePublishable->onScheduleManualUpdate();
+			$taskSchedulePublishable?->onScheduleManualUpdate();
 			if (isset($_POST['resend-application-email']) && $_POST['resend-application-email']) {
 				$application_status = strtolower($item['application-status']);
 				$template_name = 'application-' . $application_status . '-' . $ctx_lc;

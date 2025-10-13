@@ -2,6 +2,8 @@
 
 namespace App;
 
+use App\Config\Configuration;
+use App\Config\ConfigurationMapper;
 use App\Lib\Log\LogLibrary;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
@@ -13,19 +15,18 @@ final class Kernel
     /**
      * @see config/concrescent.php
      */
-    public readonly array $config;
+    public readonly Configuration $config;
     public readonly bool $isAppDebug;
-    public readonly string $themeLocation;
 
     public function __construct(
-        string $configFile = '',
+        private readonly ConfigurationMapper $configMapper,
     ) {
         $this->isAppDebug = getenv('APP_DEBUG');
 
         /**
          * @see config/concrescent.php
          */
-        $configFile = $configFile ?: $this->projectDir . '/config/concrescent.php';
+        $configFile = $this->projectDir . '/config/concrescent.php';
 
         if (!file_exists($configFile)) {
             /** @noinspection ForgottenDebugOutputInspection */
@@ -35,16 +36,14 @@ final class Kernel
 
         {
             include $configFile;
-            $this->config = $cm_config;
+            $this->config = $this->configMapper->mapToConfiguration($cm_config);
         }
 
-        $this->themeLocation = $this->config['theme']['location'];
-
-        if ($this->config['timezone']) {
-            date_default_timezone_set($this->config['timezone']);
+        if ($this->config->system->timezone) {
+            date_default_timezone_set($this->config->system->timezone);
         }
 
-        $logDir = $this->config['logging']['log_dir'];
+        $logDir = $this->config->system->logDir;
         if (str_starts_with($logDir, '/')) {
             $this->logDir = $logDir;
         } else {
@@ -57,10 +56,10 @@ final class Kernel
     private(set) string $cacheDir { get => $this->cacheDir = $this->projectDir.'/var/cache'; }
     private(set) string $logDir { get => $this->logDir ??= $this->projectDir.'/var/log'; }
     private(set) string $publicDir { get => $this->publicDir ??= $this->projectDir.'/cm2'; }
-    private(set) string $themeDir { get => $this->themeDir ??= $this->publicDir.'/'.$this->themeLocation; }
+    private(set) string $themeDir { get => $this->themeDir ??= $this->publicDir.'/'.$this->config->system->themeLocation; }
     private(set) string $resDir { get => $this->resDir ??= $this->publicDir.'/lib/res'; }
     private(set) string $publicPath { get => $this->publicPath ??= ''; }
-    private(set) string $themePath { get => $this->themePath ??= $this->publicPath.'/'.$this->themeLocation; }
+    private(set) string $themePath { get => $this->themePath ??= $this->publicPath.'/'.$this->config->system->themeLocation; }
     private(set) string $resPath { get => $this->resPath ??= $this->publicPath.'/lib/res'; }
 
 

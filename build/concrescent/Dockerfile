@@ -78,7 +78,7 @@ COPY --chown=nobody ./bin /srv/app/bin
 
 RUN cd /srv/app \
     && composer check-platform-reqs \
-    && composer install --no-dev --classmap-authoritative --no-interaction --no-progress --strict-psr
+    && composer install --no-dev --classmap-authoritative --no-interaction --no-progress
 
 VOLUME /srv/app/var/log
 VOLUME /srv/app/config/concrescent.php

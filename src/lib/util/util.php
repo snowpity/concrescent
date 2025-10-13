@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__ .'/../../../config/concrescent.php';
-
 function ua(string $x): bool
 {
 	return (str_contains($_SERVER['HTTP_USER_AGENT'] ?? '', $x));

@@ -2,14 +2,15 @@
 
 namespace App\Lib\Task;
 
+use App\Config\Module\ExtraFeaturesSponsors;
 use App\Lib\Database\cm_misc_db;
 use App\Lib\Hook\CloudflareApi;
-use App\Lib\Log\LogLibrary;
 use Psr\Log\LoggerInterface;
 
 readonly class SponsorPublishableTask
 {
     public function __construct(
+        private ExtraFeaturesSponsors $sponsorsConfig,
         private cm_misc_db $miscDb,
         private CloudflareApi $cloudflareApi,
         private LoggerInterface $loggerSystem,
@@ -18,13 +19,11 @@ readonly class SponsorPublishableTask
 
     public function onAttendeeManualUpdate(): void
     {
-        global $cm_config;
-
         try {
-            $nameCredit = $cm_config['extra_features']['sponsors']['nameCredit'] ?? null;
-            $publishableCredit = $cm_config['extra_features']['sponsors']['publishableCredit'] ?? null;
+            $nameCredit = $this->sponsorsConfig->nameCredit;
+            $publishableCredit = $this->sponsorsConfig->publishableCredit;
 
-            if ($nameCredit === null || $publishableCredit === null) {
+            if (!$nameCredit || !$publishableCredit) {
                 return;
             }
 

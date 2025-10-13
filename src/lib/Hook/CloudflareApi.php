@@ -2,6 +2,7 @@
 
 namespace App\Lib\Hook;
 
+use App\Config\Module\Cloudflare as CloudflareConfig;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -11,21 +12,20 @@ readonly class CloudflareApi
     private HttpClientInterface $client;
 
     public function __construct(
+        private CloudflareConfig $cloudflareConfig,
         private LoggerInterface $loggerCloudflare,
-        ?HttpClientInterface $client = null
+        ?HttpClientInterface $client = null,
     ) {
         $this->client = $client ?? HttpClient::create();
     }
 
-    private function runPurge(?array $files = null): void
+    private function runPurge(array $files): void
     {
         try {
-            global $cm_config;
+            $bearer = $this->cloudflareConfig->bearerToken;
+            $zoneId = $this->cloudflareConfig->purge?->zoneId;
 
-            $bearer = $cm_config['cloudflare']['bearer_token'] ?? null;
-            $zoneId = $cm_config['cloudflare']['purge']['zone_id'] ?? null;
-
-            if ($bearer === null || empty($files) || $zoneId === null) {
+            if (empty($files) || !$bearer || !$zoneId) {
                 return;
             }
 
@@ -56,20 +56,11 @@ readonly class CloudflareApi
 
     public function purgeSponsors(): void
     {
-        global $cm_config;
-        $this->runPurge(
-            $cm_config['cloudflare']['purge']['sponsor_files'] ??
-            $cm_config['cloudflare']['purge']['files'] ??
-            null
-        );
+        $this->runPurge($this->cloudflareConfig->purge?->sponsorFiles ?? []);
     }
 
     public function purgeSchedule(): void
     {
-        global $cm_config;
-        $this->runPurge(
-            $cm_config['cloudflare']['purge']['schedule_files'] ??
-            null
-        );
+        $this->runPurge($this->cloudflareConfig->purge?->scheduleFiles ?? []);
     }
 }

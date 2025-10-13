@@ -4,13 +4,16 @@ require_once 'util.php';
 require_once __DIR__ .'/../../../config/concrescent.php';
 error_reporting(0);
 
-if (
-	isset($cm_config['database']['host']) && $cm_config['database']['host'] &&
-	isset($cm_config['database']['username']) && $cm_config['database']['username'] &&
-	isset($cm_config['database']['password']) && $cm_config['database']['password'] &&
-	isset($cm_config['database']['database']) && $cm_config['database']['database']
-) {
+$fields = array_keys($cm_config['database'] ?? []);
+$missingFields = array_diff([
+    'host',
+    'username',
+    'password',
+    'database',
+], $fields);
+
+if (empty($missingFields)) {
     passed('config3', 'Database configuration has been specified.');
 } else {
-    failed('config3', 'Database configuration has not been specified.');
+    failed('config3', 'Database configuration is missing fields : '. implode(', ', $missingFields));
 }

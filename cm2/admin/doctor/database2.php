@@ -1,7 +1,7 @@
 <?php
 
 require_once 'util.php';
-require_once __DIR__ . '/../../../vendor/autoload.php';
+require_once __DIR__ .'/../../../config/concrescent.php';
 
 use App\Lib\Database\cm_db;
 

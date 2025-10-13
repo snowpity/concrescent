@@ -14,9 +14,12 @@ services:
       - ./config/msmtprc:/etc/msmtprc:ro
       - ./config/concrescent.php:/srv/app/config/concrescent.php:ro
     env_file:
-    - .env.prod.local
-    - .env.prod
-    - .env
+      - path: .env.prod.local
+        required: false
+      - path: .env.prod
+        required: true
+      - path: .env
+        required: true
   mysql:
     image: mysql:8.4
     restart: unless-stopped
@@ -24,9 +27,12 @@ services:
       - ./var/mysql-data:/var/lib/mysql
       - ./init:/docker-entrypoint-initdb.d/
     env_file:
-    - .env.prod.local
-    - .env.prod
-    - .env
+    - path: .env.prod.local
+      required: false
+    - path: .env.prod
+      required: true
+    - path: .env
+      required: true
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
       interval: 2s

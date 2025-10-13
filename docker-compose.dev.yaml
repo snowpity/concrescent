@@ -25,9 +25,12 @@ services:
       - ./.env.dev:/srv/app/.env.dev
       - ./.env.dev.local:/srv/app/.env.dev.local
     env_file:
-      - .env.dev.local
-      - .env.dev
-      - .env
+      - path: .env.dev.local
+        required: false
+      - path: .env.dev
+        required: true
+      - path: .env
+        required: true
   mysql:
     image: mysql:8.4
     restart: unless-stopped
@@ -42,9 +45,12 @@ services:
       - ./var/mysql-data:/var/lib/mysql:delegated
       - ./var/log/mysql:/var/log/mysql:delegated
     env_file:
-    - .env.dev.local
-    - .env.dev
-    - .env
+      - path: .env.dev.local
+        required: false
+      - path: .env.dev
+        required: true
+      - path: .env
+        required: true
   mail:
     image: axllent/mailpit:v1.27
     restart: unless-stopped

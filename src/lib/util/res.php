@@ -1,5 +1,6 @@
 <?php
 
+use App\Config\ConfigurationMapper;
 use App\Kernel;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -12,7 +13,9 @@ require_once __DIR__.'/../../../vendor/autoload.php';
 
 require_once __DIR__ .'/util.php';
 
-$kernel = new Kernel();
+$kernel = new Kernel(
+    new ConfigurationMapper()
+);
 
 $log = $kernel->log;
 $twig = $kernel->twig;
@@ -48,7 +51,7 @@ function get_domain_url(): string
 {
     global $kernel;
 
-    $siteOverride = $kernel->config['site-override'] ?? null;
+    $siteOverride = $kernel->config->system->siteOverride ?? null;
     if ($siteOverride) {
         return $siteOverride;
     }

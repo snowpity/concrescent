@@ -87,7 +87,7 @@ class cm_db {
 
 	public function curdatetime(): array
 	{
-		return $this->connection->query('SELECT CURDATE(), CURTIME()')->fetch(PDO::FETCH_NUM);
+		return $this->connection->query('SELECT CURRENT_DATE, CURRENT_TIME')->fetch(PDO::FETCH_NUM);
 	}
 
 	public function timezone(): array

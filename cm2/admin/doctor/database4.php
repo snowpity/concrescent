@@ -3,7 +3,7 @@
 use App\Lib\Database\cm_db;
 
 require_once 'util.php';
-require_once __DIR__ . '/../../../vendor/autoload.php';
+require_once __DIR__ .'/../../../config/concrescent.php';
 error_reporting(0);
 
 $db = new cm_db();

@@ -23,13 +23,16 @@ $fdb = new cm_forms_db($db, 'attendee');
 $questions = $fdb->list_questions();
 
 $miscDb = new cm_misc_db($db);
-$taskSponsorPublishable = new SponsorPublishableTask(
+$taskSponsorPublishable = $kernel->config->cloudflare && $kernel->config->extraFeatures->sponsors
+    ? new SponsorPublishableTask(
+    $kernel->config->extraFeatures->sponsors,
     $miscDb,
     new CloudflareApi(
+        $kernel->config->cloudflare,
         $log->cloudflare
     ),
     $log->system,
-);
+) : null ;
 
 $new = !isset($_GET['id']);
 $id = $new ? -1 : (int)$_GET['id'];
@@ -162,7 +165,7 @@ if ($submitted) {
 			$mdb->send_mail($item['email-address'], $template, $item);
 		}
 
-        $taskSponsorPublishable->onAttendeeManualUpdate();
+        $taskSponsorPublishable?->onAttendeeManualUpdate();
 	}
 }
 
