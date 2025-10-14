@@ -1,12 +1,7 @@
 <?php
 
 use App\Lib\Database\cm_application_db;
-use App\Lib\Database\cm_attendee_db;
 use App\Lib\Database\cm_forms_db;
-use App\Lib\Database\cm_mail_db;
-use App\Lib\Database\cm_misc_db;
-use App\Lib\Hook\CloudflareApi;
-use App\Lib\Task\SchedulePublishableTask;
 use App\Lib\Util\cm_slack;
 
 require_once __DIR__ .'/../admin.php';
@@ -56,17 +51,11 @@ $name_map = $apdb->get_badge_type_name_map();
 $fdb = new cm_forms_db($db, 'application-'.$ctx_lc);
 $questions = $fdb->list_questions();
 
-$atdb = new cm_attendee_db($db);
-$mdb = new cm_mail_db($db);
-$midb = new cm_misc_db($db);
+$atdb = $kernel->container->cm_attendee_db;
+$mdb = $kernel->container->cm_mail_db;
+$midb = $kernel->container->cm_misc_db;
 
-$taskSchedulePublishable = $kernel->config->cloudflare ? new SchedulePublishableTask(
-    new CloudflareApi(
-        $kernel->config->cloudflare,
-        $log->cloudflare,
-    ),
-    $log->system,
-) : null;
+$taskSchedulePublishable = $kernel->container->taskSchedulePublishable;
 
 $new = !isset($_GET['id']);
 $id = $new ? -1 : (int)$_GET['id'];

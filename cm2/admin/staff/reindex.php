@@ -1,7 +1,5 @@
 <?php
 
-use App\Lib\Database\cm_staff_db;
-
 ini_set('max_execution_time', 300);
 ini_set('memory_limit', '1024M');
 
@@ -9,7 +7,7 @@ require_once __DIR__ .'/../admin.php';
 
 if (isset($_POST['action'])) {
 	header('Content-type: text/plain');
-	$sdb = new cm_staff_db($db);
+	$sdb = $kernel->container->cm_staff_db;
 	if ($_POST['action'] == 'init') {
 		$_SESSION['staff_reindex_time'] = microtime(true);
 		$_SESSION['staff_reindex_entities'] = $sdb->list_staff_members();

@@ -3,11 +3,13 @@
 require_once 'util.php';
 require_once __DIR__ .'/../../../config/concrescent.php';
 
+use App\Config\ConfigurationMapper;
 use App\Lib\Database\cm_db;
 
 error_reporting(0);
 
-$db = new cm_db();
+$config = new ConfigurationMapper()->mapToConfiguration($cm_config);
+$db = new cm_db($config->database);
 if (!$db->connection) {
     failed('database2', 'Could not connect to database through CONcrescent. Check database configuration.');
 } else if (!$db->now()) {

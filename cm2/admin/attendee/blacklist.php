@@ -7,7 +7,7 @@ require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('attendee-blacklist', 'attendee-blacklist');
 
-$atdb = new cm_attendee_db($db);
+$atdb = $kernel->container->cm_attendee_db;
 
 $list_def = array(
 	'ajax-url' => get_site_path() . '/admin/attendee/blacklist.php',

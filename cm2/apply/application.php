@@ -111,7 +111,7 @@ $item = array();
 $errors = array();
 
 if (isset($_POST['submit'])) {
-	$atdb = new cm_attendee_db($db);
+	$atdb = $kernel->container->cm_attendee_db;
 
 	$item['contact-first-name'] = trim($_POST['contact-first-name']);
 	if (!$item['contact-first-name']) $errors['contact-first-name'] = 'First name is required.';

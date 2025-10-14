@@ -10,7 +10,7 @@ cm_admin_check_permission('attendees', array('||', 'attendees-edit', 'attendees-
 $can_edit = $adb->user_has_permission($admin_user, 'attendees-refund');
 
 
-$atdb = new cm_attendee_db($db);
+$atdb = $kernel->container->cm_attendee_db;
 $new = !isset($_GET['id']);
 $id = $new ? -1 : (int)$_GET['id'];
 $item = $new ? array() : $atdb->get_attendee($id, false);

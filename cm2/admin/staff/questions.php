@@ -1,14 +1,13 @@
 <?php
 
 use App\Lib\Database\cm_forms_db;
-use App\Lib\Database\cm_staff_db;
 
 require_once __DIR__ .'/../../../src/lib/util/cmforms.php';
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('staff-questions', 'staff-questions');
 
-$sdb = new cm_staff_db($db);
+$sdb = $kernel->container->cm_staff_db;
 $name_list = $sdb->list_badge_type_names();
 
 $form_def = array(

@@ -1,13 +1,10 @@
 <?php
 
-use App\Lib\Database\cm_misc_db;
-use App\Lib\Database\cm_staff_db;
-
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('staff-maillist', 'staff-maillist');
 
-$midb = new cm_misc_db($db);
+$midb = $kernel->container->cm_misc_db;
 if (isset($_POST['submit'])) {
 	if (isset($_POST['mail-default-domain'])) $midb->setval('mail-default-domain', strtolower(trim($_POST['mail-default-domain'])));
 	if (isset($_POST['mail-alias-execs-1'])) $midb->setval('mail-alias-execs-1', strtolower(trim($_POST['mail-alias-execs-1'])));
@@ -23,7 +20,7 @@ $alias_staff_1 = strtolower(trim($midb->getval('mail-alias-staff-1', 'staff@'.$d
 $alias_staff_2 = strtolower(trim($midb->getval('mail-alias-staff-2', '')));
 $list_limit = (int)trim($midb->getval('mail-list-limit', 100));
 
-$sdb = new cm_staff_db($db);
+$sdb = $kernel->container->cm_staff_db;
 $departments = $sdb->list_departments();
 $departments = array_filter($departments, function($dept) {
 	return $dept['active'];

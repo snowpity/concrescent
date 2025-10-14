@@ -110,7 +110,7 @@ if (isset($_POST['submit'])) {
 		$mdb->send_mail($item['email-address'], $template, $item);
 
 		$slack = new cm_slack();
-		$atdb = new cm_attendee_db($db);
+		$atdb = $kernel->container->cm_attendee_db;
 		$blacklisted = $atdb->is_blacklisted($item) || $sdb->is_blacklisted($item);
 		if ($blacklisted) {
 			if ($contact_address) {

@@ -1,9 +1,6 @@
 <?php
 
-use App\Lib\Database\cm_db;
 use App\Lib\Database\cm_forms_db;
-use App\Lib\Database\cm_mail_db;
-use App\Lib\Database\cm_staff_db;
 use JetBrains\PhpStorm\NoReturn;
 
 session_name('PHPSESSID_CMAPPLYSTAFF');
@@ -12,9 +9,9 @@ session_start();
 require_once __DIR__ .'/../../src/lib/util/res.php';
 
 $event_name = $cm_config['event']['name'];
-$db = new cm_db();
+$db = $kernel->container->cm_db;
 
-$sdb = new cm_staff_db($db);
+$sdb = $kernel->container->cm_staff_db;
 $name_map = $sdb->get_badge_type_name_map();
 $dept_map = $sdb->get_department_map();
 $pos_map = $sdb->get_position_map();
@@ -22,8 +19,8 @@ $pos_map = $sdb->get_position_map();
 $fdb = new cm_forms_db($db, 'staff');
 $questions = $fdb->list_questions();
 
-$mdb = new cm_mail_db($db);
-$contact_address = $mdb->get_contact_address('staff-submitted');
+$mdb = $kernel->container->cm_mail_db;
+$contact_address = $kernel->container->cm_mail_db->get_contact_address('staff-submitted');
 
 function cm_app_cart_set_state($state, $cart = null) {
 	if ($cart) $_SESSION['cart'] = $cart;

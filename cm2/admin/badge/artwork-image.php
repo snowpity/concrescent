@@ -1,10 +1,8 @@
 <?php
 
-use App\Lib\Database\cm_badge_artwork_db;
-
 require_once __DIR__ .'/../admin.php';
 
-$badb = new cm_badge_artwork_db($db);
+$badb = $kernel->container->cm_badge_artwork_db;
 
 $file_name = isset($_GET['name']) ? trim($_GET['name']) : null;
 

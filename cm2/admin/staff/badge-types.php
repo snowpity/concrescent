@@ -1,13 +1,11 @@
 <?php
 
-use App\Lib\Database\cm_staff_db;
-
 require_once __DIR__ .'/../../../src/lib/util/cmlists.php';
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('staff-badge-types', 'staff-badge-types');
 
-$sdb = new cm_staff_db($db);
+$sdb = $kernel->container->cm_staff_db;
 
 $list_def = array(
 	'ajax-url' => get_site_path() . '/admin/staff/badge-types.php',

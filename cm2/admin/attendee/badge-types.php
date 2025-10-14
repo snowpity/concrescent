@@ -9,7 +9,7 @@ global $twig;
 
 cm_admin_check_permission('attendee-badge-types', 'attendee-badge-types');
 
-$atdb = new cm_attendee_db($db);
+$atdb = $kernel->container->cm_attendee_db;
 
 $list_def = array(
 	'ajax-url' => get_site_path() . '/admin/attendee/badge-types.php',

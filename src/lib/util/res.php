@@ -17,8 +17,8 @@ $kernel = new Kernel(
     new ConfigurationMapper()
 );
 
-$log = $kernel->log;
-$twig = $kernel->twig;
+$log = $kernel->container->log;
+$twig = $kernel->container->twig;
 
 $request = new Request(
     $_GET,

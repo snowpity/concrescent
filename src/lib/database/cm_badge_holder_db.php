@@ -3,20 +3,17 @@
 namespace App\Lib\Database;
 
 class cm_badge_holder_db {
-
-	public cm_db $cm_db;
-	public cm_attendee_db $cm_atdb;
 	public array $cm_apdb;
-	public cm_staff_db $cm_sdb;
 
-	public function __construct(cm_db $cm_db) {
-		$this->cm_db = $cm_db;
-		$this->cm_atdb = new cm_attendee_db($cm_db);
+	public function __construct(
+        public cm_db $cm_db,
+        public cm_attendee_db $cm_atdb,
+        public cm_staff_db $cm_sdb,
+    ) {
 		$this->cm_apdb = array();
 		foreach ($GLOBALS['cm_config']['application_types'] as $ctx => $x) {
 			$this->cm_apdb[$ctx] = new cm_application_db($cm_db, $ctx);
 		}
-		$this->cm_sdb = new cm_staff_db($cm_db);
 	}
 
 	public function list_badge_type_names() {

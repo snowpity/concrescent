@@ -2,7 +2,6 @@
 
 use App\Lib\Database\cm_attendee_db;
 use App\Lib\Database\cm_forms_db;
-use App\Lib\Database\cm_misc_db;
 
 require_once __DIR__ . '/../../../src/lib/util/cmexport.php';
 require_once __DIR__ .'/../admin.php';
@@ -11,13 +10,13 @@ global $twig;
 
 cm_admin_check_permission('attendee-csv', 'attendee-csv');
 
-$atdb = new cm_attendee_db($db);
+$atdb = $kernel->container->cm_attendee_db;
 $name_map = $atdb->get_badge_type_name_map();
 
 $fdb = new cm_forms_db($db, 'attendee');
 $questions = $fdb->list_questions();
 
-$miscDb = new cm_misc_db($db);
+$miscDb = $kernel->container->cm_misc_db;
 
 function extractFromQuestion(string $questionId): string
 {

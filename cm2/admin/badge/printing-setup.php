@@ -1,13 +1,11 @@
 <?php
 
-use App\Lib\Database\cm_badge_artwork_db;
-
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('badge-printing-setup', 'badge-printing-setup');
 
 $bp_config = $cm_config['badge_printing'];
-$badb = new cm_badge_artwork_db($db);
+$badb = $kernel->container->cm_badge_artwork_db;
 $names = $badb->list_badge_artwork_names();
 
 if (isset($_POST['action'])) {

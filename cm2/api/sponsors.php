@@ -1,14 +1,11 @@
 <?php
 
-use App\Lib\Database\cm_db;
-use App\Lib\Database\cm_misc_db;
-
 require_once __DIR__ .'/../../src/lib/util/res.php';
 
 global $twig, $miscDb;
 
-$db = new cm_db();
-$miscDb = new cm_misc_db($db);
+$db = $kernel->container->cm_db;
+$miscDb = $kernel->container->cm_misc_db;
 
 $websiteCreditQuestionId = $_GET['credit'] ?? null;
 $staffApprovalQuestionId = $_GET['approval'] ?? null;

@@ -1,11 +1,6 @@
 <?php
 
-use App\Lib\Database\cm_attendee_db;
 use App\Lib\Database\cm_forms_db;
-use App\Lib\Database\cm_mail_db;
-use App\Lib\Database\cm_misc_db;
-use App\Lib\Hook\CloudflareApi;
-use App\Lib\Task\SponsorPublishableTask;
 
 require_once __DIR__ .'/../../../src/lib/util/cmforms.php';
 require_once __DIR__ .'/../admin.php';
@@ -15,24 +10,15 @@ global $log;
 cm_admin_check_permission('attendees', array('||', 'attendees-view', 'attendees-edit'));
 $can_edit = $adb->user_has_permission($admin_user, 'attendees-edit') && !isset($_GET['ro']);
 
-$atdb = new cm_attendee_db($db);
+$atdb = $kernel->container->cm_attendee_db;
 $name_map = $atdb->get_badge_type_name_map();
 $all_addons = $atdb->list_addons(false, false, false, $name_map);
 
 $fdb = new cm_forms_db($db, 'attendee');
 $questions = $fdb->list_questions();
 
-$miscDb = new cm_misc_db($db);
-$taskSponsorPublishable = $kernel->config->cloudflare && $kernel->config->extraFeatures->sponsors
-    ? new SponsorPublishableTask(
-    $kernel->config->extraFeatures->sponsors,
-    $miscDb,
-    new CloudflareApi(
-        $kernel->config->cloudflare,
-        $log->cloudflare
-    ),
-    $log->system,
-) : null ;
+$miscDb = $kernel->container->cm_misc_db;
+$taskSponsorPublishable = $kernel->container->taskSponsorPublishable;
 
 $new = !isset($_GET['id']);
 $id = $new ? -1 : (int)$_GET['id'];
@@ -160,7 +146,7 @@ if ($submitted) {
 			$atdb->create_blacklist_entry($blacklist_entry);
 		}
 		if (isset($_POST['resend-email']) && $_POST['resend-email']) {
-			$mdb = new cm_mail_db($db);
+			$mdb = $kernel->container->cm_mail_db;
 			$template = $mdb->get_mail_template('attendee-paid');
 			$mdb->send_mail($item['email-address'], $template, $item);
 		}

@@ -2,7 +2,6 @@
 
 // Allow from any origin
 use App\Lib\Database\cm_application_db;
-use App\Lib\Database\cm_db;
 use App\Lib\Database\cm_forms_db;
 
 if (isset($_SERVER['HTTP_ORIGIN'])) {
@@ -35,7 +34,7 @@ if (!$context || !isset($cm_config['application_types'][strtoupper($context)])) 
     exit;
 }
 
-$db = new cm_db();
+$db = $kernel->container->cm_db;
 $apdb = new cm_application_db($db, $context);
 $fdb = new cm_forms_db($db, "application-".strtolower($context));
 $assignments = $apdb->list_room_and_table_assignments(null, strtoupper($context));

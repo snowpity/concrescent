@@ -1,7 +1,5 @@
 <?php
 
-use App\Lib\Database\cm_badge_artwork_db;
-use App\Lib\Database\cm_badge_holder_db;
 use JetBrains\PhpStorm\NoReturn;
 
 require_once __DIR__ .'/../admin.php';
@@ -44,8 +42,8 @@ $post_url = get_config('post-url', 'u', 'badge_printing_post_url', 'post_url');
 $post_url = $post_url ? $post_url : false;
 
 $bp_config = $cm_config['badge_printing'];
-$badb = new cm_badge_artwork_db($db);
-$bhdb = new cm_badge_holder_db($db);
+$badb = $kernel->container->cm_badge_artwork_db;
+$bhdb = $kernel->container->cm_badge_holder_db;
 
 if (isset($_POST['artwork'])) $artwork_name = $_POST['artwork'];
 else if (isset($_GET['a'])) $artwork_name = $_GET['a'];

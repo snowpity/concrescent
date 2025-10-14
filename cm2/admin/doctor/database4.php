@@ -1,12 +1,14 @@
 <?php
 
+use App\Config\ConfigurationMapper;
 use App\Lib\Database\cm_db;
 
 require_once 'util.php';
 require_once __DIR__ .'/../../../config/concrescent.php';
 error_reporting(0);
 
-$db = new cm_db();
+$config = new ConfigurationMapper()->mapToConfiguration($cm_config);
+$db = new cm_db($config->database);
 $charsets = $db->characterset();
 
 // The cm_db constructor sets the connection's encoding to utf8mb4,

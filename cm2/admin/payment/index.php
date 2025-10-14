@@ -1,7 +1,5 @@
 <?php
 
-use App\Lib\Database\cm_payment_db;
-
 require_once __DIR__ .'/../../../src/lib/util/cmlists.php';
 require_once __DIR__ .'/../admin.php';
 
@@ -10,7 +8,7 @@ $can_view = $adb->user_has_permission($admin_user, 'payments-view');
 $can_edit = $adb->user_has_permission($admin_user, 'payments-edit');
 $can_delete = $adb->user_has_permission($admin_user, 'payments-delete');
 
-$pdb = new cm_payment_db($db);
+$pdb = $kernel->container->cm_payment_db;
 
 $list_def = array(
 	'ajax-url' => get_site_path() . '/admin/payment/index.php',

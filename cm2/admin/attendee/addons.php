@@ -7,7 +7,7 @@ require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('attendee-addons', 'attendee-addons');
 
-$atdb = new cm_attendee_db($db);
+$atdb = $kernel->container->cm_attendee_db;
 $name_map = $atdb->get_badge_type_name_map();
 
 $list_def = array(

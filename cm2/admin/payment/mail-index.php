@@ -1,13 +1,11 @@
 <?php
 
-use App\Lib\Database\cm_mail_db;
-
 require_once __DIR__ .'/../../../src/lib/util/cmlists.php';
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('payment-mail', 'payment-mail');
 
-$mdb = new cm_mail_db($db);
+$mdb = $kernel->container->cm_mail_db;
 
 $list_def = array(
 	'ajax-url' => get_site_path() . '/admin/payment/mail-index.php',

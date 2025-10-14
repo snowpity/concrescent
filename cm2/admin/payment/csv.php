@@ -1,13 +1,11 @@
 <?php
 
-use App\Lib\Database\cm_payment_db;
-
 require_once __DIR__ . '/../../../src/lib/util/cmexport.php';
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('payment-csv', 'payment-csv');
 
-$pdb = new cm_payment_db($db);
+$pdb = $kernel->container->cm_payment_db;
 
 if (isset($_POST['download-payments'])) {
 	$columns = array(

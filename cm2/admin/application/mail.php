@@ -1,7 +1,5 @@
 <?php
 
-use App\Lib\Database\cm_mail_db;
-
 require_once __DIR__ .'/../../../src/lib/util/cmmail.php';
 require_once __DIR__ .'/../admin.php';
 
@@ -23,7 +21,7 @@ $ctx_name = $ctx_info['nav_prefix'];
 
 cm_admin_check_permission('application-mail-'.$ctx_lc, 'application-mail-'.$ctx_lc);
 
-$mdb = new cm_mail_db($db);
+$mdb = $kernel->container->cm_mail_db;
 $template_ids = array(
 	('application-submitted-'.$ctx_lc) => 'Application Submitted',
 	('application-accepted-'.$ctx_lc) => 'Application Accepted',

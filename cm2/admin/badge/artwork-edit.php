@@ -1,15 +1,12 @@
 <?php
 
-use App\Lib\Database\cm_badge_artwork_db;
-use App\Lib\Database\cm_badge_holder_db;
-
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('badge-artwork', 'badge-artwork');
 
 $bp_config = $cm_config['badge_printing'];
-$badb = new cm_badge_artwork_db($db);
-$bhdb = new cm_badge_holder_db($db);
+$badb = $kernel->container->cm_badge_artwork_db;
+$bhdb = $kernel->container->cm_badge_holder_db;
 
 $file_name = isset($_GET['name']) ? trim($_GET['name']) : null;
 if (!$file_name) {

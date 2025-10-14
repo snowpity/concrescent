@@ -1,13 +1,11 @@
 <?php
 
-use App\Lib\Database\cm_mail_db;
-
 require_once __DIR__ .'/../../../src/lib/util/cmmail.php';
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('attendee-mail', 'attendee-mail');
 
-$mdb = new cm_mail_db($db);
+$mdb = $kernel->container->cm_mail_db;
 $template_ids = array(
 	'attendee-paid' => 'Registration Completed',
 	'attendee-retrieve' => 'Magic Link request'

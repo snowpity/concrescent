@@ -1,7 +1,5 @@
 <?php
 
-use App\Lib\Database\cm_staff_db;
-
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('staff-orgchart', 'staff-orgchart');
@@ -11,7 +9,7 @@ $can_review = $adb->user_has_permission($admin_user, 'staff-review');
 $has_actions = ($can_edit || $can_view || $can_review);
 $colspan = ($has_actions ? 7 : 6);
 
-$sdb = new cm_staff_db($db);
+$sdb = $kernel->container->cm_staff_db;
 $departments = $sdb->list_departments();
 
 $staff = $sdb->list_staff_members();

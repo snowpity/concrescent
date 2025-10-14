@@ -1,5 +1,6 @@
 <?php
 
+use App\Config\ConfigurationMapper;
 use App\Lib\Database\cm_db;
 
 require_once 'util.php';
@@ -8,7 +9,8 @@ error_reporting(0);
 
 date_default_timezone_set($cm_config['timezone']);
 
-$db = new cm_db();
+$config = new ConfigurationMapper()->mapToConfiguration($cm_config);
+$db = new cm_db($config->database);
 $dbtime = $db->now();
 $phptime = date('Y-m-d H:i:s O');
 $dbTs = strtotime($dbtime);

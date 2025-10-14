@@ -1,12 +1,10 @@
 <?php
 
-use App\Lib\Database\cm_badge_artwork_db;
-
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('badge-oneoff-printing', 'badge-oneoff-printing');
 
-$badb = new cm_badge_artwork_db($db);
+$badb = $kernel->container->cm_badge_artwork_db;
 $artwork = $badb->list_badge_artwork();
 
 cm_admin_head('One-Off Badge Printing');

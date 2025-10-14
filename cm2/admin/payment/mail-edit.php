@@ -1,13 +1,11 @@
 <?php
 
-use App\Lib\Database\cm_mail_db;
-
 require_once __DIR__ .'/../../../src/lib/util/cmmail.php';
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('payment-mail', 'payment-mail');
 
-$mdb = new cm_mail_db($db);
+$mdb = $kernel->container->cm_mail_db;
 
 if (isset($_POST['name']) && $_POST['name']) {
 	$template_name = trim($_POST['name']);

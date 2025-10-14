@@ -33,7 +33,7 @@ $read_only = isset($_GET['ro']);
 $can_edit = $adb->user_has_permission($admin_user, 'applicants-edit-'.$ctx_lc) && !$read_only;
 
 $apdb = new cm_application_db($db, $context);
-$atdb = new cm_attendee_db($db);
+$atdb = $kernel->container->cm_attendee_db;
 
 if (isset($_GET['id'])) {
 	$new = false;

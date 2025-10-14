@@ -4,11 +4,7 @@ namespace App;
 
 use App\Config\Configuration;
 use App\Config\ConfigurationMapper;
-use App\Lib\Log\LogLibrary;
-use Twig\Environment;
-use Twig\Loader\FilesystemLoader;
-use Twig\TwigFilter;
-use Twig\TwigFunction;
+use App\Container\Container;
 
 final class Kernel
 {
@@ -17,6 +13,7 @@ final class Kernel
      */
     public readonly Configuration $config;
     public readonly bool $isAppDebug;
+    public readonly Container $container;
 
     public function __construct(
         private readonly ConfigurationMapper $configMapper,
@@ -49,6 +46,8 @@ final class Kernel
         } else {
             $this->logDir = $this->projectDir . '/var/log/' . $logDir;
         }
+
+        $this->container = new Container($this->config, $this);
     }
 
     private(set) string $projectDir { get => $this->projectDir = dirname(__DIR__); }
@@ -61,35 +60,4 @@ final class Kernel
     private(set) string $publicPath { get => $this->publicPath ??= ''; }
     private(set) string $themePath { get => $this->themePath ??= $this->publicPath.'/'.$this->config->system->themeLocation; }
     private(set) string $resPath { get => $this->resPath ??= $this->publicPath.'/lib/res'; }
-
-
-    protected(set) LogLibrary $log {
-        get => $this->log = new LogLibrary($this->logDir);
-    }
-
-    protected(set) Environment $twig {
-        get {
-            if (isset($this->twig)) {
-                return $this->twig;
-            }
-
-            $this->twig = new Environment(
-                new FilesystemLoader($this->projectDir.'/templates'),
-                [
-                    'debug' => $this->isAppDebug,
-                    'strict_variables' => $this->isAppDebug,
-                    'cache' => $this->cacheDir.'/twig',
-                ],
-            );
-            $this->twig->addFunction(new TwigFunction('theme_file_path', theme_file_path(...)));
-            $this->twig->addFunction(new TwigFunction('resource_file_url', resource_file_url(...)));
-            $this->twig->addFunction(new TwigFunction('resource_file_path', resource_file_path(...)));
-            $this->twig->addFunction(new TwigFunction('get_site_url', get_site_url(...)));
-            $this->twig->addFunction(new TwigFunction('get_site_path', get_site_path(...)));
-            $this->twig->addFilter(new TwigFilter('price_string', price_string(...)));
-            $this->twig->addFilter(new TwigFilter('cm_status_label', cm_status_label(...)));
-
-            return $this->twig;
-        }
-    }
 }

@@ -9,7 +9,7 @@ require_once __DIR__ .'/../admin.php';
 
 if (isset($_POST['action'])) {
 	header('Content-type: text/plain');
-	$atdb = new cm_attendee_db($db);
+	$atdb = $kernel->container->cm_attendee_db;
 	if ($_POST['action'] == 'init') {
 		$_SESSION['attendee_reindex_time'] = microtime(true);
 		$_SESSION['attendee_reindex_entities'] = $atdb->list_attendees();

@@ -1,14 +1,13 @@
 <?php
 
 use App\Lib\Database\cm_application_db;
-use App\Lib\Database\cm_misc_db;
 
 require_once __DIR__ .'/admin.php';
 
 cm_admin_check_permission('rooms-and-tables', 'rooms-and-tables');
 
 $apdb = new cm_application_db($db, null);
-$midb = new cm_misc_db($db);
+$midb = $kernel->container->cm_misc_db;
 
 $message = null;
 $success = null;

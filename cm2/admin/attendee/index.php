@@ -11,7 +11,7 @@ $can_view = $adb->user_has_permission($admin_user, 'attendees-view');
 $can_edit = $adb->user_has_permission($admin_user, 'attendees-edit');
 $can_delete = $adb->user_has_permission($admin_user, 'attendees-delete');
 
-$atdb = new cm_attendee_db($db);
+$atdb = $kernel->container->cm_attendee_db;
 $name_map = $atdb->get_badge_type_name_map();
 
 $fdb = new cm_forms_db($db, 'attendee');

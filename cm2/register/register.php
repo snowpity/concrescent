@@ -1,9 +1,7 @@
 <?php
 
 use App\Lib\Database\cm_attendee_db;
-use App\Lib\Database\cm_db;
 use App\Lib\Database\cm_forms_db;
-use App\Lib\Database\cm_mail_db;
 use JetBrains\PhpStorm\NoReturn;
 
 session_name('PHPSESSID_CMREG');
@@ -18,15 +16,15 @@ $event_name = $cm_config['event']['name'];
 $onsite_only = isset($_COOKIE['onsite_only']) && $_COOKIE['onsite_only'];
 $override_code = $_GET['override_code'] ?? ($_POST['override_code'] ?? '');
 
-$db = new cm_db();
+$db = $kernel->container->cm_db;
 
-$atdb = new cm_attendee_db($db);
+$atdb = $kernel->container->cm_attendee_db;
 $name_map = $atdb->get_badge_type_name_map();
 
 $fdb = new cm_forms_db($db, 'attendee');
 $questions = $fdb->list_questions();
 
-$mdb = new cm_mail_db($db);
+$mdb = $kernel->container->cm_mail_db;
 $contact_address = $mdb->get_contact_address('attendee-paid');
 
 function cm_reg_item_update_from_post(&$item, $post)

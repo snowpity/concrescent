@@ -2,14 +2,13 @@
 
 use App\Lib\Database\cm_application_db;
 use App\Lib\Database\cm_attendee_db;
-use App\Lib\Database\cm_staff_db;
 
 require_once __DIR__ .'/admin.php';
 
 cm_admin_check_permission('statistics', 'statistics');
 
 function atsection($db) {
-	$atdb = new cm_attendee_db($db);
+	$atdb = $kernel->container->cm_attendee_db;
 	$atnames = $atdb->get_badge_type_name_map();
 	$atstat = $atdb->get_attendee_statistics(300, $atnames);
 	$atnames['*'] = 'All Attendees';
@@ -25,7 +24,7 @@ function apsection($db, $context, $ctx_info) {
 }
 
 function ssection($db) {
-	$sdb = new cm_staff_db($db);
+	$sdb = $kernel->container->cm_staff_db;
 	$snames = $sdb->get_badge_type_name_map();
 	$sstat = $sdb->get_staff_statistics(300, $snames);
 	$snames['*'] = 'All Staff';

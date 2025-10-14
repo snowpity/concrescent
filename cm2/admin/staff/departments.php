@@ -1,16 +1,13 @@
 <?php
 
-use App\Lib\Database\cm_misc_db;
-use App\Lib\Database\cm_staff_db;
-
 require_once __DIR__ .'/../../../src/lib/util/cmlists.php';
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('staff-departments', 'staff-departments');
 
-$sdb = new cm_staff_db($db);
+$sdb = $kernel->container->cm_staff_db;
 
-$midb = new cm_misc_db($db);
+$midb = $kernel->container->cm_misc_db;
 $domain = $midb->getval('mail-default-domain', $_SERVER['SERVER_NAME']);
 
 $list_def = array(

@@ -1,7 +1,5 @@
 <?php
 
-use App\Lib\Database\cm_mail_db;
-
 require_once __DIR__ .'/../register/register.php';
 
 //Assume we got something
@@ -61,7 +59,7 @@ foreach ($items_raw as $badgeix => $badge) {
 echo json_encode($items);
 } else if (isset($json['email'])) {
 
-    $mdb = new cm_mail_db($db);
+    $mdb = $kernel->container->cm_mail_db;
     $reviewlinks = $atdb->retrieve_attendee_reviewlinks($json['email']);
     //echo json_encode($reviewlinks);
     $template = $mdb->get_mail_template('attendee-retrieve');

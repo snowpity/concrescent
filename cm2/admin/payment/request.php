@@ -1,14 +1,11 @@
 <?php
 
-use App\Lib\Database\cm_mail_db;
-use App\Lib\Database\cm_payment_db;
-
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('payment-request', 'payment-request');
 
-$pdb = new cm_payment_db($db);
-$mdb = new cm_mail_db($db);
+$pdb = $kernel->container->cm_payment_db;
+$mdb = $kernel->container->cm_mail_db;
 
 $item = array();
 $errors = array();

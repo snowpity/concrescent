@@ -1,9 +1,7 @@
 <?php
 
 use App\Lib\Database\cm_application_db;
-use App\Lib\Database\cm_db;
 use App\Lib\Database\cm_forms_db;
-use App\Lib\Database\cm_mail_db;
 use JetBrains\PhpStorm\NoReturn;
 
 require_once __DIR__ .'/../../src/lib/util/res.php';
@@ -29,7 +27,7 @@ session_name('PHPSESSID_CMAPPLYAPP_' . $ctx_uc);
 session_start();
 
 $event_name = $cm_config['event']['name'];
-$db = new cm_db();
+$db = $kernel->container->cm_db;
 
 $apdb = new cm_application_db($db, $context);
 $name_map = $apdb->get_badge_type_name_map();
@@ -37,7 +35,7 @@ $name_map = $apdb->get_badge_type_name_map();
 $fdb = new cm_forms_db($db, 'application-' . $ctx_lc);
 $questions = $fdb->list_questions();
 
-$mdb = new cm_mail_db($db);
+$mdb = $kernel->container->cm_mail_db;
 $contact_address = $mdb->get_contact_address('application-submitted-' . $ctx_lc);
 
 function cm_app_cart_set_state($state, $cart = null) {

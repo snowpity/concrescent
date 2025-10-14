@@ -17,7 +17,7 @@ if (!$applications) {
 	exit(0);
 }
 
-$atdb = new cm_attendee_db($db);
+$atdb = $kernel->container->cm_attendee_db;
 $items = array();
 $items_total = 0;
 $items_total_sales_tax = 0;

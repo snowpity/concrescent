@@ -1,10 +1,8 @@
 <?php
 
-use App\Lib\Database\cm_misc_db;
-
 require_once __DIR__ .'/admin.php';
 
-$midb = new cm_misc_db($db);
+$midb = $kernel->container->cm_misc_db;
 
 if (!$midb->download_file('rooms-and-tables')) {
 	header('Content-Type: image/png');

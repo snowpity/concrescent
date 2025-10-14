@@ -2,6 +2,7 @@
 
 namespace App\Lib\Database;
 
+use App\Config\Module\Database as DatabaseConfig;
 use PDO;
 use PDOStatement;
 
@@ -9,19 +10,19 @@ class cm_db {
 
 	public PDO $connection;
 
-	public function __construct() {
-		$config = $GLOBALS['cm_config']['database'];
-
-		$host = $config['host'];
-		$dbname = $config['database'];
+	public function __construct(
+        private readonly DatabaseConfig $config,
+    ) {
+		$host = $this->config->host;
+		$dbname = $this->config->database;
 		// The charset must be utf8mb4 for full Unicode® support
 		$this->connection = new PDO(
 			"mysql:host=$host;dbname=$dbname;charset=utf8mb4",
-			$config['username'], $config['password']
+            $this->config->username, $this->config->password,
+            [
+                PDO::MYSQL_ATTR_INIT_COMMAND => 'set time_zone = "'. $this->config->timezone .'"',
+            ]
 		);
-
-		// Set the time zone
-		$this->connection->prepare('set time_zone = ?')->execute([$config['timezone']]);
 	}
 
 	public function translate_query(string $query): string

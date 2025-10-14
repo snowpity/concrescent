@@ -8,7 +8,7 @@ require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('attendee-questions', 'attendee-questions');
 
-$atdb = new cm_attendee_db($db);
+$atdb = $kernel->container->cm_attendee_db;
 $name_list = $atdb->list_badge_type_names();
 
 $form_def = array(

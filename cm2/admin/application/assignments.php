@@ -2,9 +2,6 @@
 
 use App\Lib\Database\cm_application_db;
 use App\Lib\Database\cm_forms_db;
-use App\Lib\Database\cm_misc_db;
-use App\Lib\Hook\CloudflareApi;
-use App\Lib\Task\SchedulePublishableTask;
 
 require_once __DIR__ .'/../admin.php';
 require_once __DIR__ .'/../../../src/lib/util/cmlists.php';
@@ -31,15 +28,9 @@ $ctx_name_lc = strtolower($ctx_name);
 cm_admin_check_permission('application-assignments-'.$ctx_lc, 'application-assignments-'.$ctx_lc);
 
 $apdb = new cm_application_db($db, $context);
-$midb = new cm_misc_db($db);
+$midb = $kernel->container->cm_misc_db;
 
-$taskSchedulePublishable = $kernel->config->cloudflare ? new SchedulePublishableTask(
-    new CloudflareApi(
-        $kernel->config->cloudflare,
-        $log->cloudflare,
-    ),
-    $log->system,
-) : null;
+$taskSchedulePublishable = $kernel->container->taskSchedulePublishable;
 
 $list_def = array(
 	'loader' => 'server-side',

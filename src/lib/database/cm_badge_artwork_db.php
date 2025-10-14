@@ -26,10 +26,9 @@ class cm_badge_artwork_db {
 		'display-name' => 'Display Name'
 	);
 
-	public cm_db $cm_db;
-
-	public function __construct(cm_db $cm_db) {
-		$this->cm_db = $cm_db;
+	public function __construct(
+        public cm_db $cm_db
+    ) {
 		$this->cm_db->table_def('badge_artwork_files', (
 			'`file_name` VARCHAR(255) NOT NULL PRIMARY KEY,'.
 			'`mime_type` VARCHAR(255) NULL,'.

@@ -1,14 +1,13 @@
 <?php
 
 use App\Lib\Database\cm_forms_db;
-use App\Lib\Database\cm_staff_db;
 
 require_once __DIR__ . '/../../../src/lib/util/cmexport.php';
 require_once __DIR__ .'/../admin.php';
 
 cm_admin_check_permission('staff-csv', 'staff-csv');
 
-$sdb = new cm_staff_db($db);
+$sdb = $kernel->container->cm_staff_db;
 $name_map = $sdb->get_badge_type_name_map();
 $dept_map = $sdb->get_department_map();
 $pos_map = $sdb->get_position_map();

@@ -2,9 +2,6 @@
 
 use App\Lib\Database\cm_attendee_db;
 use App\Lib\Database\cm_forms_db;
-use App\Lib\Database\cm_mail_db;
-use App\Lib\Database\cm_misc_db;
-use App\Lib\Database\cm_staff_db;
 use App\Lib\Util\cm_slack;
 
 require_once __DIR__ .'/../../../src/lib/util/cmforms.php';
@@ -18,7 +15,7 @@ $can_edit_info = $review_mode ? false : $can_edit;
 $can_edit_status = $review_mode ? $can_review : $can_edit;
 $can_submit = $can_edit_info || $can_edit_status;
 
-$sdb = new cm_staff_db($db);
+$sdb = $kernel->container->cm_staff_db;
 $name_map = $sdb->get_badge_type_name_map();
 $dept_map = $sdb->get_department_map();
 $pos_map = $sdb->get_position_map();
@@ -26,9 +23,9 @@ $pos_map = $sdb->get_position_map();
 $fdb = new cm_forms_db($db, 'staff');
 $questions = $fdb->list_questions();
 
-$atdb = new cm_attendee_db($db);
-$mdb = new cm_mail_db($db);
-$midb = new cm_misc_db($db);
+$atdb = $kernel->container->cm_attendee_db;
+$mdb = $kernel->container->cm_mail_db;
+$midb = $kernel->container->cm_misc_db;
 $domain = $midb->getval('mail-default-domain', $_SERVER['SERVER_NAME']);
 
 $new = !isset($_GET['id']);
