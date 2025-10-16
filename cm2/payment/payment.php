@@ -7,6 +7,7 @@ session_start();
 
 require_once __DIR__ .'/../../src/lib/util/res.php';
 
+$db = $kernel->container->cm_db;
 $pdb = $kernel->container->cm_payment_db;
 $mdb = $kernel->container->cm_mail_db;
 

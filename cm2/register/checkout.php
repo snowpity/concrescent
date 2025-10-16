@@ -140,7 +140,7 @@ if (!$_GET) {
 			);
 		}
 
-		$slack = new cm_slack();
+		$slack = $kernel->container->cm_slack;
 		if ($slack->get_hook_url('attendee-blacklisted')) {
 			$body = 'The following attendee registrations were just blacklisted:';
 			foreach ($attendee_ids as $id) {

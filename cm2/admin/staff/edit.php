@@ -173,7 +173,7 @@ if ($submitted) {
 				$template = $mdb->get_mail_template($template_name);
 				$mdb->send_mail($item['email-address'], $template, $item);
 
-				$slack = new cm_slack();
+				$slack = $kernel->container->cm_slack;
 				if ($slack->get_hook_url($template_name)) {
 					$body = 'The staff application for ';
 					$body .= $slack->make_link(

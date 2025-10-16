@@ -17,6 +17,7 @@ use App\Lib\Hook\CloudflareApi;
 use App\Lib\Log\LogLibrary;
 use App\Lib\Task\SchedulePublishableTask;
 use App\Lib\Task\SponsorPublishableTask;
+use App\Lib\Util\cm_slack;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 use Twig\TwigFilter;
@@ -100,6 +101,9 @@ final class Container
         get => $this->cm_misc_db = new cm_misc_db($this->cm_db);
     }
 
+    private(set) cm_slack $cm_slack {
+        get => $this->cm_slack = new cm_slack();
+    }
 
     private(set) ?CloudflareApi $cloudflareApi {
         get {

@@ -258,7 +258,7 @@ if ($submitted) {
 				$template = $mdb->get_mail_template($template_name);
 				$mdb->send_mail($item['contact-email-address'], $template, $item);
 
-				$slack = new cm_slack();
+				$slack = $kernel->container->cm_slack;
 				$template_name = array('application-' . $application_status, $ctx_uc);
 				if ($slack->get_hook_url($template_name)) {
 					$body = 'The ' . $ctx_name_lc . ' application for ';

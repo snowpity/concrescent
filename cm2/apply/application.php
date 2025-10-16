@@ -244,7 +244,7 @@ if (isset($_POST['submit'])) {
 		$template = $mdb->get_mail_template('application-submitted-'.$ctx_lc);
 		$mdb->send_mail($item['contact-email-address'], $template, $item);
 
-		$slack = new cm_slack();
+		$slack = $kernel->container->cm_slack;
 		$blacklisted = $apdb->is_application_blacklisted($item);
 		foreach ($item['applicants'] as $applicant) {
 			if (
