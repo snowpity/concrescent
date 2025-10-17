@@ -48,7 +48,7 @@ if($submitted){
     die('Can\'t let you do that, Starfox!');
   }
   $keep_payment_status = isset($_POST['keep_status']) &&  isset($_POST['keep_status']) == 1;
-	$paypal = new cm_paypal();
+    $paypal = $kernel->container->cm_paypal;
 	$token = $paypal->get_token();
 
   $refund_result = $paypal->execute_refund($tx['payment_saleID'],$tx['invoice_number'], $_POST['refund-amt'], $_POST['refund-note']);

@@ -17,7 +17,12 @@ use App\Lib\Hook\CloudflareApi;
 use App\Lib\Log\LogLibrary;
 use App\Lib\Task\SchedulePublishableTask;
 use App\Lib\Task\SponsorPublishableTask;
+use App\Lib\Util\cm_paypal;
 use App\Lib\Util\cm_slack;
+use Symfony\Component\Cache\Adapter\ApcuAdapter;
+use Symfony\Component\Cache\Adapter\ChainAdapter;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Contracts\Cache\CacheInterface;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 use Twig\TwigFilter;
@@ -29,6 +34,17 @@ final class Container
         private readonly Configuration $config,
         private readonly Kernel $kernel,
     ) {
+    }
+
+    private(set) CacheInterface $cache {
+        get => $this->cache = new ChainAdapter([
+            new ApcuAdapter(
+                namespace: '',
+            ),
+            new FilesystemAdapter(
+                namespace: '',
+            ),
+        ]);
     }
 
     private(set) LogLibrary $log {
@@ -99,6 +115,15 @@ final class Container
 
     private(set) cm_misc_db $cm_misc_db {
         get => $this->cm_misc_db = new cm_misc_db($this->cm_db);
+    }
+
+    private(set) cm_paypal $cm_paypal {
+        get => $this->cm_paypal = new cm_paypal(
+            $this->config->paypal,
+            $this->config->event,
+            $this->cache,
+            $this->log->paypal,
+        );
     }
 
     private(set) cm_slack $cm_slack {

@@ -219,8 +219,7 @@ if (!$_GET) {
 	}
 
 	if ($_SESSION['payment_method'] === 'paypal') {
-		$paypal = new cm_paypal();
-		$token = $paypal->get_token();
+		$paypal = $kernel->container->cm_paypal;
 
         /** @var float $salesTax */
         $salesTax = ($cm_config['payment']['sales_tax'] ?? 0);
@@ -312,7 +311,6 @@ if (!$_GET) {
 		$_SESSION['group_uuid'] = $group_uuid;
 		$_SESSION['transaction_id'] = $transaction_id;
 		$_SESSION['attendee_ids'] = $attendee_ids;
-		$_SESSION['paypal_token'] = $token;
 		$_SESSION['payment_id'] = $payment['id'];
 		cm_reg_cart_set_state('approval');
 		header('Location: ' . $url);
@@ -332,10 +330,7 @@ if (isset($_GET['return'])) {
 	$transaction_id = $_GET['tid'] ?? ($_SESSION['transaction_id'] ?? null);
 	$_SESSION['payment_id'] = $_SESSION['payment_id'] ?? null;
 
-	$token = $_SESSION['paypal_token'] ?? null;
-	$paypal = new cm_paypal($token);
-	//Ensure we have a token
-	$paypal->get_token();
+	$paypal = $kernel->container->cm_paypal;
 
 	//check that the payment ID is the same
 	$payment_id = $_GET['paymentId'] ?? null;

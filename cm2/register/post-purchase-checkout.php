@@ -110,8 +110,7 @@ if (!$_GET) {
 	}
 
 	if ($_SESSION['payment_method'] == 'paypal') {
-		$paypal = new cm_paypal();
-		$token = $paypal->get_token();
+		$paypal = $kernel->container->cm_paypal;
 
 		$items = create_post_purchase_paypal_items($paypal, $item);
 		$total = $paypal->create_total($total_price->total, $total_price->tax);
@@ -137,7 +136,6 @@ if (!$_GET) {
 			exit(0);
 		}
 
-		$_SESSION['paypal_token'] = $token;
 		$_SESSION['payment_id'] = $payment['id'];
 		cm_reg_post_edit_set_state('approval');
 		header('Location: ' . $url);
@@ -154,8 +152,7 @@ if (isset($_GET['return'])) {
 		exit(0);
 	}
 
-	$token = $_SESSION['paypal_token'];
-	$paypal = new cm_paypal($token);
+	$paypal = $kernel->container->cm_paypal;
 
 	$payment_id = $_SESSION['payment_id'];
 	$payer_id = $_GET['PayerID'] ?? null;

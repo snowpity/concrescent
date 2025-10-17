@@ -1,6 +1,12 @@
 <?php
 
+use App\Config\ConfigurationMapper;
 use App\Lib\Util\cm_paypal;
+use Monolog\Handler\StreamHandler;
+use Monolog\Level;
+use Monolog\Logger;
+use Monolog\Processor\PsrLogMessageProcessor;
+use Symfony\Component\Cache\Adapter\NullAdapter;
 
 require_once 'util.php';
 require_once __DIR__ .'/../../../config/concrescent.php';
@@ -18,6 +24,29 @@ function print_success() {
 
 register_shutdown_function(print_success(...));
 
-$paypal = @new cm_paypal();
-$token = @$paypal->get_token()['access_token'];
-$success = !!$token;
+$config = new ConfigurationMapper()->mapToConfiguration($cm_config);
+
+$logger = new Logger('paypal');
+$debugStdoutHandler = new StreamHandler(
+    'php://stdout',
+    Level::Debug
+);
+$logger->pushHandler($debugStdoutHandler);
+$logger->pushProcessor(new PsrLogMessageProcessor());
+
+$paypal = @new cm_paypal(
+    $config->paypal,
+    $config->event,
+    new NullAdapter(),
+    $logger
+);
+
+
+# if query "purge" exists, prune paypal token
+if (isset($_GET['purge'])) {
+    $paypal->pruneToken();
+}
+
+
+$token = @$paypal->token->accessToken;
+$success = (bool)$token;

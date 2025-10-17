@@ -13,6 +13,7 @@ readonly class LogLibrary
 {
     public Logger $audit;
     public Logger $cloudflare;
+    public Logger $paypal;
     public Logger $system;
 
     public function __construct(
@@ -53,6 +54,22 @@ readonly class LogLibrary
                 );
                 $logfileHandler->setFormatter(new JsonFormatter());
                 $this->cloudflare->pushHandler($logfileHandler);
+            }
+        }
+
+        {
+            $this->paypal = new Logger('paypal');
+            $this->paypal->pushHandler($debugStdoutHandler);
+            $this->paypal->pushProcessor(new WebProcessor());
+            $this->paypal->pushProcessor(new PsrLogMessageProcessor());
+
+            if ($this->logDir) {
+                $logfileHandler = new StreamHandler(
+                    $this->logDir . '/paypal.log',
+                    Level::Info
+                );
+                $logfileHandler->setFormatter(new JsonFormatter());
+                $this->paypal->pushHandler($logfileHandler);
             }
         }
 

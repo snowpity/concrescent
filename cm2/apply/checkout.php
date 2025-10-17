@@ -53,8 +53,7 @@ if (count($_GET) == 1) {
 	}
 
 	/* if ($_SESSION['payment_method'] == 'paypal') */ {
-		$paypal = new cm_paypal();
-		$token = $paypal->get_token();
+		$paypal = $kernel->container->cm_paypal;
 
 		$items = array();
 		foreach ($_SESSION['cart'] as $item) {
@@ -90,7 +89,6 @@ if (count($_GET) == 1) {
 
 		$_SESSION['total_price'] = $total_price;
 		$_SESSION['app_id_map'] = $app_id_map;
-		$_SESSION['paypal_token'] = $token;
 		$_SESSION['payment_id'] = $payment['id'];
 		cm_app_cart_set_state('approval');
 		header('Location: ' . $url);
@@ -109,8 +107,7 @@ if (isset($_GET['return'])) {
 
 	$total_price = $_SESSION['total_price'];
 	$app_id_map = $_SESSION['app_id_map'];
-	$token = $_SESSION['paypal_token'];
-	$paypal = new cm_paypal($token);
+	$paypal = $kernel->container->cm_paypal;
 
 	$payment_id = $_SESSION['payment_id'];
 	$payer_id = $_GET['PayerID'] ?? null;
