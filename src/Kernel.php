@@ -52,8 +52,9 @@ final class Kernel
 
     private(set) string $projectDir { get => $this->projectDir = dirname(__DIR__); }
     private(set) string $configDir { get => $this->configDir = $this->projectDir.'/config'; }
-    private(set) string $cacheDir { get => $this->cacheDir = $this->projectDir.'/var/cache'; }
-    private(set) string $logDir { get => $this->logDir ??= $this->projectDir.'/var/log'; }
+    private(set) string $varDir { get => $this->varDir = $this->projectDir.'/var'; }
+    private(set) string $cacheDir { get => $this->cacheDir = $this->varDir.'/cache'; }
+    private(set) string $logDir { get => $this->logDir ??= $this->varDir.'/log'; }
     private(set) string $publicDir { get => $this->publicDir ??= $this->projectDir.'/cm2'; }
     private(set) string $themeDir { get => $this->themeDir ??= $this->publicDir.'/'.$this->config->system->themeLocation; }
     private(set) string $resDir { get => $this->resDir ??= $this->publicDir.'/lib/res'; }

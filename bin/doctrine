@@ -3,12 +3,21 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use App\Config\ConfigurationMapper;
+use App\Kernel;
 use Doctrine\ORM\Tools\Console\ConsoleRunner;
 use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
-use App\Common\DatabaseCore;
+
+try {
+    $kernel = new Kernel(
+            new ConfigurationMapper()
+    );
+} catch(Throwable $e) {
+
+}
 
 // replace with mechanism to retrieve EntityManager in your app
-$entityManager = DatabaseCore::createSingleInstance()->entityManager;
+$entityManager = $kernel->container->entityManager;
 
 $commands = [
     // If you want to add your own custom console commands,

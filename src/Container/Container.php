@@ -37,7 +37,7 @@ final class Container
     }
 
     private(set) CacheInterface $cache {
-        get => $this->cache = new ChainAdapter([
+        get => $this->cache ??= new ChainAdapter([
             new ApcuAdapter(
                 namespace: '',
             ),
@@ -48,7 +48,7 @@ final class Container
     }
 
     private(set) LogLibrary $log {
-        get => $this->log = new LogLibrary($this->kernel->logDir);
+        get => $this->log ??= new LogLibrary($this->kernel->logDir);
     }
 
     private(set) Environment $twig {
@@ -78,23 +78,23 @@ final class Container
     }
 
     private(set) cm_db $cm_db {
-        get => $this->cm_db = new cm_db($this->config->database);
+        get => $this->cm_db ??= new cm_db($this->config->database);
     }
 
     private(set) cm_admin_db $cm_admin_db {
-        get => $this->cm_admin_db = new cm_admin_db($this->cm_db);
+        get => $this->cm_admin_db ??= new cm_admin_db($this->cm_db);
     }
 
     private(set) cm_attendee_db $cm_attendee_db {
-        get => $this->cm_attendee_db = new cm_attendee_db($this->cm_db);
+        get => $this->cm_attendee_db ??= new cm_attendee_db($this->cm_db);
     }
 
     private(set) cm_staff_db $cm_staff_db {
-        get => $this->cm_staff_db = new cm_staff_db($this->cm_db);
+        get => $this->cm_staff_db ??= new cm_staff_db($this->cm_db);
     }
 
     private(set) cm_badge_holder_db $cm_badge_holder_db {
-        get => $this->cm_badge_holder_db = new cm_badge_holder_db(
+        get => $this->cm_badge_holder_db ??= new cm_badge_holder_db(
             $this->cm_db,
             $this->cm_attendee_db,
             $this->cm_staff_db,
@@ -102,23 +102,23 @@ final class Container
     }
 
     private(set) cm_badge_artwork_db $cm_badge_artwork_db {
-        get => $this->cm_badge_artwork_db = new cm_badge_artwork_db($this->cm_db);
+        get => $this->cm_badge_artwork_db ??= new cm_badge_artwork_db($this->cm_db);
     }
 
     private(set) cm_payment_db $cm_payment_db {
-        get => $this->cm_payment_db = new cm_payment_db($this->cm_db);
+        get => $this->cm_payment_db ??= new cm_payment_db($this->cm_db);
     }
 
     private(set) cm_mail_db $cm_mail_db {
-        get => $this->cm_mail_db = new cm_mail_db($this->cm_db);
+        get => $this->cm_mail_db ??= new cm_mail_db($this->cm_db);
     }
 
     private(set) cm_misc_db $cm_misc_db {
-        get => $this->cm_misc_db = new cm_misc_db($this->cm_db);
+        get => $this->cm_misc_db ??= new cm_misc_db($this->cm_db);
     }
 
     private(set) cm_paypal $cm_paypal {
-        get => $this->cm_paypal = new cm_paypal(
+        get => $this->cm_paypal ??= new cm_paypal(
             $this->config->paypal,
             $this->config->event,
             $this->cache,
@@ -127,7 +127,7 @@ final class Container
     }
 
     private(set) cm_slack $cm_slack {
-        get => $this->cm_slack = new cm_slack();
+        get => $this->cm_slack ??= new cm_slack();
     }
 
     private(set) ?CloudflareApi $cloudflareApi {
